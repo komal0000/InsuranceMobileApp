@@ -1,0 +1,341 @@
+    <ion-header>
+      <ion-toolbar color="primary">
+        <ion-buttons slot="start">
+          <ion-back-button [defaultHref]="'/tabs/enrollments'"></ion-back-button>
+        </ion-buttons>
+        <ion-title>{{ stepTitles[currentStep - 1] }}</ion-title>
+      </ion-toolbar>
+    </ion-header>
+
+    <ion-content>
+      <!-- Step Progress -->
+      <div class="wizard-progress">
+        <div class="progress-track">
+          <div class="progress-fill" [style.width.%]="(currentStep / 5) * 100"></div>
+        </div>
+        <div class="steps-row">
+          <div *ngFor="let title of stepTitles; let i = index" class="step-dot-container"
+            [class.active]="currentStep === i + 1" [class.completed]="currentStep > i + 1">
+            <div class="step-dot">{{ currentStep > i + 1 ? '✓' : i + 1 }}</div>
+            <span class="step-label">{{ title }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="wizard-content">
+        <!-- STEP 1: Location -->
+        <div *ngIf="currentStep === 1">
+          <ion-card>
+            <ion-card-content>
+              <div class="section-title">
+                <div class="section-icon" style="background: rgba(0,48,135,0.08);">
+                  <ion-icon name="location-outline" style="color: #003087;"></ion-icon>
+                </div>
+                <h3>Household Location</h3>
+              </div>
+              <div class="form-group">
+                <ion-item class="form-item">
+                  <ion-select label="Province *" labelPlacement="stacked" placeholder="Select Province"
+                    [(ngModel)]="step1.province" (ionChange)="onProvinceChange()">
+                    <ion-select-option *ngFor="let p of provinces" [value]="p.name">{{ p.name }}</ion-select-option>
+                  </ion-select>
+                </ion-item>
+                <ion-item class="form-item">
+                  <ion-select label="District *" labelPlacement="stacked" placeholder="Select District"
+                    [(ngModel)]="step1.district" [disabled]="!districts.length" (ionChange)="onDistrictChange()">
+                    <ion-select-option *ngFor="let d of districts" [value]="d.name">{{ d.name }}</ion-select-option>
+                  </ion-select>
+                </ion-item>
+                <ion-item class="form-item">
+                  <ion-select label="Municipality *" labelPlacement="stacked" placeholder="Select Municipality"
+                    [(ngModel)]="step1.municipality" [disabled]="!municipalities.length" (ionChange)="onMunicipalityChange()">
+                    <ion-select-option *ngFor="let m of municipalities" [value]="m.name">{{ m.name }}</ion-select-option>
+                  </ion-select>
+                </ion-item>
+                <ion-item class="form-item">
+                  <ion-select label="Ward Number *" labelPlacement="stacked" placeholder="Select Ward"
+                    [(ngModel)]="step1.ward_number" [disabled]="!wards.length">
+                    <ion-select-option *ngFor="let w of wards" [value]="w.name">{{ w.name }}</ion-select-option>
+                  </ion-select>
+                </ion-item>
+                <ion-item class="form-item">
+                  <ion-input label="Tole/Village" labelPlacement="stacked" placeholder="Enter tole or village"
+                    [(ngModel)]="step1.tole_village"></ion-input>
+                </ion-item>
+                <ion-item class="form-item">
+                  <ion-input label="Full Address" labelPlacement="stacked" placeholder="Enter full address"
+                    [(ngModel)]="step1.full_address"></ion-input>
+                </ion-item>
+              </div>
+            </ion-card-content>
+          </ion-card>
+        </div>
+
+        <!-- STEP 2: Household Head -->
+        <div *ngIf="currentStep === 2">
+          <ion-card>
+            <ion-card-content>
+              <div class="section-title">
+                <div class="section-icon" style="background: rgba(102,16,242,0.08);">
+                  <ion-icon name="person-outline" style="color: #6610f2;"></ion-icon>
+                </div>
+                <h3>Household Head Info</h3>
+              </div>
+              <div class="form-group">
+                <ion-item class="form-item">
+                  <ion-input label="First Name *" labelPlacement="stacked" placeholder="First name"
+                    [(ngModel)]="headData.first_name"></ion-input>
+                </ion-item>
+                <ion-item class="form-item">
+                  <ion-input label="Last Name *" labelPlacement="stacked" placeholder="Last name"
+                    [(ngModel)]="headData.last_name"></ion-input>
+                </ion-item>
+                <ion-item class="form-item">
+                  <ion-select label="Gender *" labelPlacement="stacked" [(ngModel)]="headData.gender">
+                    <ion-select-option value="male">Male</ion-select-option>
+                    <ion-select-option value="female">Female</ion-select-option>
+                    <ion-select-option value="other">Other</ion-select-option>
+                  </ion-select>
+                </ion-item>
+                <ion-item class="form-item">
+                  <ion-input label="Date of Birth *" labelPlacement="stacked" type="date"
+                    [(ngModel)]="headData.date_of_birth"></ion-input>
+                </ion-item>
+                <ion-item class="form-item">
+                  <ion-input label="Mobile Number *" labelPlacement="stacked" type="tel"
+                    placeholder="98XXXXXXXX" [(ngModel)]="headData.mobile_number"></ion-input>
+                </ion-item>
+                <ion-item class="form-item">
+                  <ion-input label="Citizenship Number" labelPlacement="stacked"
+                    placeholder="Citizenship number" [(ngModel)]="headData.citizenship_number"></ion-input>
+                </ion-item>
+              </div>
+
+              <div class="capture-section">
+                <div class="capture-row">
+                  <span class="capture-label">Photo</span>
+                  <ion-button fill="outline" size="small" (click)="captureImage('photo')">
+                    <ion-icon name="camera-outline" slot="start"></ion-icon>
+                    {{ headData.photo ? 'Retake' : 'Capture' }}
+                  </ion-button>
+                </div>
+                <ion-img *ngIf="headPhotoPreview" [src]="headPhotoPreview" class="preview-img"></ion-img>
+              </div>
+
+              <div class="capture-section">
+                <div class="capture-row">
+                  <span class="capture-label">Citizenship Front</span>
+                  <ion-button fill="outline" size="small" (click)="captureImage('citizenship_front')">
+                    <ion-icon name="camera-outline" slot="start"></ion-icon>
+                    {{ headData.citizenship_front_image ? 'Retake' : 'Capture' }}
+                  </ion-button>
+                </div>
+                <ion-img *ngIf="citizenshipFrontPreview" [src]="citizenshipFrontPreview" class="preview-img"></ion-img>
+              </div>
+
+              <div class="capture-section">
+                <div class="capture-row">
+                  <span class="capture-label">Citizenship Back</span>
+                  <ion-button fill="outline" size="small" (click)="captureImage('citizenship_back')">
+                    <ion-icon name="camera-outline" slot="start"></ion-icon>
+                    {{ headData.citizenship_back_image ? 'Retake' : 'Capture' }}
+                  </ion-button>
+                </div>
+                <ion-img *ngIf="citizenshipBackPreview" [src]="citizenshipBackPreview" class="preview-img"></ion-img>
+              </div>
+            </ion-card-content>
+          </ion-card>
+        </div>
+
+        <!-- STEP 3: Family Members -->
+        <div *ngIf="currentStep === 3">
+          <ion-card>
+            <ion-card-content>
+              <div class="section-title">
+                <div class="section-icon" style="background: rgba(13,202,240,0.1);">
+                  <ion-icon name="people-outline" style="color: #0dcaf0;"></ion-icon>
+                </div>
+                <h3>Family Members ({{ members.length }}/{{ config?.max_family_members || 10 }})</h3>
+              </div>
+
+              <div class="member-list" *ngIf="members.length > 0">
+                <div class="member-row" *ngFor="let member of members">
+                  <div class="member-avatar">{{ (member.first_name || '').charAt(0).toUpperCase() }}</div>
+                  <div class="member-info">
+                    <strong>{{ member.first_name }} {{ member.last_name }}</strong>
+                    <span>{{ member.relationship_type }} | {{ member.gender }}</span>
+                  </div>
+                  <ion-button fill="clear" color="danger" (click)="removeMember(member)">
+                    <ion-icon name="trash-outline"></ion-icon>
+                  </ion-button>
+                </div>
+              </div>
+
+              <div *ngIf="members.length === 0" class="empty-text">
+                <ion-text color="medium">No family members added yet</ion-text>
+              </div>
+
+              <ion-button expand="block" fill="outline" (click)="showAddMember()"
+                [disabled]="members.length >= (config?.max_family_members || 10)" class="ion-margin-top">
+                <ion-icon name="add-outline" slot="start"></ion-icon>
+                Add Family Member
+              </ion-button>
+            </ion-card-content>
+          </ion-card>
+
+          <!-- Add Member Form -->
+          <ion-card *ngIf="showMemberForm" class="member-form-card">
+            <ion-card-content>
+              <h4 style="margin: 0 0 12px; font-weight: 700; color: #212529;">Add Family Member</h4>
+              <div class="form-group">
+                <ion-item class="form-item">
+                  <ion-input label="First Name *" labelPlacement="stacked"
+                    [(ngModel)]="newMember.first_name"></ion-input>
+                </ion-item>
+                <ion-item class="form-item">
+                  <ion-input label="Last Name *" labelPlacement="stacked"
+                    [(ngModel)]="newMember.last_name"></ion-input>
+                </ion-item>
+                <ion-item class="form-item">
+                  <ion-select label="Gender *" labelPlacement="stacked" [(ngModel)]="newMember.gender">
+                    <ion-select-option value="male">Male</ion-select-option>
+                    <ion-select-option value="female">Female</ion-select-option>
+                    <ion-select-option value="other">Other</ion-select-option>
+                  </ion-select>
+                </ion-item>
+                <ion-item class="form-item">
+                  <ion-input label="Date of Birth *" labelPlacement="stacked" type="date"
+                    [(ngModel)]="newMember.date_of_birth"></ion-input>
+                </ion-item>
+                <ion-item class="form-item">
+                  <ion-select label="Relationship *" labelPlacement="stacked" [(ngModel)]="newMember.relationship_type">
+                    <ion-select-option *ngFor="let r of config?.relationship_types || []" [value]="r">{{ r }}</ion-select-option>
+                  </ion-select>
+                </ion-item>
+                <ion-item class="form-item">
+                  <ion-input label="Mobile Number" labelPlacement="stacked" type="tel"
+                    [(ngModel)]="newMember.mobile_number"></ion-input>
+                </ion-item>
+              </div>
+              <div class="btn-row">
+                <ion-button expand="block" (click)="addMember()" [disabled]="savingMember">
+                  <ion-spinner *ngIf="savingMember" name="crescent" slot="start"></ion-spinner>
+                  Save Member
+                </ion-button>
+                <ion-button expand="block" fill="outline" color="medium" (click)="showMemberForm = false">
+                  Cancel
+                </ion-button>
+              </div>
+            </ion-card-content>
+          </ion-card>
+        </div>
+
+        <!-- STEP 4: Documents -->
+        <div *ngIf="currentStep === 4">
+          <ion-card>
+            <ion-card-content>
+              <div class="section-title">
+                <div class="section-icon" style="background: rgba(255,193,7,0.12);">
+                  <ion-icon name="document-outline" style="color: #ffc107;"></ion-icon>
+                </div>
+                <h3>Documents</h3>
+              </div>
+
+              <div class="doc-list" *ngIf="documents.length > 0">
+                <div class="doc-row" *ngFor="let doc of documents">
+                  <ion-icon name="document-outline" class="doc-icon"></ion-icon>
+                  <div class="doc-info">
+                    <strong>{{ doc.document_type }}</strong>
+                    <span>{{ doc.file_name || 'Uploaded' }}</span>
+                  </div>
+                  <ion-button fill="clear" color="danger" (click)="removeDocument(doc)">
+                    <ion-icon name="trash-outline"></ion-icon>
+                  </ion-button>
+                </div>
+              </div>
+
+              <div *ngIf="documents.length === 0" class="empty-text">
+                <ion-text color="medium">No documents uploaded yet</ion-text>
+              </div>
+
+              <div class="upload-area">
+                <ion-item class="form-item">
+                  <ion-select label="Document Type" labelPlacement="stacked" [(ngModel)]="docType">
+                    <ion-select-option value="citizenship">Citizenship</ion-select-option>
+                    <ion-select-option value="birth_certificate">Birth Certificate</ion-select-option>
+                    <ion-select-option value="marriage_certificate">Marriage Certificate</ion-select-option>
+                    <ion-select-option value="poverty_id">Poverty ID</ion-select-option>
+                    <ion-select-option value="other">Other</ion-select-option>
+                  </ion-select>
+                </ion-item>
+                <div class="btn-row">
+                  <ion-button expand="block" fill="outline" (click)="captureDocument()">
+                    <ion-icon name="camera-outline" slot="start"></ion-icon>
+                    Capture
+                  </ion-button>
+                  <ion-button expand="block" fill="outline" (click)="pickDocument()">
+                    <ion-icon name="cloud-upload-outline" slot="start"></ion-icon>
+                    Upload
+                  </ion-button>
+                </div>
+              </div>
+            </ion-card-content>
+          </ion-card>
+        </div>
+
+        <!-- STEP 5: Review & Submit -->
+        <div *ngIf="currentStep === 5">
+          <ion-card>
+            <ion-card-content>
+              <div class="section-title">
+                <div class="section-icon" style="background: rgba(25,135,84,0.1);">
+                  <ion-icon name="checkmark-circle-outline" style="color: #198754;"></ion-icon>
+                </div>
+                <h3>Review & Submit</h3>
+              </div>
+
+              <div class="review-section">
+                <div class="review-item">
+                  <span class="review-label">Location</span>
+                  <span class="review-value">{{ enrollment?.province }}, {{ enrollment?.district }}, {{ enrollment?.municipality }} - {{ enrollment?.ward_number }}</span>
+                </div>
+                <div class="review-item">
+                  <span class="review-label">Household Head</span>
+                  <span class="review-value" *ngIf="enrollment?.household_head">
+                    {{ enrollment?.household_head?.first_name }} {{ enrollment?.household_head?.last_name }}
+                    ({{ enrollment?.household_head?.gender }})
+                  </span>
+                </div>
+                <div class="review-item">
+                  <span class="review-label">Family Members</span>
+                  <span class="review-value">{{ members.length }} member(s) added</span>
+                </div>
+                <div class="review-item">
+                  <span class="review-label">Documents</span>
+                  <span class="review-value">{{ documents.length }} document(s) uploaded</span>
+                </div>
+              </div>
+
+              <ion-button expand="block" color="success" (click)="submitEnrollment()"
+                [disabled]="submitting" class="ion-margin-top">
+                <ion-spinner *ngIf="submitting" name="crescent" slot="start"></ion-spinner>
+                {{ submitting ? 'Submitting...' : 'Submit Enrollment' }}
+              </ion-button>
+            </ion-card-content>
+          </ion-card>
+        </div>
+
+        <!-- Navigation Buttons -->
+        <div class="nav-buttons">
+          <ion-button expand="block" fill="outline" (click)="prevStep()" *ngIf="currentStep > 1">
+            <ion-icon name="arrow-back-outline" slot="start"></ion-icon>
+            Previous
+          </ion-button>
+          <ion-button expand="block" (click)="nextStep()" *ngIf="currentStep < 5" [disabled]="saving">
+            <ion-spinner *ngIf="saving" name="crescent" slot="start"></ion-spinner>
+            {{ saving ? 'Saving...' : 'Next' }}
+            <ion-icon name="arrow-forward-outline" slot="end" *ngIf="!saving"></ion-icon>
+          </ion-button>
+        </div>
+      </div>
+    </ion-content>

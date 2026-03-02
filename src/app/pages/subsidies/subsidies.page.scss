@@ -1,0 +1,147 @@
+    .subsidies-content { padding: 8px 12px; }
+
+    .subsidy-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 12px;
+      background: #fff;
+      border-radius: 10px;
+      margin-bottom: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      border-left: 3px solid #ffc107;
+      cursor: pointer;
+    }
+
+    .subsidy-icon-box {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      background: rgba(255,193,7,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+
+      ion-icon { font-size: 20px; color: #ffc107; }
+    }
+
+    .subsidy-body { flex: 1; min-width: 0; }
+
+    .subsidy-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+
+    .subsidy-number { font-size: 0.88rem; color: #003087; }
+
+    .benefit-type { margin: 0 0 4px; font-size: 0.8rem; color: #495057; }
+
+    .subsidy-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .subsidy-amount { font-size: 0.85rem; font-weight: 700; color: #198754; }
+    .subsidy-date { font-size: 0.72rem; color: #adb5bd; }
+    .subsidy-arrow { font-size: 18px; color: #adb5bd; flex-shrink: 0; }
+
+    /* Detail Modal */
+    .detail-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .detail-card {
+      max-height: 90vh;
+      overflow-y: auto;
+      width: 100%;
+      max-width: 500px;
+      background: #fff;
+      border-radius: 14px;
+      padding: 20px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+    }
+
+    .detail-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+
+      h2 { margin: 0; font-size: 1.1rem; font-weight: 700; color: #003087; }
+    }
+
+    .detail-section { margin-bottom: 18px; }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1rem;
+      font-weight: 700;
+      color: #212529;
+      margin-bottom: 12px;
+    }
+
+    .section-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      ion-icon { font-size: 18px; }
+
+      &.blue { background: rgba(0,48,135,0.08); ion-icon { color: #003087; } }
+      &.orange { background: rgba(253,126,20,0.08); ion-icon { color: #fd7e14; } }
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .detail-cell {
+      background: #f8f9fa;
+      border-radius: 8px;
+      padding: 10px 12px;
+    }
+
+    .detail-label { display: block; font-size: 0.72rem; color: #6c757d; margin-bottom: 2px; }
+    .detail-value { display: block; font-size: 0.88rem; font-weight: 600; color: #212529; }
+    .detail-value.amount { color: #198754; }
+
+    .audit-list { display: flex; flex-direction: column; gap: 8px; }
+
+    .audit-item {
+      padding: 10px 12px;
+      background: #f8f9fa;
+      border-radius: 8px;
+
+      strong { font-size: 0.85rem; color: #212529; }
+      p { margin: 2px 0 0; font-size: 0.78rem; color: #6c757d; }
+      .audit-reason { color: #DC143C; }
+    }
+
+    .action-section { margin-top: 16px; }
+    .close-btn { margin-top: 12px; }
+
+    .empty-state {
+      margin-top: 25%;
+      .empty-icon { font-size: 64px; color: var(--ion-color-medium); }
+      h3 { color: #6c757d; margin: 12px 0 4px; }
+    }
+
+    .loading-center { display: flex; justify-content: center; align-items: center; height: 50%; }

@@ -1,0 +1,138 @@
+    <ion-header>
+      <ion-toolbar color="primary">
+        <ion-title>Subsidies</ion-title>
+      </ion-toolbar>
+      <ion-toolbar>
+        <ion-searchbar
+          placeholder="Search subsidies..."
+          [(ngModel)]="search"
+          (ionInput)="onSearch()"
+          debounce="500">
+        </ion-searchbar>
+      </ion-toolbar>
+      <ion-toolbar>
+        <ion-segment [(ngModel)]="statusFilter" (ionChange)="onFilterChange()">
+          <ion-segment-button value="">All</ion-segment-button>
+          <ion-segment-button value="pending">Pending</ion-segment-button>
+          <ion-segment-button value="approved">Approved</ion-segment-button>
+          <ion-segment-button value="rejected">Rejected</ion-segment-button>
+        </ion-segment>
+      </ion-toolbar>
+    </ion-header>
+
+    <ion-content>
+      <ion-refresher slot="fixed" (ionRefresh)="refresh($event)">
+        <ion-refresher-content></ion-refresher-content>
+      </ion-refresher>
+
+      <div *ngIf="loading && page === 1" class="loading-center">
+        <ion-spinner name="crescent" color="primary"></ion-spinner>
+      </div>
+
+      <div class="subsidies-content" *ngIf="subsidies.length > 0">
+        <div class="subsidy-card" *ngFor="let s of subsidies" (click)="viewDetail(s)">
+          <div class="subsidy-icon-box">
+            <ion-icon name="cash-outline"></ion-icon>
+          </div>
+          <div class="subsidy-body">
+            <div class="subsidy-top">
+              <strong class="subsidy-number">{{ s.enrollment_number || 'Subsidy #' + s.id }}</strong>
+              <ion-badge [color]="getStatusColor(s.status)">{{ formatStatus(s.status) }}</ion-badge>
+            </div>
+            <p *ngIf="s.benefit_type" class="benefit-type">{{ s.benefit_type }}</p>
+            <div class="subsidy-bottom">
+              <span *ngIf="s.amount" class="subsidy-amount">Rs. {{ s.amount }}</span>
+              <span class="subsidy-date">{{ s.created_at | date:'mediumDate' }}</span>
+            </div>
+          </div>
+          <ion-icon name="chevron-forward-outline" class="subsidy-arrow"></ion-icon>
+        </div>
+      </div>
+
+      <div *ngIf="!loading && subsidies.length === 0" class="empty-state ion-text-center ion-padding">
+        <ion-icon name="cash-outline" class="empty-icon"></ion-icon>
+        <h3>No subsidies found</h3>
+      </div>
+
+      <ion-infinite-scroll (ionInfinite)="loadMore($event)" [disabled]="page >= lastPage">
+        <ion-infinite-scroll-content loadingSpinner="crescent"></ion-infinite-scroll-content>
+      </ion-infinite-scroll>
+    </ion-content>
+
+    <!-- Subsidy Detail Modal (inline) -->
+    <div *ngIf="selectedSubsidy" class="detail-overlay" (click)="selectedSubsidy = null">
+      <div class="detail-card" (click)="$event.stopPropagation()">
+        <div class="detail-header">
+          <h2>Subsidy #{{ selectedSubsidy.id }}</h2>
+          <ion-badge [color]="getStatusColor(selectedSubsidy.status)">{{ formatStatus(selectedSubsidy.status) }}</ion-badge>
+        </div>
+
+        <div class="detail-section">
+          <div class="section-title">
+            <div class="section-icon blue">
+              <ion-icon name="shield-checkmark-outline"></ion-icon>
+            </div>
+            <span>Details</span>
+          </div>
+
+          <div class="detail-grid">
+            <div class="detail-cell" *ngIf="selectedSubsidy.enrollment_number">
+              <span class="detail-label">Enrollment</span>
+              <span class="detail-value">{{ selectedSubsidy.enrollment_number }}</span>
+            </div>
+            <div class="detail-cell" *ngIf="selectedSubsidy.benefit_type">
+              <span class="detail-label">Benefit Type</span>
+              <span class="detail-value">{{ selectedSubsidy.benefit_type }}</span>
+            </div>
+            <div class="detail-cell" *ngIf="selectedSubsidy.fiscal_year">
+              <span class="detail-label">Fiscal Year</span>
+              <span class="detail-value">{{ selectedSubsidy.fiscal_year }}</span>
+            </div>
+            <div class="detail-cell" *ngIf="selectedSubsidy.amount">
+              <span class="detail-label">Amount</span>
+              <span class="detail-value amount">Rs. {{ selectedSubsidy.amount }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Audit Log -->
+        <div *ngIf="selectedSubsidy.audit_log?.length" class="detail-section">
+          <div class="section-title">
+            <div class="section-icon orange">
+              <ion-icon name="document-text-outline"></ion-icon>
+            </div>
+            <span>Audit Log</span>
+          </div>
+
+          <div class="audit-list">
+            <div class="audit-item" *ngFor="let log of selectedSubsidy.audit_log">
+              <strong>{{ log.action }}</strong>
+              <p>{{ log.performed_by }} — {{ log.created_at | date:'medium' }}</p>
+              <p *ngIf="log.reason" class="audit-reason">Reason: {{ log.reason }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Admin Actions -->
+        <div *ngIf="canManage && selectedSubsidy.status === 'pending'" class="action-section">
+          <ion-button expand="block" color="success" (click)="approveSubsidy(selectedSubsidy)">
+            <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
+            Approve
+          </ion-button>
+          <ion-button expand="block" color="danger" (click)="rejectSubsidy(selectedSubsidy)">
+            <ion-icon name="close-circle-outline" slot="start"></ion-icon>
+            Reject
+          </ion-button>
+        </div>
+        <div *ngIf="canManage && selectedSubsidy.status === 'approved'" class="action-section">
+          <ion-button expand="block" color="warning" (click)="revokeSubsidy(selectedSubsidy)">
+            <ion-icon name="ban-outline" slot="start"></ion-icon>
+            Revoke
+          </ion-button>
+        </div>
+
+        <ion-button expand="block" fill="outline" color="medium" (click)="selectedSubsidy = null" class="close-btn">
+          Close
+        </ion-button>
+      </div>
+    </div>

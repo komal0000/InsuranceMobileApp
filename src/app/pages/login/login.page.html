@@ -1,0 +1,99 @@
+<ion-content [fullscreen]="true" [scrollY]="true" class="login-content">
+  <!-- Language Toggle -->
+  <button class="lang-toggle" (click)="toggleLang()">
+    <ion-icon name="language-outline"></ion-icon>
+    {{ lang === 'en' ? 'नेपाली' : 'English' }}
+  </button>
+
+  <!-- Gradient Header Section -->
+  <div class="gradient-section">
+    <div class="logo-circle">
+      <ion-icon name="shield-checkmark-outline"></ion-icon>
+    </div>
+    <p class="np-text">नेपाल सरकार</p>
+    <p class="np-text-sub">स्वास्थ्य बीमा बोर्ड</p>
+    <div class="red-line"></div>
+    <p class="en-text">Health Insurance Board, Nepal</p>
+  </div>
+
+  <!-- Sign In Card -->
+  <div class="card-section">
+    <div class="login-card">
+      <h2 class="card-title">{{ lang === 'en' ? 'Sign In' : 'लग इन गर्नुहोस्' }}</h2>
+      <div class="accent-bar">
+        <span class="bar-red"></span>
+        <span class="bar-blue"></span>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">{{ lang === 'en' ? 'Login With' : 'लगइन माध्यम' }}</label>
+        <ion-item lines="none" class="form-item">
+          <ion-select
+            [(ngModel)]="loginData.identifier_type"
+            (ionChange)="onIdentifierTypeChange()"
+            interface="popover"
+            placeholder="Select login type">
+            <ion-select-option value="mobile">{{ lang === 'en' ? 'Mobile Number' : 'मोबाइल नम्बर' }}</ion-select-option>
+            <ion-select-option value="hib_number">{{ lang === 'en' ? 'HIB Number' : 'HIB नम्बर' }}</ion-select-option>
+            <ion-select-option value="national_id">{{ lang === 'en' ? 'National ID' : 'राष्ट्रिय परिचयपत्र' }}</ion-select-option>
+            <ion-select-option value="dob">{{ lang === 'en' ? 'Date of Birth' : 'जन्म मिति' }}</ion-select-option>
+          </ion-select>
+        </ion-item>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">{{ identifierLabel }}</label>
+        <ion-item lines="none" class="form-item">
+          <ion-icon name="person-outline" slot="start" class="input-icon"></ion-icon>
+          <ion-input
+            [type]="identifierInputType"
+            [placeholder]="identifierPlaceholder"
+            [(ngModel)]="loginData.identifier"
+            required>
+          </ion-input>
+        </ion-item>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">{{ lang === 'en' ? 'Password' : 'पासवर्ड' }}</label>
+        <ion-item lines="none" class="form-item">
+          <ion-icon name="lock-closed-outline" slot="start" class="input-icon"></ion-icon>
+          <ion-input
+            [type]="showPassword ? 'text' : 'password'"
+            [placeholder]="lang === 'en' ? 'Enter your password' : 'पासवर्ड प्रविष्ट गर्नुहोस्'"
+            [(ngModel)]="loginData.password"
+            required>
+          </ion-input>
+          <button slot="end" class="eye-btn" (click)="showPassword = !showPassword" type="button">
+            <ion-icon [name]="showPassword ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
+          </button>
+        </ion-item>
+      </div>
+
+      <div class="remember-row">
+        <ion-item lines="none" class="checkbox-item">
+          <ion-checkbox [(ngModel)]="rememberMe" labelPlacement="end">
+            {{ lang === 'en' ? 'Remember me' : 'मलाई सम्झनुहोस्' }}
+          </ion-checkbox>
+        </ion-item>
+        <a class="forgot-link">{{ lang === 'en' ? 'Forgot Password?' : 'पासवर्ड बिर्सनुभयो?' }}</a>
+      </div>
+
+      <ion-button
+        expand="block"
+        (click)="login()"
+        [disabled]="loading"
+        class="login-btn">
+        <ion-spinner *ngIf="loading" name="crescent" slot="start"></ion-spinner>
+        {{ loading ? (lang === 'en' ? 'Signing In...' : 'प्रवेश गर्दै...') : (lang === 'en' ? 'Sign In' : 'प्रवेश गर्नुहोस्') }}
+      </ion-button>
+
+      <div class="register-link">
+        <span>{{ lang === 'en' ? "Don't have an account?" : 'खाता छैन?' }}</span>
+        <a routerLink="/register">{{ lang === 'en' ? 'Register' : 'दर्ता गर्नुहोस्' }}</a>
+      </div>
+    </div>
+
+    <p class="footer-text">© 2026 Health Insurance Board, Nepal. All rights reserved.</p>
+  </div>
+</ion-content>

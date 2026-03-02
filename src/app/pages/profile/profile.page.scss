@@ -1,0 +1,105 @@
+    .profile-content { padding: 0 12px 24px; }
+
+    .profile-header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 28px 16px 20px;
+    }
+
+    .profile-avatar {
+      width: 90px;
+      height: 90px;
+      border-radius: 50%;
+      background: #003087;
+      color: #fff;
+      font-size: 2.2rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(0,48,135,0.25);
+    }
+
+    .profile-name {
+      margin: 12px 0 6px;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #212529;
+    }
+
+    .role-pill {
+      display: inline-block;
+      background: rgba(0,48,135,0.08);
+      color: #003087;
+      padding: 3px 14px;
+      border-radius: 20px;
+      font-size: 0.77rem;
+      font-weight: 600;
+      text-transform: capitalize;
+    }
+
+    .hib-number {
+      margin: 6px 0 0;
+      font-size: 0.82rem;
+      color: #0050B3;
+      font-weight: 600;
+    }
+
+    .quick-info {
+      background: #fff;
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-bottom: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+
+    .quick-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 0;
+      color: #495057;
+      font-size: 0.85rem;
+
+      ion-icon { font-size: 18px; color: #003087; flex-shrink: 0; }
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1rem;
+      font-weight: 700;
+      color: #212529;
+      margin-bottom: 14px;
+    }
+
+    .section-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      ion-icon { font-size: 18px; }
+
+      &.blue { background: rgba(0,48,135,0.08); ion-icon { color: #003087; } }
+      &.orange { background: rgba(253,126,20,0.08); ion-icon { color: #fd7e14; } }
+    }
+
+    .form-item {
+      --background: #f8f9fa;
+      --border-radius: 8px;
+      --padding-start: 12px;
+      border: 1px solid #e9ecef;
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+
+    .btn-row { margin-top: 16px; }
+
+    .logout-section {
+      padding: 16px 4px 8px;
+    }

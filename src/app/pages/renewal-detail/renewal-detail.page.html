@@ -1,0 +1,89 @@
+    <ion-header>
+      <ion-toolbar color="primary">
+        <ion-buttons slot="start">
+          <ion-back-button defaultHref="/tabs/renewals"></ion-back-button>
+        </ion-buttons>
+        <ion-title>Renewal Detail</ion-title>
+      </ion-toolbar>
+    </ion-header>
+
+    <ion-content>
+      <div *ngIf="loading" class="loading-center">
+        <ion-spinner name="crescent" color="primary"></ion-spinner>
+      </div>
+
+      <div class="detail-content" *ngIf="!loading && renewal">
+        <!-- Status Banner -->
+        <div class="status-banner">
+          <div class="banner-left">
+            <span class="renewal-number">{{ renewal.enrollment_number || 'Renewal #' + renewal.id }}</span>
+            <span class="renewal-date">Created {{ renewal.created_at | date:'mediumDate' }}</span>
+          </div>
+          <ion-badge [color]="getStatusColor(renewal.status)">{{ formatStatus(renewal.status) }}</ion-badge>
+        </div>
+
+        <!-- Members Card -->
+        <ion-card>
+          <ion-card-content>
+            <div class="section-title">
+              <div class="section-icon" style="background: rgba(13,202,240,0.1);">
+                <ion-icon name="people-outline" style="color: #0dcaf0;"></ion-icon>
+              </div>
+              <h3>Members ({{ renewal.members?.length || 0 }})</h3>
+            </div>
+
+            <div class="member-list" *ngIf="renewal.members && renewal.members.length > 0">
+              <div class="member-row" *ngFor="let member of renewal.members">
+                <div class="member-avatar">{{ (member.first_name || '').charAt(0).toUpperCase() }}</div>
+                <div class="member-info">
+                  <strong>{{ member.first_name }} {{ member.last_name }}</strong>
+                  <span>{{ member.relationship_type }} | {{ member.gender }}</span>
+                </div>
+                <div class="member-actions" *ngIf="renewal.status === 'draft'">
+                  <ion-button fill="clear" size="small" (click)="editMember(member)">
+                    <ion-icon name="create-outline"></ion-icon>
+                  </ion-button>
+                  <ion-button fill="clear" size="small" color="danger" (click)="removeMember(member)">
+                    <ion-icon name="trash-outline"></ion-icon>
+                  </ion-button>
+                </div>
+              </div>
+            </div>
+
+            <ion-button expand="block" fill="outline" (click)="showAddMember()" *ngIf="renewal.status === 'draft'" class="ion-margin-top">
+              <ion-icon name="add-outline" slot="start"></ion-icon>
+              Add Member
+            </ion-button>
+
+            <!-- Add Member Form -->
+            <div *ngIf="showMemberForm" class="add-member-form">
+              <h4 style="margin: 0 0 10px; font-weight: 700; color: #212529;">Add Member</h4>
+              <ion-item class="form-item">
+                <ion-input label="First Name *" labelPlacement="stacked" [(ngModel)]="newMember.first_name"></ion-input>
+              </ion-item>
+              <ion-item class="form-item">
+                <ion-input label="Last Name *" labelPlacement="stacked" [(ngModel)]="newMember.last_name"></ion-input>
+              </ion-item>
+              <ion-item class="form-item">
+                <ion-input label="Mobile" labelPlacement="stacked" type="tel" [(ngModel)]="newMember.mobile_number"></ion-input>
+              </ion-item>
+              <ion-item class="form-item">
+                <ion-input label="Email" labelPlacement="stacked" type="email" [(ngModel)]="newMember.email"></ion-input>
+              </ion-item>
+              <div class="btn-row">
+                <ion-button expand="block" (click)="addMember()">Save</ion-button>
+                <ion-button expand="block" fill="outline" color="medium" (click)="showMemberForm = false">Cancel</ion-button>
+              </div>
+            </div>
+          </ion-card-content>
+        </ion-card>
+
+        <!-- Action -->
+        <div class="action-section" *ngIf="renewal.status === 'draft'">
+          <ion-button expand="block" color="success" (click)="submitRenewal()">
+            <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
+            Submit Renewal
+          </ion-button>
+        </div>
+      </div>
+    </ion-content>

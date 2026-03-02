@@ -1,0 +1,240 @@
+    .wizard-progress {
+      padding: 16px 16px 0;
+      background: #fff;
+    }
+
+    .progress-track {
+      height: 4px;
+      background: #e9ecef;
+      border-radius: 2px;
+      margin-bottom: 12px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: #003087;
+      border-radius: 2px;
+      transition: width 0.3s ease;
+    }
+
+    .steps-row {
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .step-dot-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex: 1;
+    }
+
+    .step-dot {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #e9ecef;
+      color: #6c757d;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .step-dot-container.active .step-dot {
+      background: #003087;
+      color: white;
+    }
+
+    .step-dot-container.completed .step-dot {
+      background: #198754;
+      color: white;
+    }
+
+    .step-label {
+      font-size: 0.55rem;
+      color: #adb5bd;
+      text-align: center;
+    }
+
+    .step-dot-container.active .step-label {
+      color: #003087;
+      font-weight: 600;
+    }
+
+    .wizard-content {
+      padding: 12px;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+
+      h3 { margin: 0; font-size: 0.95rem; font-weight: 700; color: #212529; }
+    }
+
+    .section-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      ion-icon { font-size: 18px; }
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .form-item {
+      --background: #f8f9fa;
+      border: 1px solid #e9ecef;
+      border-radius: 8px;
+      --padding-start: 12px;
+      margin-bottom: 4px;
+    }
+
+    .capture-section {
+      margin: 14px 0;
+      padding-top: 10px;
+      border-top: 1px solid #f0f0f0;
+    }
+
+    .capture-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .capture-label {
+      font-weight: 600;
+      font-size: 0.85rem;
+      color: #212529;
+    }
+
+    .preview-img {
+      max-width: 180px;
+      margin-top: 8px;
+      border-radius: 8px;
+      border: 1px solid #e9ecef;
+    }
+
+    .member-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .member-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 0;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .member-row:last-child { border-bottom: none; }
+
+    .member-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(0,48,135,0.08);
+      color: #003087;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .member-info {
+      flex: 1;
+      strong { display: block; font-size: 0.85rem; color: #212529; }
+      span { font-size: 0.75rem; color: #6c757d; }
+    }
+
+    .member-form-card { border-left: 3px solid #003087; }
+
+    .empty-text {
+      text-align: center;
+      padding: 16px 0;
+    }
+
+    .doc-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .doc-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 0;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .doc-row:last-child { border-bottom: none; }
+
+    .doc-icon { font-size: 22px; color: #003087; }
+
+    .doc-info {
+      flex: 1;
+      strong { display: block; font-size: 0.85rem; color: #212529; }
+      span { font-size: 0.75rem; color: #6c757d; }
+    }
+
+    .upload-area {
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid #f0f0f0;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+
+      ion-button { flex: 1; }
+    }
+
+    .review-section {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .review-item {
+      .review-label {
+        display: block;
+        font-size: 0.7rem;
+        color: #adb5bd;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 2px;
+      }
+      .review-value {
+        display: block;
+        font-size: 0.88rem;
+        color: #212529;
+        font-weight: 500;
+      }
+    }
+
+    .nav-buttons {
+      display: flex;
+      gap: 10px;
+      padding: 10px 0 20px;
+
+      ion-button { flex: 1; }
+    }

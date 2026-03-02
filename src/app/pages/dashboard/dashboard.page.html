@@ -1,0 +1,156 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Dashboard</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-refresher slot="fixed" (ionRefresh)="refresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <div class="dashboard-content" *ngIf="!loading; else loadingTpl">
+    <!-- Welcome Section -->
+    <div class="welcome-section">
+      <h2 class="welcome-text">Welcome back, {{ user?.name || 'User' }}</h2>
+      <p class="welcome-sub">{{ isBeneficiary ? 'Your health insurance overview' : 'Administrative Dashboard' }}</p>
+      <span class="role-pill">{{ formatRole(user?.role) }}</span>
+    </div>
+
+    <!-- Beneficiary Stats -->
+    <div class="stats-grid" *ngIf="isBeneficiary">
+      <div class="stat-card" (click)="navigate('/tabs/enrollments')">
+        <div class="stat-icon-box" style="background: rgba(0,48,135,0.08);">
+          <ion-icon name="document-text-outline" style="color: #003087;"></ion-icon>
+        </div>
+        <div class="stat-info">
+          <span class="stat-value">{{ stats?.my_enrollments ?? 0 }}</span>
+          <span class="stat-label">My Enrollments</span>
+        </div>
+      </div>
+
+      <div class="stat-card" (click)="navigate('/tabs/my-policy')">
+        <div class="stat-icon-box" style="background: rgba(25,135,84,0.1);">
+          <ion-icon name="shield-checkmark-outline" style="color: #198754;"></ion-icon>
+        </div>
+        <div class="stat-info">
+          <span class="stat-value">{{ stats?.active_policies ?? 0 }}</span>
+          <span class="stat-label">Active Policies</span>
+        </div>
+      </div>
+
+      <div class="stat-card" (click)="navigate('/tabs/renewals')">
+        <div class="stat-icon-box" style="background: rgba(253,126,20,0.1);">
+          <ion-icon name="refresh-outline" style="color: #fd7e14;"></ion-icon>
+        </div>
+        <div class="stat-info">
+          <span class="stat-value">{{ stats?.my_renewals ?? 0 }}</span>
+          <span class="stat-label">My Renewals</span>
+        </div>
+      </div>
+
+      <div class="stat-card" (click)="navigate('/tabs/subsidies')">
+        <div class="stat-icon-box" style="background: rgba(255,193,7,0.12);">
+          <ion-icon name="cash-outline" style="color: #ffc107;"></ion-icon>
+        </div>
+        <div class="stat-info">
+          <span class="stat-value">{{ stats?.my_subsidies ?? 0 }}</span>
+          <span class="stat-label">My Subsidies</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Admin/Staff Stats -->
+    <div class="stats-grid" *ngIf="!isBeneficiary">
+      <div class="stat-card" (click)="navigate('/tabs/enrollments')">
+        <div class="stat-icon-box" style="background: rgba(0,48,135,0.08);">
+          <ion-icon name="people-outline" style="color: #003087;"></ion-icon>
+        </div>
+        <div class="stat-info">
+          <span class="stat-value">{{ stats?.total_families ?? 0 }}</span>
+          <span class="stat-label">Total Families</span>
+        </div>
+      </div>
+
+      <div class="stat-card" (click)="navigate('/tabs/enrollments')">
+        <div class="stat-icon-box" style="background: rgba(255,193,7,0.12);">
+          <ion-icon name="alert-circle-outline" style="color: #ffc107;"></ion-icon>
+        </div>
+        <div class="stat-info">
+          <span class="stat-value">{{ stats?.pending_verifications ?? 0 }}</span>
+          <span class="stat-label">Pending Verifications</span>
+        </div>
+      </div>
+
+      <div class="stat-card" (click)="navigate('/tabs/renewals')">
+        <div class="stat-icon-box" style="background: rgba(253,126,20,0.1);">
+          <ion-icon name="refresh-outline" style="color: #fd7e14;"></ion-icon>
+        </div>
+        <div class="stat-info">
+          <span class="stat-value">{{ stats?.renewals_due ?? 0 }}</span>
+          <span class="stat-label">Renewals Due</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon-box" style="background: rgba(13,202,240,0.1);">
+          <ion-icon name="today-outline" style="color: #0dcaf0;"></ion-icon>
+        </div>
+        <div class="stat-info">
+          <span class="stat-value">{{ stats?.enrollments_today ?? 0 }}</span>
+          <span class="stat-label">Enrollments Today</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="section-header">
+      <h3>Quick Actions</h3>
+    </div>
+
+    <ion-card button (click)="navigate('/enrollment-wizard')" *ngIf="canCreateEnrollment" class="action-card">
+      <ion-card-content class="action-content">
+        <div class="action-icon-box" style="background: rgba(0,48,135,0.08);">
+          <ion-icon name="document-text-outline" style="color: #003087;"></ion-icon>
+        </div>
+        <div class="action-text">
+          <strong>New Enrollment</strong>
+          <span>Start a new enrollment application</span>
+        </div>
+        <ion-icon name="arrow-forward-outline" class="action-arrow"></ion-icon>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card button (click)="navigate('/tabs/my-policy')" *ngIf="isBeneficiary" class="action-card">
+      <ion-card-content class="action-content">
+        <div class="action-icon-box" style="background: rgba(25,135,84,0.1);">
+          <ion-icon name="shield-checkmark-outline" style="color: #198754;"></ion-icon>
+        </div>
+        <div class="action-text">
+          <strong>View My Policy</strong>
+          <span>Check your active policy details</span>
+        </div>
+        <ion-icon name="arrow-forward-outline" class="action-arrow"></ion-icon>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card button (click)="navigate('/tabs/my-payments')" *ngIf="isBeneficiary" class="action-card">
+      <ion-card-content class="action-content">
+        <div class="action-icon-box" style="background: rgba(102,16,242,0.08);">
+          <ion-icon name="receipt-outline" style="color: #6610f2;"></ion-icon>
+        </div>
+        <div class="action-text">
+          <strong>Payment History</strong>
+          <span>View your payment records</span>
+        </div>
+        <ion-icon name="arrow-forward-outline" class="action-arrow"></ion-icon>
+      </ion-card-content>
+    </ion-card>
+  </div>
+
+  <ng-template #loadingTpl>
+    <div class="loading-center">
+      <ion-spinner name="crescent" color="primary"></ion-spinner>
+    </div>
+  </ng-template>
+</ion-content>

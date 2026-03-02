@@ -1,0 +1,71 @@
+    .payments-content { padding: 8px 12px; }
+
+    .payment-card {
+      display: flex;
+      gap: 12px;
+      padding: 14px 12px;
+      background: #fff;
+      border-radius: 10px;
+      margin-bottom: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      border-left: 3px solid #198754;
+    }
+
+    .payment-icon-box {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      background: rgba(253,126,20,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+
+      ion-icon { font-size: 20px; color: #fd7e14; }
+
+      &.paid {
+        background: rgba(25,135,84,0.08);
+        ion-icon { color: #198754; }
+      }
+    }
+
+    .payment-body { flex: 1; min-width: 0; }
+
+    .payment-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+
+    .payment-amount {
+      font-size: 1rem;
+      color: #212529;
+    }
+
+    .payment-type {
+      margin: 0 0 6px;
+      font-size: 0.82rem;
+      color: #495057;
+    }
+
+    .payment-meta, .payment-receipt {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.75rem;
+      color: #adb5bd;
+
+      ion-icon { font-size: 14px; }
+    }
+
+    .payment-receipt { margin-top: 4px; color: #6c757d; }
+
+    .empty-state {
+      margin-top: 25%;
+      .empty-icon { font-size: 64px; color: var(--ion-color-medium); }
+      h3 { color: #6c757d; margin: 12px 0 4px; }
+      p { color: #adb5bd; font-size: 0.85rem; }
+    }
+
+    .loading-center { display: flex; justify-content: center; align-items: center; height: 50%; }

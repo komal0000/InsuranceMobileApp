@@ -1,0 +1,150 @@
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import {
+  IonContent, IonHeader, IonToolbar, IonTitle,
+  IonBadge, IonSearchbar, IonSegment, IonSegmentButton,
+  IonRefresher, IonRefresherContent, IonInfiniteScroll,
+  IonInfiniteScrollContent, IonFab, IonFabButton, IonIcon,
+  IonSpinner, IonCard, IonCardContent
+} from '@ionic/angular/standalone';
+import { ToastController } from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import { addOutline, documentTextOutline, locationOutline, peopleOutline, personOutline } from 'ionicons/icons';
+import { ApiService } from '../../services/api.service';
+import { AuthService } from '../../services/auth.service';
+import { ApiResponse, PaginatedData } from '../../interfaces/api-response.interface';
+import { Enrollment, EnrollmentStatus } from '../../interfaces/enrollment.interface';
+
+@Component({
+  selector: 'app-enrollments',
+  standalone: true,
+  imports: [
+    CommonModule, FormsModule,
+    IonContent, IonHeader, IonToolbar, IonTitle,
+    IonBadge, IonSearchbar, IonSegment, IonSegmentButton,
+    IonRefresher, IonRefresherContent, IonInfiniteScroll,
+    IonInfiniteScrollContent, IonFab, IonFabButton, IonIcon,
+    IonSpinner, IonCard, IonCardContent
+  ],
+  templateUrl: './enrollments.page.html',
+  styleUrls: ['./enrollments.page.scss'],
+})
+export class EnrollmentsPage implements OnInit {
+  enrollments: Enrollment[] = [];
+  search = '';
+  statusFilter = '';
+  page = 1;
+  lastPage = 1;
+  loading = false;
+  canCreate = true;
+
+  constructor(
+    private api: ApiService,
+    private authService: AuthService,
+    private router: Router,
+    private toastCtrl: ToastController
+  ) {
+    addIcons({ addOutline, documentTextOutline });
+  }
+
+  ngOnInit() {
+    const user = this.authService.getCurrentUser();
+    this.canCreate = ['beneficiary', 'enrollment_assistant', 'admin', 'super_admin']
+      .includes(user?.role || '');
+    this.loadEnrollments();
+  }
+
+  loadEnrollments(append = false) {
+    this.loading = true;
+    const params: any = { page: this.page, per_page: 15 };
+    if (this.statusFilter) params.status = this.statusFilter;
+    if (this.search) params.search = this.search;
+
+    this.api.get<ApiResponse<PaginatedData<Enrollment>>>('/enrollments', params).subscribe({
+      next: (res) => {
+        const paginated = res.data;
+        if (append) {
+          this.enrollments = [...this.enrollments, ...paginated.data];
+        } else {
+          this.enrollments = paginated.data;
+        }
+        this.lastPage = paginated.last_page;
+        this.loading = false;
+      },
+      error: () => { this.loading = false; },
+    });
+  }
+
+  onSearch() {
+    this.page = 1;
+    this.loadEnrollments();
+  }
+
+  onFilterChange() {
+    this.page = 1;
+    this.loadEnrollments();
+  }
+
+  refresh(event: any) {
+    this.page = 1;
+    this.api.get<ApiResponse<PaginatedData<Enrollment>>>('/enrollments', {
+      page: 1, per_page: 15,
+      status: this.statusFilter, search: this.search
+    }).subscribe({
+      next: (res) => {
+        this.enrollments = res.data.data;
+        this.lastPage = res.data.last_page;
+        event.target.complete();
+      },
+      error: () => event.target.complete(),
+    });
+  }
+
+  loadMore(event: any) {
+    this.page++;
+    this.api.get<ApiResponse<PaginatedData<Enrollment>>>('/enrollments', {
+      page: this.page, per_page: 15,
+      status: this.statusFilter, search: this.search
+    }).subscribe({
+      next: (res) => {
+        this.enrollments = [...this.enrollments, ...res.data.data];
+        this.lastPage = res.data.last_page;
+        event.target.complete();
+      },
+      error: () => event.target.complete(),
+    });
+  }
+
+  viewDetail(enrollment: Enrollment) {
+    this.router.navigateByUrl(`/enrollment-detail/${enrollment.id}`);
+  }
+
+  async createNew() {
+    this.api.post<ApiResponse<Enrollment>>('/enrollments', { enrollment_type: 'new' }).subscribe({
+      next: (res) => {
+        if (res.success) {
+          this.router.navigateByUrl(`/enrollment-wizard/${res.data.id}`);
+        }
+      },
+    });
+  }
+
+  getStatusColor(status: string): string {
+    const colors: Record<string, string> = {
+      draft: 'medium',
+      pending_verification: 'warning',
+      verified: 'tertiary',
+      approved: 'success',
+      rejected: 'danger',
+      active: 'success',
+      expired: 'dark',
+    };
+    return colors[status] || 'medium';
+  }
+
+  formatStatus(status: string): string {
+    return (status || '').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  }
+}

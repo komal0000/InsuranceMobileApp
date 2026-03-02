@@ -1,0 +1,112 @@
+    <ion-header>
+      <ion-toolbar color="primary">
+        <ion-title>My Policy</ion-title>
+      </ion-toolbar>
+    </ion-header>
+
+    <ion-content>
+      <ion-refresher slot="fixed" (ionRefresh)="refresh($event)">
+        <ion-refresher-content></ion-refresher-content>
+      </ion-refresher>
+
+      <div *ngIf="loading" class="loading-center">
+        <ion-spinner name="crescent" color="primary"></ion-spinner>
+      </div>
+
+      <div *ngIf="!loading" class="policy-content">
+        <div *ngIf="policy; else noPolicy">
+          <!-- Policy Card -->
+          <div class="policy-hero">
+            <div class="shield-circle">
+              <ion-icon name="shield-checkmark-outline"></ion-icon>
+            </div>
+            <h2 class="policy-number">{{ policy.enrollment_number || policy.policy_number || 'N/A' }}</h2>
+            <ion-badge [color]="policy.status === 'active' ? 'success' : 'dark'" class="status-badge">
+              {{ policy.status | titlecase }}
+            </ion-badge>
+          </div>
+
+          <!-- Policy Details -->
+          <ion-card>
+            <ion-card-content>
+              <div class="section-title">
+                <div class="section-icon blue">
+                  <ion-icon name="document-text-outline"></ion-icon>
+                </div>
+                <span>Policy Details</span>
+              </div>
+
+              <div class="info-grid">
+                <div class="info-cell" *ngIf="policy.start_date">
+                  <span class="info-label">Valid From</span>
+                  <span class="info-value">{{ policy.start_date | date:'mediumDate' }}</span>
+                </div>
+                <div class="info-cell" *ngIf="policy.end_date">
+                  <span class="info-label">Valid Until</span>
+                  <span class="info-value">{{ policy.end_date | date:'mediumDate' }}</span>
+                </div>
+              </div>
+
+              <div *ngIf="policy.premium_amount" class="premium-box">
+                <span class="premium-label">Premium Amount</span>
+                <span class="premium-value">Rs. {{ policy.premium_amount }}</span>
+              </div>
+            </ion-card-content>
+          </ion-card>
+
+          <!-- Covered Members -->
+          <ion-card *ngIf="policy.members?.length">
+            <ion-card-content>
+              <div class="section-title">
+                <div class="section-icon cyan">
+                  <ion-icon name="people-outline"></ion-icon>
+                </div>
+                <span>Covered Members ({{ policy.members.length }})</span>
+              </div>
+
+              <div class="member-list">
+                <div class="member-row" *ngFor="let m of policy.members">
+                  <div class="member-avatar">{{ (m.first_name || '?').charAt(0).toUpperCase() }}</div>
+                  <div class="member-info">
+                    <strong>{{ m.first_name }} {{ m.last_name }}</strong>
+                    <span class="member-meta">{{ m.relationship_type }} &bull; {{ m.gender }}</span>
+                  </div>
+                </div>
+              </div>
+            </ion-card-content>
+          </ion-card>
+
+          <!-- Enrollment History -->
+          <ion-card *ngIf="history?.length">
+            <ion-card-content>
+              <div class="section-title">
+                <div class="section-icon green">
+                  <ion-icon name="document-text-outline"></ion-icon>
+                </div>
+                <span>Enrollment History</span>
+              </div>
+
+              <div class="history-list">
+                <div class="history-item" *ngFor="let h of history">
+                  <div class="history-left">
+                    <strong>{{ h.enrollment_number || '#' + h.id }}</strong>
+                    <span class="history-date">{{ h.created_at | date:'mediumDate' }}</span>
+                  </div>
+                  <ion-badge [color]="h.status === 'active' ? 'success' : 'medium'">
+                    {{ h.status }}
+                  </ion-badge>
+                </div>
+              </div>
+            </ion-card-content>
+          </ion-card>
+        </div>
+
+        <ng-template #noPolicy>
+          <div class="empty-state ion-text-center">
+            <ion-icon name="shield-checkmark-outline" class="empty-icon"></ion-icon>
+            <h3>No Active Policy</h3>
+            <p>You don't have an active policy yet.</p>
+          </div>
+        </ng-template>
+      </div>
+    </ion-content>

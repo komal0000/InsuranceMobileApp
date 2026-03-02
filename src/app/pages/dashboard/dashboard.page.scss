@@ -1,0 +1,127 @@
+.dashboard-content { padding: 16px; }
+
+.welcome-section {
+  margin-bottom: 20px;
+}
+
+.welcome-text {
+  margin: 0 0 4px;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #212529;
+}
+
+.welcome-sub {
+  margin: 0 0 8px;
+  font-size: 0.85rem;
+  color: #6c757d;
+}
+
+.role-pill {
+  display: inline-block;
+  background: rgba(0, 48, 135, 0.08);
+  color: #003087;
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: box-shadow 0.2s;
+}
+
+.stat-icon-box {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  ion-icon { font-size: 22px; }
+}
+
+.stat-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-value {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #212529;
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: 0.72rem;
+  color: #6c757d;
+  margin-top: 3px;
+}
+
+.section-header {
+  h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #212529;
+    margin: 0 0 10px;
+  }
+}
+
+.action-card {
+  margin: 0 0 8px !important;
+}
+
+.action-content {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+}
+
+.action-icon-box {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  ion-icon { font-size: 20px; }
+}
+
+.action-text {
+  flex: 1;
+  strong { display: block; font-size: 0.9rem; color: #212529; }
+  span { font-size: 0.75rem; color: #6c757d; }
+}
+
+.action-arrow {
+  font-size: 18px;
+  color: #adb5bd;
+}
+
+.loading-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 50%;
+}

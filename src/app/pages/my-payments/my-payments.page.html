@@ -1,0 +1,52 @@
+    <ion-header>
+      <ion-toolbar color="primary">
+        <ion-title>My Payments</ion-title>
+      </ion-toolbar>
+    </ion-header>
+
+    <ion-content>
+      <ion-refresher slot="fixed" (ionRefresh)="refresh($event)">
+        <ion-refresher-content></ion-refresher-content>
+      </ion-refresher>
+
+      <div *ngIf="loading" class="loading-center">
+        <ion-spinner name="crescent" color="primary"></ion-spinner>
+      </div>
+
+      <div class="payments-content" *ngIf="!loading">
+        <div *ngIf="payments.length > 0">
+          <div class="payment-card" *ngFor="let p of payments">
+            <div class="payment-icon-box" [class.paid]="p.status === 'paid'">
+              <ion-icon name="cash-outline"></ion-icon>
+            </div>
+            <div class="payment-body">
+              <div class="payment-top">
+                <strong class="payment-amount">Rs. {{ p.amount || 0 }}</strong>
+                <ion-badge [color]="p.status === 'paid' ? 'success' : 'warning'">
+                  {{ p.status | titlecase }}
+                </ion-badge>
+              </div>
+              <p class="payment-type">{{ p.payment_type || 'Premium Payment' }}</p>
+              <div class="payment-meta">
+                <ion-icon name="calendar-outline"></ion-icon>
+                <span>{{ p.paid_at || p.created_at | date:'medium' }}</span>
+              </div>
+              <div *ngIf="p.receipt_number" class="payment-receipt">
+                <ion-icon name="wallet-outline"></ion-icon>
+                <span>Receipt: {{ p.receipt_number }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="payments.length === 0" class="empty-state ion-text-center">
+          <ion-icon name="wallet-outline" class="empty-icon"></ion-icon>
+          <h3>No Payments</h3>
+          <p>No payment records found.</p>
+        </div>
+      </div>
+
+      <ion-infinite-scroll (ionInfinite)="loadMore($event)" [disabled]="!hasMore">
+        <ion-infinite-scroll-content loadingSpinner="crescent"></ion-infinite-scroll-content>
+      </ion-infinite-scroll>
+    </ion-content>

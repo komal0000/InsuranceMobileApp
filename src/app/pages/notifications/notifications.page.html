@@ -1,0 +1,42 @@
+    <ion-header>
+      <ion-toolbar color="primary">
+        <ion-title>Notifications</ion-title>
+      </ion-toolbar>
+    </ion-header>
+
+    <ion-content>
+      <ion-refresher slot="fixed" (ionRefresh)="refresh($event)">
+        <ion-refresher-content></ion-refresher-content>
+      </ion-refresher>
+
+      <div *ngIf="loading && page === 1" class="loading-center">
+        <ion-spinner name="crescent" color="primary"></ion-spinner>
+      </div>
+
+      <div class="notif-content" *ngIf="notifications.length > 0">
+        <div *ngFor="let n of notifications" class="notif-item" [class.unread]="!n.is_read"
+          (click)="markAsRead(n)">
+          <div class="notif-icon-box" [class.read]="n.is_read">
+            <ion-icon [name]="n.is_read ? 'mail-open-outline' : 'mail-outline'"></ion-icon>
+          </div>
+          <div class="notif-body">
+            <div class="notif-top-row">
+              <strong>{{ n.title || 'Notification' }}</strong>
+              <ion-badge color="primary" *ngIf="!n.is_read" class="new-badge">New</ion-badge>
+            </div>
+            <p class="notif-message">{{ n.message }}</p>
+            <span class="notif-date">{{ n.created_at | date:'medium' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="!loading && notifications.length === 0" class="empty-state ion-text-center ion-padding">
+        <ion-icon name="notifications-outline" class="empty-icon"></ion-icon>
+        <h3>No notifications</h3>
+        <p>You're all caught up!</p>
+      </div>
+
+      <ion-infinite-scroll (ionInfinite)="loadMore($event)" [disabled]="page >= lastPage">
+        <ion-infinite-scroll-content loadingSpinner="crescent"></ion-infinite-scroll-content>
+      </ion-infinite-scroll>
+    </ion-content>

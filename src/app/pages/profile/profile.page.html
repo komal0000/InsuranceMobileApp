@@ -1,0 +1,120 @@
+    <ion-header>
+      <ion-toolbar color="primary">
+        <ion-title>Profile</ion-title>
+      </ion-toolbar>
+    </ion-header>
+
+    <ion-content>
+      <div *ngIf="user" class="profile-content">
+        <!-- Avatar Section -->
+        <div class="profile-header">
+          <div class="profile-avatar">{{ user.name.charAt(0).toUpperCase() || 'U' }}</div>
+          <h2 class="profile-name">{{ user.name }}</h2>
+          <span class="role-pill">{{ formatRole(user.role) }}</span>
+          <p *ngIf="user.hib_number" class="hib-number">HIB #{{ user.hib_number }}</p>
+        </div>
+
+        <!-- Quick Info -->
+        <div class="quick-info" *ngIf="user.mobile_number || user.email">
+          <div class="quick-row" *ngIf="user.mobile_number">
+            <ion-icon name="call-outline"></ion-icon>
+            <span>{{ user.mobile_number }}</span>
+          </div>
+          <div class="quick-row" *ngIf="user.email">
+            <ion-icon name="mail-outline"></ion-icon>
+            <span>{{ user.email }}</span>
+          </div>
+          <div class="quick-row" *ngIf="user.date_of_birth">
+            <ion-icon name="calendar-outline"></ion-icon>
+            <span>{{ user.date_of_birth | date:'mediumDate' }}</span>
+          </div>
+        </div>
+
+        <!-- Personal Information -->
+        <ion-card>
+          <ion-card-content>
+            <div class="section-title">
+              <div class="section-icon blue">
+                <ion-icon name="create-outline"></ion-icon>
+              </div>
+              <span>Personal Information</span>
+            </div>
+
+            <ion-item class="form-item">
+              <ion-input label="Full Name" labelPlacement="stacked"
+                [(ngModel)]="profileData.name" [readonly]="!editing"></ion-input>
+            </ion-item>
+            <ion-item class="form-item">
+              <ion-input label="Name (Nepali)" labelPlacement="stacked"
+                [(ngModel)]="profileData.name_ne" [readonly]="!editing"></ion-input>
+            </ion-item>
+            <ion-item class="form-item">
+              <ion-input label="Mobile Number" labelPlacement="stacked" type="tel"
+                [(ngModel)]="profileData.mobile_number" [readonly]="!editing"></ion-input>
+            </ion-item>
+            <ion-item class="form-item">
+              <ion-input label="Email" labelPlacement="stacked" type="email"
+                [(ngModel)]="profileData.email" [readonly]="!editing"></ion-input>
+            </ion-item>
+            <ion-item class="form-item">
+              <ion-input label="Date of Birth" labelPlacement="stacked" type="date"
+                [(ngModel)]="profileData.date_of_birth" [readonly]="!editing"></ion-input>
+            </ion-item>
+
+            <div class="btn-row">
+              <ion-button expand="block" *ngIf="!editing" (click)="editing = true">
+                <ion-icon name="create-outline" slot="start"></ion-icon>
+                Edit Profile
+              </ion-button>
+              <ion-button expand="block" *ngIf="editing" (click)="saveProfile()" [disabled]="savingProfile">
+                <ion-spinner *ngIf="savingProfile" name="crescent" slot="start"></ion-spinner>
+                Save Changes
+              </ion-button>
+              <ion-button expand="block" fill="outline" color="medium" *ngIf="editing" (click)="cancelEdit()">
+                Cancel
+              </ion-button>
+            </div>
+          </ion-card-content>
+        </ion-card>
+
+        <!-- Change Password -->
+        <ion-card>
+          <ion-card-content>
+            <div class="section-title">
+              <div class="section-icon orange">
+                <ion-icon name="key-outline"></ion-icon>
+              </div>
+              <span>Change Password</span>
+            </div>
+
+            <ion-item class="form-item">
+              <ion-input label="Current Password" labelPlacement="stacked" type="password"
+                [(ngModel)]="passwordData.current_password"></ion-input>
+            </ion-item>
+            <ion-item class="form-item">
+              <ion-input label="New Password" labelPlacement="stacked" type="password"
+                [(ngModel)]="passwordData.password"></ion-input>
+            </ion-item>
+            <ion-item class="form-item">
+              <ion-input label="Confirm Password" labelPlacement="stacked" type="password"
+                [(ngModel)]="passwordData.password_confirmation"></ion-input>
+            </ion-item>
+
+            <div class="btn-row">
+              <ion-button expand="block" color="warning" (click)="changePassword()" [disabled]="changingPassword">
+                <ion-spinner *ngIf="changingPassword" name="crescent" slot="start"></ion-spinner>
+                Change Password
+              </ion-button>
+            </div>
+          </ion-card-content>
+        </ion-card>
+
+        <!-- Logout -->
+        <div class="logout-section">
+          <ion-button expand="block" color="danger" fill="outline" (click)="logout()">
+            <ion-icon name="log-out-outline" slot="start"></ion-icon>
+            Logout
+          </ion-button>
+        </div>
+      </div>
+    </ion-content>

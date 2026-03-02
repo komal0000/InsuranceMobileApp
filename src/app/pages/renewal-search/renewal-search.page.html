@@ -1,0 +1,60 @@
+    <ion-header>
+      <ion-toolbar color="primary">
+        <ion-buttons slot="start">
+          <ion-back-button defaultHref="/tabs/renewals"></ion-back-button>
+        </ion-buttons>
+        <ion-title>Search Policy</ion-title>
+      </ion-toolbar>
+    </ion-header>
+
+    <ion-content>
+      <div class="search-content">
+        <ion-card>
+          <ion-card-content>
+            <div class="section-title">
+              <div class="section-icon" style="background: rgba(0,48,135,0.08);">
+                <ion-icon name="search-outline" style="color: #003087;"></ion-icon>
+              </div>
+              <h3>Find Policy for Renewal</h3>
+            </div>
+
+            <ion-item class="form-item">
+              <ion-select label="Search By" labelPlacement="stacked" [(ngModel)]="searchType">
+                <ion-select-option value="enrollment_number">Enrollment Number</ion-select-option>
+                <ion-select-option value="mobile_number">Mobile Number</ion-select-option>
+                <ion-select-option value="hib_number">HIB Number</ion-select-option>
+                <ion-select-option value="national_id">National ID</ion-select-option>
+              </ion-select>
+            </ion-item>
+            <ion-item class="form-item">
+              <ion-input label="Search Value" labelPlacement="stacked" placeholder="Enter value"
+                [(ngModel)]="searchValue"></ion-input>
+            </ion-item>
+            <ion-button expand="block" (click)="searchPolicy()" [disabled]="searching" class="ion-margin-top">
+              <ion-spinner *ngIf="searching" name="crescent" slot="start"></ion-spinner>
+              {{ searching ? 'Searching...' : 'Search' }}
+            </ion-button>
+          </ion-card-content>
+        </ion-card>
+
+        <!-- Results -->
+        <ion-card *ngIf="results">
+          <ion-card-content>
+            <h4 class="results-title">Search Results</h4>
+            <div *ngIf="results.length === 0" class="empty-text">
+              <ion-text color="medium">No policies found</ion-text>
+            </div>
+            <div class="result-list" *ngIf="results.length > 0">
+              <div class="result-item" *ngFor="let r of results" (click)="initiateRenewal(r)">
+                <div class="result-info">
+                  <strong>{{ r.enrollment_number || 'Enrollment #' + r.id }}</strong>
+                  <span *ngIf="r.household_head">{{ r.household_head?.first_name }} {{ r.household_head?.last_name }}</span>
+                  <span class="result-location" *ngIf="r.province">{{ r.province }}, {{ r.district }}</span>
+                </div>
+                <ion-icon name="arrow-forward-outline" class="result-arrow"></ion-icon>
+              </div>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      </div>
+    </ion-content>

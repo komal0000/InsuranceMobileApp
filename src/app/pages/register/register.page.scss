@@ -1,0 +1,76 @@
+.register-content { --background: #f8f9fa; }
+
+.gradient-section {
+  background: linear-gradient(135deg, #003087 0%, #001F5C 50%, #0050B3 100%);
+  padding: 48px 24px 32px;
+  text-align: center;
+  position: relative;
+}
+
+.back-btn {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  background: rgba(255,255,255,0.15);
+  border: none;
+  color: #fff;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  ion-icon { font-size: 20px; }
+}
+
+.logo-circle {
+  width: 64px; height: 64px; border-radius: 50%;
+  background: rgba(255,255,255,0.12);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 12px;
+  border: 2px solid rgba(255,255,255,0.2);
+  ion-icon { font-size: 32px; color: #fff; }
+}
+
+.header-title { color: #fff; font-size: 0.9rem; font-weight: 500; margin: 0 0 8px; }
+.red-line { width: 36px; height: 3px; background: #DC143C; border-radius: 2px; margin: 0 auto 8px; }
+.header-sub { color: rgba(255,255,255,0.8); font-size: 0.8rem; margin: 0; }
+
+.card-section { padding: 0 16px 24px; margin-top: -16px; }
+
+.register-card {
+  background: #fff; border-radius: 16px;
+  padding: 24px 20px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+
+.card-title { font-size: 1.3rem; font-weight: 700; color: #212529; margin: 0 0 4px; text-align: center; }
+
+.accent-bar { display: flex; justify-content: center; gap: 4px; margin-bottom: 20px; }
+.bar-red, .bar-blue { width: 30px; height: 4px; border-radius: 2px; }
+.bar-red { background: #DC143C; }
+.bar-blue { background: #003087; }
+
+.form-group { margin-bottom: 14px; }
+.form-label { display: block; font-size: 0.78rem; font-weight: 600; color: #495057; margin-bottom: 5px; padding-left: 4px; }
+
+.form-item {
+  --background: #f8f9fa; --border-radius: 10px; --min-height: 46px;
+  border: 1px solid #dee2e6; border-radius: 10px;
+  --padding-start: 12px; --inner-padding-end: 12px;
+}
+
+.input-icon { color: #6c757d; font-size: 18px; margin-right: 8px; }
+
+.register-btn {
+  --background: #003087; --border-radius: 10px;
+  --padding-top: 14px; --padding-bottom: 14px;
+  font-weight: 700; font-size: 1rem;
+  margin: 20px 0 16px;
+}
+
+.login-link {
+  text-align: center; font-size: 0.85rem; color: #6c757d;
+  a { color: #003087; font-weight: 600; text-decoration: none; margin-left: 4px; }
+}

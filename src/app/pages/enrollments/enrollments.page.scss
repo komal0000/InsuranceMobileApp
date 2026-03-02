@@ -1,0 +1,64 @@
+.list-content { padding: 12px; }
+
+.enrollment-card {
+  margin: 0 0 10px !important;
+  border-left: 3px solid #003087;
+}
+
+.card-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.enroll-number {
+  font-weight: 700;
+  font-size: 0.92rem;
+  color: #003087;
+}
+
+.card-detail-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 5px;
+  font-size: 0.82rem;
+  color: #495057;
+}
+
+.detail-icon {
+  font-size: 15px;
+  color: #6c757d;
+}
+
+.card-bottom-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.date-text {
+  font-size: 0.75rem;
+  color: #adb5bd;
+}
+
+.premium-text {
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: #198754;
+}
+
+.empty-state {
+  margin-top: 30%;
+  .empty-icon { font-size: 64px; color: var(--ion-color-medium); }
+  h3 { color: #6c757d; margin: 12px 0 4px; }
+  p { color: #adb5bd; font-size: 0.85rem; }
+}
+
+.loading-center {
+  display: flex; justify-content: center; align-items: center; height: 50%;
+}

@@ -1,0 +1,33 @@
+    .list-content { padding: 12px; }
+
+    .renewal-card {
+      margin: 0 0 10px !important;
+      border-left: 3px solid #fd7e14;
+    }
+
+    .card-top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .renewal-number {
+      font-weight: 700;
+      font-size: 0.92rem;
+      color: #003087;
+    }
+
+    .date-text {
+      font-size: 0.75rem;
+      color: #adb5bd;
+    }
+
+    .empty-state {
+      margin-top: 25%;
+      .empty-icon { font-size: 64px; color: var(--ion-color-medium); }
+      h3 { color: #6c757d; margin: 12px 0 4px; }
+      p { color: #adb5bd; font-size: 0.85rem; margin-bottom: 16px; }
+    }
+
+    .loading-center { display: flex; justify-content: center; align-items: center; height: 50%; }

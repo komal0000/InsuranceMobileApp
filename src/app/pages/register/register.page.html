@@ -1,0 +1,130 @@
+<ion-content [fullscreen]="true" [scrollY]="true" class="register-content">
+  <!-- Gradient Header (smaller than login) -->
+  <div class="gradient-section">
+    <button class="back-btn" routerLink="/login">
+      <ion-icon name="arrow-back-outline"></ion-icon>
+    </button>
+    <div class="logo-circle">
+      <ion-icon name="shield-checkmark-outline"></ion-icon>
+    </div>
+    <p class="header-title">Health Insurance Board, Nepal</p>
+    <div class="red-line"></div>
+    <p class="header-sub">Create your account</p>
+  </div>
+
+  <!-- Registration Form Card -->
+  <div class="card-section">
+    <div class="register-card">
+      <h2 class="card-title">Register</h2>
+      <div class="accent-bar">
+        <span class="bar-red"></span>
+        <span class="bar-blue"></span>
+      </div>
+
+      <!-- Full Name -->
+      <div class="form-group">
+        <label class="form-label">Full Name *</label>
+        <ion-item lines="none" class="form-item">
+          <ion-icon name="person-outline" slot="start" class="input-icon"></ion-icon>
+          <ion-input placeholder="Enter your full name" [(ngModel)]="formData.name" required></ion-input>
+        </ion-item>
+      </div>
+
+      <!-- Name in Nepali -->
+      <div class="form-group">
+        <label class="form-label">Name in Nepali</label>
+        <ion-item lines="none" class="form-item">
+          <ion-input placeholder="नाम नेपालीमा" [(ngModel)]="formData.name_ne"></ion-input>
+        </ion-item>
+      </div>
+
+      <!-- Mobile Number -->
+      <div class="form-group">
+        <label class="form-label">Mobile Number *</label>
+        <ion-item lines="none" class="form-item">
+          <ion-icon name="call-outline" slot="start" class="input-icon"></ion-icon>
+          <ion-input type="tel" placeholder="98XXXXXXXX" [(ngModel)]="formData.mobile_number" required></ion-input>
+        </ion-item>
+      </div>
+
+      <!-- National ID -->
+      <div class="form-group">
+        <label class="form-label">National ID</label>
+        <ion-item lines="none" class="form-item">
+          <ion-icon name="card-outline" slot="start" class="input-icon"></ion-icon>
+          <ion-input placeholder="Enter national ID (optional)" [(ngModel)]="formData.national_id"></ion-input>
+        </ion-item>
+      </div>
+
+      <!-- Date of Birth -->
+      <div class="form-group">
+        <label class="form-label">Date of Birth</label>
+        <ion-item lines="none" class="form-item">
+          <ion-icon name="calendar-outline" slot="start" class="input-icon"></ion-icon>
+          <ion-input type="date" [(ngModel)]="formData.date_of_birth"></ion-input>
+        </ion-item>
+      </div>
+
+      <!-- Province -->
+      <div class="form-group">
+        <label class="form-label">Province</label>
+        <ion-item lines="none" class="form-item">
+          <ion-icon name="location-outline" slot="start" class="input-icon"></ion-icon>
+          <ion-select [(ngModel)]="formData.province" (ionChange)="onProvinceChange()"
+            placeholder="Select Province" interface="popover">
+            <ion-select-option *ngFor="let p of provinces" [value]="p.name">{{ p.name }}</ion-select-option>
+          </ion-select>
+        </ion-item>
+      </div>
+
+      <!-- District -->
+      <div class="form-group">
+        <label class="form-label">District</label>
+        <ion-item lines="none" class="form-item">
+          <ion-icon name="location-outline" slot="start" class="input-icon"></ion-icon>
+          <ion-select [(ngModel)]="formData.district" [disabled]="!districts.length"
+            placeholder="Select District" interface="popover">
+            <ion-select-option *ngFor="let d of districts" [value]="d.name">{{ d.name }}</ion-select-option>
+          </ion-select>
+        </ion-item>
+      </div>
+
+      <!-- Email -->
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <ion-item lines="none" class="form-item">
+          <ion-icon name="mail-outline" slot="start" class="input-icon"></ion-icon>
+          <ion-input type="email" placeholder="email@example.com (optional)" [(ngModel)]="formData.email"></ion-input>
+        </ion-item>
+      </div>
+
+      <!-- Password -->
+      <div class="form-group">
+        <label class="form-label">Password *</label>
+        <ion-item lines="none" class="form-item">
+          <ion-icon name="lock-closed-outline" slot="start" class="input-icon"></ion-icon>
+          <ion-input type="password" placeholder="At least 8 characters" [(ngModel)]="formData.password" required></ion-input>
+        </ion-item>
+      </div>
+
+      <!-- Confirm Password -->
+      <div class="form-group">
+        <label class="form-label">Confirm Password *</label>
+        <ion-item lines="none" class="form-item">
+          <ion-icon name="lock-closed-outline" slot="start" class="input-icon"></ion-icon>
+          <ion-input type="password" placeholder="Re-enter password" [(ngModel)]="formData.password_confirmation" required></ion-input>
+        </ion-item>
+      </div>
+
+      <ion-button expand="block" (click)="register()" [disabled]="loading" class="register-btn">
+        <ion-spinner *ngIf="loading" name="crescent" slot="start"></ion-spinner>
+        {{ loading ? 'Creating Account...' : 'Register' }}
+      </ion-button>
+
+      <div class="login-link">
+        <span>Already have an account?</span>
+        <a routerLink="/login">Sign In</a>
+      </div>
+    </div>
+  </div>
+</ion-content>
