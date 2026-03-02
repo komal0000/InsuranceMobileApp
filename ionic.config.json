@@ -1,0 +1,7 @@
+{
+  "name": "INSURANCEMOBILEAPP",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular-standalone"
+}
