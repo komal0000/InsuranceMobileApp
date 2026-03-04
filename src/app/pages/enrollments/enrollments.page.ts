@@ -7,7 +7,7 @@ import {
   IonBadge, IonSearchbar, IonSegment, IonSegmentButton,
   IonRefresher, IonRefresherContent, IonInfiniteScroll,
   IonInfiniteScrollContent, IonFab, IonFabButton, IonIcon,
-  IonSpinner, IonCard, IonCardContent
+  IonSpinner, IonCard, IonCardContent, IonButton
 } from '@ionic/angular/standalone';
 import { ToastController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -26,7 +26,7 @@ import { Enrollment, EnrollmentStatus } from '../../interfaces/enrollment.interf
     IonBadge, IonSearchbar, IonSegment, IonSegmentButton,
     IonRefresher, IonRefresherContent, IonInfiniteScroll,
     IonInfiniteScrollContent, IonFab, IonFabButton, IonIcon,
-    IonSpinner, IonCard, IonCardContent
+    IonSpinner, IonCard, IonCardContent, IonButton
   ],
   templateUrl: './enrollments.page.html',
   styleUrls: ['./enrollments.page.scss'],
@@ -119,6 +119,11 @@ export class EnrollmentsPage implements OnInit {
 
   viewDetail(enrollment: Enrollment) {
     this.router.navigateByUrl(`/enrollment-detail/${enrollment.id}`);
+  }
+
+  continueEnrollment(enrollment: Enrollment, event: Event) {
+    event.stopPropagation();
+    this.router.navigateByUrl(`/enrollment-wizard/${enrollment.id}`);
   }
 
   async createNew() {

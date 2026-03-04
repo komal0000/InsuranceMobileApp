@@ -14,6 +14,7 @@ import {
 import { ApiService } from '../../services/api.service';
 import { AuthService } from '../../services/auth.service';
 import { ApiResponse } from '../../interfaces/api-response.interface';
+import { Enrollment } from '../../interfaces/enrollment.interface';
 import { User } from '../../interfaces/user.interface';
 
 @Component({
@@ -57,7 +58,9 @@ export class DashboardPage implements OnInit {
   loadDashboard() {
     this.loading = true;
     this.api.get<ApiResponse>('/dashboard').subscribe({
-      next: (res) => { this.stats = res.data || {}; this.loading = false; },
+      next: (res) => { this.stats = res.data || {}; this.loading = false;
+      console.log('Dashboard stats loaded:', this.stats);
+    },
       error: () => { this.loading = false; },
     });
   }
@@ -70,6 +73,17 @@ export class DashboardPage implements OnInit {
   }
 
   navigate(path: string) { this.router.navigateByUrl(path); }
+
+  createNewEnrollment() {
+    this.api.post<ApiResponse<Enrollment>>('/enrollments', { enrollment_type: 'new' }).subscribe({
+      next: (res) => {
+        if (res.success && res.data?.id) {
+          this.router.navigateByUrl(`/enrollment-wizard/${res.data.id}`);
+        }
+      },
+      error: (err) => console.error('Failed to create enrollment', err),
+    });
+  }
 
   formatRole(role?: string): string {
     return (role || '').replace(/_/g, ' ');

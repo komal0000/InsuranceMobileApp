@@ -108,7 +108,7 @@
       <h3>Quick Actions</h3>
     </div>
 
-    <ion-card button (click)="navigate('/enrollment-wizard')" *ngIf="canCreateEnrollment" class="action-card">
+    <ion-card button (click)="createNewEnrollment()" *ngIf="canCreateEnrollment" class="action-card">
       <ion-card-content class="action-content">
         <div class="action-icon-box" style="background: rgba(0,48,135,0.08);">
           <ion-icon name="document-text-outline" style="color: #003087;"></ion-icon>

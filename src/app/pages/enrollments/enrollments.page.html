@@ -52,6 +52,14 @@
           <span class="date-text">{{ e.created_at | date:'mediumDate' }}</span>
           <span class="premium-text" *ngIf="e.premium_amount">Rs. {{ e.premium_amount }}</span>
         </div>
+
+        <!-- Continue button for draft/incomplete enrollments -->
+        <div *ngIf="e.status === 'draft'" style="margin-top:8px;padding-top:8px;border-top:1px solid #f0f0f0">
+          <ion-button expand="block" size="small" fill="outline" color="primary"
+                      (click)="continueEnrollment(e, $event)">
+            Continue Enrollment
+          </ion-button>
+        </div>
       </ion-card-content>
     </ion-card>
   </div>

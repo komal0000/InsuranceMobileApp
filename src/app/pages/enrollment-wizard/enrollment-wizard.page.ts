@@ -1,23 +1,30 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
   IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton,
   IonButton, IonItem, IonInput, IonSelect, IonSelectOption,
-  IonCard, IonCardContent, IonIcon, IonSpinner, IonText, IonImg
+  IonCard, IonCardContent, IonIcon, IonSpinner,
+  IonToggle, IonLabel, IonAccordion, IonAccordionGroup,
+  IonBadge, IonCheckbox
 } from '@ionic/angular/standalone';
 import { ToastController, AlertController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
-  locationOutline, personOutline, peopleOutline, documentOutline,
+  locationOutline, personOutline, peopleOutline,
   checkmarkCircleOutline, cameraOutline, addOutline, trashOutline,
-  arrowForwardOutline, arrowBackOutline, cloudUploadOutline
+  arrowForwardOutline, arrowBackOutline, searchOutline,
+  cardOutline, documentTextOutline, cashOutline, createOutline
 } from 'ionicons/icons';
-import { ApiService } from '../../services/api.service';
+import { EnrollmentService } from '../../services/enrollment.service';
+import { GeoService } from '../../services/geo.service';
 import { ApiResponse } from '../../interfaces/api-response.interface';
-import { Enrollment, EnrollmentConfig, FamilyMember, EnrollmentDocument, Step1Data } from '../../interfaces/enrollment.interface';
-import { GeoItem } from '../../interfaces/geo.interface';
+import {
+  Enrollment, EnrollmentConfig, FamilyMember, Step1Data
+} from '../../interfaces/enrollment.interface';
+
+const STEP_TITLES = ['Household Info', 'Household Head', 'Family Members', 'Review & Submit'];
 
 @Component({
   selector: 'app-enrollment-wizard',
@@ -26,247 +33,337 @@ import { GeoItem } from '../../interfaces/geo.interface';
     CommonModule, FormsModule,
     IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton,
     IonButton, IonItem, IonInput, IonSelect, IonSelectOption,
-    IonCard, IonCardContent, IonIcon, IonSpinner, IonText, IonImg
+    IonCard, IonCardContent, IonIcon, IonSpinner,
+    IonToggle, IonLabel, IonAccordion, IonAccordionGroup,
+    IonBadge, IonCheckbox
   ],
   templateUrl: './enrollment-wizard.page.html',
   styleUrls: ['./enrollment-wizard.page.scss'],
 })
 export class EnrollmentWizardPage implements OnInit {
+
   enrollmentId!: number;
   enrollment: Enrollment | null = null;
   config: EnrollmentConfig | null = null;
   currentStep = 1;
   saving = false;
-  savingMember = false;
   submitting = false;
-  showMemberForm = false;
+  confirmed = false;
+  stepTitles = STEP_TITLES;
 
-  stepTitles = ['Location', 'Household Head', 'Family Members', 'Documents', 'Review & Submit'];
 
-  // Step 1
-  step1: Step1Data = { province: '', district: '', municipality: '', ward_number: '', tole_village: '', full_address: '' };
-  provinces: GeoItem[] = [];
-  districts: GeoItem[] = [];
-  municipalities: GeoItem[] = [];
-  wards: GeoItem[] = [];
+  step1: Step1Data = {
+    province: '', district: '', municipality: '', ward_number: '',
+    tole_village: '', full_address: '',
+  };
+  provinces: string[] = [];
+  districts: string[] = [];
+  municipalities: string[] = [];
+  wards: string[] = [];
 
-  // Step 2
+  showNidGate2 = true;
+  nidNumber2 = '';
+  nidLooking2 = false;
+  nidMessage2 = '';
+
   headData: any = {
-    first_name: '', last_name: '', gender: '', date_of_birth: '',
-    mobile_number: '', citizenship_number: '', photo: null,
-    citizenship_front_image: null, citizenship_back_image: null,
+    first_name: '', middle_name: '', last_name: '',
+    first_name_ne: '', middle_name_ne: '', last_name_ne: '',
+    gender: '', date_of_birth: '', blood_group: '', marital_status: '',
+    mobile_number: '', email: '',
+    citizenship_number: '', citizenship_issue_date: '', citizenship_issue_district: '',
+    is_target_group: false, target_group_type: '', target_group_id_number: '',
+    occupation: '', education_level: '',
+    photo: null as File | Blob | null,
+    citizenship_front_image: null as File | Blob | null,
+    citizenship_back_image: null as File | Blob | null,
+    target_group_front_image: null as File | Blob | null,
+    target_group_back_image: null as File | Blob | null,
   };
   headPhotoPreview = '';
   citizenshipFrontPreview = '';
   citizenshipBackPreview = '';
+  targetGroupFrontPreview = '';
+  targetGroupBackPreview = '';
 
-  // Step 3
   members: FamilyMember[] = [];
-  newMember: any = {
-    first_name: '', last_name: '', gender: '', date_of_birth: '',
-    relationship_type: '', mobile_number: '',
-  };
+  householdHead: FamilyMember | null = null;
+  showMemberForm = false;
+  savingMember = false;
+  showNidGateMember = true;
+  nidNumberMember = '';
+  nidLookingMember = false;
+  nidMessageMember = '';
 
-  // Step 4
-  documents: EnrollmentDocument[] = [];
-  docType = 'citizenship';
+  newMember: any = {
+    first_name: '', middle_name: '', last_name: '',
+    first_name_ne: '', middle_name_ne: '', last_name_ne: '',
+    gender: '', date_of_birth: '', relationship: '',
+    blood_group: '', marital_status: '', mobile_number: '',
+    citizenship_number: '',
+    is_target_group: false, target_group_type: '', target_group_id_number: '',
+    photo: null as File | Blob | null,
+  };
+  memberPhotoPreview = '';
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private api: ApiService,
+    private enrollmentSvc: EnrollmentService,
+    private geoSvc: GeoService,
     private toastCtrl: ToastController,
     private alertCtrl: AlertController
   ) {
     addIcons({
-      locationOutline, personOutline, peopleOutline, documentOutline,
+      locationOutline, personOutline, peopleOutline,
       checkmarkCircleOutline, cameraOutline, addOutline, trashOutline,
-      arrowForwardOutline, arrowBackOutline, cloudUploadOutline
+      arrowForwardOutline, arrowBackOutline, searchOutline,
+      cardOutline, documentTextOutline, cashOutline, createOutline
     });
   }
 
   ngOnInit() {
     this.enrollmentId = Number(this.route.snapshot.paramMap.get('id'));
-    this.loadConfig();
-    this.loadProvinces();
+    this.geoSvc.provinces().subscribe({ next: r => this.provinces = r.data || [] });
+    this.enrollmentSvc.getConfig().subscribe({ next: r => this.config = r.data });
     this.loadEnrollment();
   }
 
-  loadConfig() {
-    this.api.get<ApiResponse<EnrollmentConfig>>('/enrollment-config').subscribe({
-      next: (res) => { this.config = res.data; },
-    });
-  }
-
-  loadProvinces() {
-    this.api.get<ApiResponse<GeoItem[]>>('/geo/provinces').subscribe({
-      next: (res) => { this.provinces = res.data || []; },
-    });
-  }
-
   loadEnrollment() {
-    this.api.get<ApiResponse<Enrollment>>(`/enrollments/${this.enrollmentId}`).subscribe({
-      next: (res) => {
-        this.enrollment = res.data;
-        // Pre-fill step1
-        if (this.enrollment.province) {
-          this.step1 = {
-            province: this.enrollment.province || '',
-            district: this.enrollment.district || '',
-            municipality: this.enrollment.municipality || '',
-            ward_number: this.enrollment.ward_number || '',
-            tole_village: this.enrollment.tole_village || '',
-            full_address: this.enrollment.full_address || '',
-          };
-          if (this.step1.province) this.onProvinceChange(false);
-          if (this.step1.district) this.onDistrictChange(false);
-          if (this.step1.municipality) this.onMunicipalityChange(false);
-        }
-        // Pre-fill members & documents
-        this.members = (this.enrollment.members || []).filter(m => !m.is_household_head);
-        this.documents = this.enrollment.documents || [];
-        // Pre-fill head fields
-        if (this.enrollment.household_head) {
-          const hh = this.enrollment.household_head;
-          this.headData = {
-            first_name: hh.first_name, last_name: hh.last_name,
-            gender: hh.gender, date_of_birth: hh.date_of_birth,
-            mobile_number: hh.mobile_number || '', citizenship_number: hh.citizenship_number || '',
-            photo: null, citizenship_front_image: null, citizenship_back_image: null,
-          };
-          this.headPhotoPreview = hh.photo || '';
-          this.citizenshipFrontPreview = hh.citizenship_front_image || '';
-          this.citizenshipBackPreview = hh.citizenship_back_image || '';
-        }
-      },
+    this.enrollmentSvc.get(this.enrollmentId).subscribe({
+      next: (res) => { this.enrollment = res.data; this.prefillFromEnrollment(res.data); },
     });
   }
 
-  onProvinceChange(resetChild = true) {
-    if (resetChild) {
-      this.step1.district = '';
-      this.step1.municipality = '';
-      this.step1.ward_number = '';
-      this.districts = [];
-      this.municipalities = [];
-      this.wards = [];
+  private prefillFromEnrollment(e: Enrollment) {
+    if (e.province) {
+      this.step1 = {
+        province: e.province || '',
+        district: e.district || '',
+        municipality: e.municipality || '',
+        ward_number: String(e.ward_number || ''),
+        tole_village: e.tole_village || '',
+        full_address: e.full_address || '',
+      };
+      if (e.province)     this.onProvinceChange(false);
+      if (e.district)     this.onDistrictChange(false);
+      if (e.municipality) this.onMunicipalityChange(false);
+    }
+    const head = e.household_head;
+    if (head) {
+      this.showNidGate2 = false;
+      this.headData = {
+        first_name: head.first_name || '', middle_name: head.middle_name || '',
+        last_name: head.last_name || '',
+        first_name_ne: head.first_name_ne || '', middle_name_ne: head.middle_name_ne || '',
+        last_name_ne: head.last_name_ne || '',
+        gender: head.gender || '', date_of_birth: head.date_of_birth || '',
+        blood_group: head.blood_group || '', marital_status: head.marital_status || '',
+        mobile_number: head.mobile_number || '', email: head.email || '',
+        citizenship_number: head.citizenship_number || '',
+        citizenship_issue_date: head.citizenship_issue_date || '',
+        citizenship_issue_district: head.citizenship_issue_district || '',
+        is_target_group: !!head.is_target_group,
+        target_group_type: head.target_group_type || '',
+        target_group_id_number: head.target_group_id_number || '',
+        occupation: head.occupation || '', education_level: head.education_level || '',
+        photo: null, citizenship_front_image: null, citizenship_back_image: null,
+        target_group_front_image: null, target_group_back_image: null,
+      };
+      this.headPhotoPreview = head.photo || '';
+      this.citizenshipFrontPreview = head.citizenship_front_image || '';
+      this.citizenshipBackPreview = head.citizenship_back_image || '';
+      this.targetGroupFrontPreview = head.target_group_front_image || '';
+      this.targetGroupBackPreview = head.target_group_back_image || '';
+    }
+    const all = e.family_members || e.members || [];
+    this.householdHead = all.find(m => m.is_household_head) || head || null;
+    this.members = all.filter(m => !m.is_household_head);
+    if (e.current_step && e.current_step > 1) this.currentStep = e.current_step;
+  }
+
+
+  onProvinceChange(reset = true) {
+    if (reset) {
+      this.step1.district = ''; this.step1.municipality = ''; this.step1.ward_number = '';
+      this.districts = []; this.municipalities = []; this.wards = [];
     }
     if (this.step1.province) {
-      this.api.get<ApiResponse<GeoItem[]>>(`/geo/districts/${this.step1.province}`).subscribe({
-        next: (res) => { this.districts = res.data || []; },
-      });
+      this.geoSvc.districts(this.step1.province).subscribe({ next: r => this.districts = r.data || [] });
     }
+    this.updateFullAddress();
   }
 
-  onDistrictChange(resetChild = true) {
-    if (resetChild) {
-      this.step1.municipality = '';
-      this.step1.ward_number = '';
-      this.municipalities = [];
-      this.wards = [];
+  onDistrictChange(reset = true) {
+    if (reset) {
+      this.step1.municipality = ''; this.step1.ward_number = '';
+      this.municipalities = []; this.wards = [];
     }
     if (this.step1.province && this.step1.district) {
-      this.api.get<ApiResponse<GeoItem[]>>(`/geo/municipalities/${this.step1.province}/${this.step1.district}`).subscribe({
-        next: (res) => { this.municipalities = res.data || []; },
-      });
+      this.geoSvc.municipalities(this.step1.province, this.step1.district)
+        .subscribe({ next: r => this.municipalities = r.data || [] });
     }
+    this.updateFullAddress();
   }
 
-  onMunicipalityChange(resetChild = true) {
-    if (resetChild) {
-      this.step1.ward_number = '';
-      this.wards = [];
-    }
+  onMunicipalityChange(reset = true) {
+    if (reset) { this.step1.ward_number = ''; this.wards = []; }
     if (this.step1.province && this.step1.district && this.step1.municipality) {
-      this.api.get<ApiResponse<GeoItem[]>>(`/geo/wards/${this.step1.province}/${this.step1.district}/${this.step1.municipality}`).subscribe({
-        next: (res) => { this.wards = res.data || []; },
-      });
+      this.geoSvc.wards(this.step1.province, this.step1.district, this.step1.municipality)
+        .subscribe({ next: r => this.wards = r.data || [] });
     }
+    this.updateFullAddress();
   }
+
+  updateFullAddress() {
+    const parts = [
+      this.step1.tole_village,
+      this.step1.ward_number ? `Ward ${this.step1.ward_number}` : '',
+      this.step1.municipality, this.step1.district, this.step1.province,
+    ].filter(Boolean);
+    this.step1.full_address = parts.join(', ');
+  }
+
+
+  lookupNid2() {
+    if (!this.nidNumber2.trim()) return;
+    this.nidLooking2 = true;
+    this.nidMessage2 = '';
+    this.enrollmentSvc.nidLookup(this.nidNumber2.trim()).subscribe({
+      next: (res) => {
+        this.nidLooking2 = false;
+        if (res.success && res.data) {
+          const d = res.data;
+          this.headData.first_name = d.first_name || '';
+          this.headData.last_name = d.last_name || '';
+          this.headData.gender = d.gender || '';
+          this.headData.date_of_birth = d.date_of_birth || '';
+          this.headData.mobile_number = d.mobile_number || '';
+          this.headData.email = d.email || '';
+          this.showNidGate2 = false;
+          this.showToast('Record found! Fields have been auto-filled.', 'success');
+        } else {
+          this.nidMessage2 = 'No record found. Please fill the form manually.';
+        }
+      },
+      error: () => { this.nidLooking2 = false; this.nidMessage2 = 'No record found. Please fill the form manually.'; },
+    });
+  }
+
+  skipNidGate2() { this.showNidGate2 = false; }
+
+  lookupNidMember() {
+    if (!this.nidNumberMember.trim()) return;
+    this.nidLookingMember = true;
+    this.nidMessageMember = '';
+    this.enrollmentSvc.nidLookup(this.nidNumberMember.trim()).subscribe({
+      next: (res) => {
+        this.nidLookingMember = false;
+        if (res.success && res.data) {
+          const d = res.data;
+          this.newMember.first_name = d.first_name || '';
+          this.newMember.last_name = d.last_name || '';
+          this.newMember.gender = d.gender || '';
+          this.newMember.date_of_birth = d.date_of_birth || '';
+          this.newMember.mobile_number = d.mobile_number || '';
+          this.showNidGateMember = false;
+          this.showToast('Record found! Fields have been auto-filled.', 'success');
+        } else {
+          this.nidMessageMember = 'No record found. Please fill the form manually.';
+        }
+      },
+      error: () => { this.nidLookingMember = false; this.nidMessageMember = 'No record found. Please fill the form manually.'; },
+    });
+  }
+
+  skipNidGateMember() { this.showNidGateMember = false; }
+
+  // â”€â”€ Navigation
 
   async nextStep() {
     if (this.currentStep === 1) {
       if (!this.step1.province || !this.step1.district || !this.step1.municipality || !this.step1.ward_number) {
-        const toast = await this.toastCtrl.create({
-          message: 'Please fill in all required location fields', duration: 2000, color: 'warning', position: 'top',
-        });
-        await toast.present();
-        return;
+        this.showToast('Please fill all required location fields.', 'warning'); return;
       }
       this.saving = true;
-      this.api.post<ApiResponse>(`/enrollments/${this.enrollmentId}/step1`, this.step1).subscribe({
-        next: (res) => {
-          this.saving = false;
-          if (res.success) this.currentStep++;
-        },
+      this.enrollmentSvc.saveStep1(this.enrollmentId, this.step1).subscribe({
+        next: (res) => { this.saving = false; if (res.success) { this.enrollment = res.data; this.currentStep = 2; } },
         error: () => { this.saving = false; },
       });
+
     } else if (this.currentStep === 2) {
-      if (!this.headData.first_name || !this.headData.last_name || !this.headData.gender || !this.headData.date_of_birth) {
-        const toast = await this.toastCtrl.create({
-          message: 'Please fill in all required head fields', duration: 2000, color: 'warning', position: 'top',
-        });
-        await toast.present();
-        return;
+      if (!this.headData.first_name || !this.headData.last_name || !this.headData.gender ||
+          !this.headData.date_of_birth || !this.headData.mobile_number ||
+          !this.headData.citizenship_number || !this.headData.marital_status) {
+        this.showToast('Please fill all required fields.', 'warning'); return;
       }
       this.saving = true;
       const fd = new FormData();
       Object.keys(this.headData).forEach(key => {
-        if (this.headData[key] !== null && this.headData[key] !== '') {
-          fd.append(key, this.headData[key]);
-        }
+        const val = this.headData[key];
+        if (val === null || val === undefined) return;
+        if (typeof val === 'boolean') { fd.append(key, val ? '1' : '0'); return; }
+        if (val instanceof Blob) { fd.append(key, val, `${key}.jpg`); return; }
+        if (val !== '') fd.append(key, String(val));
       });
-      this.api.postFormData<ApiResponse>(`/enrollments/${this.enrollmentId}/step2`, fd).subscribe({
+      this.enrollmentSvc.saveStep2(this.enrollmentId, fd).subscribe({
         next: (res) => {
           this.saving = false;
-          if (res.success) {
-            this.loadEnrollment();
-            this.currentStep++;
-          }
+          if (res.success) { this.enrollment = res.data; this.prefillFromEnrollment(res.data); this.currentStep = 3; }
         },
         error: () => { this.saving = false; },
       });
-    } else if (this.currentStep === 3 || this.currentStep === 4) {
-      this.currentStep++;
-      if (this.currentStep === 5) this.loadEnrollment();
+
+    } else if (this.currentStep === 3) {
+      this.currentStep = 4;
+      this.loadEnrollment();
     }
   }
 
-  prevStep() {
-    if (this.currentStep > 1) this.currentStep--;
-  }
+  prevStep() { if (this.currentStep > 1) this.currentStep--; }
+
+  goToStep(step: number) { if (step < this.currentStep) this.currentStep = step; }
+
 
   showAddMember() {
     this.newMember = {
-      first_name: '', last_name: '', gender: '', date_of_birth: '',
-      relationship_type: '', mobile_number: '',
+      first_name: '', middle_name: '', last_name: '',
+      first_name_ne: '', middle_name_ne: '', last_name_ne: '',
+      gender: '', date_of_birth: '', relationship: '',
+      blood_group: '', marital_status: '', mobile_number: '',
+      citizenship_number: '', is_target_group: false,
+      target_group_type: '', target_group_id_number: '', photo: null,
     };
+    this.memberPhotoPreview = '';
+    this.nidNumberMember = ''; this.nidMessageMember = '';
+    this.showNidGateMember = true;
     this.showMemberForm = true;
   }
 
+  cancelAddMember() { this.showMemberForm = false; }
+
   async addMember() {
-    if (!this.newMember.first_name || !this.newMember.last_name || !this.newMember.gender || !this.newMember.date_of_birth || !this.newMember.relationship_type) {
-      const toast = await this.toastCtrl.create({
-        message: 'Please fill in all required member fields', duration: 2000, color: 'warning', position: 'top',
-      });
-      await toast.present();
-      return;
+    if (!this.newMember.first_name || !this.newMember.last_name ||
+        !this.newMember.gender || !this.newMember.date_of_birth || !this.newMember.relationship) {
+      this.showToast('Please fill all required member fields.', 'warning'); return;
     }
     this.savingMember = true;
     const fd = new FormData();
     Object.keys(this.newMember).forEach(key => {
-      if (this.newMember[key]) fd.append(key, this.newMember[key]);
+      const val = this.newMember[key];
+      if (val === null || val === undefined || val === '') return;
+      if (typeof val === 'boolean') { fd.append(key, val ? '1' : '0'); return; }
+      if (val instanceof Blob) { fd.append(key, val, `${key}.jpg`); return; }
+      fd.append(key, String(val));
     });
-    this.api.postFormData<ApiResponse<FamilyMember>>(`/enrollments/${this.enrollmentId}/members`, fd).subscribe({
+    this.enrollmentSvc.addMember(this.enrollmentId, fd).subscribe({
       next: async (res) => {
         this.savingMember = false;
         if (res.success) {
           this.members.push(res.data);
           this.showMemberForm = false;
-          const toast = await this.toastCtrl.create({
-            message: 'Member added', duration: 1500, color: 'success', position: 'top',
-          });
-          await toast.present();
+          this.loadEnrollment();
+          this.showToast('Member added successfully.', 'success');
         }
       },
       error: () => { this.savingMember = false; },
@@ -276,17 +373,14 @@ export class EnrollmentWizardPage implements OnInit {
   async removeMember(member: FamilyMember) {
     const alert = await this.alertCtrl.create({
       header: 'Remove Member',
-      message: `Remove ${member.first_name} ${member.last_name}?`,
+      message: `Remove ${member.first_name} ${member.last_name} from this enrollment?`,
       buttons: [
         { text: 'Cancel', role: 'cancel' },
         {
-          text: 'Remove',
-          cssClass: 'danger',
+          text: 'Remove', cssClass: 'danger',
           handler: () => {
-            this.api.delete<ApiResponse>(`/enrollments/${this.enrollmentId}/members/${member.id}`).subscribe({
-              next: () => {
-                this.members = this.members.filter(m => m.id !== member.id);
-              },
+            this.enrollmentSvc.removeMember(this.enrollmentId, member.id).subscribe({
+              next: () => { this.members = this.members.filter(m => m.id !== member.id); this.loadEnrollment(); },
             });
           },
         },
@@ -295,133 +389,92 @@ export class EnrollmentWizardPage implements OnInit {
     await alert.present();
   }
 
-  async captureImage(field: 'photo' | 'citizenship_front' | 'citizenship_back') {
-    try {
-      const { Camera, CameraResultType, CameraSource } = await import('@capacitor/camera');
-      const image = await Camera.getPhoto({
-        quality: 80,
-        allowEditing: false,
-        resultType: CameraResultType.DataUrl,
-        source: CameraSource.Prompt,
-        width: 800,
-      });
 
-      if (image.dataUrl) {
-        const blob = this.dataUrlToBlob(image.dataUrl);
-        if (field === 'photo') {
-          this.headData.photo = blob;
-          this.headPhotoPreview = image.dataUrl;
-        } else if (field === 'citizenship_front') {
-          this.headData.citizenship_front_image = blob;
-          this.citizenshipFrontPreview = image.dataUrl;
-        } else {
-          this.headData.citizenship_back_image = blob;
-          this.citizenshipBackPreview = image.dataUrl;
-        }
-      }
-    } catch (e) {
-      // Camera not available or user cancelled — fallback to file input
-      this.triggerFileInput(field);
-    }
-  }
-
-  triggerFileInput(field: string) {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'image/*';
-    input.capture = 'environment';
-    input.onchange = (event: any) => {
-      const file = event.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = () => {
-          const dataUrl = reader.result as string;
-          if (field === 'photo') {
-            this.headData.photo = file;
-            this.headPhotoPreview = dataUrl;
-          } else if (field === 'citizenship_front') {
-            this.headData.citizenship_front_image = file;
-            this.citizenshipFrontPreview = dataUrl;
-          } else {
-            this.headData.citizenship_back_image = file;
-            this.citizenshipBackPreview = dataUrl;
-          }
-        };
-        reader.readAsDataURL(file);
-      }
-    };
-    input.click();
-  }
-
-  async captureDocument() {
-    try {
-      const { Camera, CameraResultType, CameraSource } = await import('@capacitor/camera');
-      const image = await Camera.getPhoto({
-        quality: 80,
-        allowEditing: false,
-        resultType: CameraResultType.DataUrl,
-        source: CameraSource.Camera,
-        width: 1200,
-      });
-      if (image.dataUrl) {
-        const blob = this.dataUrlToBlob(image.dataUrl);
-        this.uploadDocument(blob, 'captured_document.jpg');
-      }
-    } catch {
-      this.pickDocument();
-    }
-  }
-
-  pickDocument() {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'image/*,.pdf';
-    input.onchange = (event: any) => {
-      const file = event.target.files[0];
-      if (file) this.uploadDocument(file, file.name);
-    };
-    input.click();
-  }
-
-  uploadDocument(file: Blob, filename: string) {
-    const fd = new FormData();
-    fd.append('document_type', this.docType);
-    fd.append('file', file, filename);
-    this.api.postFormData<ApiResponse<EnrollmentDocument>>(`/enrollments/${this.enrollmentId}/documents`, fd).subscribe({
-      next: async (res) => {
-        if (res.success) {
-          this.documents.push(res.data);
-          const toast = await this.toastCtrl.create({
-            message: 'Document uploaded', duration: 1500, color: 'success', position: 'top',
-          });
-          await toast.present();
-        }
-      },
-    });
-  }
-
-  async removeDocument(doc: EnrollmentDocument) {
-    this.api.delete<ApiResponse>(`/enrollments/${this.enrollmentId}/documents/${doc.id}`).subscribe({
-      next: () => {
-        this.documents = this.documents.filter(d => d.id !== doc.id);
-      },
-    });
-  }
 
   async submitEnrollment() {
+    if (!this.confirmed) { this.showToast('Please confirm the information is accurate.', 'warning'); return; }
     this.submitting = true;
-    this.api.post<ApiResponse>(`/enrollments/${this.enrollmentId}/submit`, {}).subscribe({
-      next: async (res) => {
+    this.enrollmentSvc.submit(this.enrollmentId).subscribe({
+      next: async () => {
         this.submitting = false;
-        const toast = await this.toastCtrl.create({
-          message: res.message || 'Enrollment submitted successfully!',
-          duration: 2000, color: 'success', position: 'top',
-        });
-        await toast.present();
+        this.showToast('Enrollment submitted for verification!', 'success');
         this.router.navigateByUrl('/tabs/enrollments');
       },
       error: () => { this.submitting = false; },
     });
+  }
+
+  // â”€â”€ Image capture â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+  async captureImage(
+    target: 'head' | 'member',
+    field: 'photo' | 'citizenship_front_image' | 'citizenship_back_image' |
+           'target_group_front_image' | 'target_group_back_image'
+  ) {
+    try {
+      const { Camera, CameraResultType, CameraSource } = await import('@capacitor/camera');
+      const image = await Camera.getPhoto({
+        quality: 80, allowEditing: false, resultType: CameraResultType.DataUrl,
+        source: CameraSource.Prompt, width: 1024,
+      });
+      if (image.dataUrl) this.applyImage(target, field, this.dataUrlToBlob(image.dataUrl), image.dataUrl);
+    } catch {
+      this.fallbackFileInput(target, field);
+    }
+  }
+
+  private fallbackFileInput(target: 'head' | 'member', field: string) {
+    const input = document.createElement('input');
+    input.type = 'file'; input.accept = 'image/jpg,image/jpeg,image/png';
+    input.onchange = (event: any) => {
+      const file: File = event.target.files[0];
+      if (!file) return;
+      if (file.size > 2 * 1024 * 1024) { this.showToast('Image must be less than 2MB.', 'danger'); return; }
+      const reader = new FileReader();
+      reader.onload = () => this.applyImage(target, field as any, file, reader.result as string);
+      reader.readAsDataURL(file);
+    };
+    input.click();
+  }
+
+  private applyImage(target: 'head' | 'member', field: string, blob: Blob, dataUrl: string) {
+    if (target === 'head') {
+      this.headData[field] = blob;
+      if (field === 'photo') this.headPhotoPreview = dataUrl;
+      else if (field === 'citizenship_front_image') this.citizenshipFrontPreview = dataUrl;
+      else if (field === 'citizenship_back_image') this.citizenshipBackPreview = dataUrl;
+      else if (field === 'target_group_front_image') this.targetGroupFrontPreview = dataUrl;
+      else if (field === 'target_group_back_image') this.targetGroupBackPreview = dataUrl;
+    } else {
+      this.newMember[field] = blob;
+      if (field === 'photo') this.memberPhotoPreview = dataUrl;
+    }
+  }
+
+  // â”€â”€ Computed â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+  get premiumBreakdown() {
+    const cfg = this.config;
+    const totalMembers = (this.members?.length || 0) + 1;
+    const base = cfg?.base_premium_amount || 3500;
+    const baseCount = cfg?.base_premium_member_count || 5;
+    const extraRate = cfg?.additional_member_premium || 700;
+    const extra = Math.max(0, totalMembers - baseCount) * extraRate;
+    return { base, extra, total: base + extra, members: totalMembers };
+  }
+
+  getAge(dob: string): number {
+    if (!dob) return 0;
+    return Math.floor((Date.now() - new Date(dob).getTime()) / (1000 * 60 * 60 * 24 * 365.25));
+  }
+
+  formatStatus(s: string): string {
+    return (s || '').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  }
+
+  private async showToast(message: string, color: string) {
+    const t = await this.toastCtrl.create({ message, duration: 2500, color, position: 'top' });
+    await t.present();
   }
 
   private dataUrlToBlob(dataUrl: string): Blob {

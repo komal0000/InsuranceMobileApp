@@ -48,8 +48,9 @@ export class RenewalsPage implements OnInit {
     if (this.search) params.search = this.search;
     this.api.get<ApiResponse<PaginatedData<Renewal>>>('/renewals', params).subscribe({
       next: (res) => {
-        this.renewals = this.page === 1 ? res.data.data : [...this.renewals, ...res.data.data];
-        this.lastPage = res.data.last_page;
+        const items = res.data?.data ?? [];
+        this.renewals = this.page === 1 ? items : [...this.renewals, ...items];
+        this.lastPage = res.data?.last_page ?? 1;
         this.loading = false;
       },
       error: () => { this.loading = false; },
@@ -64,7 +65,7 @@ export class RenewalsPage implements OnInit {
     this.api.get<ApiResponse<PaginatedData<Renewal>>>('/renewals', {
       page: 1, status: this.statusFilter, search: this.search
     }).subscribe({
-      next: (res) => { this.renewals = res.data.data; this.lastPage = res.data.last_page; event.target.complete(); },
+      next: (res) => { this.renewals = res.data?.data ?? []; this.lastPage = res.data?.last_page ?? 1; event.target.complete(); },
       error: () => event.target.complete(),
     });
   }
@@ -74,7 +75,7 @@ export class RenewalsPage implements OnInit {
     this.api.get<ApiResponse<PaginatedData<Renewal>>>('/renewals', {
       page: this.page, status: this.statusFilter, search: this.search
     }).subscribe({
-      next: (res) => { this.renewals = [...this.renewals, ...res.data.data]; event.target.complete(); },
+      next: (res) => { this.renewals = [...this.renewals, ...(res.data?.data ?? [])]; event.target.complete(); },
       error: () => event.target.complete(),
     });
   }
