@@ -198,3 +198,20 @@ ion-tab-button {
     font-size: 22px;
   }
 }
+
+/* ── Shared: white segment + searchbar on primary-colored toolbar ── */
+.header-segment {
+  --background: transparent;
+
+  ion-segment-button {
+    --color: rgba(255, 255, 255, 0.6);
+    --color-checked: #ffffff;
+    --indicator-color: rgba(255, 255, 255, 0.25);
+    --border-radius: 6px;
+    min-width: 0;
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: 0;
+  }
+}

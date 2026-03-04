@@ -2,19 +2,21 @@
   <ion-toolbar color="primary">
     <ion-title>Enrollments</ion-title>
   </ion-toolbar>
-  <ion-toolbar>
+  <ion-toolbar color="primary">
     <ion-searchbar
       placeholder="Search by name, enrollment no..."
       [(ngModel)]="search"
       (ionInput)="onSearch()"
-      debounce="500">
+      debounce="500"
+      color="light"
+      style="--background:rgba(255,255,255,0.15);--color:#fff;--placeholder-color:rgba(255,255,255,0.7);--icon-color:#fff;--clear-button-color:#fff">
     </ion-searchbar>
   </ion-toolbar>
-  <ion-toolbar>
-    <ion-segment [(ngModel)]="statusFilter" (ionChange)="onFilterChange()">
+  <ion-toolbar color="primary">
+    <ion-segment [(ngModel)]="statusFilter" (ionChange)="onFilterChange()" class="header-segment">
       <ion-segment-button value="">All</ion-segment-button>
       <ion-segment-button value="draft">Draft</ion-segment-button>
-      <ion-segment-button value="pending_verification">Pending</ion-segment-button>
+      <ion-segment-button value="verified">Verified</ion-segment-button>
       <ion-segment-button value="approved">Approved</ion-segment-button>
       <ion-segment-button value="rejected">Rejected</ion-segment-button>
     </ion-segment>
@@ -54,8 +56,8 @@
         </div>
 
         <!-- Continue button for draft/incomplete enrollments -->
-        <div *ngIf="e.status === 'draft'" style="margin-top:8px;padding-top:8px;border-top:1px solid #f0f0f0">
-          <ion-button expand="block" size="small" fill="outline" color="primary"
+        <div *ngIf="e.status === 'draft'" class="continue-row">
+          <ion-button expand="block" size="small" fill="solid" color="primary"
                       (click)="continueEnrollment(e, $event)">
             Continue Enrollment
           </ion-button>

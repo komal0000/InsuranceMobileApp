@@ -1,8 +1,11 @@
 .list-content { padding: 12px; }
 
+// ── Enrollment card ─────────────────────────────────────────────────────────
 .enrollment-card {
   margin: 0 0 10px !important;
   border-left: 3px solid #003087;
+  border-radius: 10px !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07) !important;
 }
 
 .card-top-row {
@@ -50,6 +53,12 @@
   font-weight: 700;
   font-size: 0.85rem;
   color: #198754;
+}
+
+.continue-row {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #f0f0f0;
 }
 
 .empty-state {

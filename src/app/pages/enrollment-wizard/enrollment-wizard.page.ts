@@ -50,6 +50,7 @@ export class EnrollmentWizardPage implements OnInit {
   submitting = false;
   confirmed = false;
   stepTitles = STEP_TITLES;
+  private initialLoad = true;
 
 
   step1: Step1Data = {
@@ -136,6 +137,7 @@ export class EnrollmentWizardPage implements OnInit {
   }
 
   private prefillFromEnrollment(e: Enrollment) {
+    // ── Step 1: Location ─────────────────────────────────────────────────────
     if (e.province) {
       this.step1 = {
         province: e.province || '',
@@ -145,10 +147,29 @@ export class EnrollmentWizardPage implements OnInit {
         tole_village: e.tole_village || '',
         full_address: e.full_address || '',
       };
-      if (e.province)     this.onProvinceChange(false);
-      if (e.district)     this.onDistrictChange(false);
-      if (e.municipality) this.onMunicipalityChange(false);
+      // Chain geo cascades sequentially so each level's options are present
+      // before the bound value is evaluated by ion-select
+      this.geoSvc.districts(e.province).subscribe({
+        next: r => {
+          this.districts = r.data || [];
+          if (e.district) {
+            this.geoSvc.municipalities(e.province, e.district).subscribe({
+              next: r2 => {
+                this.municipalities = r2.data || [];
+                if (e.municipality) {
+                  this.geoSvc.wards(e.province, e.district, e.municipality).subscribe({
+                    next: r3 => { this.wards = r3.data || []; },
+                  });
+                }
+              },
+            });
+          }
+        },
+      });
+      this.updateFullAddress();
     }
+
+    // ── Step 2: Household head ────────────────────────────────────────────────
     const head = e.household_head;
     if (head) {
       this.showNidGate2 = false;
@@ -176,10 +197,21 @@ export class EnrollmentWizardPage implements OnInit {
       this.targetGroupFrontPreview = head.target_group_front_image || '';
       this.targetGroupBackPreview = head.target_group_back_image || '';
     }
+
+    // ── Step 3: Family members ────────────────────────────────────────────────
     const all = e.family_members || e.members || [];
     this.householdHead = all.find(m => m.is_household_head) || head || null;
     this.members = all.filter(m => !m.is_household_head);
-    if (e.current_step && e.current_step > 1) this.currentStep = e.current_step;
+    if (this.initialLoad) {
+      this.initialLoad = false;
+      if (head) {
+        this.currentStep = 3;        // steps 1+2 done → resume at members
+      } else if (e.province) {
+        this.currentStep = 2;        // step 1 done → resume at head
+      } else {
+        this.currentStep = 1;
+      }
+    }
   }
 
 

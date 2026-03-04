@@ -7,16 +7,17 @@
           </ion-button>
         </ion-buttons>
       </ion-toolbar>
-      <ion-toolbar>
+      <ion-toolbar color="primary">
         <ion-searchbar
           placeholder="Search renewals..."
           [(ngModel)]="search"
           (ionInput)="onSearch()"
-          debounce="500">
+          debounce="500"
+          style="--background:rgba(255,255,255,0.15);--color:#fff;--placeholder-color:rgba(255,255,255,0.7);--icon-color:#fff;--clear-button-color:#fff">
         </ion-searchbar>
       </ion-toolbar>
-      <ion-toolbar>
-        <ion-segment [(ngModel)]="statusFilter" (ionChange)="onFilterChange()">
+      <ion-toolbar color="primary">
+        <ion-segment [(ngModel)]="statusFilter" (ionChange)="onFilterChange()" class="header-segment">
           <ion-segment-button value="">All</ion-segment-button>
           <ion-segment-button value="draft">Draft</ion-segment-button>
           <ion-segment-button value="pending">Pending</ion-segment-button>
