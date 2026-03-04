@@ -57,7 +57,10 @@ export class RegisterPage implements OnInit {
 
   loadProvinces() {
     this.api.get<ApiResponse<GeoItem[]>>('/geo/provinces').subscribe({
-      next: (res) => { this.provinces = res.data || []; },
+      next: (res) => {
+        this.provinces = res.data || [];
+        console.log('Provinces loaded:', this.provinces);
+      },
     });
   }
 
@@ -66,20 +69,23 @@ export class RegisterPage implements OnInit {
     this.districts = [];
     if (this.formData.province) {
       this.api.get<ApiResponse<GeoItem[]>>(`/geo/districts/${this.formData.province}`).subscribe({
-        next: (res) => { this.districts = res.data || []; },
+        next: (res) => {
+           this.districts = res.data || [];
+           console.log('Districts loaded:', this.districts);
+          },
       });
     }
   }
 
   async register() {
-    if (!this.formData.name || !this.formData.mobile_number || !this.formData.password) {
-      const toast = await this.toastCtrl.create({ message: 'Please fill in all required fields', duration: 2000, color: 'warning', position: 'top' });
-      await toast.present(); return;
-    }
-    if (this.formData.password !== this.formData.password_confirmation) {
-      const toast = await this.toastCtrl.create({ message: 'Passwords do not match', duration: 2000, color: 'danger', position: 'top' });
-      await toast.present(); return;
-    }
+    // if (!this.formData.name || !this.formData.mobile_number || !this.formData.password) {
+    //   const toast = await this.toastCtrl.create({ message: 'Please fill in all required fields', duration: 2000, color: 'warning', position: 'top' });
+    //   await toast.present(); return;
+    // }
+    // if (this.formData.password !== this.formData.password_confirmation) {
+    //   const toast = await this.toastCtrl.create({ message: 'Passwords do not match', duration: 2000, color: 'danger', position: 'top' });
+    //   await toast.present(); return;
+    // }
     this.loading = true;
     this.authService.register(this.formData).subscribe({
       next: async (res) => {
