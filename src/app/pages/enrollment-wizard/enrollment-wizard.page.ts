@@ -21,7 +21,8 @@ import { EnrollmentService } from '../../services/enrollment.service';
 import { GeoService } from '../../services/geo.service';
 import { ApiResponse } from '../../interfaces/api-response.interface';
 import {
-  Enrollment, EnrollmentConfig, FamilyMember, HouseholdHead, Step1Data
+  Enrollment, EnrollmentConfig, FamilyMember, HouseholdHead, Step1Data,
+  SubsidyResult, SubsidySummary
 } from '../../interfaces/enrollment.interface';
 
 const STEP_TITLES = ['Household Info', 'Household Head', 'Family Members', 'Review & Submit'];
@@ -52,6 +53,10 @@ export class EnrollmentWizardPage implements OnInit {
   confirmed = false;
   stepTitles = STEP_TITLES;
   private initialLoad = true;
+
+  // Subsidy data from API
+  subsidyResults: SubsidyResult[] = [];
+  subsidySummary: SubsidySummary | null = null;
 
 
   step1: Step1Data = {
@@ -147,7 +152,12 @@ export class EnrollmentWizardPage implements OnInit {
 
   loadEnrollment() {
     this.enrollmentSvc.get(this.enrollmentId).subscribe({
-      next: (res) => { this.enrollment = res.data; this.prefillFromEnrollment(res.data); },
+      next: (res) => {
+        this.enrollment = res.data;
+        this.subsidyResults = res.subsidy_results || [];
+        this.subsidySummary = res.subsidy_summary || null;
+        this.prefillFromEnrollment(res.data);
+      },
     });
   }
 
@@ -354,7 +364,7 @@ export class EnrollmentWizardPage implements OnInit {
       this.enrollmentSvc.saveStep2(this.enrollmentId, fd).subscribe({
         next: (res) => {
           this.saving = false;
-          if (res.success) { this.enrollment = res.data; this.prefillFromEnrollment(res.data); this.currentStep = 3; }
+          if (res.success) { this.enrollment = res.data; this.prefillFromEnrollment(res.data); this.currentStep = 3; this.loadEnrollment(); }
         },
         error: () => { this.saving = false; },
       });
@@ -505,11 +515,15 @@ export class EnrollmentWizardPage implements OnInit {
       this.showToast('Please confirm the information is accurate.', 'warning');
       return;
     }
+    // Use subsidy-adjusted premium if available, otherwise raw premium
+    const amount = this.subsidySummary
+      ? this.subsidySummary.final_premium
+      : this.premiumBreakdown.total;
     // Navigate to the payment page with enrollment context
     this.router.navigate(['/payment'], {
       queryParams: {
         enrollmentId: this.enrollmentId,
-        amount: this.premiumBreakdown.total,
+        amount,
         type: 'new',
         policyNumber: this.enrollment?.enrollment_number || '',
       },
@@ -623,6 +637,13 @@ export class EnrollmentWizardPage implements OnInit {
 
   getConfirmationLabel(type: string): string {
     return this.confirmationLabels[type] || type;
+  }
+
+  getBenefitLabel(result: SubsidyResult): string {
+    if (result.benefit_type === 'full_premium_waiver') return '100% Free';
+    if (result.benefit_type === 'percentage_discount') return `${result.benefit_value}% Discount`;
+    if (result.benefit_type === 'fixed_discount') return `Rs. ${result.benefit_value} Discount`;
+    return result.benefit_type;
   }
 
   private async showToast(message: string, color: string) {

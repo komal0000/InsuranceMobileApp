@@ -178,6 +178,32 @@ export interface NidLookupResponse {
   };
 }
 
+export interface SubsidyResult {
+  member_name: string;
+  member_age: number;
+  rule_name: string;
+  rule_code: string;
+  rule_type: string;
+  benefit_type: string;
+  benefit_value: number;
+  benefit_label?: string;
+  match_reason: string;
+}
+
+export interface SubsidySummary {
+  base_premium: number;
+  best_discount: number;
+  final_premium: number;
+  rules_matched: number;
+}
+
+export interface EnrollmentShowResponse {
+  success: boolean;
+  data: Enrollment;
+  subsidy_results: SubsidyResult[];
+  subsidy_summary: SubsidySummary;
+}
+
 export interface Step1Data {
   province: string;
   district: string;

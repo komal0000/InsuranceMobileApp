@@ -3,7 +3,7 @@ import { Observable } from 'rxjs';
 import { ApiService } from './api.service';
 import { ApiResponse, PaginatedData } from '../interfaces/api-response.interface';
 import {
-  Enrollment, EnrollmentConfig, FamilyMember, NidLookupResponse
+  Enrollment, EnrollmentConfig, EnrollmentShowResponse, FamilyMember, NidLookupResponse
 } from '../interfaces/enrollment.interface';
 
 @Injectable({ providedIn: 'root' })
@@ -22,8 +22,8 @@ export class EnrollmentService {
     return this.api.get<ApiResponse<PaginatedData<Enrollment>>>('/enrollments', params);
   }
 
-  get(id: number): Observable<ApiResponse<Enrollment>> {
-    return this.api.get<ApiResponse<Enrollment>>(`/enrollments/${id}`);
+  get(id: number): Observable<EnrollmentShowResponse> {
+    return this.api.get<EnrollmentShowResponse>(`/enrollments/${id}`);
   }
 
   create(): Observable<ApiResponse<Enrollment>> {
