@@ -21,7 +21,7 @@ import { EnrollmentService } from '../../services/enrollment.service';
 import { GeoService } from '../../services/geo.service';
 import { ApiResponse } from '../../interfaces/api-response.interface';
 import {
-  Enrollment, EnrollmentConfig, FamilyMember, Step1Data
+  Enrollment, EnrollmentConfig, FamilyMember, HouseholdHead, Step1Data
 } from '../../interfaces/enrollment.interface';
 
 const STEP_TITLES = ['Household Info', 'Household Head', 'Family Members', 'Review & Submit'];
@@ -88,7 +88,7 @@ export class EnrollmentWizardPage implements OnInit {
   targetGroupBackPreview = '';
 
   members: FamilyMember[] = [];
-  householdHead: FamilyMember | null = null;
+  householdHead: HouseholdHead | null = null;
   showMemberForm = false;
   savingMember = false;
   showNidGateMember = true;
@@ -199,9 +199,8 @@ export class EnrollmentWizardPage implements OnInit {
     }
 
     // ── Step 3: Family members ────────────────────────────────────────────────
-    const all = e.family_members || e.members || [];
-    this.householdHead = all.find(m => m.is_household_head) || head || null;
-    this.members = all.filter(m => !m.is_household_head);
+    this.householdHead = head || null;
+    this.members = (e.family_members || e.members || []) as FamilyMember[];
     if (this.initialLoad) {
       this.initialLoad = false;
       if (head) {
@@ -329,6 +328,9 @@ export class EnrollmentWizardPage implements OnInit {
           !this.headData.citizenship_number || !this.headData.marital_status) {
         this.showToast('Please fill all required fields.', 'warning'); return;
       }
+      if (!/^\d{10}$/.test(this.headData.mobile_number)) {
+        this.showToast('Mobile number must be exactly 10 digits.', 'warning'); return;
+      }
       this.saving = true;
       const fd = new FormData();
       Object.keys(this.headData).forEach(key => {
@@ -378,6 +380,9 @@ export class EnrollmentWizardPage implements OnInit {
     if (!this.newMember.first_name || !this.newMember.last_name ||
         !this.newMember.gender || !this.newMember.date_of_birth || !this.newMember.relationship) {
       this.showToast('Please fill all required member fields.', 'warning'); return;
+    }
+    if (this.newMember.mobile_number && !/^\d{10}$/.test(this.newMember.mobile_number)) {
+      this.showToast('Mobile number must be exactly 10 digits.', 'warning'); return;
     }
     this.savingMember = true;
     const fd = new FormData();
@@ -502,6 +507,21 @@ export class EnrollmentWizardPage implements OnInit {
 
   formatStatus(s: string): string {
     return (s || '').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  }
+
+  private confirmationLabels: Record<string, string> = {
+    normal: 'Normal',
+    ultra_poor: 'Ultra Poor',
+    fchv: 'FCHV',
+    senior_citizen: 'Senior Citizen',
+    hiv: 'HIV',
+    leprosy: 'Leprosy',
+    null_disability: 'Null Disability',
+    mdr_tb: 'MDR-TB',
+  };
+
+  getConfirmationLabel(type: string): string {
+    return this.confirmationLabels[type] || type;
   }
 
   private async showToast(message: string, color: string) {

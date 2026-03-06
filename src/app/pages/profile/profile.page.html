@@ -50,7 +50,7 @@
             </ion-item>
             <ion-item class="form-item">
               <ion-input label="Mobile Number" labelPlacement="stacked" type="tel"
-                [(ngModel)]="profileData.mobile_number" [readonly]="!editing"></ion-input>
+                [(ngModel)]="profileData.mobile_number" [readonly]="!editing" maxlength="10" minlength="10"></ion-input>
             </ion-item>
             <ion-item class="form-item">
               <ion-input label="Email" labelPlacement="stacked" type="email"

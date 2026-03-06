@@ -240,7 +240,7 @@
             <p style="font-size:0.7rem;font-weight:700;color:#6c757d;text-transform:uppercase;margin:8px 0 4px">Contact</p>
             <ion-item class="form-item">
               <ion-input label="Mobile Number *" labelPlacement="stacked" placeholder="98XXXXXXXX"
-                         type="tel" [(ngModel)]="headData.mobile_number">
+                         type="tel" [(ngModel)]="headData.mobile_number" maxlength="10" minlength="10">
               </ion-input>
             </ion-item>
             <ion-item class="form-item">
@@ -275,14 +275,15 @@
             </ion-item>
             <div *ngIf="headData.is_target_group">
               <ion-item class="form-item">
-                <ion-select label="Target Group Type" labelPlacement="stacked" placeholder="Select Type"
+                <ion-select label="Confirmation Type" labelPlacement="stacked" placeholder="Select Type"
                             [(ngModel)]="headData.target_group_type">
-                  <ion-select-option value="Dalit">Dalit</ion-select-option>
-                  <ion-select-option value="Indigenous">Indigenous / Janajati</ion-select-option>
-                  <ion-select-option value="Senior Citizen">Senior Citizen</ion-select-option>
-                  <ion-select-option value="Disabled">Person with Disability</ion-select-option>
-                  <ion-select-option value="Single Women">Single Women</ion-select-option>
-                  <ion-select-option value="Other">Other</ion-select-option>
+                  <ion-select-option value="ultra_poor">Ultra Poor</ion-select-option>
+                  <ion-select-option value="fchv">FCHV</ion-select-option>
+                  <ion-select-option value="senior_citizen">Senior Citizen</ion-select-option>
+                  <ion-select-option value="hiv">HIV</ion-select-option>
+                  <ion-select-option value="leprosy">Leprosy</ion-select-option>
+                  <ion-select-option value="null_disability">Null Disability</ion-select-option>
+                  <ion-select-option value="mdr_tb">MDR-TB</ion-select-option>
                 </ion-select>
               </ion-item>
               <ion-item class="form-item">
@@ -606,7 +607,7 @@
               </ion-item>
               <ion-item class="form-item">
                 <ion-input label="Mobile Number" labelPlacement="stacked" placeholder="98XXXXXXXX"
-                           type="tel" [(ngModel)]="newMember.mobile_number">
+                           type="tel" [(ngModel)]="newMember.mobile_number" maxlength="10" minlength="10">
                 </ion-input>
               </ion-item>
               <ion-item class="form-item">
@@ -622,14 +623,15 @@
               </ion-item>
               <div *ngIf="newMember.is_target_group">
                 <ion-item class="form-item">
-                  <ion-select label="Target Group Type" labelPlacement="stacked" placeholder="Select Type"
+                  <ion-select label="Confirmation Type" labelPlacement="stacked" placeholder="Select Type"
                               [(ngModel)]="newMember.target_group_type">
-                    <ion-select-option value="Dalit">Dalit</ion-select-option>
-                    <ion-select-option value="Indigenous">Indigenous / Janajati</ion-select-option>
-                    <ion-select-option value="Senior Citizen">Senior Citizen</ion-select-option>
-                    <ion-select-option value="Disabled">Person with Disability</ion-select-option>
-                    <ion-select-option value="Single Women">Single Women</ion-select-option>
-                    <ion-select-option value="Other">Other</ion-select-option>
+                    <ion-select-option value="ultra_poor">Ultra Poor</ion-select-option>
+                    <ion-select-option value="fchv">FCHV</ion-select-option>
+                    <ion-select-option value="senior_citizen">Senior Citizen</ion-select-option>
+                    <ion-select-option value="hiv">HIV</ion-select-option>
+                    <ion-select-option value="leprosy">Leprosy</ion-select-option>
+                    <ion-select-option value="null_disability">Null Disability</ion-select-option>
+                    <ion-select-option value="mdr_tb">MDR-TB</ion-select-option>
                   </ion-select>
                 </ion-item>
                 <ion-item class="form-item">
@@ -776,8 +778,8 @@
                 <span class="review-value">{{ headData.citizenship_issue_district }}</span>
               </div>
               <div class="review-item">
-                <span class="review-label">Target Group</span>
-                <span class="review-value">{{ headData.is_target_group ? (headData.target_group_type || 'Yes') : 'No' }}</span>
+                <span class="review-label">Confirmation Type</span>
+                <span class="review-value">{{ headData.is_target_group ? (getConfirmationLabel(headData.target_group_type) || 'Yes') : 'Normal' }}</span>
               </div>
               <div class="review-item" *ngIf="headData.occupation">
                 <span class="review-label">Occupation</span>

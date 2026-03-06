@@ -26,7 +26,7 @@ export interface Enrollment {
   rejection_reason?: string;
   created_at: string;
   updated_at: string;
-  household_head?: FamilyMember;
+  household_head?: HouseholdHead;
   family_members?: FamilyMember[];
   members?: FamilyMember[];
   documents?: EnrollmentDocument[];
@@ -42,7 +42,7 @@ export type EnrollmentStatus =
   | 'rejected'
   | 'expired';
 
-export interface FamilyMember {
+export interface HouseholdHead {
   id: number;
   enrollment_id: number;
   member_number?: string;
@@ -56,9 +56,43 @@ export interface FamilyMember {
   date_of_birth: string;
   blood_group?: string;
   marital_status?: string;
+  relationship?: string;
+  mobile_number?: string;
+  email?: string;
+  citizenship_number?: string;
+  citizenship_issue_date?: string;
+  citizenship_issue_district?: string;
+  is_target_group: boolean;
+  target_group_type?: string;
+  target_group_id_number?: string;
+  occupation?: string;
+  education_level?: string;
+  photo?: string;
+  citizenship_front_image?: string;
+  citizenship_back_image?: string;
+  target_group_front_image?: string;
+  target_group_back_image?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface FamilyMember {
+  id: number;
+  enrollment_id: number;
+  household_head_id?: number;
+  member_number?: string;
+  first_name: string;
+  middle_name?: string;
+  last_name: string;
+  first_name_ne?: string;
+  middle_name_ne?: string;
+  last_name_ne?: string;
+  gender: 'male' | 'female' | 'other';
+  date_of_birth: string;
+  blood_group?: string;
+  marital_status?: string;
   relationship: string;
   relationship_type?: string;
-  is_household_head: boolean;
   mobile_number?: string;
   email?: string;
   citizenship_number?: string;

@@ -40,9 +40,11 @@
               <strong class="subsidy-number">{{ s.enrollment_number || 'Subsidy #' + s.id }}</strong>
               <ion-badge [color]="getStatusColor(s.status)">{{ formatStatus(s.status) }}</ion-badge>
             </div>
-            <p *ngIf="s.benefit_type" class="benefit-type">{{ s.benefit_type }}</p>
+            <p *ngIf="s.policy_rule" class="benefit-type">{{ s.policy_rule.name }}</p>
+            <p *ngIf="!s.policy_rule && s.benefit_type" class="benefit-type">{{ formatBenefitType(s.benefit_type) }}</p>
             <div class="subsidy-bottom">
-              <span *ngIf="s.amount" class="subsidy-amount">Rs. {{ s.amount }}</span>
+              <span *ngIf="s.discount_amount" class="subsidy-amount">Discount: Rs. {{ s.discount_amount }}</span>
+              <span *ngIf="!s.discount_amount && s.amount" class="subsidy-amount">Rs. {{ s.amount }}</span>
               <span class="subsidy-date">{{ s.created_at | date:'mediumDate' }}</span>
             </div>
           </div>
@@ -81,17 +83,29 @@
               <span class="detail-label">Enrollment</span>
               <span class="detail-value">{{ selectedSubsidy.enrollment_number }}</span>
             </div>
+            <div class="detail-cell" *ngIf="selectedSubsidy.policy_rule">
+              <span class="detail-label">Rule</span>
+              <span class="detail-value">{{ selectedSubsidy.policy_rule.name }}</span>
+            </div>
             <div class="detail-cell" *ngIf="selectedSubsidy.benefit_type">
               <span class="detail-label">Benefit Type</span>
-              <span class="detail-value">{{ selectedSubsidy.benefit_type }}</span>
+              <span class="detail-value">{{ formatBenefitType(selectedSubsidy.benefit_type) }}</span>
+            </div>
+            <div class="detail-cell" *ngIf="selectedSubsidy.original_premium">
+              <span class="detail-label">Original Premium</span>
+              <span class="detail-value">Rs. {{ selectedSubsidy.original_premium }}</span>
+            </div>
+            <div class="detail-cell" *ngIf="selectedSubsidy.discount_amount">
+              <span class="detail-label">Discount</span>
+              <span class="detail-value amount">Rs. {{ selectedSubsidy.discount_amount }}</span>
+            </div>
+            <div class="detail-cell" *ngIf="selectedSubsidy.final_premium !== undefined">
+              <span class="detail-label">Final Premium</span>
+              <span class="detail-value amount">Rs. {{ selectedSubsidy.final_premium }}</span>
             </div>
             <div class="detail-cell" *ngIf="selectedSubsidy.fiscal_year">
               <span class="detail-label">Fiscal Year</span>
               <span class="detail-value">{{ selectedSubsidy.fiscal_year }}</span>
-            </div>
-            <div class="detail-cell" *ngIf="selectedSubsidy.amount">
-              <span class="detail-label">Amount</span>
-              <span class="detail-value amount">Rs. {{ selectedSubsidy.amount }}</span>
             </div>
           </div>
         </div>

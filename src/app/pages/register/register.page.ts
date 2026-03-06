@@ -78,14 +78,18 @@ export class RegisterPage implements OnInit {
   }
 
   async register() {
-    // if (!this.formData.name || !this.formData.mobile_number || !this.formData.password) {
-    //   const toast = await this.toastCtrl.create({ message: 'Please fill in all required fields', duration: 2000, color: 'warning', position: 'top' });
-    //   await toast.present(); return;
-    // }
-    // if (this.formData.password !== this.formData.password_confirmation) {
-    //   const toast = await this.toastCtrl.create({ message: 'Passwords do not match', duration: 2000, color: 'danger', position: 'top' });
-    //   await toast.present(); return;
-    // }
+    if (!this.formData.name || !this.formData.mobile_number || !this.formData.password) {
+      const toast = await this.toastCtrl.create({ message: 'Please fill in all required fields', duration: 2000, color: 'warning', position: 'top' });
+      await toast.present(); return;
+    }
+    if (!/^\d{10}$/.test(this.formData.mobile_number)) {
+      const toast = await this.toastCtrl.create({ message: 'Mobile number must be exactly 10 digits', duration: 2000, color: 'warning', position: 'top' });
+      await toast.present(); return;
+    }
+    if (this.formData.password !== this.formData.password_confirmation) {
+      const toast = await this.toastCtrl.create({ message: 'Passwords do not match', duration: 2000, color: 'danger', position: 'top' });
+      await toast.present(); return;
+    }
     this.loading = true;
     this.authService.register(this.formData).subscribe({
       next: async (res) => {

@@ -43,7 +43,7 @@
         <label class="form-label">Mobile Number *</label>
         <ion-item lines="none" class="form-item">
           <ion-icon name="call-outline" slot="start" class="input-icon"></ion-icon>
-          <ion-input type="tel" placeholder="98XXXXXXXX" [(ngModel)]="formData.mobile_number" required></ion-input>
+          <ion-input type="tel" placeholder="98XXXXXXXX" [(ngModel)]="formData.mobile_number" required maxlength="10" minlength="10"></ion-input>
         </ion-item>
       </div>
 

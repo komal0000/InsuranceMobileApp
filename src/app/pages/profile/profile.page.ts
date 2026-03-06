@@ -83,6 +83,13 @@ export class ProfilePage implements OnInit {
   }
 
   async saveProfile() {
+    if (this.profileData.mobile_number && !/^\d{10}$/.test(this.profileData.mobile_number)) {
+      const toast = await this.toastCtrl.create({
+        message: 'Mobile number must be exactly 10 digits', duration: 2000, color: 'warning', position: 'top',
+      });
+      await toast.present();
+      return;
+    }
     this.savingProfile = true;
     this.api.put<ApiResponse>('/profile', this.profileData).subscribe({
       next: async (res) => {

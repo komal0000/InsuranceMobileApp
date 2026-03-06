@@ -173,4 +173,13 @@ export class SubsidiesPage implements OnInit {
   formatStatus(s: string): string {
     return (s || '').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
   }
+
+  formatBenefitType(type: string): string {
+    const labels: Record<string, string> = {
+      full_premium_waiver: '100% Free',
+      percentage_discount: 'Percentage Discount',
+      fixed_discount: 'Fixed Discount',
+    };
+    return labels[type] || type;
+  }
 }
