@@ -52,6 +52,7 @@ export class PaymentPage implements OnInit {
   // Passed via queryParams or state
   enrollmentId: number | null = null;
   policyId: number | null = null;
+  renewalId: number | null = null;
   policyNumber = '';
   premiumAmount = 0;
 
@@ -79,6 +80,7 @@ export class PaymentPage implements OnInit {
     const params = this.route.snapshot.queryParams;
     this.enrollmentId = params['enrollmentId'] ? +params['enrollmentId'] : null;
     this.policyId     = params['policyId'] ? +params['policyId'] : null;
+    this.renewalId    = params['renewalId'] ? +params['renewalId'] : null;
     this.policyNumber = params['policyNumber'] || '';
     this.premiumAmount= params['amount'] ? +params['amount'] : 0;
     this.paymentType  = (params['type'] as any) || 'new';
@@ -94,8 +96,10 @@ export class PaymentPage implements OnInit {
     this.loading = true;
     this.paymentStatus = null;
 
-    const options: { policy_id?: number; enrollment_id?: number } = {};
-    if (this.policyId) {
+    const options: { policy_id?: number; enrollment_id?: number; renewal_id?: number } = {};
+    if (this.renewalId) {
+      options.renewal_id = this.renewalId;
+    } else if (this.policyId) {
       options.policy_id = this.policyId;
     } else if (this.enrollmentId) {
       options.enrollment_id = this.enrollmentId;
@@ -178,6 +182,10 @@ export class PaymentPage implements OnInit {
                   setTimeout(() => this.router.navigateByUrl('/tabs/enrollments'), 1500);
                 },
               });
+            } else if (this.renewalId) {
+              // Renewal payment completed — navigate to renewals
+              this.showToast('Renewal completed successfully!', 'success');
+              setTimeout(() => this.router.navigateByUrl('/tabs/renewals'), 1500);
             } else {
               setTimeout(() => this.router.navigateByUrl('/tabs/my-policy'), 1500);
             }

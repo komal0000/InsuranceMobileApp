@@ -109,4 +109,49 @@
       ion-button { margin-bottom: 8px; }
     }
 
+    .premium-details {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .premium-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 0;
+      font-size: 0.85rem;
+
+      span { color: #6c757d; }
+      strong { color: #212529; }
+    }
+
+    .premium-total {
+      border-top: 2px solid #e9ecef;
+      margin-top: 4px;
+      padding-top: 10px;
+
+      span { font-weight: 700; color: #212529; font-size: 0.9rem; }
+      strong { font-size: 1.1rem; color: #003087; }
+    }
+
+    .renewal-dates {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid #f0f0f0;
+    }
+
+    .completed-banner {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 20px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #28a745;
+
+      ion-icon { font-size: 28px; }
+    }
+
     .loading-center { display: flex; justify-content: center; align-items: center; height: 50%; }

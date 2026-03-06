@@ -14,7 +14,7 @@ export class PaymentService {
   createPayment(
     gateway: 'khalti' | 'esewa' | 'ips',
     type: 'new' | 'renewal',
-    options: { policy_id?: number; enrollment_id?: number }
+    options: { policy_id?: number; enrollment_id?: number; renewal_id?: number }
   ): Observable<ApiResponse<PaymentCreateResponse>> {
     return this.api.post<ApiResponse<PaymentCreateResponse>>('/payments/create', {
       gateway,

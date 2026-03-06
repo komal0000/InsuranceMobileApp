@@ -8,9 +8,11 @@ import {
   IonInfiniteScroll, IonInfiniteScrollContent, IonFab, IonFabButton,
   IonIcon, IonSpinner, IonCard, IonCardContent, IonButton, IonButtons
 } from '@ionic/angular/standalone';
+import { ToastController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { searchOutline, refreshOutline } from 'ionicons/icons';
+import { searchOutline, refreshOutline, personOutline, peopleOutline, locationOutline, arrowForwardOutline } from 'ionicons/icons';
 import { ApiService } from '../../services/api.service';
+import { AuthService } from '../../services/auth.service';
 import { ApiResponse, PaginatedData } from '../../interfaces/api-response.interface';
 import { Renewal } from '../../interfaces/renewal.interface';
 
@@ -34,12 +36,66 @@ export class RenewalsPage implements OnInit {
   page = 1;
   lastPage = 1;
   loading = false;
+  isBeneficiary = false;
+  enrollment: any = null;
+  enrollmentLoading = false;
+  initiating = false;
 
-  constructor(private api: ApiService, private router: Router) {
-    addIcons({ searchOutline, refreshOutline });
+  constructor(
+    private api: ApiService,
+    private authService: AuthService,
+    private router: Router,
+    private toastCtrl: ToastController
+  ) {
+    addIcons({ searchOutline, refreshOutline, personOutline, peopleOutline, locationOutline, arrowForwardOutline });
   }
 
-  ngOnInit() { this.loadRenewals(); }
+  ngOnInit() {
+    const user = this.authService.getCurrentUser();
+    this.isBeneficiary = user?.role === 'beneficiary';
+    if (this.isBeneficiary) {
+      this.loadBeneficiaryEnrollment();
+    } else {
+      this.loadRenewals();
+    }
+  }
+
+  loadBeneficiaryEnrollment() {
+    this.enrollmentLoading = true;
+    this.api.get<ApiResponse<PaginatedData<any>>>('/enrollments', { per_page: 1 }).subscribe({
+      next: (res) => {
+        const items = res.data?.data ?? [];
+        this.enrollment = items.length > 0 ? items[0] : null;
+        this.enrollmentLoading = false;
+        // Also load any existing renewals for this enrollment
+        this.loadRenewals();
+      },
+      error: () => { this.enrollmentLoading = false; },
+    });
+  }
+
+  initiateRenewal() {
+    if (!this.enrollment) return;
+    this.initiating = true;
+    this.api.post<ApiResponse<any>>('/renewals/initiate', { enrollment_id: this.enrollment.id }).subscribe({
+      next: async (res) => {
+        this.initiating = false;
+        if (res.success) {
+          const toast = await this.toastCtrl.create({
+            message: 'Renewal initiated', duration: 1500, color: 'success', position: 'top',
+          });
+          await toast.present();
+          this.router.navigateByUrl(`/renewal-detail/${res.data.id}`);
+        }
+      },
+      error: async (err) => {
+        this.initiating = false;
+        const msg = err?.error?.message || 'Failed to initiate renewal';
+        const toast = await this.toastCtrl.create({ message: msg, duration: 3000, color: 'danger', position: 'top' });
+        await toast.present();
+      },
+    });
+  }
 
   loadRenewals() {
     this.loading = true;
@@ -85,8 +141,10 @@ export class RenewalsPage implements OnInit {
 
   getStatusColor(status: string): string {
     const map: Record<string, string> = {
-      draft: 'medium', pending: 'warning', pending_verification: 'warning',
-      verified: 'tertiary', approved: 'success', rejected: 'danger',
+      eligible: 'tertiary', draft: 'medium', pending_payment: 'warning',
+      pending: 'warning', pending_verification: 'warning',
+      verified: 'tertiary', approved: 'success', completed: 'success',
+      rejected: 'danger',
     };
     return map[status] || 'medium';
   }

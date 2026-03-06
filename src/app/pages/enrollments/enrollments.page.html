@@ -69,7 +69,16 @@
   <div *ngIf="!loading && enrollments.length === 0" class="empty-state ion-text-center ion-padding">
     <ion-icon name="document-text-outline" class="empty-icon"></ion-icon>
     <h3>No enrollments found</h3>
-    <p>Tap the + button to create a new enrollment</p>
+    <p *ngIf="canCreate">Tap the + button to create a new enrollment</p>
+    <p *ngIf="!canCreate && isBeneficiary">Your enrollment has not been created yet. Please contact an enrollment assistant.</p>
+  </div>
+
+  <!-- Beneficiary one-enrollment info -->
+  <div *ngIf="isBeneficiary && enrollments.length > 0 && !loading" class="ion-text-center ion-padding" style="padding-top:0">
+    <p style="font-size:0.8rem;color:#6c757d;margin:0">
+      <ion-icon name="information-circle-outline" style="vertical-align:middle;margin-right:4px"></ion-icon>
+      As a beneficiary, you can have only one enrollment.
+    </p>
   </div>
 
   <ion-infinite-scroll (ionInfinite)="loadMore($event)" [disabled]="page >= lastPage">

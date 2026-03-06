@@ -11,7 +11,7 @@ import {
 } from '@ionic/angular/standalone';
 import { ToastController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { addOutline, documentTextOutline, locationOutline, peopleOutline, personOutline } from 'ionicons/icons';
+import { addOutline, documentTextOutline, locationOutline, peopleOutline, personOutline, informationCircleOutline } from 'ionicons/icons';
 import { ApiService } from '../../services/api.service';
 import { AuthService } from '../../services/auth.service';
 import { ApiResponse, PaginatedData } from '../../interfaces/api-response.interface';
@@ -39,6 +39,7 @@ export class EnrollmentsPage implements OnInit {
   lastPage = 1;
   loading = false;
   canCreate = true;
+  isBeneficiary = false;
 
   constructor(
     private api: ApiService,
@@ -46,11 +47,12 @@ export class EnrollmentsPage implements OnInit {
     private router: Router,
     private toastCtrl: ToastController
   ) {
-    addIcons({ addOutline, documentTextOutline });
+    addIcons({ addOutline, documentTextOutline, informationCircleOutline });
   }
 
   ngOnInit() {
     const user = this.authService.getCurrentUser();
+    this.isBeneficiary = user?.role === 'beneficiary';
     this.canCreate = ['beneficiary', 'enrollment_assistant', 'admin', 'super_admin']
       .includes(user?.role || '');
     this.loadEnrollments();
@@ -72,6 +74,10 @@ export class EnrollmentsPage implements OnInit {
         }
         this.lastPage = paginated.last_page;
         this.loading = false;
+        // Beneficiary can only have one enrollment
+        if (this.isBeneficiary && this.enrollments.length > 0) {
+          this.canCreate = false;
+        }
       },
       error: () => { this.loading = false; },
     });
@@ -132,6 +138,11 @@ export class EnrollmentsPage implements OnInit {
         if (res.success) {
           this.router.navigateByUrl(`/enrollment-wizard/${res.data.id}`);
         }
+      },
+      error: async (err) => {
+        const msg = err?.error?.message || 'Failed to create enrollment.';
+        const t = await this.toastCtrl.create({ message: msg, duration: 3000, color: 'danger', position: 'top' });
+        await t.present();
       },
     });
   }

@@ -5,13 +5,13 @@ import { ActivatedRoute, Router } from '@angular/router';
 import {
   IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton,
   IonCard, IonCardContent, IonBadge, IonIcon, IonButton, IonSpinner,
-  IonInput, IonItem
+  IonInput, IonItem, IonSelect, IonSelectOption
 } from '@ionic/angular/standalone';
 import { ToastController, AlertController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
   personOutline, peopleOutline, addOutline, trashOutline,
-  checkmarkCircleOutline, createOutline
+  checkmarkCircleOutline, createOutline, walletOutline, shieldCheckmarkOutline
 } from 'ionicons/icons';
 import { ApiService } from '../../services/api.service';
 import { ApiResponse } from '../../interfaces/api-response.interface';
@@ -24,7 +24,7 @@ import { Renewal } from '../../interfaces/renewal.interface';
     CommonModule, FormsModule,
     IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton,
     IonCard, IonCardContent, IonBadge, IonIcon, IonButton, IonSpinner,
-    IonInput, IonItem
+    IonInput, IonItem, IonSelect, IonSelectOption
   ],
   templateUrl: './renewal-detail.page.html',
   styleUrls: ['./renewal-detail.page.scss'],
@@ -32,9 +32,10 @@ import { Renewal } from '../../interfaces/renewal.interface';
 export class RenewalDetailPage implements OnInit {
   renewal: Renewal | null = null;
   loading = true;
+  submitting = false;
   renewalId!: number;
   showMemberForm = false;
-  newMember: any = { first_name: '', last_name: '', mobile_number: '', email: '' };
+  newMember: any = { first_name: '', middle_name: '', last_name: '', gender: '', date_of_birth: '', relationship: '', mobile_number: '', citizenship_number: '' };
 
   constructor(
     private route: ActivatedRoute,
@@ -43,7 +44,7 @@ export class RenewalDetailPage implements OnInit {
     private toastCtrl: ToastController,
     private alertCtrl: AlertController
   ) {
-    addIcons({ personOutline, peopleOutline, addOutline, trashOutline, checkmarkCircleOutline, createOutline });
+    addIcons({ personOutline, peopleOutline, addOutline, trashOutline, checkmarkCircleOutline, createOutline, walletOutline, shieldCheckmarkOutline });
   }
 
   ngOnInit() {
@@ -53,14 +54,29 @@ export class RenewalDetailPage implements OnInit {
 
   loadDetail() {
     this.loading = true;
-    this.api.get<ApiResponse<Renewal>>(`/renewals/${this.renewalId}`).subscribe({
-      next: (res) => { this.renewal = res.data; this.loading = false; },
+    this.api.get<ApiResponse<any>>(`/renewals/${this.renewalId}`).subscribe({
+      next: (res) => {
+        this.renewal = res.data?.renewal ?? res.data;
+        this.loading = false;
+      },
       error: () => { this.loading = false; },
     });
   }
 
+  get isFreeRenewal(): boolean {
+    return (this.renewal?.final_amount ?? 0) <= 0;
+  }
+
+  get canSubmit(): boolean {
+    return !!this.renewal && ['eligible', 'draft'].includes(this.renewal.status);
+  }
+
+  get canPay(): boolean {
+    return !!this.renewal && this.renewal.status === 'pending_payment' && !this.isFreeRenewal;
+  }
+
   showAddMember() {
-    this.newMember = { first_name: '', last_name: '', mobile_number: '', email: '' };
+    this.newMember = { first_name: '', middle_name: '', last_name: '', gender: '', date_of_birth: '', relationship: '', mobile_number: '', citizenship_number: '' };
     this.showMemberForm = true;
   }
 
@@ -83,8 +99,7 @@ export class RenewalDetailPage implements OnInit {
       inputs: [
         { name: 'first_name', type: 'text', value: member.first_name, placeholder: 'First Name' },
         { name: 'last_name', type: 'text', value: member.last_name, placeholder: 'Last Name' },
-        { name: 'mobile_number', type: 'tel', value: member.mobile_number, placeholder: 'Mobile' },
-        { name: 'email', type: 'email', value: member.email, placeholder: 'Email' },
+        { name: 'mobile_number', type: 'tel', value: member.mobile_number, placeholder: 'Mobile Number' },
       ],
       buttons: [
         { text: 'Cancel', role: 'cancel' },
@@ -121,19 +136,56 @@ export class RenewalDetailPage implements OnInit {
   }
 
   async submitRenewal() {
-    this.api.post<ApiResponse>(`/renewals/${this.renewalId}/submit`, {}).subscribe({
-      next: async (res) => {
+    this.submitting = true;
+    this.api.post<ApiResponse<any>>(`/renewals/${this.renewalId}/submit`, {}).subscribe({
+      next: async (res: any) => {
+        this.submitting = false;
+
+        if (res.requires_payment) {
+          // Navigate to payment page for paid renewals
+          this.router.navigate(['/payment'], {
+            queryParams: {
+              renewalId: this.renewalId,
+              amount: this.renewal?.final_amount ?? 0,
+              type: 'renewal',
+              policyNumber: this.renewal?.renewal_number ?? '',
+            },
+          });
+        } else {
+          // Free renewal — completed
+          const toast = await this.toastCtrl.create({
+            message: res.message || 'Renewal completed!', duration: 2000, color: 'success', position: 'top',
+          });
+          await toast.present();
+          this.loadDetail();
+        }
+      },
+      error: async (err) => {
+        this.submitting = false;
         const toast = await this.toastCtrl.create({
-          message: res.message || 'Renewal submitted', duration: 2000, color: 'success', position: 'top',
+          message: err?.error?.message || 'Submission failed', duration: 2000, color: 'danger', position: 'top',
         });
         await toast.present();
-        this.loadDetail();
+      },
+    });
+  }
+
+  goToPay() {
+    this.router.navigate(['/payment'], {
+      queryParams: {
+        renewalId: this.renewalId,
+        amount: this.renewal?.final_amount ?? 0,
+        type: 'renewal',
+        policyNumber: this.renewal?.renewal_number ?? '',
       },
     });
   }
 
   getStatusColor(s: string): string {
-    const map: Record<string, string> = { draft: 'medium', pending: 'warning', approved: 'success', rejected: 'danger' };
+    const map: Record<string, string> = {
+      draft: 'medium', eligible: 'tertiary', pending_payment: 'warning',
+      pending_review: 'warning', approved: 'primary', completed: 'success', rejected: 'danger',
+    };
     return map[s] || 'medium';
   }
 

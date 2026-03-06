@@ -31,3 +31,42 @@
     }
 
     .loading-center { display: flex; justify-content: center; align-items: center; height: 50%; }
+
+    .beneficiary-content { padding: 12px; }
+
+    .enrollment-card {
+      margin: 0 0 12px !important;
+      border-left: 3px solid #003087;
+    }
+
+    .enrollment-info {
+      margin: 6px 0;
+      .info-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.88rem;
+        color: #495057;
+        .info-icon { font-size: 16px; color: #6c757d; }
+      }
+    }
+
+    .card-bottom-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 8px;
+    }
+
+    .premium-text {
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: #003087;
+    }
+
+    .section-heading {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #495057;
+      margin: 16px 0 8px;
+    }

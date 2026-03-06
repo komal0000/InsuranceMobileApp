@@ -16,11 +16,54 @@
         <!-- Status Banner -->
         <div class="status-banner">
           <div class="banner-left">
-            <span class="renewal-number">{{ renewal.enrollment_number || 'Renewal #' + renewal.id }}</span>
+            <span class="renewal-number">{{ renewal.renewal_number || 'Renewal #' + renewal.id }}</span>
             <span class="renewal-date">Created {{ renewal.created_at | date:'mediumDate' }}</span>
           </div>
           <ion-badge [color]="getStatusColor(renewal.status)">{{ formatStatus(renewal.status) }}</ion-badge>
         </div>
+
+        <!-- Premium Summary Card -->
+        <ion-card>
+          <ion-card-content>
+            <div class="section-title">
+              <div class="section-icon" style="background: rgba(40,167,69,0.1);">
+                <ion-icon name="wallet-outline" style="color: #28a745;"></ion-icon>
+              </div>
+              <h3>Premium Summary</h3>
+            </div>
+
+            <div class="premium-details">
+              <div class="premium-row">
+                <span>Total Members</span>
+                <strong>{{ renewal.total_members || 0 }}</strong>
+              </div>
+              <div class="premium-row">
+                <span>Base Premium</span>
+                <strong>NPR {{ (renewal.premium_amount || 0) | number:'1.2-2' }}</strong>
+              </div>
+              <div class="premium-row" *ngIf="(renewal.discount_amount ?? 0) > 0">
+                <span>Early Discount</span>
+                <strong style="color: #28a745;">- NPR {{ renewal.discount_amount | number:'1.2-2' }}</strong>
+              </div>
+              <div class="premium-row" *ngIf="(renewal.penalty_amount ?? 0) > 0">
+                <span>Late Penalty</span>
+                <strong style="color: #dc3545;">+ NPR {{ renewal.penalty_amount | number:'1.2-2' }}</strong>
+              </div>
+              <div class="premium-row premium-total">
+                <span>Amount to Pay</span>
+                <strong *ngIf="!isFreeRenewal">NPR {{ (renewal.final_amount || 0) | number:'1.2-2' }}</strong>
+                <ion-badge color="success" *ngIf="isFreeRenewal">FREE (Targeted Group)</ion-badge>
+              </div>
+            </div>
+
+            <div class="renewal-dates" *ngIf="renewal.renewal_start_date">
+              <div class="premium-row">
+                <span>New Policy Period</span>
+                <strong>{{ renewal.renewal_start_date | date:'mediumDate' }} — {{ renewal.renewal_end_date | date:'mediumDate' }}</strong>
+              </div>
+            </div>
+          </ion-card-content>
+        </ion-card>
 
         <!-- Members Card -->
         <ion-card>
@@ -29,17 +72,17 @@
               <div class="section-icon" style="background: rgba(13,202,240,0.1);">
                 <ion-icon name="people-outline" style="color: #0dcaf0;"></ion-icon>
               </div>
-              <h3>Members ({{ renewal.members?.length || 0 }})</h3>
+              <h3>Members ({{ renewal.total_members || renewal.members?.length || 0 }})</h3>
             </div>
 
             <div class="member-list" *ngIf="renewal.members && renewal.members.length > 0">
               <div class="member-row" *ngFor="let member of renewal.members">
-                <div class="member-avatar">{{ (member.first_name || '').charAt(0).toUpperCase() }}</div>
+                <div class="member-avatar">{{ (member.first_name || member.full_name || '').charAt(0).toUpperCase() }}</div>
                 <div class="member-info">
-                  <strong>{{ member.first_name }} {{ member.last_name }}</strong>
-                  <span>{{ member.relationship_type }} | {{ member.gender }}</span>
+                  <strong>{{ member.first_name || '' }} {{ member.last_name || member.full_name || '' }}</strong>
+                  <span>{{ member.relationship_type || member.relationship || '' }} | {{ member.gender || '' }}</span>
                 </div>
-                <div class="member-actions" *ngIf="renewal.status === 'draft'">
+                <div class="member-actions" *ngIf="canSubmit">
                   <ion-button fill="clear" size="small" (click)="editMember(member)">
                     <ion-icon name="create-outline"></ion-icon>
                   </ion-button>
@@ -50,40 +93,95 @@
               </div>
             </div>
 
-            <ion-button expand="block" fill="outline" (click)="showAddMember()" *ngIf="renewal.status === 'draft'" class="ion-margin-top">
+            <ion-button expand="block" fill="outline" (click)="showAddMember()" *ngIf="canSubmit" class="ion-margin-top">
               <ion-icon name="add-outline" slot="start"></ion-icon>
-              Add Member
+              Add Family Member
             </ion-button>
 
-            <!-- Add Member Form -->
+            <!-- Add Family Member Form -->
             <div *ngIf="showMemberForm" class="add-member-form">
-              <h4 style="margin: 0 0 10px; font-weight: 700; color: #212529;">Add Member</h4>
+              <h4 style="margin: 0 0 10px; font-weight: 700; color: #212529;">Add Family Member</h4>
               <ion-item class="form-item">
                 <ion-input label="First Name *" labelPlacement="stacked" [(ngModel)]="newMember.first_name"></ion-input>
+              </ion-item>
+              <ion-item class="form-item">
+                <ion-input label="Middle Name" labelPlacement="stacked" [(ngModel)]="newMember.middle_name"></ion-input>
               </ion-item>
               <ion-item class="form-item">
                 <ion-input label="Last Name *" labelPlacement="stacked" [(ngModel)]="newMember.last_name"></ion-input>
               </ion-item>
               <ion-item class="form-item">
-                <ion-input label="Mobile" labelPlacement="stacked" type="tel" [(ngModel)]="newMember.mobile_number"></ion-input>
+                <ion-select label="Gender *" labelPlacement="stacked" [(ngModel)]="newMember.gender">
+                  <ion-select-option value="male">Male</ion-select-option>
+                  <ion-select-option value="female">Female</ion-select-option>
+                  <ion-select-option value="other">Other</ion-select-option>
+                </ion-select>
               </ion-item>
               <ion-item class="form-item">
-                <ion-input label="Email" labelPlacement="stacked" type="email" [(ngModel)]="newMember.email"></ion-input>
+                <ion-input label="Date of Birth *" labelPlacement="stacked" type="date" [(ngModel)]="newMember.date_of_birth"></ion-input>
+              </ion-item>
+              <ion-item class="form-item">
+                <ion-select label="Relationship *" labelPlacement="stacked" [(ngModel)]="newMember.relationship">
+                  <ion-select-option value="spouse">Spouse</ion-select-option>
+                  <ion-select-option value="son">Son</ion-select-option>
+                  <ion-select-option value="daughter">Daughter</ion-select-option>
+                  <ion-select-option value="father">Father</ion-select-option>
+                  <ion-select-option value="mother">Mother</ion-select-option>
+                  <ion-select-option value="brother">Brother</ion-select-option>
+                  <ion-select-option value="sister">Sister</ion-select-option>
+                  <ion-select-option value="grandfather">Grandfather</ion-select-option>
+                  <ion-select-option value="grandmother">Grandmother</ion-select-option>
+                  <ion-select-option value="father_in_law">Father-in-law</ion-select-option>
+                  <ion-select-option value="mother_in_law">Mother-in-law</ion-select-option>
+                  <ion-select-option value="daughter_in_law">Daughter-in-law</ion-select-option>
+                  <ion-select-option value="other">Other</ion-select-option>
+                </ion-select>
+              </ion-item>
+              <ion-item class="form-item">
+                <ion-input label="Mobile Number" labelPlacement="stacked" type="tel" [(ngModel)]="newMember.mobile_number"></ion-input>
+              </ion-item>
+              <ion-item class="form-item">
+                <ion-input label="Citizenship Number" labelPlacement="stacked" [(ngModel)]="newMember.citizenship_number"></ion-input>
               </ion-item>
               <div class="btn-row">
-                <ion-button expand="block" (click)="addMember()">Save</ion-button>
+                <ion-button expand="block" (click)="addMember()" [disabled]="!newMember.first_name || !newMember.last_name || !newMember.gender || !newMember.date_of_birth || !newMember.relationship">
+                  Save Member
+                </ion-button>
                 <ion-button expand="block" fill="outline" color="medium" (click)="showMemberForm = false">Cancel</ion-button>
               </div>
             </div>
           </ion-card-content>
         </ion-card>
 
-        <!-- Action -->
-        <div class="action-section" *ngIf="renewal.status === 'draft'">
-          <ion-button expand="block" color="success" (click)="submitRenewal()">
-            <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
-            Submit Renewal
+        <!-- Action Buttons -->
+        <div class="action-section" *ngIf="canSubmit">
+          <!-- Free Renewal (Targeted Group) -->
+          <ion-button expand="block" color="success" (click)="submitRenewal()" *ngIf="isFreeRenewal" [disabled]="submitting">
+            <ion-spinner *ngIf="submitting" name="crescent" slot="start"></ion-spinner>
+            <ion-icon name="shield-checkmark-outline" slot="start" *ngIf="!submitting"></ion-icon>
+            {{ submitting ? 'Processing...' : 'Complete Free Renewal' }}
           </ion-button>
+
+          <!-- Paid Renewal -->
+          <ion-button expand="block" color="success" (click)="submitRenewal()" *ngIf="!isFreeRenewal" [disabled]="submitting">
+            <ion-spinner *ngIf="submitting" name="crescent" slot="start"></ion-spinner>
+            <ion-icon name="wallet-outline" slot="start" *ngIf="!submitting"></ion-icon>
+            {{ submitting ? 'Processing...' : 'Pay NPR ' + ((renewal.final_amount || 0) | number:'1.0-0') + ' & Submit' }}
+          </ion-button>
+        </div>
+
+        <!-- Pending Payment Action (returned from submit) -->
+        <div class="action-section" *ngIf="canPay">
+          <ion-button expand="block" color="warning" (click)="goToPay()">
+            <ion-icon name="wallet-outline" slot="start"></ion-icon>
+            Pay NPR {{ (renewal.final_amount || 0) | number:'1.0-0' }} to Complete Renewal
+          </ion-button>
+        </div>
+
+        <!-- Completed Banner -->
+        <div class="completed-banner" *ngIf="renewal.status === 'completed'">
+          <ion-icon name="checkmark-circle-outline" color="success"></ion-icon>
+          <span>Renewal Completed</span>
         </div>
       </div>
     </ion-content>
