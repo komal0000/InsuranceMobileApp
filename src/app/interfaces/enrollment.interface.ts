@@ -95,9 +95,14 @@ export interface FamilyMember {
   relationship_type?: string;
   mobile_number?: string;
   email?: string;
+  document_type?: 'citizenship' | 'birth_certificate';
   citizenship_number?: string;
   citizenship_issue_date?: string;
   citizenship_issue_district?: string;
+  birth_certificate_number?: string;
+  birth_certificate_issue_date?: string;
+  birth_certificate_front_image?: string;
+  birth_certificate_back_image?: string;
   is_target_group: boolean;
   target_group_type?: string;
   target_group_id_number?: string;

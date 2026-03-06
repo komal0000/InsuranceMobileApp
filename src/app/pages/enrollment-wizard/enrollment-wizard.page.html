@@ -162,6 +162,18 @@
           </div>
 
           <div class="form-group">
+            <!-- Profile Photo (top) -->
+            <div class="capture-section" style="margin-bottom:16px">
+              <div class="capture-row">
+                <span class="capture-label">Photo *</span>
+                <ion-button size="small" fill="outline" (click)="captureImage('head','photo')">
+                  <ion-icon slot="start" name="camera-outline"></ion-icon>
+                  {{ headPhotoPreview ? 'Change' : 'Capture' }}
+                </ion-button>
+              </div>
+              <img *ngIf="headPhotoPreview" [src]="headPhotoPreview" class="preview-img" />
+            </div>
+
             <!-- English name -->
             <p style="font-size:0.7rem;font-weight:700;color:#6c757d;text-transform:uppercase;margin:8px 0 4px">English Name</p>
             <ion-item class="form-item">
@@ -267,6 +279,28 @@
               </ion-input>
             </ion-item>
 
+            <!-- Citizenship Images (contextual) -->
+            <div class="capture-section">
+              <div class="capture-row">
+                <span class="capture-label">Citizenship Front *</span>
+                <ion-button size="small" fill="outline" (click)="captureImage('head','citizenship_front_image')">
+                  <ion-icon slot="start" name="camera-outline"></ion-icon>
+                  {{ citizenshipFrontPreview ? 'Change' : 'Capture' }}
+                </ion-button>
+              </div>
+              <img *ngIf="citizenshipFrontPreview" [src]="citizenshipFrontPreview" class="preview-img" />
+            </div>
+            <div class="capture-section">
+              <div class="capture-row">
+                <span class="capture-label">Citizenship Back *</span>
+                <ion-button size="small" fill="outline" (click)="captureImage('head','citizenship_back_image')">
+                  <ion-icon slot="start" name="camera-outline"></ion-icon>
+                  {{ citizenshipBackPreview ? 'Change' : 'Capture' }}
+                </ion-button>
+              </div>
+              <img *ngIf="citizenshipBackPreview" [src]="citizenshipBackPreview" class="preview-img" />
+            </div>
+
             <!-- Target Group -->
             <p style="font-size:0.7rem;font-weight:700;color:#6c757d;text-transform:uppercase;margin:8px 0 4px">Target Group</p>
             <ion-item class="form-item">
@@ -291,6 +325,27 @@
                            [(ngModel)]="headData.target_group_id_number">
                 </ion-input>
               </ion-item>
+              <!-- Target Group Images (contextual) -->
+              <div class="capture-section">
+                <div class="capture-row">
+                  <span class="capture-label">Target Group ID Front</span>
+                  <ion-button size="small" fill="outline" (click)="captureImage('head','target_group_front_image')">
+                    <ion-icon slot="start" name="camera-outline"></ion-icon>
+                    {{ targetGroupFrontPreview ? 'Change' : 'Capture' }}
+                  </ion-button>
+                </div>
+                <img *ngIf="targetGroupFrontPreview" [src]="targetGroupFrontPreview" class="preview-img" />
+              </div>
+              <div class="capture-section">
+                <div class="capture-row">
+                  <span class="capture-label">Target Group ID Back</span>
+                  <ion-button size="small" fill="outline" (click)="captureImage('head','target_group_back_image')">
+                    <ion-icon slot="start" name="camera-outline"></ion-icon>
+                    {{ targetGroupBackPreview ? 'Change' : 'Capture' }}
+                  </ion-button>
+                </div>
+                <img *ngIf="targetGroupBackPreview" [src]="targetGroupBackPreview" class="preview-img" />
+              </div>
             </div>
 
             <!-- Socio-economic -->
@@ -319,66 +374,6 @@
                 <ion-select-option value="Post Graduate">Post Graduate</ion-select-option>
               </ion-select>
             </ion-item>
-          </div>
-
-          <!-- Photo -->
-          <div class="capture-section">
-            <div class="capture-row">
-              <span class="capture-label">Photo *</span>
-              <ion-button size="small" fill="outline" (click)="captureImage('head','photo')">
-                <ion-icon slot="start" name="camera-outline"></ion-icon>
-                {{ headPhotoPreview ? 'Change' : 'Capture' }}
-              </ion-button>
-            </div>
-            <img *ngIf="headPhotoPreview" [src]="headPhotoPreview" class="preview-img" />
-          </div>
-
-          <!-- Citizenship Front -->
-          <div class="capture-section">
-            <div class="capture-row">
-              <span class="capture-label">Citizenship Front *</span>
-              <ion-button size="small" fill="outline" (click)="captureImage('head','citizenship_front_image')">
-                <ion-icon slot="start" name="camera-outline"></ion-icon>
-                {{ citizenshipFrontPreview ? 'Change' : 'Capture' }}
-              </ion-button>
-            </div>
-            <img *ngIf="citizenshipFrontPreview" [src]="citizenshipFrontPreview" class="preview-img" />
-          </div>
-
-          <!-- Citizenship Back -->
-          <div class="capture-section">
-            <div class="capture-row">
-              <span class="capture-label">Citizenship Back *</span>
-              <ion-button size="small" fill="outline" (click)="captureImage('head','citizenship_back_image')">
-                <ion-icon slot="start" name="camera-outline"></ion-icon>
-                {{ citizenshipBackPreview ? 'Change' : 'Capture' }}
-              </ion-button>
-            </div>
-            <img *ngIf="citizenshipBackPreview" [src]="citizenshipBackPreview" class="preview-img" />
-          </div>
-
-          <!-- Target Group Images -->
-          <div *ngIf="headData.is_target_group">
-            <div class="capture-section">
-              <div class="capture-row">
-                <span class="capture-label">Target Group ID Front</span>
-                <ion-button size="small" fill="outline" (click)="captureImage('head','target_group_front_image')">
-                  <ion-icon slot="start" name="camera-outline"></ion-icon>
-                  {{ targetGroupFrontPreview ? 'Change' : 'Capture' }}
-                </ion-button>
-              </div>
-              <img *ngIf="targetGroupFrontPreview" [src]="targetGroupFrontPreview" class="preview-img" />
-            </div>
-            <div class="capture-section">
-              <div class="capture-row">
-                <span class="capture-label">Target Group ID Back</span>
-                <ion-button size="small" fill="outline" (click)="captureImage('head','target_group_back_image')">
-                  <ion-icon slot="start" name="camera-outline"></ion-icon>
-                  {{ targetGroupBackPreview ? 'Change' : 'Capture' }}
-                </ion-button>
-              </div>
-              <img *ngIf="targetGroupBackPreview" [src]="targetGroupBackPreview" class="preview-img" />
-            </div>
           </div>
         </ion-card-content>
       </ion-card>
@@ -511,6 +506,18 @@
           <!-- Member Form -->
           <div *ngIf="!showNidGateMember">
             <div class="form-group">
+              <!-- Profile Photo (top) -->
+              <div class="capture-section" style="margin-bottom:16px">
+                <div class="capture-row">
+                  <span class="capture-label">Photo</span>
+                  <ion-button size="small" fill="outline" (click)="captureImage('member','photo')">
+                    <ion-icon slot="start" name="camera-outline"></ion-icon>
+                    {{ memberPhotoPreview ? 'Change' : 'Capture' }}
+                  </ion-button>
+                </div>
+                <img *ngIf="memberPhotoPreview" [src]="memberPhotoPreview" class="preview-img" />
+              </div>
+
               <!-- English name -->
               <p style="font-size:0.7rem;font-weight:700;color:#6c757d;text-transform:uppercase;margin:4px 0">English Name</p>
               <ion-item class="form-item">
@@ -610,11 +617,91 @@
                            type="tel" [(ngModel)]="newMember.mobile_number" maxlength="10" minlength="10">
                 </ion-input>
               </ion-item>
+
+              <!-- Document Type -->
+              <p style="font-size:0.7rem;font-weight:700;color:#6c757d;text-transform:uppercase;margin:8px 0 4px">Identity Document</p>
               <ion-item class="form-item">
-                <ion-input label="Citizenship Number" labelPlacement="stacked" placeholder="Citizenship No."
-                           [(ngModel)]="newMember.citizenship_number">
-                </ion-input>
+                <ion-select label="Document Type" labelPlacement="stacked" placeholder="Select Document Type"
+                            [(ngModel)]="newMember.document_type">
+                  <ion-select-option value="citizenship">Citizenship Certificate</ion-select-option>
+                  <ion-select-option value="birth_certificate">Birth Certificate</ion-select-option>
+                </ion-select>
               </ion-item>
+
+              <!-- Citizenship fields (shown when document_type is citizenship) -->
+              <div *ngIf="newMember.document_type === 'citizenship'">
+                <ion-item class="form-item">
+                  <ion-input label="Citizenship Number" labelPlacement="stacked" placeholder="Citizenship No."
+                             [(ngModel)]="newMember.citizenship_number">
+                  </ion-input>
+                </ion-item>
+                <ion-item class="form-item">
+                  <ion-input label="Issue Date" labelPlacement="stacked" placeholder="YYYY-MM-DD"
+                             type="date" [(ngModel)]="newMember.citizenship_issue_date">
+                  </ion-input>
+                </ion-item>
+                <ion-item class="form-item">
+                  <ion-input label="Issue District" labelPlacement="stacked" placeholder="e.g. Kathmandu"
+                             [(ngModel)]="newMember.citizenship_issue_district">
+                  </ion-input>
+                </ion-item>
+                <!-- Citizenship Images -->
+                <div class="capture-section">
+                  <div class="capture-row">
+                    <span class="capture-label">Citizenship Front</span>
+                    <ion-button size="small" fill="outline" (click)="captureImage('member','citizenship_front_image')">
+                      <ion-icon slot="start" name="camera-outline"></ion-icon>
+                      {{ memberCitizenshipFrontPreview ? 'Change' : 'Capture' }}
+                    </ion-button>
+                  </div>
+                  <img *ngIf="memberCitizenshipFrontPreview" [src]="memberCitizenshipFrontPreview" class="preview-img" />
+                </div>
+                <div class="capture-section">
+                  <div class="capture-row">
+                    <span class="capture-label">Citizenship Back</span>
+                    <ion-button size="small" fill="outline" (click)="captureImage('member','citizenship_back_image')">
+                      <ion-icon slot="start" name="camera-outline"></ion-icon>
+                      {{ memberCitizenshipBackPreview ? 'Change' : 'Capture' }}
+                    </ion-button>
+                  </div>
+                  <img *ngIf="memberCitizenshipBackPreview" [src]="memberCitizenshipBackPreview" class="preview-img" />
+                </div>
+              </div>
+
+              <!-- Birth Certificate fields (shown when document_type is birth_certificate) -->
+              <div *ngIf="newMember.document_type === 'birth_certificate'">
+                <ion-item class="form-item">
+                  <ion-input label="Birth Certificate Number" labelPlacement="stacked" placeholder="Birth Certificate No."
+                             [(ngModel)]="newMember.birth_certificate_number">
+                  </ion-input>
+                </ion-item>
+                <ion-item class="form-item">
+                  <ion-input label="Issue Date" labelPlacement="stacked" placeholder="YYYY-MM-DD"
+                             type="date" [(ngModel)]="newMember.birth_certificate_issue_date">
+                  </ion-input>
+                </ion-item>
+                <!-- Birth Certificate Images -->
+                <div class="capture-section">
+                  <div class="capture-row">
+                    <span class="capture-label">Birth Certificate Front</span>
+                    <ion-button size="small" fill="outline" (click)="captureImage('member','birth_certificate_front_image')">
+                      <ion-icon slot="start" name="camera-outline"></ion-icon>
+                      {{ memberBirthCertFrontPreview ? 'Change' : 'Capture' }}
+                    </ion-button>
+                  </div>
+                  <img *ngIf="memberBirthCertFrontPreview" [src]="memberBirthCertFrontPreview" class="preview-img" />
+                </div>
+                <div class="capture-section">
+                  <div class="capture-row">
+                    <span class="capture-label">Birth Certificate Back</span>
+                    <ion-button size="small" fill="outline" (click)="captureImage('member','birth_certificate_back_image')">
+                      <ion-icon slot="start" name="camera-outline"></ion-icon>
+                      {{ memberBirthCertBackPreview ? 'Change' : 'Capture' }}
+                    </ion-button>
+                  </div>
+                  <img *ngIf="memberBirthCertBackPreview" [src]="memberBirthCertBackPreview" class="preview-img" />
+                </div>
+              </div>
 
               <!-- Target Group -->
               <ion-item class="form-item">
@@ -639,19 +726,28 @@
                              [(ngModel)]="newMember.target_group_id_number">
                   </ion-input>
                 </ion-item>
+                <!-- Target Group Images -->
+                <div class="capture-section">
+                  <div class="capture-row">
+                    <span class="capture-label">Target Group ID Front</span>
+                    <ion-button size="small" fill="outline" (click)="captureImage('member','target_group_front_image')">
+                      <ion-icon slot="start" name="camera-outline"></ion-icon>
+                      {{ memberTargetGroupFrontPreview ? 'Change' : 'Capture' }}
+                    </ion-button>
+                  </div>
+                  <img *ngIf="memberTargetGroupFrontPreview" [src]="memberTargetGroupFrontPreview" class="preview-img" />
+                </div>
+                <div class="capture-section">
+                  <div class="capture-row">
+                    <span class="capture-label">Target Group ID Back</span>
+                    <ion-button size="small" fill="outline" (click)="captureImage('member','target_group_back_image')">
+                      <ion-icon slot="start" name="camera-outline"></ion-icon>
+                      {{ memberTargetGroupBackPreview ? 'Change' : 'Capture' }}
+                    </ion-button>
+                  </div>
+                  <img *ngIf="memberTargetGroupBackPreview" [src]="memberTargetGroupBackPreview" class="preview-img" />
+                </div>
               </div>
-            </div>
-
-            <!-- Member Photo -->
-            <div class="capture-section">
-              <div class="capture-row">
-                <span class="capture-label">Photo</span>
-                <ion-button size="small" fill="outline" (click)="captureImage('member','photo')">
-                  <ion-icon slot="start" name="camera-outline"></ion-icon>
-                  {{ memberPhotoPreview ? 'Change' : 'Capture' }}
-                </ion-button>
-              </div>
-              <img *ngIf="memberPhotoPreview" [src]="memberPhotoPreview" class="preview-img" />
             </div>
 
             <!-- Save / Cancel -->

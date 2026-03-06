@@ -101,11 +101,25 @@ export class EnrollmentWizardPage implements OnInit {
     first_name_ne: '', middle_name_ne: '', last_name_ne: '',
     gender: '', date_of_birth: '', relationship: '',
     blood_group: '', marital_status: '', mobile_number: '',
-    citizenship_number: '',
+    document_type: 'citizenship',
+    citizenship_number: '', citizenship_issue_date: '', citizenship_issue_district: '',
+    birth_certificate_number: '', birth_certificate_issue_date: '',
     is_target_group: false, target_group_type: '', target_group_id_number: '',
     photo: null as File | Blob | null,
+    citizenship_front_image: null as File | Blob | null,
+    citizenship_back_image: null as File | Blob | null,
+    birth_certificate_front_image: null as File | Blob | null,
+    birth_certificate_back_image: null as File | Blob | null,
+    target_group_front_image: null as File | Blob | null,
+    target_group_back_image: null as File | Blob | null,
   };
   memberPhotoPreview = '';
+  memberCitizenshipFrontPreview = '';
+  memberCitizenshipBackPreview = '';
+  memberBirthCertFrontPreview = '';
+  memberBirthCertBackPreview = '';
+  memberTargetGroupFrontPreview = '';
+  memberTargetGroupBackPreview = '';
 
   constructor(
     private route: ActivatedRoute,
@@ -365,10 +379,22 @@ export class EnrollmentWizardPage implements OnInit {
       first_name_ne: '', middle_name_ne: '', last_name_ne: '',
       gender: '', date_of_birth: '', relationship: '',
       blood_group: '', marital_status: '', mobile_number: '',
-      citizenship_number: '', is_target_group: false,
-      target_group_type: '', target_group_id_number: '', photo: null,
+      document_type: 'citizenship',
+      citizenship_number: '', citizenship_issue_date: '', citizenship_issue_district: '',
+      birth_certificate_number: '', birth_certificate_issue_date: '',
+      is_target_group: false,
+      target_group_type: '', target_group_id_number: '',
+      photo: null, citizenship_front_image: null, citizenship_back_image: null,
+      birth_certificate_front_image: null, birth_certificate_back_image: null,
+      target_group_front_image: null, target_group_back_image: null,
     };
     this.memberPhotoPreview = '';
+    this.memberCitizenshipFrontPreview = '';
+    this.memberCitizenshipBackPreview = '';
+    this.memberBirthCertFrontPreview = '';
+    this.memberBirthCertBackPreview = '';
+    this.memberTargetGroupFrontPreview = '';
+    this.memberTargetGroupBackPreview = '';
     this.nidNumberMember = ''; this.nidMessageMember = '';
     this.showNidGateMember = true;
     this.showMemberForm = true;
@@ -446,7 +472,8 @@ export class EnrollmentWizardPage implements OnInit {
   async captureImage(
     target: 'head' | 'member',
     field: 'photo' | 'citizenship_front_image' | 'citizenship_back_image' |
-           'target_group_front_image' | 'target_group_back_image'
+           'target_group_front_image' | 'target_group_back_image' |
+           'birth_certificate_front_image' | 'birth_certificate_back_image'
   ) {
     try {
       const { Camera, CameraResultType, CameraSource } = await import('@capacitor/camera');
@@ -485,6 +512,12 @@ export class EnrollmentWizardPage implements OnInit {
     } else {
       this.newMember[field] = blob;
       if (field === 'photo') this.memberPhotoPreview = dataUrl;
+      else if (field === 'citizenship_front_image') this.memberCitizenshipFrontPreview = dataUrl;
+      else if (field === 'citizenship_back_image') this.memberCitizenshipBackPreview = dataUrl;
+      else if (field === 'birth_certificate_front_image') this.memberBirthCertFrontPreview = dataUrl;
+      else if (field === 'birth_certificate_back_image') this.memberBirthCertBackPreview = dataUrl;
+      else if (field === 'target_group_front_image') this.memberTargetGroupFrontPreview = dataUrl;
+      else if (field === 'target_group_back_image') this.memberTargetGroupBackPreview = dataUrl;
     }
   }
 
