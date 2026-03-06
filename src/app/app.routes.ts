@@ -43,6 +43,12 @@ export const routes: Routes = [
       import('./pages/renewal-search/renewal-search.page').then(m => m.RenewalSearchPage),
   },
   {
+    path: 'payment',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./pages/payment/payment.page').then(m => m.PaymentPage),
+  },
+  {
     path: 'home',
     redirectTo: 'tabs/dashboard',
     pathMatch: 'full',

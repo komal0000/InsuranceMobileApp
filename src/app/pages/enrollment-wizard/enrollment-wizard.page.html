@@ -102,6 +102,10 @@
 
       <!-- Navigation -->
       <div class="nav-buttons">
+        <ion-button expand="block" fill="outline" color="medium" [disabled]="savingDraft" (click)="saveDraft()">
+          <ion-spinner *ngIf="savingDraft" name="crescent"></ion-spinner>
+          <span *ngIf="!savingDraft">Save Draft</span>
+        </ion-button>
         <ion-button expand="block" [disabled]="saving" (click)="nextStep()">
           <ion-spinner *ngIf="saving" name="crescent"></ion-spinner>
           <span *ngIf="!saving">Next: Household Head</span>
@@ -383,6 +387,10 @@
         <ion-button expand="block" fill="outline" color="medium" (click)="prevStep()">
           <ion-icon slot="start" name="arrow-back-outline"></ion-icon>
           Back
+        </ion-button>
+        <ion-button expand="block" fill="outline" color="medium" [disabled]="savingDraft" (click)="saveDraft()">
+          <ion-spinner *ngIf="savingDraft" name="crescent"></ion-spinner>
+          <span *ngIf="!savingDraft">Save Draft</span>
         </ion-button>
         <ion-button expand="block" [disabled]="saving" (click)="nextStep()">
           <ion-spinner *ngIf="saving" name="crescent"></ion-spinner>
@@ -982,9 +990,9 @@
           <ion-icon slot="start" name="arrow-back-outline"></ion-icon>
           Back
         </ion-button>
-        <ion-button expand="block" color="success" [disabled]="!confirmed || submitting" (click)="submitEnrollment()">
-          <ion-spinner *ngIf="submitting" name="crescent"></ion-spinner>
-          <span *ngIf="!submitting">Submit for Verification</span>
+        <ion-button expand="block" color="success" [disabled]="!confirmed" (click)="payAndSubmit()">
+          <ion-icon slot="start" name="card-outline"></ion-icon>
+          Pay &amp; Submit
         </ion-button>
       </div>
     </div>

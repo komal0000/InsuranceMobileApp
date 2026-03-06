@@ -47,6 +47,7 @@ export class EnrollmentWizardPage implements OnInit {
   config: EnrollmentConfig | null = null;
   currentStep = 1;
   saving = false;
+  savingDraft = false;
   submitting = false;
   confirmed = false;
   stepTitles = STEP_TITLES;
@@ -205,11 +206,11 @@ export class EnrollmentWizardPage implements OnInit {
         photo: null, citizenship_front_image: null, citizenship_back_image: null,
         target_group_front_image: null, target_group_back_image: null,
       };
-      this.headPhotoPreview = head.photo || '';
-      this.citizenshipFrontPreview = head.citizenship_front_image || '';
-      this.citizenshipBackPreview = head.citizenship_back_image || '';
-      this.targetGroupFrontPreview = head.target_group_front_image || '';
-      this.targetGroupBackPreview = head.target_group_back_image || '';
+      this.headPhotoPreview = this.getDocUrl(head, 'photo') || '';
+      this.citizenshipFrontPreview = this.getDocUrl(head, 'citizenship_front') || '';
+      this.citizenshipBackPreview = this.getDocUrl(head, 'citizenship_back') || '';
+      this.targetGroupFrontPreview = this.getDocUrl(head, 'target_group_front') || '';
+      this.targetGroupBackPreview = this.getDocUrl(head, 'target_group_back') || '';
     }
 
     // ── Step 3: Family members ────────────────────────────────────────────────
@@ -217,13 +218,9 @@ export class EnrollmentWizardPage implements OnInit {
     this.members = (e.family_members || e.members || []) as FamilyMember[];
     if (this.initialLoad) {
       this.initialLoad = false;
-      if (head) {
-        this.currentStep = 3;        // steps 1+2 done → resume at members
-      } else if (e.province) {
-        this.currentStep = 2;        // step 1 done → resume at head
-      } else {
-        this.currentStep = 1;
-      }
+      // Use current_step from the server (1-3). If 4 (submitted), go to step 3.
+      const serverStep = Number(e.current_step) || 1;
+      this.currentStep = Math.min(serverStep, 3);
     }
   }
 
@@ -370,6 +367,55 @@ export class EnrollmentWizardPage implements OnInit {
 
   prevStep() { if (this.currentStep > 1) this.currentStep--; }
 
+  async saveDraft() {
+    this.savingDraft = true;
+    if (this.currentStep === 1) {
+      if (!this.step1.province || !this.step1.district || !this.step1.municipality || !this.step1.ward_number) {
+        this.showToast('Please select at least province, district, municipality and ward to save.', 'warning');
+        this.savingDraft = false; return;
+      }
+      this.enrollmentSvc.saveStep1(this.enrollmentId, this.step1).subscribe({
+        next: (res) => {
+          this.savingDraft = false;
+          if (res.success) { this.enrollment = res.data; this.showToast('Draft saved.', 'success'); }
+        },
+        error: () => { this.savingDraft = false; this.showToast('Failed to save draft.', 'danger'); },
+      });
+    } else if (this.currentStep === 2) {
+      if (!this.headData.first_name || !this.headData.last_name || !this.headData.gender ||
+          !this.headData.date_of_birth || !this.headData.mobile_number ||
+          !this.headData.citizenship_number || !this.headData.citizenship_issue_date ||
+          !this.headData.citizenship_issue_district || !this.headData.marital_status) {
+        this.showToast('Please fill all required fields before saving.', 'warning');
+        this.savingDraft = false; return;
+      }
+      if (!/^\d{10}$/.test(this.headData.mobile_number)) {
+        this.showToast('Mobile number must be exactly 10 digits.', 'warning');
+        this.savingDraft = false; return;
+      }
+      const fd = new FormData();
+      Object.keys(this.headData).forEach(key => {
+        const val = this.headData[key];
+        if (val === null || val === undefined) return;
+        if (typeof val === 'boolean') { fd.append(key, val ? '1' : '0'); return; }
+        if (val instanceof Blob) { fd.append(key, val, `${key}.jpg`); return; }
+        if (val !== '') fd.append(key, String(val));
+      });
+      this.enrollmentSvc.saveStep2(this.enrollmentId, fd).subscribe({
+        next: (res) => {
+          this.savingDraft = false;
+          if (res.success) {
+            this.enrollment = res.data;
+            this.showToast('Draft saved.', 'success');
+          }
+        },
+        error: () => { this.savingDraft = false; this.showToast('Failed to save draft.', 'danger'); },
+      });
+    } else {
+      this.savingDraft = false;
+    }
+  }
+
   goToStep(step: number) { if (step < this.currentStep) this.currentStep = step; }
 
 
@@ -454,6 +500,22 @@ export class EnrollmentWizardPage implements OnInit {
 
 
 
+  async payAndSubmit() {
+    if (!this.confirmed) {
+      this.showToast('Please confirm the information is accurate.', 'warning');
+      return;
+    }
+    // Navigate to the payment page with enrollment context
+    this.router.navigate(['/payment'], {
+      queryParams: {
+        enrollmentId: this.enrollmentId,
+        amount: this.premiumBreakdown.total,
+        type: 'new',
+        policyNumber: this.enrollment?.enrollment_number || '',
+      },
+    });
+  }
+
   async submitEnrollment() {
     if (!this.confirmed) { this.showToast('Please confirm the information is accurate.', 'warning'); return; }
     this.submitting = true;
@@ -531,6 +593,12 @@ export class EnrollmentWizardPage implements OnInit {
     const extraRate = cfg?.additional_member_premium || 700;
     const extra = Math.max(0, totalMembers - baseCount) * extraRate;
     return { base, extra, total: base + extra, members: totalMembers };
+  }
+
+  getDocUrl(member: any, type: string): string | null {
+    if (!member?.documents?.length) return null;
+    const doc = member.documents.find((d: any) => d.document_type === type);
+    return doc?.url || null;
   }
 
   getAge(dob: string): number {

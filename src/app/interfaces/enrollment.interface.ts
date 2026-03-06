@@ -72,6 +72,7 @@ export interface HouseholdHead {
   citizenship_back_image?: string;
   target_group_front_image?: string;
   target_group_back_image?: string;
+  documents?: MemberDocument[];
   created_at?: string;
   updated_at?: string;
 }
@@ -113,8 +114,22 @@ export interface FamilyMember {
   citizenship_back_image?: string;
   target_group_front_image?: string;
   target_group_back_image?: string;
+  documents?: MemberDocument[];
   created_at?: string;
   updated_at?: string;
+}
+
+export interface MemberDocument {
+  id: number;
+  documentable_type: string;
+  documentable_id: number;
+  document_type: string;
+  file_path: string;
+  original_name?: string;
+  file_size?: number;
+  mime_type?: string;
+  url: string;
+  created_at?: string;
 }
 
 export interface EnrollmentDocument {

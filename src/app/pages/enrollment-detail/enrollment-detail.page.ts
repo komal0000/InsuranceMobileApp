@@ -182,4 +182,12 @@ export class EnrollmentDetailPage implements OnInit {
   formatStatus(status: string): string {
     return (status || '').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
   }
+
+  /**
+   * Get document URL by type from a member's documents array.
+   */
+  getDocUrl(member: any, type: string): string | null {
+    const doc = member?.documents?.find((d: any) => d.document_type === type);
+    return doc?.url || null;
+  }
 }

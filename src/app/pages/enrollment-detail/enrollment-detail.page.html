@@ -94,8 +94,8 @@
               <h3>Household Head</h3>
             </div>
             <div class="head-info">
-              <div class="head-avatar" *ngIf="enrollment.household_head.photo; else initials">
-                <ion-img [src]="enrollment.household_head.photo" class="head-photo"></ion-img>
+              <div class="head-avatar" *ngIf="getDocUrl(enrollment.household_head, 'photo'); else initials">
+                <ion-img [src]="getDocUrl(enrollment.household_head, 'photo')!" class="head-photo"></ion-img>
               </div>
               <ng-template #initials>
                 <div class="head-avatar-circle">
