@@ -18,6 +18,7 @@
         <ion-tab-button tab="notifications">
           <ion-icon name="notifications-outline"></ion-icon>
           <ion-label>Alerts</ion-label>
+          <ion-badge color="danger" *ngIf="unreadCount > 0">{{ unreadCount > 99 ? '99+' : unreadCount }}</ion-badge>
         </ion-tab-button>
 
         <ion-tab-button tab="profile">

@@ -81,6 +81,17 @@ export class RenewalDetailPage implements OnInit {
   }
 
   addMember() {
+    if (this.newMember.date_of_birth) {
+      const birth = new Date(this.newMember.date_of_birth);
+      const today = new Date();
+      let age = today.getFullYear() - birth.getFullYear();
+      const m = today.getMonth() - birth.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+      if (age < 16) {
+        this.toastCtrl.create({ message: 'Member must be at least 16 years old.', duration: 2000, color: 'warning', position: 'top' }).then(t => t.present());
+        return;
+      }
+    }
     this.api.post<ApiResponse>(`/renewals/${this.renewalId}/members`, this.newMember).subscribe({
       next: async (res) => {
         if (res.success) {

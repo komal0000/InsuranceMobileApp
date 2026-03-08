@@ -28,6 +28,35 @@
     }
 
     .status-badge { font-size: 0.72rem; padding: 4px 14px; }
+    .inline-badge { font-size: 0.72rem; padding: 3px 10px; }
+
+    /* Summary Row */
+    .summary-row {
+      display: flex;
+      gap: 10px;
+      margin: 0 0 12px;
+    }
+
+    .summary-card {
+      flex: 1;
+      background: #fff;
+      border-radius: 12px;
+      padding: 14px 10px;
+      text-align: center;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+
+    .summary-icon {
+      font-size: 22px;
+      margin-bottom: 4px;
+      &.blue { color: #003087; }
+      &.green { color: #198754; }
+      &.orange { color: #fd7e14; }
+      &.red { color: #dc3545; }
+    }
+
+    .summary-value { font-size: 0.95rem; font-weight: 700; color: #212529; }
+    .summary-label { font-size: 0.68rem; color: #6c757d; margin-top: 2px; }
 
     .section-title {
       display: flex;
@@ -52,6 +81,7 @@
       &.blue { background: rgba(0,48,135,0.08); ion-icon { color: #003087; } }
       &.cyan { background: rgba(13,202,240,0.08); ion-icon { color: #0dcaf0; } }
       &.green { background: rgba(25,135,84,0.08); ion-icon { color: #198754; } }
+      &.purple { background: rgba(111,66,193,0.08); ion-icon { color: #6f42c1; } }
     }
 
     .info-grid {
@@ -70,7 +100,9 @@
     .info-label { display: block; font-size: 0.72rem; color: #6c757d; margin-bottom: 2px; }
     .info-value { display: block; font-size: 0.88rem; font-weight: 600; color: #212529; }
 
-    .premium-box {
+    .mt-8 { margin-top: 8px; }
+
+    .subsidy-box {
       background: rgba(25,135,84,0.06);
       border-radius: 8px;
       padding: 12px;
@@ -79,8 +111,42 @@
       align-items: center;
     }
 
-    .premium-label { font-size: 0.85rem; color: #6c757d; }
-    .premium-value { font-size: 1.05rem; font-weight: 700; color: #198754; }
+    .subsidy-label { font-size: 0.85rem; color: #6c757d; }
+    .subsidy-value { font-size: 1.05rem; font-weight: 700; color: #198754; }
+
+    /* Household Head Card */
+    .head-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .head-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(0,48,135,0.08);
+      color: #003087;
+      font-weight: 700;
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .head-info {
+      display: flex;
+      flex-direction: column;
+
+      strong { font-size: 0.95rem; color: #212529; }
+    }
+
+    .head-name-ne { font-size: 0.8rem; color: #6c757d; }
+
+    .target-badge { margin-top: 8px; }
+    .target-sm { font-size: 0.65rem; flex-shrink: 0; }
 
     .member-list { display: flex; flex-direction: column; gap: 10px; }
 
@@ -110,11 +176,14 @@
     .member-info {
       display: flex;
       flex-direction: column;
+      flex: 1;
+      min-width: 0;
 
       strong { font-size: 0.88rem; color: #212529; }
     }
 
     .member-meta { font-size: 0.75rem; color: #6c757d; text-transform: capitalize; }
+    .member-id { font-size: 0.7rem; color: #adb5bd; }
 
     .history-list { display: flex; flex-direction: column; gap: 8px; }
 

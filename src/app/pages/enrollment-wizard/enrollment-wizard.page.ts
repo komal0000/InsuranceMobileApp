@@ -352,6 +352,9 @@ export class EnrollmentWizardPage implements OnInit {
       if (!/^\d{10}$/.test(this.headData.mobile_number)) {
         this.showToast('Mobile number must be exactly 10 digits.', 'warning'); return;
       }
+      if (this.calculateAge(this.headData.date_of_birth) < 16) {
+        this.showToast('Household head must be at least 16 years old.', 'warning'); return;
+      }
       this.saving = true;
       const fd = new FormData();
       Object.keys(this.headData).forEach(key => {
@@ -401,6 +404,10 @@ export class EnrollmentWizardPage implements OnInit {
       }
       if (!/^\d{10}$/.test(this.headData.mobile_number)) {
         this.showToast('Mobile number must be exactly 10 digits.', 'warning');
+        this.savingDraft = false; return;
+      }
+      if (this.calculateAge(this.headData.date_of_birth) < 16) {
+        this.showToast('Household head must be at least 16 years old.', 'warning');
         this.savingDraft = false; return;
       }
       const fd = new FormData();
@@ -465,6 +472,10 @@ export class EnrollmentWizardPage implements OnInit {
     }
     if (this.newMember.mobile_number && !/^\d{10}$/.test(this.newMember.mobile_number)) {
       this.showToast('Mobile number must be exactly 10 digits.', 'warning'); return;
+    }
+    const docType = this.newMember.document_type || 'citizenship';
+    if (docType === 'citizenship' && this.calculateAge(this.newMember.date_of_birth) < 16) {
+      this.showToast('Member with citizenship document must be at least 16 years old.', 'warning'); return;
     }
     this.savingMember = true;
     const fd = new FormData();
@@ -649,6 +660,16 @@ export class EnrollmentWizardPage implements OnInit {
   private async showToast(message: string, color: string) {
     const t = await this.toastCtrl.create({ message, duration: 2500, color, position: 'top' });
     await t.present();
+  }
+
+  private calculateAge(dob: string): number {
+    if (!dob) return 0;
+    const birth = new Date(dob);
+    const today = new Date();
+    let age = today.getFullYear() - birth.getFullYear();
+    const m = today.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+    return age;
   }
 
   private dataUrlToBlob(dataUrl: string): Blob {

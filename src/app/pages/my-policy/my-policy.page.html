@@ -15,15 +15,34 @@
 
       <div *ngIf="!loading" class="policy-content">
         <div *ngIf="policy; else noPolicy">
-          <!-- Policy Card -->
+          <!-- Policy Hero -->
           <div class="policy-hero">
             <div class="shield-circle">
               <ion-icon name="shield-checkmark-outline"></ion-icon>
             </div>
-            <h2 class="policy-number">{{ policy.enrollment_number || policy.policy_number || 'N/A' }}</h2>
-            <ion-badge [color]="policy.status === 'active' ? 'success' : 'dark'" class="status-badge">
-              {{ policy.status | titlecase }}
+            <h2 class="policy-number">{{ policy.policy_number || policy.enrollment_number }}</h2>
+            <ion-badge [color]="getStatusColor(policy.status)" class="status-badge">
+              {{ formatStatus(policy.status) }}
             </ion-badge>
+          </div>
+
+          <!-- Summary Cards -->
+          <div class="summary-row">
+            <div class="summary-card">
+              <ion-icon name="people-outline" class="summary-icon blue"></ion-icon>
+              <div class="summary-value">{{ policy.total_members || '—' }}</div>
+              <div class="summary-label">Members</div>
+            </div>
+            <div class="summary-card">
+              <ion-icon name="cash-outline" class="summary-icon green"></ion-icon>
+              <div class="summary-value">Rs. {{ policy.premium_amount || '0' }}</div>
+              <div class="summary-label">Premium</div>
+            </div>
+            <div class="summary-card" *ngIf="daysRemaining !== null">
+              <ion-icon name="calendar-outline" [class]="'summary-icon ' + (daysRemaining > 30 ? 'blue' : daysRemaining > 0 ? 'orange' : 'red')"></ion-icon>
+              <div class="summary-value">{{ daysRemaining > 0 ? daysRemaining : 'Expired' }}</div>
+              <div class="summary-label">{{ daysRemaining > 0 ? 'Days Left' : '' }}</div>
+            </div>
           </div>
 
           <!-- Policy Details -->
@@ -45,11 +64,93 @@
                   <span class="info-label">Valid Until</span>
                   <span class="info-value">{{ policy.end_date | date:'mediumDate' }}</span>
                 </div>
+                <div class="info-cell" *ngIf="policy.enrollment_date">
+                  <span class="info-label">Enrolled On</span>
+                  <span class="info-value">{{ policy.enrollment_date | date:'mediumDate' }}</span>
+                </div>
+                <div class="info-cell" *ngIf="policy.payment_method">
+                  <span class="info-label">Payment Via</span>
+                  <span class="info-value">{{ policy.payment_method | titlecase }}</span>
+                </div>
               </div>
 
-              <div *ngIf="policy.premium_amount" class="premium-box">
-                <span class="premium-label">Premium Amount</span>
-                <span class="premium-value">Rs. {{ policy.premium_amount }}</span>
+              <div *ngIf="policy.subsidy_amount" class="subsidy-box">
+                <span class="subsidy-label">Subsidy Applied</span>
+                <span class="subsidy-value">Rs. {{ policy.subsidy_amount }}</span>
+              </div>
+            </ion-card-content>
+          </ion-card>
+
+          <!-- Location -->
+          <ion-card *ngIf="policy.province || policy.district">
+            <ion-card-content>
+              <div class="section-title">
+                <div class="section-icon purple">
+                  <ion-icon name="location-outline"></ion-icon>
+                </div>
+                <span>Location</span>
+              </div>
+
+              <div class="info-grid">
+                <div class="info-cell" *ngIf="policy.province">
+                  <span class="info-label">Province</span>
+                  <span class="info-value">{{ policy.province }}</span>
+                </div>
+                <div class="info-cell" *ngIf="policy.district">
+                  <span class="info-label">District</span>
+                  <span class="info-value">{{ policy.district }}</span>
+                </div>
+                <div class="info-cell" *ngIf="policy.municipality">
+                  <span class="info-label">Municipality</span>
+                  <span class="info-value">{{ policy.municipality }}</span>
+                </div>
+                <div class="info-cell" *ngIf="policy.ward_number">
+                  <span class="info-label">Ward No.</span>
+                  <span class="info-value">{{ policy.ward_number }}</span>
+                </div>
+              </div>
+            </ion-card-content>
+          </ion-card>
+
+          <!-- Household Head -->
+          <ion-card *ngIf="policy.household_head">
+            <ion-card-content>
+              <div class="section-title">
+                <div class="section-icon cyan">
+                  <ion-icon name="person-outline"></ion-icon>
+                </div>
+                <span>Household Head</span>
+              </div>
+
+              <div class="head-card">
+                <div class="head-avatar">{{ (policy.household_head.name || '?').charAt(0).toUpperCase() }}</div>
+                <div class="head-info">
+                  <strong>{{ policy.household_head.name }}</strong>
+                  <span class="head-name-ne" *ngIf="policy.household_head.name_ne">{{ policy.household_head.name_ne }}</span>
+                </div>
+              </div>
+
+              <div class="info-grid mt-8">
+                <div class="info-cell" *ngIf="policy.household_head.gender">
+                  <span class="info-label">Gender</span>
+                  <span class="info-value">{{ policy.household_head.gender | titlecase }}</span>
+                </div>
+                <div class="info-cell" *ngIf="policy.household_head.date_of_birth">
+                  <span class="info-label">Date of Birth</span>
+                  <span class="info-value">{{ policy.household_head.date_of_birth | date:'mediumDate' }}</span>
+                </div>
+                <div class="info-cell" *ngIf="policy.household_head.citizenship_number">
+                  <span class="info-label">Citizenship No.</span>
+                  <span class="info-value">{{ policy.household_head.citizenship_number }}</span>
+                </div>
+                <div class="info-cell" *ngIf="policy.household_head.mobile_number">
+                  <span class="info-label">Mobile</span>
+                  <span class="info-value">{{ policy.household_head.mobile_number }}</span>
+                </div>
+              </div>
+
+              <div class="target-badge" *ngIf="policy.household_head.is_target_group">
+                <ion-badge color="warning">{{ policy.household_head.target_group_type }}</ion-badge>
               </div>
             </ion-card-content>
           </ion-card>
@@ -61,23 +162,61 @@
                 <div class="section-icon cyan">
                   <ion-icon name="people-outline"></ion-icon>
                 </div>
-                <span>Covered Members ({{ policy.members.length }})</span>
+                <span>Family Members ({{ policy.members.length }})</span>
               </div>
 
               <div class="member-list">
                 <div class="member-row" *ngFor="let m of policy.members">
                   <div class="member-avatar">{{ (m.first_name || '?').charAt(0).toUpperCase() }}</div>
                   <div class="member-info">
-                    <strong>{{ m.first_name }} {{ m.last_name }}</strong>
-                    <span class="member-meta">{{ m.relationship_type }} &bull; {{ m.gender }}</span>
+                    <strong>{{ m.full_name }}</strong>
+                    <span class="member-meta">
+                      {{ m.relationship || 'Member' }} &bull; {{ m.gender | titlecase }}
+                      <span *ngIf="m.date_of_birth"> &bull; {{ m.date_of_birth | date:'mediumDate' }}</span>
+                    </span>
+                    <span class="member-id" *ngIf="m.citizenship_number">ID: {{ m.citizenship_number }}</span>
                   </div>
+                  <ion-badge color="warning" *ngIf="m.is_target_group" class="target-sm">{{ m.target_group_type }}</ion-badge>
+                </div>
+              </div>
+            </ion-card-content>
+          </ion-card>
+
+          <!-- Latest Renewal -->
+          <ion-card *ngIf="policy.renewal">
+            <ion-card-content>
+              <div class="section-title">
+                <div class="section-icon green">
+                  <ion-icon name="refresh-outline"></ion-icon>
+                </div>
+                <span>Latest Renewal</span>
+              </div>
+
+              <div class="info-grid">
+                <div class="info-cell">
+                  <span class="info-label">Renewal No.</span>
+                  <span class="info-value">{{ policy.renewal.renewal_number }}</span>
+                </div>
+                <div class="info-cell">
+                  <span class="info-label">Status</span>
+                  <ion-badge [color]="getStatusColor(policy.renewal.status)" class="inline-badge">
+                    {{ formatStatus(policy.renewal.status) }}
+                  </ion-badge>
+                </div>
+                <div class="info-cell" *ngIf="policy.renewal.renewal_start">
+                  <span class="info-label">Period Start</span>
+                  <span class="info-value">{{ policy.renewal.renewal_start | date:'mediumDate' }}</span>
+                </div>
+                <div class="info-cell" *ngIf="policy.renewal.renewal_end">
+                  <span class="info-label">Period End</span>
+                  <span class="info-value">{{ policy.renewal.renewal_end | date:'mediumDate' }}</span>
                 </div>
               </div>
             </ion-card-content>
           </ion-card>
 
           <!-- Enrollment History -->
-          <ion-card *ngIf="history?.length">
+          <ion-card *ngIf="history.length > 1">
             <ion-card-content>
               <div class="section-title">
                 <div class="section-icon green">
@@ -92,8 +231,8 @@
                     <strong>{{ h.enrollment_number || '#' + h.id }}</strong>
                     <span class="history-date">{{ h.created_at | date:'mediumDate' }}</span>
                   </div>
-                  <ion-badge [color]="h.status === 'active' ? 'success' : 'medium'">
-                    {{ h.status }}
+                  <ion-badge [color]="getStatusColor(h.status)">
+                    {{ formatStatus(h.status) }}
                   </ion-badge>
                 </div>
               </div>
