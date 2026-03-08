@@ -80,6 +80,7 @@
                 <div class="member-avatar">{{ (member.first_name || member.full_name || '').charAt(0).toUpperCase() }}</div>
                 <div class="member-info">
                   <strong>{{ member.first_name || '' }} {{ member.last_name || member.full_name || '' }}</strong>
+                  <span class="nepali-name" *ngIf="member.first_name_ne">{{ member.first_name_ne }} {{ member.middle_name_ne || '' }} {{ member.last_name_ne || '' }}</span>
                   <span>{{ member.relationship_type || member.relationship || '' }} | {{ member.gender || '' }}</span>
                 </div>
                 <div class="member-actions" *ngIf="canSubmit">
@@ -109,6 +110,16 @@
               </ion-item>
               <ion-item class="form-item">
                 <ion-input label="Last Name *" labelPlacement="stacked" [(ngModel)]="newMember.last_name"></ion-input>
+              </ion-item>
+              <h5 style="margin: 12px 0 4px; font-weight: 600; color: #495057; font-size: 0.9rem;">नेपाली नाम</h5>
+              <ion-item class="form-item">
+                <ion-input label="पहिलो नाम" labelPlacement="stacked" placeholder="पहिलो नाम" [(ngModel)]="newMember.first_name_ne"></ion-input>
+              </ion-item>
+              <ion-item class="form-item">
+                <ion-input label="बीचको नाम" labelPlacement="stacked" placeholder="बीचको नाम (वैकल्पिक)" [(ngModel)]="newMember.middle_name_ne"></ion-input>
+              </ion-item>
+              <ion-item class="form-item">
+                <ion-input label="थर" labelPlacement="stacked" placeholder="थर" [(ngModel)]="newMember.last_name_ne"></ion-input>
               </ion-item>
               <ion-item class="form-item">
                 <ion-select label="Gender *" labelPlacement="stacked" [(ngModel)]="newMember.gender">

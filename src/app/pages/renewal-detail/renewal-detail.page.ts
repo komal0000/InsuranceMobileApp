@@ -35,7 +35,7 @@ export class RenewalDetailPage implements OnInit {
   submitting = false;
   renewalId!: number;
   showMemberForm = false;
-  newMember: any = { first_name: '', middle_name: '', last_name: '', gender: '', date_of_birth: '', relationship: '', mobile_number: '', citizenship_number: '' };
+  newMember: any = { first_name: '', middle_name: '', last_name: '', first_name_ne: '', middle_name_ne: '', last_name_ne: '', gender: '', date_of_birth: '', relationship: '', mobile_number: '', citizenship_number: '' };
 
   constructor(
     private route: ActivatedRoute,
@@ -76,7 +76,7 @@ export class RenewalDetailPage implements OnInit {
   }
 
   showAddMember() {
-    this.newMember = { first_name: '', middle_name: '', last_name: '', gender: '', date_of_birth: '', relationship: '', mobile_number: '', citizenship_number: '' };
+    this.newMember = { first_name: '', middle_name: '', last_name: '', first_name_ne: '', middle_name_ne: '', last_name_ne: '', gender: '', date_of_birth: '', relationship: '', mobile_number: '', citizenship_number: '' };
     this.showMemberForm = true;
   }
 

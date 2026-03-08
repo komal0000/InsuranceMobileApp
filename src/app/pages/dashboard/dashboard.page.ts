@@ -33,6 +33,7 @@ export class DashboardPage implements OnInit {
   stats: any = {};
   loading = true;
   isBeneficiary = true;
+  isEnrollmentAssistant = false;
   canCreateEnrollment = true;
 
   constructor(
@@ -50,6 +51,7 @@ export class DashboardPage implements OnInit {
   ngOnInit() {
     this.user = this.authService.getCurrentUser();
     this.isBeneficiary = this.user?.role === 'beneficiary';
+    this.isEnrollmentAssistant = this.user?.role === 'enrollment_assistant';
     this.canCreateEnrollment = ['beneficiary', 'enrollment_assistant', 'admin', 'super_admin']
       .includes(this.user?.role || '');
     this.loadDashboard();
