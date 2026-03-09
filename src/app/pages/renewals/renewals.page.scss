@@ -1,8 +1,345 @@
+    .loading-center { display: flex; justify-content: center; align-items: center; height: 50%; }
+    .beneficiary-content { padding: 12px; }
     .list-content { padding: 12px; }
 
+    // ─── Enrollment Header ───
+    .enrollment-header {
+      background: linear-gradient(135deg, #003087 0%, #0052cc 100%);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+      color: #fff;
+
+      .header-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .enrollment-id {
+        font-weight: 700;
+        font-size: 1rem;
+      }
+    }
+
+    // ─── Detail Cards ───
+    .detail-card {
+      margin: 0 0 12px !important;
+      border-radius: 12px !important;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06) !important;
+
+      .section-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 14px;
+
+        .section-icon {
+          width: 36px;
+          height: 36px;
+          border-radius: 10px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          ion-icon { font-size: 18px; }
+        }
+
+        h3 {
+          margin: 0;
+          font-size: 1rem;
+          font-weight: 700;
+          color: #212529;
+        }
+      }
+    }
+
+    // ─── Household Head Card ───
+    .head-card {
+      border-left: 3px solid #003087;
+    }
+
+    .head-profile {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+    }
+
+    .head-avatar {
+      flex-shrink: 0;
+      .head-photo {
+        width: 72px;
+        height: 72px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid #003087;
+      }
+      .avatar-placeholder {
+        width: 72px;
+        height: 72px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #003087, #0052cc);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.8rem;
+        font-weight: 700;
+      }
+    }
+
+    .head-details {
+      flex: 1;
+      .head-name {
+        margin: 0 0 2px;
+        font-size: 1rem;
+        font-weight: 700;
+        color: #212529;
+      }
+      .nepali-name {
+        display: block;
+        font-size: 0.85rem;
+        color: #6c757d;
+        margin-bottom: 6px;
+      }
+      .head-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 4px;
+        span {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          font-size: 0.8rem;
+          color: #495057;
+          ion-icon { font-size: 14px; color: #6c757d; }
+        }
+      }
+    }
+
+    // ─── Info Grid (Household Details) ───
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+
+      .info-item {
+        .info-label {
+          display: block;
+          font-size: 0.7rem;
+          color: #6c757d;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          margin-bottom: 2px;
+        }
+        .info-value {
+          font-size: 0.88rem;
+          font-weight: 600;
+          color: #212529;
+        }
+      }
+    }
+
+    // ─── Premium Card ───
+    .premium-card {
+      border-left: 3px solid #198754;
+    }
+
+    .premium-details {
+      .premium-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 6px 0;
+        border-bottom: 1px solid #f0f0f0;
+
+        span { font-size: 0.85rem; color: #495057; }
+        strong { font-size: 0.88rem; color: #212529; }
+
+        &:last-child { border-bottom: none; }
+
+        &.premium-total {
+          border-top: 2px solid #dee2e6;
+          padding-top: 10px;
+          margin-top: 4px;
+          span { font-weight: 700; font-size: 0.9rem; }
+          strong { font-size: 1rem; color: #003087; }
+        }
+
+        &.subsidy-row {
+          background: rgba(25,135,84,0.04);
+          border-radius: 6px;
+          padding: 8px;
+        }
+      }
+    }
+
+    // ─── Family Members List ───
+    .member-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .member-card {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      padding: 10px;
+      background: #f8f9fa;
+      border-radius: 10px;
+      border-left: 3px solid #0dcaf0;
+    }
+
+    .member-avatar-wrapper {
+      flex-shrink: 0;
+      .member-photo {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid #0dcaf0;
+      }
+      .avatar-placeholder.small {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #0dcaf0, #0aa2c0);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        font-weight: 700;
+      }
+    }
+
+    .member-info {
+      flex: 1;
+      .member-name {
+        font-size: 0.92rem;
+        color: #212529;
+        display: block;
+      }
+      .nepali-name {
+        display: block;
+        font-size: 0.78rem;
+        color: #6c757d;
+      }
+      .member-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 3px;
+        span {
+          font-size: 0.75rem;
+          color: #6c757d;
+          display: flex;
+          align-items: center;
+          gap: 3px;
+          ion-icon { font-size: 12px; }
+        }
+      }
+    }
+
+    .no-members {
+      text-align: center;
+      padding: 16px;
+      p { color: #adb5bd; font-size: 0.85rem; }
+    }
+
+    .member-pricing-note {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 12px;
+      padding: 10px;
+      background: #fff3cd;
+      border-radius: 8px;
+      border: 1px solid #ffc107;
+      ion-icon { font-size: 18px; color: #856404; flex-shrink: 0; }
+      span { font-size: 0.8rem; color: #856404; }
+    }
+
+    .rejection-reason {
+      display: block;
+      font-size: 0.75rem;
+      color: #dc3545;
+      margin-top: 4px;
+      font-style: italic;
+    }
+
+    // ─── Action Section ───
+    .action-section {
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    // ─── Add Member Form ───
+    .form-item {
+      --background: #f8f9fa;
+      --border-radius: 8px;
+      --padding-start: 12px;
+      margin-bottom: 8px;
+      border-radius: 8px;
+      border: 1px solid #dee2e6;
+    }
+
+    .btn-row {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .field-section-label {
+      margin: 14px 0 4px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      color: #495057;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .capture-section {
+      margin: 14px 0;
+      padding-top: 10px;
+      border-top: 1px solid #f0f0f0;
+    }
+
+    .capture-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .capture-label {
+      font-weight: 600;
+      font-size: 0.85rem;
+      color: #212529;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .preview-img {
+      max-width: 100%;
+      max-height: 160px;
+      margin-top: 8px;
+      border-radius: 8px;
+      border: 1px solid #e9ecef;
+      object-fit: cover;
+      display: block;
+    }
+
+    // ─── Renewal Cards (history + admin) ───
     .renewal-card {
       margin: 0 0 10px !important;
       border-left: 3px solid #fd7e14;
+      border-radius: 10px !important;
     }
 
     .card-top-row {
@@ -18,50 +355,21 @@
       color: #003087;
     }
 
+    .renewal-card-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
     .date-text {
       font-size: 0.75rem;
       color: #adb5bd;
     }
 
-    .empty-state {
-      margin-top: 25%;
-      .empty-icon { font-size: 64px; color: var(--ion-color-medium); }
-      h3 { color: #6c757d; margin: 12px 0 4px; }
-      p { color: #adb5bd; font-size: 0.85rem; margin-bottom: 16px; }
-    }
-
-    .loading-center { display: flex; justify-content: center; align-items: center; height: 50%; }
-
-    .beneficiary-content { padding: 12px; }
-
-    .enrollment-card {
-      margin: 0 0 12px !important;
-      border-left: 3px solid #003087;
-    }
-
-    .enrollment-info {
-      margin: 6px 0;
-      .info-row {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 0.88rem;
-        color: #495057;
-        .info-icon { font-size: 16px; color: #6c757d; }
-      }
-    }
-
-    .card-bottom-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 8px;
-    }
-
-    .premium-text {
+    .amount-text {
+      font-size: 0.82rem;
       font-weight: 700;
-      font-size: 0.9rem;
-      color: #003087;
+      color: #198754;
     }
 
     .section-heading {
@@ -69,4 +377,12 @@
       font-weight: 700;
       color: #495057;
       margin: 16px 0 8px;
+    }
+
+    // ─── Empty State ───
+    .empty-state {
+      margin-top: 25%;
+      .empty-icon { font-size: 64px; color: var(--ion-color-medium); }
+      h3 { color: #6c757d; margin: 12px 0 4px; }
+      p { color: #adb5bd; font-size: 0.85rem; margin-bottom: 16px; }
     }

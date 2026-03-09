@@ -19,7 +19,7 @@
 
     <!-- Beneficiary Stats -->
     <div class="stats-grid" *ngIf="isBeneficiary">
-      <div class="stat-card" (click)="navigate('/tabs/enrollments')">
+      <div class="stat-card" (click)="navigate('/tabs/enrollments')" *ngIf="canCreateEnrollment">
         <div class="stat-icon-box" style="background: rgba(0,48,135,0.08);">
           <ion-icon name="document-text-outline" style="color: #003087;"></ion-icon>
         </div>

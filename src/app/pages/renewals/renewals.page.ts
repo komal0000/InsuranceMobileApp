@@ -6,11 +6,17 @@ import {
   IonContent, IonHeader, IonToolbar, IonTitle, IonBadge, IonSearchbar,
   IonSegment, IonSegmentButton, IonRefresher, IonRefresherContent,
   IonInfiniteScroll, IonInfiniteScrollContent, IonFab, IonFabButton,
-  IonIcon, IonSpinner, IonCard, IonCardContent, IonButton, IonButtons
+  IonIcon, IonSpinner, IonCard, IonCardContent, IonButton, IonButtons,
+  IonInput, IonItem, IonSelect, IonSelectOption, IonToggle, IonLabel
 } from '@ionic/angular/standalone';
 import { ToastController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { searchOutline, refreshOutline, personOutline, peopleOutline, locationOutline, arrowForwardOutline } from 'ionicons/icons';
+import {
+  searchOutline, refreshOutline, personOutline, peopleOutline, locationOutline,
+  arrowForwardOutline, callOutline, cardOutline, calendarOutline, addOutline,
+  shieldCheckmarkOutline, cashOutline, maleFemaleOutline, ribbonOutline,
+  informationCircleOutline, cameraOutline, documentTextOutline
+} from 'ionicons/icons';
 import { ApiService } from '../../services/api.service';
 import { AuthService } from '../../services/auth.service';
 import { ApiResponse, PaginatedData } from '../../interfaces/api-response.interface';
@@ -24,7 +30,8 @@ import { Renewal } from '../../interfaces/renewal.interface';
     IonContent, IonHeader, IonToolbar, IonTitle, IonBadge, IonSearchbar,
     IonSegment, IonSegmentButton, IonRefresher, IonRefresherContent,
     IonInfiniteScroll, IonInfiniteScrollContent, IonFab, IonFabButton,
-    IonIcon, IonSpinner, IonCard, IonCardContent, IonButton, IonButtons
+    IonIcon, IonSpinner, IonCard, IonCardContent, IonButton, IonButtons,
+    IonInput, IonItem, IonSelect, IonSelectOption, IonToggle, IonLabel
   ],
   templateUrl: './renewals.page.html',
   styleUrls: ['./renewals.page.scss'],
@@ -40,6 +47,21 @@ export class RenewalsPage implements OnInit {
   enrollment: any = null;
   enrollmentLoading = false;
   initiating = false;
+  subsidySummary: any = null;
+
+  // Add member form
+  showMemberForm = false;
+  newMember: any = {};
+  savingMember = false;
+
+  // Image previews for new member form
+  memberPhotoPreview: string | null = null;
+  memberCitizenshipFrontPreview: string | null = null;
+  memberCitizenshipBackPreview: string | null = null;
+  memberBirthCertFrontPreview: string | null = null;
+  memberBirthCertBackPreview: string | null = null;
+  memberTargetGroupFrontPreview: string | null = null;
+  memberTargetGroupBackPreview: string | null = null;
 
   constructor(
     private api: ApiService,
@@ -47,7 +69,12 @@ export class RenewalsPage implements OnInit {
     private router: Router,
     private toastCtrl: ToastController
   ) {
-    addIcons({ searchOutline, refreshOutline, personOutline, peopleOutline, locationOutline, arrowForwardOutline });
+    addIcons({
+      searchOutline, refreshOutline, personOutline, peopleOutline, locationOutline,
+      arrowForwardOutline, callOutline, cardOutline, calendarOutline, addOutline,
+      shieldCheckmarkOutline, cashOutline, maleFemaleOutline, ribbonOutline,
+      informationCircleOutline, cameraOutline, documentTextOutline
+    });
   }
 
   ngOnInit() {
@@ -62,16 +89,70 @@ export class RenewalsPage implements OnInit {
 
   loadBeneficiaryEnrollment() {
     this.enrollmentLoading = true;
+    // First get enrollment ID from list
     this.api.get<ApiResponse<PaginatedData<any>>>('/enrollments', { per_page: 1 }).subscribe({
       next: (res) => {
         const items = res.data?.data ?? [];
-        this.enrollment = items.length > 0 ? items[0] : null;
-        this.enrollmentLoading = false;
-        // Also load any existing renewals for this enrollment
-        this.loadRenewals();
+        if (items.length > 0) {
+          // Load full enrollment detail with documents + subsidy info
+          this.api.get<any>(`/enrollments/${items[0].id}`).subscribe({
+            next: (detailRes: any) => {
+              this.enrollment = detailRes.data;
+              this.subsidySummary = detailRes.subsidy_summary ?? null;
+              this.enrollmentLoading = false;
+              this.loadRenewals();
+            },
+            error: () => {
+              this.enrollment = items[0];
+              this.enrollmentLoading = false;
+              this.loadRenewals();
+            },
+          });
+        } else {
+          this.enrollment = null;
+          this.enrollmentLoading = false;
+        }
       },
       error: () => { this.enrollmentLoading = false; },
     });
+  }
+
+  get headPhotoUrl(): string | null {
+    const head = this.enrollment?.household_head;
+    if (!head) return null;
+    // 1. MemberDocument photo
+    const doc = head.documents?.find((d: any) => d.document_type === 'photo');
+    if (doc?.url) return doc.url;
+    // 2. Profile image from user account
+    if (head.profile_image_url) return head.profile_image_url;
+    // 3. Legacy photo field
+    if (head.photo) return head.photo;
+    return null;
+  }
+
+  getMemberPhotoUrl(member: any): string | null {
+    if (!member) return null;
+    // 1. MemberDocument photo
+    const doc = member.documents?.find((d: any) => d.document_type === 'photo');
+    if (doc?.url) return doc.url;
+    // 2. Legacy photo field
+    if (member.photo) return member.photo;
+    return null;
+  }
+
+  get displayPremium(): number {
+    if (this.subsidySummary?.is_subsidized) {
+      return this.subsidySummary.final_premium;
+    }
+    return this.enrollment?.premium_amount ?? 0;
+  }
+
+  get extraMemberCharge(): number {
+    const totalMembers = (this.enrollment?.family_members?.length ?? 0) + 1; // +1 for head
+    if (totalMembers > 5) {
+      return (totalMembers - 5) * 700;
+    }
+    return 0;
   }
 
   initiateRenewal() {
@@ -97,16 +178,206 @@ export class RenewalsPage implements OnInit {
     });
   }
 
+  // Add new member directly from renewal tab
+  showAddMemberForm() {
+    this.newMember = {
+      first_name: '', middle_name: '', last_name: '',
+      first_name_ne: '', middle_name_ne: '', last_name_ne: '',
+      gender: '', date_of_birth: '', relationship: '',
+      blood_group: '', marital_status: '',
+      mobile_number: '',
+      document_type: 'citizenship',
+      citizenship_number: '', citizenship_issue_date: '', citizenship_issue_district: '',
+      birth_certificate_number: '', birth_certificate_issue_date: '',
+      is_target_group: false, target_group_type: '', target_group_id_number: '',
+    };
+    this.memberPhotoPreview = null;
+    this.memberCitizenshipFrontPreview = null;
+    this.memberCitizenshipBackPreview = null;
+    this.memberBirthCertFrontPreview = null;
+    this.memberBirthCertBackPreview = null;
+    this.memberTargetGroupFrontPreview = null;
+    this.memberTargetGroupBackPreview = null;
+    this.showMemberForm = true;
+  }
+
+  async captureRenewalMemberImage(
+    field: 'photo' | 'citizenship_front_image' | 'citizenship_back_image' |
+           'birth_certificate_front_image' | 'birth_certificate_back_image' |
+           'target_group_front_image' | 'target_group_back_image'
+  ) {
+    try {
+      const { Camera, CameraResultType, CameraSource } = await import('@capacitor/camera');
+      const image = await Camera.getPhoto({
+        quality: 80, allowEditing: false, resultType: CameraResultType.DataUrl,
+        source: CameraSource.Prompt, width: 1024,
+      });
+      if (image.dataUrl) this.applyRenewalMemberImage(field, this.dataUrlToBlob(image.dataUrl), image.dataUrl);
+    } catch {
+      this.fallbackRenewalMemberFileInput(field);
+    }
+  }
+
+  private fallbackRenewalMemberFileInput(field: string) {
+    const input = document.createElement('input');
+    input.type = 'file'; input.accept = 'image/jpg,image/jpeg,image/png';
+    input.onchange = (event: any) => {
+      const file: File = event.target.files[0];
+      if (!file) return;
+      if (file.size > 2 * 1024 * 1024) {
+        this.toastCtrl.create({ message: 'Image must be less than 2MB.', duration: 2000, color: 'danger', position: 'top' }).then(t => t.present());
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => this.applyRenewalMemberImage(field as any, file, reader.result as string);
+      reader.readAsDataURL(file);
+    };
+    input.click();
+  }
+
+  private applyRenewalMemberImage(field: string, blob: Blob, dataUrl: string) {
+    this.newMember[field] = blob;
+    if (field === 'photo') this.memberPhotoPreview = dataUrl;
+    else if (field === 'citizenship_front_image') this.memberCitizenshipFrontPreview = dataUrl;
+    else if (field === 'citizenship_back_image') this.memberCitizenshipBackPreview = dataUrl;
+    else if (field === 'birth_certificate_front_image') this.memberBirthCertFrontPreview = dataUrl;
+    else if (field === 'birth_certificate_back_image') this.memberBirthCertBackPreview = dataUrl;
+    else if (field === 'target_group_front_image') this.memberTargetGroupFrontPreview = dataUrl;
+    else if (field === 'target_group_back_image') this.memberTargetGroupBackPreview = dataUrl;
+  }
+
+  private dataUrlToBlob(dataUrl: string): Blob {
+    const arr = dataUrl.split(',');
+    const mime = arr[0].match(/:(.*?);/)![1];
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while (n--) u8arr[n] = bstr.charCodeAt(n);
+    return new Blob([u8arr], { type: mime });
+  }
+
+  async addNewMember() {
+    if (!this.enrollment) return;
+    const m = this.newMember;
+    if (!m.first_name || !m.last_name || !m.gender || !m.date_of_birth || !m.relationship) {
+      this.toastCtrl.create({ message: 'Please fill all required fields.', duration: 2000, color: 'warning', position: 'top' }).then(t => t.present());
+      return;
+    }
+    if (m.mobile_number && !/^\d{10}$/.test(m.mobile_number)) {
+      this.toastCtrl.create({ message: 'Mobile number must be exactly 10 digits.', duration: 2000, color: 'warning', position: 'top' }).then(t => t.present());
+      return;
+    }
+    const docType = m.document_type || 'citizenship';
+    if (docType === 'citizenship') {
+      const birth = new Date(m.date_of_birth);
+      const today = new Date();
+      let age = today.getFullYear() - birth.getFullYear();
+      const mo = today.getMonth() - birth.getMonth();
+      if (mo < 0 || (mo === 0 && today.getDate() < birth.getDate())) age--;
+      if (age < 16) {
+        this.toastCtrl.create({ message: 'Member with citizenship must be at least 16 years old.', duration: 2500, color: 'warning', position: 'top' }).then(t => t.present());
+        return;
+      }
+    }
+
+    // Build FormData so images can be uploaded
+    const fd = new FormData();
+    Object.keys(m).forEach(key => {
+      const val = m[key];
+      if (val === null || val === undefined || val === '') return;
+      if (typeof val === 'boolean') { fd.append(key, val ? '1' : '0'); return; }
+      if (val instanceof Blob) { fd.append(key, val, `${key}.jpg`); return; }
+      fd.append(key, String(val));
+    });
+
+    this.savingMember = true;
+
+    // For approved enrollments the policy isn't active yet — add directly to enrollment,
+    // bypassing the renewal eligibility check which requires active/expired status.
+    if (this.enrollment.status === 'approved') {
+      this.api.postFormData<ApiResponse>(`/enrollments/${this.enrollment.id}/members`, fd).subscribe({
+        next: async (res) => {
+          this.savingMember = false;
+          if (res.success) {
+            this.showMemberForm = false;
+            this.loadBeneficiaryEnrollment();
+            const toast = await this.toastCtrl.create({ message: 'Member added — pending verification.', duration: 2500, color: 'success', position: 'top' });
+            await toast.present();
+          }
+        },
+        error: async (err) => {
+          this.savingMember = false;
+          const toast = await this.toastCtrl.create({ message: err?.error?.message || 'Failed to add member', duration: 2500, color: 'danger', position: 'top' });
+          await toast.present();
+        },
+      });
+      return;
+    }
+
+    const addToRenewal = (renewalId: number) =>
+      this.api.postFormData<ApiResponse>(`/renewals/${renewalId}/members`, fd);
+
+    const activeRenewal = this.renewals.find(r => ['eligible', 'draft'].includes(r.status));
+    if (activeRenewal) {
+      addToRenewal(activeRenewal.id).subscribe({
+        next: async (res) => {
+          this.savingMember = false;
+          if (res.success) {
+            this.showMemberForm = false;
+            this.loadBeneficiaryEnrollment();
+            const toast = await this.toastCtrl.create({ message: 'Member added — pending verification.', duration: 2500, color: 'success', position: 'top' });
+            await toast.present();
+          }
+        },
+        error: async (err) => {
+          this.savingMember = false;
+          const toast = await this.toastCtrl.create({ message: err?.error?.message || 'Failed to add member', duration: 2500, color: 'danger', position: 'top' });
+          await toast.present();
+        },
+      });
+    } else {
+      this.api.post<ApiResponse<any>>('/renewals/initiate', { enrollment_id: this.enrollment.id }).subscribe({
+        next: (res) => {
+          if (res.success) {
+            addToRenewal(res.data.id).subscribe({
+              next: async () => {
+                this.savingMember = false;
+                this.showMemberForm = false;
+                this.loadBeneficiaryEnrollment();
+                const toast = await this.toastCtrl.create({ message: 'Member added — pending verification.', duration: 2500, color: 'success', position: 'top' });
+                await toast.present();
+                this.router.navigateByUrl(`/renewal-detail/${res.data.id}`);
+              },
+              error: async () => {
+                this.savingMember = false;
+                const toast = await this.toastCtrl.create({ message: 'Renewal started but failed to add member', duration: 2500, color: 'warning', position: 'top' });
+                await toast.present();
+                this.router.navigateByUrl(`/renewal-detail/${res.data.id}`);
+              },
+            });
+          }
+        },
+        error: async (err) => {
+          this.savingMember = false;
+          const msg = err?.error?.message || 'Failed to initiate renewal';
+          const toast = await this.toastCtrl.create({ message: msg, duration: 3000, color: 'danger', position: 'top' });
+          await toast.present();
+        },
+      });
+    }
+  }
+
   loadRenewals() {
     this.loading = true;
     const params: any = { page: this.page };
     if (this.statusFilter) params.status = this.statusFilter;
     if (this.search) params.search = this.search;
-    this.api.get<ApiResponse<PaginatedData<Renewal>>>('/renewals', params).subscribe({
+    this.api.get<ApiResponse<any>>('/renewals', params).subscribe({
       next: (res) => {
-        const items = res.data?.data ?? [];
+        const raw = res.data?.renewals ?? res.data;
+        const items = raw?.data ?? [];
         this.renewals = this.page === 1 ? items : [...this.renewals, ...items];
-        this.lastPage = res.data?.last_page ?? 1;
+        this.lastPage = raw?.last_page ?? 1;
         this.loading = false;
       },
       error: () => { this.loading = false; },
@@ -118,20 +389,51 @@ export class RenewalsPage implements OnInit {
 
   refresh(event: any) {
     this.page = 1;
-    this.api.get<ApiResponse<PaginatedData<Renewal>>>('/renewals', {
-      page: 1, status: this.statusFilter, search: this.search
-    }).subscribe({
-      next: (res) => { this.renewals = res.data?.data ?? []; this.lastPage = res.data?.last_page ?? 1; event.target.complete(); },
-      error: () => event.target.complete(),
-    });
+    if (this.isBeneficiary) {
+      this.api.get<ApiResponse<PaginatedData<any>>>('/enrollments', { per_page: 1 }).subscribe({
+        next: (res) => {
+          const items = res.data?.data ?? [];
+          if (items.length > 0) {
+            this.api.get<any>(`/enrollments/${items[0].id}`).subscribe({
+              next: (detailRes: any) => {
+                this.enrollment = detailRes.data;
+                this.subsidySummary = detailRes.subsidy_summary ?? null;
+                this.loadRenewals();
+                event.target.complete();
+              },
+              error: () => { event.target.complete(); },
+            });
+          } else {
+            event.target.complete();
+          }
+        },
+        error: () => event.target.complete(),
+      });
+    } else {
+      this.api.get<ApiResponse<any>>('/renewals', {
+        page: 1, status: this.statusFilter, search: this.search
+      }).subscribe({
+        next: (res) => {
+          const raw = res.data?.renewals ?? res.data;
+          this.renewals = raw?.data ?? [];
+          this.lastPage = raw?.last_page ?? 1;
+          event.target.complete();
+        },
+        error: () => event.target.complete(),
+      });
+    }
   }
 
   loadMore(event: any) {
     this.page++;
-    this.api.get<ApiResponse<PaginatedData<Renewal>>>('/renewals', {
+    this.api.get<ApiResponse<any>>('/renewals', {
       page: this.page, status: this.statusFilter, search: this.search
     }).subscribe({
-      next: (res) => { this.renewals = [...this.renewals, ...(res.data?.data ?? [])]; event.target.complete(); },
+      next: (res) => {
+        const raw = res.data?.renewals ?? res.data;
+        this.renewals = [...this.renewals, ...(raw?.data ?? [])];
+        event.target.complete();
+      },
       error: () => event.target.complete(),
     });
   }
@@ -144,12 +446,31 @@ export class RenewalsPage implements OnInit {
       eligible: 'tertiary', draft: 'medium', pending_payment: 'warning',
       pending: 'warning', pending_verification: 'warning',
       verified: 'tertiary', approved: 'success', completed: 'success',
-      rejected: 'danger',
+      rejected: 'danger', active: 'success', expired: 'danger',
     };
     return map[status] || 'medium';
   }
 
   formatStatus(s: string): string {
     return (s || '').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  }
+
+  getMemberStatusColor(status: string): string {
+    const map: Record<string, string> = {
+      pending_verification: 'warning',
+      verified: 'tertiary',
+      approved: 'success',
+      rejected: 'danger',
+    };
+    return map[status] || 'medium';
+  }
+
+  formatMemberStatus(status: string): string {
+    const map: Record<string, string> = {
+      pending_verification: 'Pending Verification',
+      verified: 'Verified - Awaiting Approval',
+      rejected: 'Rejected',
+    };
+    return map[status] || status;
   }
 }

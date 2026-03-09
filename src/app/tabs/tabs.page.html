@@ -5,7 +5,7 @@
           <ion-label>Home</ion-label>
         </ion-tab-button>
 
-        <ion-tab-button tab="enrollments">
+        <ion-tab-button tab="enrollments" *ngIf="!hideEnrollmentTab">
           <ion-icon name="document-text-outline"></ion-icon>
           <ion-label>Enrollments</ion-label>
         </ion-tab-button>

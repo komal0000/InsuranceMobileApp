@@ -1,6 +1,6 @@
     <ion-header>
       <ion-toolbar color="primary">
-        <ion-title>Renewals</ion-title>
+        <ion-title>{{ isBeneficiary ? 'My Insurance' : 'Renewals' }}</ion-title>
         <ion-buttons slot="end" *ngIf="!isBeneficiary">
           <ion-button (click)="goToSearch()">
             <ion-icon name="search-outline"></ion-icon>
@@ -32,68 +32,482 @@
         <ion-refresher-content></ion-refresher-content>
       </ion-refresher>
 
-      <!-- Beneficiary View -->
+      <!-- ==================== BENEFICIARY VIEW ==================== -->
       <ng-container *ngIf="isBeneficiary">
         <div *ngIf="enrollmentLoading" class="loading-center">
           <ion-spinner name="crescent" color="primary"></ion-spinner>
         </div>
 
-        <!-- Enrollment Card for Beneficiary -->
         <div class="beneficiary-content" *ngIf="!enrollmentLoading && enrollment">
-          <ion-card class="enrollment-card">
+
+          <!-- Enrollment Status Header -->
+          <div class="enrollment-header">
+            <div class="header-row">
+              <span class="enrollment-id">{{ enrollment.enrollment_number || 'Enrollment #' + enrollment.id }}</span>
+              <ion-badge [color]="getStatusColor(enrollment.status)">{{ formatStatus(enrollment.status) }}</ion-badge>
+            </div>
+          </div>
+
+          <!-- ─── Household Head Card ─── -->
+          <ion-card class="detail-card head-card">
             <ion-card-content>
-              <div class="card-top-row">
-                <span class="renewal-number">{{ enrollment.enrollment_number || 'Enrollment #' + enrollment.id }}</span>
-                <ion-badge [color]="getStatusColor(enrollment.status)">{{ formatStatus(enrollment.status) }}</ion-badge>
+              <div class="section-title">
+                <div class="section-icon" style="background: rgba(0,48,135,0.08);">
+                  <ion-icon name="person-outline" style="color: #003087;"></ion-icon>
+                </div>
+                <h3>Household Head</h3>
               </div>
 
-              <div class="enrollment-info" *ngIf="enrollment.household_head">
-                <div class="info-row">
-                  <ion-icon name="person-outline" class="info-icon"></ion-icon>
-                  <span>{{ enrollment.household_head.first_name }} {{ enrollment.household_head.last_name }}</span>
+              <div class="head-profile" *ngIf="enrollment.household_head">
+                <div class="head-avatar">
+                  <img *ngIf="headPhotoUrl" [src]="headPhotoUrl" alt="Photo" class="head-photo" />
+                  <div *ngIf="!headPhotoUrl" class="avatar-placeholder">
+                    {{ (enrollment.household_head.first_name || enrollment.household_head.name || '').charAt(0).toUpperCase() }}
+                  </div>
+                </div>
+                <div class="head-details">
+                  <h4 class="head-name">{{ enrollment.household_head.first_name || '' }} {{ enrollment.household_head.middle_name || '' }} {{ enrollment.household_head.last_name || enrollment.household_head.name || '' }}</h4>
+                  <span class="nepali-name" *ngIf="enrollment.household_head.first_name_ne">{{ enrollment.household_head.first_name_ne }} {{ enrollment.household_head.middle_name_ne || '' }} {{ enrollment.household_head.last_name_ne || '' }}</span>
+                  <div class="head-meta">
+                    <span *ngIf="enrollment.household_head.gender"><ion-icon name="male-female-outline"></ion-icon> {{ enrollment.household_head.gender | titlecase }}</span>
+                    <span *ngIf="enrollment.household_head.date_of_birth"><ion-icon name="calendar-outline"></ion-icon> {{ enrollment.household_head.date_of_birth | date:'mediumDate' }}</span>
+                  </div>
+                  <div class="head-meta">
+                    <span *ngIf="enrollment.household_head.mobile_number"><ion-icon name="call-outline"></ion-icon> {{ enrollment.household_head.mobile_number }}</span>
+                    <span *ngIf="enrollment.household_head.citizenship_number"><ion-icon name="card-outline"></ion-icon> {{ enrollment.household_head.citizenship_number }}</span>
+                  </div>
+                  <div class="head-meta" *ngIf="enrollment.household_head.is_target_group">
+                    <ion-badge color="warning" style="font-size:0.7rem;">
+                      <ion-icon name="ribbon-outline"></ion-icon> Targeted Group: {{ enrollment.household_head.target_group_type || 'Yes' }}
+                    </ion-badge>
+                  </div>
                 </div>
               </div>
-
-              <div class="enrollment-info" *ngIf="enrollment.province">
-                <div class="info-row">
-                  <ion-icon name="location-outline" class="info-icon"></ion-icon>
-                  <span>{{ enrollment.municipality || enrollment.district }}, {{ enrollment.district || enrollment.province }}</span>
-                </div>
-              </div>
-
-              <div class="enrollment-info" *ngIf="enrollment.family_members">
-                <div class="info-row">
-                  <ion-icon name="people-outline" class="info-icon"></ion-icon>
-                  <span>{{ enrollment.family_members.length }} family member{{ enrollment.family_members.length !== 1 ? 's' : '' }}</span>
-                </div>
-              </div>
-
-              <div class="card-bottom-row">
-                <span class="date-text" *ngIf="enrollment.policy_end_date">Policy ends: {{ enrollment.policy_end_date | date:'mediumDate' }}</span>
-                <span class="premium-text" *ngIf="enrollment.premium_amount">NPR {{ enrollment.premium_amount | number:'1.0-0' }}</span>
-              </div>
-
-              <!-- Initiate Renewal Button -->
-              <ion-button expand="block" color="primary" class="ion-margin-top"
-                          (click)="initiateRenewal()" [disabled]="initiating"
-                          *ngIf="['active', 'expired'].includes(enrollment.status)">
-                <ion-spinner *ngIf="initiating" name="crescent" slot="start"></ion-spinner>
-                <ion-icon name="arrow-forward-outline" slot="start" *ngIf="!initiating"></ion-icon>
-                {{ initiating ? 'Initiating...' : 'Renew Enrollment' }}
-              </ion-button>
             </ion-card-content>
           </ion-card>
 
-          <!-- Existing Renewals for this Enrollment -->
+          <!-- ─── Household Details Card ─── -->
+          <ion-card class="detail-card">
+            <ion-card-content>
+              <div class="section-title">
+                <div class="section-icon" style="background: rgba(253,126,20,0.1);">
+                  <ion-icon name="location-outline" style="color: #fd7e14;"></ion-icon>
+                </div>
+                <h3>Household Details</h3>
+              </div>
+
+              <div class="info-grid">
+                <div class="info-item" *ngIf="enrollment.province">
+                  <span class="info-label">Province</span>
+                  <span class="info-value">{{ enrollment.province }}</span>
+                </div>
+                <div class="info-item" *ngIf="enrollment.district">
+                  <span class="info-label">District</span>
+                  <span class="info-value">{{ enrollment.district }}</span>
+                </div>
+                <div class="info-item" *ngIf="enrollment.municipality">
+                  <span class="info-label">Municipality</span>
+                  <span class="info-value">{{ enrollment.municipality }}</span>
+                </div>
+                <div class="info-item" *ngIf="enrollment.ward_number">
+                  <span class="info-label">Ward No.</span>
+                  <span class="info-value">{{ enrollment.ward_number }}</span>
+                </div>
+                <div class="info-item" *ngIf="enrollment.tole_village">
+                  <span class="info-label">Tole/Village</span>
+                  <span class="info-value">{{ enrollment.tole_village }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Total Members</span>
+                  <span class="info-value">{{ (enrollment.family_members?.length || 0) + 1 }}</span>
+                </div>
+              </div>
+            </ion-card-content>
+          </ion-card>
+
+          <!-- ─── Premium / Subsidy Card ─── -->
+          <ion-card class="detail-card premium-card">
+            <ion-card-content>
+              <div class="section-title">
+                <div class="section-icon" style="background: rgba(25,135,84,0.1);">
+                  <ion-icon name="cash-outline" style="color: #198754;"></ion-icon>
+                </div>
+                <h3>Premium Details</h3>
+              </div>
+
+              <div class="premium-details">
+                <div class="premium-row">
+                  <span>Total Members</span>
+                  <strong>{{ (enrollment.family_members?.length || 0) + 1 }}</strong>
+                </div>
+                <div class="premium-row">
+                  <span>Base Premium (up to 5 members)</span>
+                  <strong>NPR 3,500</strong>
+                </div>
+                <div class="premium-row" *ngIf="extraMemberCharge > 0">
+                  <span>Extra Members ({{ (enrollment.family_members?.length || 0) + 1 - 5 }} × NPR 700)</span>
+                  <strong>NPR {{ extraMemberCharge | number:'1.0-0' }}</strong>
+                </div>
+                <div class="premium-row">
+                  <span>Total Premium</span>
+                  <strong>NPR {{ enrollment.premium_amount | number:'1.0-0' }}</strong>
+                </div>
+
+                <!-- Subsidy info -->
+                <ng-container *ngIf="subsidySummary?.is_subsidized">
+                  <div class="premium-row subsidy-row">
+                    <span>Subsidy Discount</span>
+                    <strong style="color: #28a745;">- NPR {{ subsidySummary.best_discount | number:'1.0-0' }}</strong>
+                  </div>
+                  <div class="premium-row premium-total">
+                    <span>After Subsidy</span>
+                    <strong style="color: #198754;">NPR {{ subsidySummary.final_premium | number:'1.0-0' }}</strong>
+                  </div>
+                  <div class="premium-row" style="justify-content:center;">
+                    <ion-badge color="success" style="font-size:0.75rem;">
+                      <ion-icon name="shield-checkmark-outline"></ion-icon> Subsidy Applied
+                    </ion-badge>
+                  </div>
+                </ng-container>
+
+                <!-- Targeted group — FREE -->
+                <div class="premium-row premium-total" *ngIf="enrollment.household_head?.is_target_group">
+                  <span>Targeted Group</span>
+                  <ion-badge color="success">FREE</ion-badge>
+                </div>
+
+                <!-- Policy dates -->
+                <div class="premium-row" *ngIf="enrollment.policy_start_date">
+                  <span>Policy Period</span>
+                  <strong style="font-size:0.8rem;">{{ enrollment.policy_start_date | date:'mediumDate' }} — {{ enrollment.policy_end_date | date:'mediumDate' }}</strong>
+                </div>
+              </div>
+            </ion-card-content>
+          </ion-card>
+
+          <!-- ─── Family Members Card ─── -->
+          <ion-card class="detail-card">
+            <ion-card-content>
+              <div class="section-title">
+                <div class="section-icon" style="background: rgba(13,202,240,0.1);">
+                  <ion-icon name="people-outline" style="color: #0dcaf0;"></ion-icon>
+                </div>
+                <h3>Family Members ({{ enrollment.family_members?.length || 0 }})</h3>
+              </div>
+
+              <div class="member-list" *ngIf="enrollment.family_members && enrollment.family_members.length > 0">
+                <div class="member-card" *ngFor="let member of enrollment.family_members">
+                  <div class="member-avatar-wrapper">
+                    <img *ngIf="getMemberPhotoUrl(member)" [src]="getMemberPhotoUrl(member)" alt="Photo" class="member-photo" />
+                    <div *ngIf="!getMemberPhotoUrl(member)" class="avatar-placeholder small">
+                      {{ (member.first_name || '').charAt(0).toUpperCase() }}
+                    </div>
+                  </div>
+                  <div class="member-info">
+                    <strong class="member-name">{{ member.first_name || '' }} {{ member.middle_name || '' }} {{ member.last_name || '' }}</strong>
+                    <span class="nepali-name" *ngIf="member.first_name_ne">{{ member.first_name_ne }} {{ member.middle_name_ne || '' }} {{ member.last_name_ne || '' }}</span>
+                    <div class="member-meta">
+                      <span *ngIf="member.relationship">{{ member.relationship | titlecase }}</span>
+                      <span *ngIf="member.gender"> · {{ member.gender | titlecase }}</span>
+                      <span *ngIf="member.date_of_birth"> · {{ member.date_of_birth | date:'mediumDate' }}</span>
+                    </div>
+                    <div class="member-meta" *ngIf="member.mobile_number || member.citizenship_number">
+                      <span *ngIf="member.mobile_number"><ion-icon name="call-outline"></ion-icon> {{ member.mobile_number }}</span>
+                      <span *ngIf="member.citizenship_number"><ion-icon name="card-outline"></ion-icon> {{ member.citizenship_number }}</span>
+                    </div>
+                    <ion-badge color="warning" *ngIf="member.is_target_group" style="font-size:0.65rem; margin-top:4px;">
+                      Targeted Group
+                    </ion-badge>
+                    <ion-badge [color]="getMemberStatusColor(member.member_status)" *ngIf="member.member_status && member.member_status !== 'approved'" style="font-size:0.65rem; margin-top:4px;">
+                      {{ formatMemberStatus(member.member_status) }}
+                    </ion-badge>
+                    <span class="rejection-reason" *ngIf="member.member_status === 'rejected' && member.rejection_reason">
+                      Reason: {{ member.rejection_reason }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div *ngIf="!enrollment.family_members || enrollment.family_members.length === 0" class="no-members">
+                <p>No family members added yet.</p>
+              </div>
+
+              <!-- Add New Member Note -->
+              <div class="member-pricing-note" *ngIf="enrollment.family_members">
+                <ion-icon name="information-circle-outline"></ion-icon>
+                <span *ngIf="(enrollment.family_members.length + 1) <= 5">
+                  You can add up to {{ 5 - enrollment.family_members.length - 1 }} more member{{ (5 - enrollment.family_members.length - 1) !== 1 ? 's' : '' }} for free.
+                </span>
+                <span *ngIf="(enrollment.family_members.length + 1) > 5">
+                  Additional members cost NPR 700 each (total members exceed 5).
+                </span>
+              </div>
+            </ion-card-content>
+          </ion-card>
+
+          <!-- ─── Action Buttons ─── -->
+          <div class="action-section">
+            <!-- Renew Button -->
+            <ion-button expand="block" color="primary"
+                        (click)="initiateRenewal()" [disabled]="initiating"
+                        *ngIf="['approved', 'active', 'expired'].includes(enrollment.status)">
+              <ion-spinner *ngIf="initiating" name="crescent" slot="start"></ion-spinner>
+              <ion-icon name="refresh-outline" slot="start" *ngIf="!initiating"></ion-icon>
+              {{ initiating ? 'Initiating...' : 'Renew Enrollment' }}
+            </ion-button>
+
+            <!-- Add New Member Button -->
+            <ion-button expand="block" fill="outline" color="secondary"
+                        (click)="showAddMemberForm()" *ngIf="!showMemberForm && ['approved', 'active', 'expired'].includes(enrollment.status)">
+              <ion-icon name="add-outline" slot="start"></ion-icon>
+              Add New Member
+            </ion-button>
+          </div>
+
+          <!-- ─── Add Member Form ─── -->
+          <ion-card class="detail-card" *ngIf="showMemberForm">
+            <ion-card-content>
+              <div class="section-title">
+                <div class="section-icon" style="background: rgba(102,16,242,0.08);">
+                  <ion-icon name="add-outline" style="color: #6610f2;"></ion-icon>
+                </div>
+                <h3>Add New Member</h3>
+              </div>
+
+              <!-- Pricing note -->
+              <div class="member-pricing-note" style="margin-bottom:12px;" *ngIf="enrollment.family_members">
+                <ion-icon name="information-circle-outline"></ion-icon>
+                <span *ngIf="(enrollment.family_members.length + 1) < 5">This member will be added for free.</span>
+                <span *ngIf="(enrollment.family_members.length + 1) >= 5">This member will cost NPR 700 (total exceeds 5 members).</span>
+              </div>
+
+              <!-- Profile Photo -->
+              <div class="capture-section">
+                <div class="capture-row">
+                  <span class="capture-label"><ion-icon name="camera-outline"></ion-icon> Profile Photo</span>
+                  <ion-button size="small" fill="outline" (click)="captureRenewalMemberImage('photo')">
+                    <ion-icon slot="start" name="camera-outline"></ion-icon>
+                    {{ memberPhotoPreview ? 'Change' : 'Capture' }}
+                  </ion-button>
+                </div>
+                <img *ngIf="memberPhotoPreview" [src]="memberPhotoPreview" class="preview-img" alt="Photo" />
+              </div>
+
+              <!-- English Name -->
+              <p class="field-section-label">English Name</p>
+              <ion-item class="form-item">
+                <ion-input label="First Name *" labelPlacement="stacked" [(ngModel)]="newMember.first_name"></ion-input>
+              </ion-item>
+              <ion-item class="form-item">
+                <ion-input label="Middle Name" labelPlacement="stacked" [(ngModel)]="newMember.middle_name"></ion-input>
+              </ion-item>
+              <ion-item class="form-item">
+                <ion-input label="Last Name *" labelPlacement="stacked" [(ngModel)]="newMember.last_name"></ion-input>
+              </ion-item>
+
+              <!-- Nepali Name -->
+              <p class="field-section-label">नेपाली नाम</p>
+              <ion-item class="form-item">
+                <ion-input label="पहिलो नाम" labelPlacement="stacked" [(ngModel)]="newMember.first_name_ne"></ion-input>
+              </ion-item>
+              <ion-item class="form-item">
+                <ion-input label="बीचको नाम" labelPlacement="stacked" [(ngModel)]="newMember.middle_name_ne"></ion-input>
+              </ion-item>
+              <ion-item class="form-item">
+                <ion-input label="थर" labelPlacement="stacked" [(ngModel)]="newMember.last_name_ne"></ion-input>
+              </ion-item>
+
+              <!-- Personal Details -->
+              <p class="field-section-label">Personal Details</p>
+              <ion-item class="form-item">
+                <ion-select label="Gender *" labelPlacement="stacked" [(ngModel)]="newMember.gender">
+                  <ion-select-option value="male">Male</ion-select-option>
+                  <ion-select-option value="female">Female</ion-select-option>
+                  <ion-select-option value="other">Other</ion-select-option>
+                </ion-select>
+              </ion-item>
+              <ion-item class="form-item">
+                <ion-input label="Date of Birth *" labelPlacement="stacked" type="date" [(ngModel)]="newMember.date_of_birth"></ion-input>
+              </ion-item>
+              <ion-item class="form-item">
+                <ion-select label="Relationship to Head *" labelPlacement="stacked" [(ngModel)]="newMember.relationship">
+                  <ion-select-option value="spouse">Spouse</ion-select-option>
+                  <ion-select-option value="son">Son</ion-select-option>
+                  <ion-select-option value="daughter">Daughter</ion-select-option>
+                  <ion-select-option value="father">Father</ion-select-option>
+                  <ion-select-option value="mother">Mother</ion-select-option>
+                  <ion-select-option value="brother">Brother</ion-select-option>
+                  <ion-select-option value="sister">Sister</ion-select-option>
+                  <ion-select-option value="grandfather">Grandfather</ion-select-option>
+                  <ion-select-option value="grandmother">Grandmother</ion-select-option>
+                  <ion-select-option value="father_in_law">Father-in-law</ion-select-option>
+                  <ion-select-option value="mother_in_law">Mother-in-law</ion-select-option>
+                  <ion-select-option value="daughter_in_law">Daughter-in-law</ion-select-option>
+                  <ion-select-option value="other">Other</ion-select-option>
+                </ion-select>
+              </ion-item>
+              <ion-item class="form-item">
+                <ion-select label="Blood Group" labelPlacement="stacked" [(ngModel)]="newMember.blood_group">
+                  <ion-select-option value="A+">A+</ion-select-option>
+                  <ion-select-option value="A-">A-</ion-select-option>
+                  <ion-select-option value="B+">B+</ion-select-option>
+                  <ion-select-option value="B-">B-</ion-select-option>
+                  <ion-select-option value="AB+">AB+</ion-select-option>
+                  <ion-select-option value="AB-">AB-</ion-select-option>
+                  <ion-select-option value="O+">O+</ion-select-option>
+                  <ion-select-option value="O-">O-</ion-select-option>
+                </ion-select>
+              </ion-item>
+              <ion-item class="form-item">
+                <ion-select label="Marital Status" labelPlacement="stacked" [(ngModel)]="newMember.marital_status">
+                  <ion-select-option value="Single">Single</ion-select-option>
+                  <ion-select-option value="Married">Married</ion-select-option>
+                  <ion-select-option value="Divorced">Divorced</ion-select-option>
+                  <ion-select-option value="Widowed">Widowed</ion-select-option>
+                </ion-select>
+              </ion-item>
+              <ion-item class="form-item">
+                <ion-input label="Mobile Number" labelPlacement="stacked" type="tel" maxlength="10" [(ngModel)]="newMember.mobile_number"></ion-input>
+              </ion-item>
+
+              <!-- Identity Document -->
+              <p class="field-section-label"><ion-icon name="document-text-outline"></ion-icon> Identity Document</p>
+              <ion-item class="form-item">
+                <ion-select label="Document Type" labelPlacement="stacked" [(ngModel)]="newMember.document_type">
+                  <ion-select-option value="citizenship">Citizenship Certificate</ion-select-option>
+                  <ion-select-option value="birth_certificate">Birth Certificate</ion-select-option>
+                </ion-select>
+              </ion-item>
+
+              <!-- Citizenship Fields -->
+              <div *ngIf="newMember.document_type === 'citizenship'">
+                <ion-item class="form-item">
+                  <ion-input label="Citizenship Number" labelPlacement="stacked" [(ngModel)]="newMember.citizenship_number"></ion-input>
+                </ion-item>
+                <ion-item class="form-item">
+                  <ion-input label="Issue Date" labelPlacement="stacked" type="date" [(ngModel)]="newMember.citizenship_issue_date"></ion-input>
+                </ion-item>
+                <ion-item class="form-item">
+                  <ion-input label="Issue District" labelPlacement="stacked" [(ngModel)]="newMember.citizenship_issue_district"></ion-input>
+                </ion-item>
+                <div class="capture-section">
+                  <div class="capture-row">
+                    <span class="capture-label">Citizenship Front</span>
+                    <ion-button size="small" fill="outline" (click)="captureRenewalMemberImage('citizenship_front_image')">
+                      <ion-icon slot="start" name="camera-outline"></ion-icon>
+                      {{ memberCitizenshipFrontPreview ? 'Change' : 'Capture' }}
+                    </ion-button>
+                  </div>
+                  <img *ngIf="memberCitizenshipFrontPreview" [src]="memberCitizenshipFrontPreview" class="preview-img" alt="Citizenship Front" />
+                </div>
+                <div class="capture-section">
+                  <div class="capture-row">
+                    <span class="capture-label">Citizenship Back</span>
+                    <ion-button size="small" fill="outline" (click)="captureRenewalMemberImage('citizenship_back_image')">
+                      <ion-icon slot="start" name="camera-outline"></ion-icon>
+                      {{ memberCitizenshipBackPreview ? 'Change' : 'Capture' }}
+                    </ion-button>
+                  </div>
+                  <img *ngIf="memberCitizenshipBackPreview" [src]="memberCitizenshipBackPreview" class="preview-img" alt="Citizenship Back" />
+                </div>
+              </div>
+
+              <!-- Birth Certificate Fields -->
+              <div *ngIf="newMember.document_type === 'birth_certificate'">
+                <ion-item class="form-item">
+                  <ion-input label="Birth Certificate Number" labelPlacement="stacked" [(ngModel)]="newMember.birth_certificate_number"></ion-input>
+                </ion-item>
+                <ion-item class="form-item">
+                  <ion-input label="Issue Date" labelPlacement="stacked" type="date" [(ngModel)]="newMember.birth_certificate_issue_date"></ion-input>
+                </ion-item>
+                <div class="capture-section">
+                  <div class="capture-row">
+                    <span class="capture-label">Birth Certificate Front</span>
+                    <ion-button size="small" fill="outline" (click)="captureRenewalMemberImage('birth_certificate_front_image')">
+                      <ion-icon slot="start" name="camera-outline"></ion-icon>
+                      {{ memberBirthCertFrontPreview ? 'Change' : 'Capture' }}
+                    </ion-button>
+                  </div>
+                  <img *ngIf="memberBirthCertFrontPreview" [src]="memberBirthCertFrontPreview" class="preview-img" alt="Birth Certificate Front" />
+                </div>
+                <div class="capture-section">
+                  <div class="capture-row">
+                    <span class="capture-label">Birth Certificate Back</span>
+                    <ion-button size="small" fill="outline" (click)="captureRenewalMemberImage('birth_certificate_back_image')">
+                      <ion-icon slot="start" name="camera-outline"></ion-icon>
+                      {{ memberBirthCertBackPreview ? 'Change' : 'Capture' }}
+                    </ion-button>
+                  </div>
+                  <img *ngIf="memberBirthCertBackPreview" [src]="memberBirthCertBackPreview" class="preview-img" alt="Birth Certificate Back" />
+                </div>
+              </div>
+
+              <!-- Target Group -->
+              <p class="field-section-label">Target Group</p>
+              <ion-item class="form-item">
+                <ion-label>Is Target Group Member?</ion-label>
+                <ion-toggle slot="end" [(ngModel)]="newMember.is_target_group"></ion-toggle>
+              </ion-item>
+              <div *ngIf="newMember.is_target_group">
+                <ion-item class="form-item">
+                  <ion-select label="Target Group Type" labelPlacement="stacked" [(ngModel)]="newMember.target_group_type">
+                    <ion-select-option value="ultra_poor">Ultra Poor</ion-select-option>
+                    <ion-select-option value="fchv">FCHV</ion-select-option>
+                    <ion-select-option value="senior_citizen">Senior Citizen</ion-select-option>
+                    <ion-select-option value="hiv">HIV</ion-select-option>
+                    <ion-select-option value="leprosy">Leprosy</ion-select-option>
+                    <ion-select-option value="null_disability">Null Disability</ion-select-option>
+                    <ion-select-option value="mdr_tb">MDR-TB</ion-select-option>
+                  </ion-select>
+                </ion-item>
+                <ion-item class="form-item">
+                  <ion-input label="Target Group ID Number" labelPlacement="stacked" [(ngModel)]="newMember.target_group_id_number"></ion-input>
+                </ion-item>
+                <div class="capture-section">
+                  <div class="capture-row">
+                    <span class="capture-label">Target Group ID Front</span>
+                    <ion-button size="small" fill="outline" (click)="captureRenewalMemberImage('target_group_front_image')">
+                      <ion-icon slot="start" name="camera-outline"></ion-icon>
+                      {{ memberTargetGroupFrontPreview ? 'Change' : 'Capture' }}
+                    </ion-button>
+                  </div>
+                  <img *ngIf="memberTargetGroupFrontPreview" [src]="memberTargetGroupFrontPreview" class="preview-img" alt="Target Group Front" />
+                </div>
+                <div class="capture-section">
+                  <div class="capture-row">
+                    <span class="capture-label">Target Group ID Back</span>
+                    <ion-button size="small" fill="outline" (click)="captureRenewalMemberImage('target_group_back_image')">
+                      <ion-icon slot="start" name="camera-outline"></ion-icon>
+                      {{ memberTargetGroupBackPreview ? 'Change' : 'Capture' }}
+                    </ion-button>
+                  </div>
+                  <img *ngIf="memberTargetGroupBackPreview" [src]="memberTargetGroupBackPreview" class="preview-img" alt="Target Group Back" />
+                </div>
+              </div>
+
+              <div class="btn-row" style="margin-top:16px;">
+                <ion-button expand="block" (click)="addNewMember()" [disabled]="savingMember || !newMember.first_name || !newMember.last_name || !newMember.gender || !newMember.date_of_birth || !newMember.relationship">
+                  <ion-spinner *ngIf="savingMember" name="crescent" slot="start"></ion-spinner>
+                  {{ savingMember ? 'Saving...' : 'Save Member' }}
+                </ion-button>
+                <ion-button expand="block" fill="outline" color="medium" (click)="showMemberForm = false" [disabled]="savingMember">Cancel</ion-button>
+              </div>
+            </ion-card-content>
+          </ion-card>
+
+          <!-- ─── Existing Renewals ─── -->
           <div *ngIf="renewals.length > 0" class="list-content">
-            <h3 class="section-heading">Your Renewals</h3>
+            <h3 class="section-heading">Renewal History</h3>
             <ion-card *ngFor="let r of renewals" button (click)="viewDetail(r)" class="renewal-card">
               <ion-card-content>
                 <div class="card-top-row">
                   <span class="renewal-number">{{ r.renewal_number || 'Renewal #' + r.id }}</span>
                   <ion-badge [color]="getStatusColor(r.status)">{{ formatStatus(r.status) }}</ion-badge>
                 </div>
-                <span class="date-text">{{ r.created_at | date:'mediumDate' }}</span>
+                <div class="renewal-card-meta">
+                  <span class="date-text">{{ r.created_at | date:'mediumDate' }}</span>
+                  <span class="amount-text" *ngIf="r.final_amount">NPR {{ r.final_amount | number:'1.0-0' }}</span>
+                </div>
               </ion-card-content>
             </ion-card>
           </div>
@@ -106,7 +520,7 @@
         </div>
       </ng-container>
 
-      <!-- Admin / Staff View -->
+      <!-- ==================== ADMIN / STAFF VIEW ==================== -->
       <ng-container *ngIf="!isBeneficiary">
         <div *ngIf="loading && page === 1" class="loading-center">
           <ion-spinner name="crescent" color="primary"></ion-spinner>

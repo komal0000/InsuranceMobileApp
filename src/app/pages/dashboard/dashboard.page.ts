@@ -62,6 +62,10 @@ export class DashboardPage implements OnInit {
     this.api.get<ApiResponse>('/dashboard').subscribe({
       next: (res) => { this.stats = res.data || {}; this.loading = false;
       console.log('Dashboard stats loaded:', this.stats);
+      // Hide "New Enrollment" for beneficiaries who already have an enrollment
+      if (this.isBeneficiary && (this.stats.my_enrollments ?? 0) > 0) {
+        this.canCreateEnrollment = false;
+      }
     },
       error: () => { this.loading = false; },
     });

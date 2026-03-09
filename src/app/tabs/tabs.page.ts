@@ -11,6 +11,8 @@ import {
 } from 'ionicons/icons';
 import { AuthService } from '../services/auth.service';
 import { PushNotificationService } from '../services/push-notification.service';
+import { ApiService } from '../services/api.service';
+import { ApiResponse } from '../interfaces/api-response.interface';
 
 @Component({
   selector: 'app-tabs',
@@ -21,10 +23,12 @@ import { PushNotificationService } from '../services/push-notification.service';
 })
 export class TabsPage implements OnInit {
   unreadCount = 0;
+  hideEnrollmentTab = false;
 
   constructor(
     private authService: AuthService,
-    private pushService: PushNotificationService
+    private pushService: PushNotificationService,
+    private api: ApiService
   ) {
     addIcons({
       homeOutline, home, documentTextOutline, documentText,
@@ -38,5 +42,16 @@ export class TabsPage implements OnInit {
     this.pushService.unreadCount.subscribe(count => {
       this.unreadCount = count;
     });
+
+    // Hide enrollment tab for beneficiary users who already have an enrollment
+    const user = this.authService.getCurrentUser();
+    if (user?.role === 'beneficiary') {
+      this.api.get<ApiResponse>('/dashboard').subscribe({
+        next: (res) => {
+          const stats = res.data || {};
+          this.hideEnrollmentTab = (stats.my_enrollments ?? 0) > 0;
+        },
+      });
+    }
   }
 }
