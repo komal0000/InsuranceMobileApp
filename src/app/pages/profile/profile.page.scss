@@ -7,6 +7,21 @@
       padding: 28px 16px 20px;
     }
 
+    .avatar-wrapper {
+      position: relative;
+      cursor: pointer;
+      margin-bottom: 4px;
+    }
+
+    .profile-avatar-img {
+      width: 90px;
+      height: 90px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid #003087;
+      box-shadow: 0 4px 12px rgba(0,48,135,0.25);
+    }
+
     .profile-avatar {
       width: 90px;
       height: 90px;
@@ -19,6 +34,31 @@
       align-items: center;
       justify-content: center;
       box-shadow: 0 4px 12px rgba(0,48,135,0.25);
+    }
+
+    .camera-badge {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #fff;
+      border: 2px solid #e9ecef;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+
+      ion-icon { font-size: 14px; color: #003087; }
+    }
+
+    .upload-spinner {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      --color: #fff;
     }
 
     .profile-name {

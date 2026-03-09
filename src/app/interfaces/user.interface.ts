@@ -8,6 +8,7 @@ export interface User {
   date_of_birth?: string;
   province?: string;
   district?: string;
+  profile_image?: string;
   hib_number?: string;
   role: UserRole;
   permissions: string[];

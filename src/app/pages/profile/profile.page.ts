@@ -4,13 +4,14 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import {
   IonContent, IonHeader, IonToolbar, IonTitle, IonCard, IonCardContent,
-  IonItem, IonInput, IonIcon, IonButton, IonSpinner
+  IonItem, IonInput, IonIcon, IonButton, IonSpinner,
+  ActionSheetController
 } from '@ionic/angular/standalone';
 import { ToastController, AlertController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
   personCircleOutline, logOutOutline, keyOutline, createOutline,
-  callOutline, mailOutline, calendarOutline
+  callOutline, mailOutline, calendarOutline, cameraOutline, imageOutline
 } from 'ionicons/icons';
 import { AuthService } from '../../services/auth.service';
 import { ApiService } from '../../services/api.service';
@@ -33,6 +34,7 @@ export class ProfilePage implements OnInit {
   editing = false;
   savingProfile = false;
   changingPassword = false;
+  uploadingImage = false;
 
   profileData: ProfileUpdateRequest = {};
   passwordData: ChangePasswordRequest = {
@@ -44,11 +46,12 @@ export class ProfilePage implements OnInit {
     private api: ApiService,
     private router: Router,
     private toastCtrl: ToastController,
-    private alertCtrl: AlertController
+    private alertCtrl: AlertController,
+    private actionSheetCtrl: ActionSheetController
   ) {
     addIcons({
       personCircleOutline, logOutOutline, keyOutline, createOutline,
-      callOutline, mailOutline, calendarOutline
+      callOutline, mailOutline, calendarOutline, cameraOutline, imageOutline
     });
   }
 
@@ -80,6 +83,51 @@ export class ProfilePage implements OnInit {
   cancelEdit() {
     this.editing = false;
     this.resetProfileData();
+  }
+
+  async pickImage() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/jpeg,image/png,image/webp';
+    input.onchange = () => {
+      const file = input.files?.[0];
+      if (file) {
+        if (file.size > 2 * 1024 * 1024) {
+          this.toastCtrl.create({
+            message: 'Image must be less than 2MB', duration: 2000, color: 'warning', position: 'top',
+          }).then(t => t.present());
+          return;
+        }
+        this.uploadImage(file);
+      }
+    };
+    input.click();
+  }
+
+  uploadImage(file: File) {
+    this.uploadingImage = true;
+    const fd = new FormData();
+    fd.append('profile_image', file);
+    this.api.postFormData<ApiResponse<{ profile_image: string }>>('/profile/image', fd).subscribe({
+      next: async (res) => {
+        this.uploadingImage = false;
+        if (res.success && this.user) {
+          this.user.profile_image = res.data.profile_image;
+          this.authService.fetchProfile().subscribe();
+          const toast = await this.toastCtrl.create({
+            message: 'Profile image updated', duration: 1500, color: 'success', position: 'top',
+          });
+          await toast.present();
+        }
+      },
+      error: async () => {
+        this.uploadingImage = false;
+        const toast = await this.toastCtrl.create({
+          message: 'Failed to upload image', duration: 2000, color: 'danger', position: 'top',
+        });
+        await toast.present();
+      },
+    });
   }
 
   async saveProfile() {

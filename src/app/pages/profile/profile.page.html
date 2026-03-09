@@ -8,7 +8,14 @@
       <div *ngIf="user" class="profile-content">
         <!-- Avatar Section -->
         <div class="profile-header">
-          <div class="profile-avatar">{{ user.name.charAt(0).toUpperCase() || 'U' }}</div>
+          <div class="avatar-wrapper" (click)="pickImage()">
+            <img *ngIf="user.profile_image" [src]="user.profile_image" class="profile-avatar-img" alt="Profile">
+            <div *ngIf="!user.profile_image" class="profile-avatar">{{ user.name.charAt(0).toUpperCase() || 'U' }}</div>
+            <div class="camera-badge">
+              <ion-icon name="camera-outline"></ion-icon>
+            </div>
+            <ion-spinner *ngIf="uploadingImage" name="crescent" class="upload-spinner"></ion-spinner>
+          </div>
           <h2 class="profile-name">{{ user.name }}</h2>
           <span class="role-pill">{{ formatRole(user.role) }}</span>
           <p *ngIf="user.hib_number" class="hib-number">HIB #{{ user.hib_number }}</p>
