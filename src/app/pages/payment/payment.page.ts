@@ -128,16 +128,16 @@ export class PaymentPage implements OnInit {
    */
   private async openGateway(url: string, referenceId: string) {
     try {
-      // Try InAppBrowser if available (Capacitor/Cordova)
       const { Browser } = await import('@capacitor/browser');
-      await Browser.open({ url });
 
-      // Listen for browser close
-      Browser.addListener('browserFinished', () => {
+      // Listen for the user returning from the browser
+      const finishHandler = Browser.addListener('browserFinished', () => {
         this.startPolling(referenceId);
       });
 
-      // Also start polling after a delay in case the event doesn't fire
+      await Browser.open({ url });
+
+      // Fallback: if browserFinished doesn't fire, start polling after a delay
       setTimeout(() => {
         if (!this.polling) {
           this.startPolling(referenceId);
@@ -152,6 +152,7 @@ export class PaymentPage implements OnInit {
 
   /**
    * Poll the payment status up to maxPolls times.
+   * When resolved, navigate to /payment-result with the appropriate params.
    */
   private startPolling(referenceId: string) {
     this.polling = true;
@@ -169,30 +170,11 @@ export class PaymentPage implements OnInit {
           if (status === 'paid') {
             this.paymentStatus = 'paid';
             this.polling = false;
-            this.showToast('Payment successful!', 'success');
-            // If this is an enrollment payment, submit the enrollment too
-            if (this.enrollmentId) {
-              this.enrollmentSvc.submit(this.enrollmentId).subscribe({
-                next: () => {
-                  this.showToast('Enrollment submitted for verification!', 'success');
-                  setTimeout(() => this.router.navigateByUrl('/tabs/enrollments'), 1500);
-                },
-                error: () => {
-                  // Payment succeeded but submit failed — still navigate
-                  setTimeout(() => this.router.navigateByUrl('/tabs/enrollments'), 1500);
-                },
-              });
-            } else if (this.renewalId) {
-              // Renewal payment completed — navigate to renewals
-              this.showToast('Renewal completed successfully!', 'success');
-              setTimeout(() => this.router.navigateByUrl('/tabs/renewals'), 1500);
-            } else {
-              setTimeout(() => this.router.navigateByUrl('/tabs/my-policy'), 1500);
-            }
+            this.navigateToResult('success', referenceId);
           } else if (status === 'failed') {
             this.paymentStatus = 'failed';
             this.polling = false;
-            this.showFailedAlert();
+            this.navigateToResult('failed', referenceId);
           }
           // status is still 'pending' — continue polling
         }
@@ -211,12 +193,27 @@ export class PaymentPage implements OnInit {
     });
   }
 
+  /**
+   * Navigate to the payment-result page with all relevant context.
+   */
+  private navigateToResult(status: 'success' | 'failed', referenceId: string) {
+    const queryParams: Record<string, string> = {
+      status,
+      reference_id: referenceId,
+      type: this.paymentType,
+    };
+    if (this.enrollmentId) queryParams['enrollment_id'] = String(this.enrollmentId);
+    if (this.renewalId)    queryParams['renewal_id']    = String(this.renewalId);
+
+    this.router.navigate(['/payment-result'], { queryParams, replaceUrl: true });
+  }
+
   private async showFailedAlert() {
     const alert = await this.alertCtrl.create({
       header: 'Payment Failed',
       message: 'The payment was not verified by the gateway. You can try again.',
       buttons: [
-        { text: 'Go Back', role: 'cancel', handler: () => this.router.navigateByUrl('/tabs/enrollments') },
+        { text: 'Go Back', role: 'cancel', handler: () => this.router.navigateByUrl('/tabs/dashboard') },
         { text: 'Retry', handler: () => { this.paymentStatus = null; this.selectedGateway = null; } },
       ],
     });
@@ -228,7 +225,7 @@ export class PaymentPage implements OnInit {
       header: 'Payment Status Pending',
       message: 'We could not confirm your payment yet. It may take a moment. You can check again later.',
       buttons: [
-        { text: 'OK', handler: () => this.router.navigateByUrl('/tabs/enrollments') },
+        { text: 'OK', handler: () => this.router.navigateByUrl('/tabs/dashboard') },
         { text: 'Check Again', handler: () => this.startPolling(referenceId) },
       ],
     });

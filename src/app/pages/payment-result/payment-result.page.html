@@ -1,0 +1,68 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Payment Result</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding result-page">
+
+  <!-- Processing / submitting enrollment -->
+  <div class="result-card" *ngIf="status === 'processing'">
+    <ion-spinner name="crescent" class="big-spinner"></ion-spinner>
+    <h2>Processing…</h2>
+    <p>Please wait while we submit your enrollment.</p>
+  </div>
+
+  <!-- Success -->
+  <div class="result-card" *ngIf="status === 'success'">
+    <ion-icon name="checkmark-circle-outline" class="icon success-icon"></ion-icon>
+    <h2>Payment Successful!</h2>
+
+    <ng-container *ngIf="paymentType === 'new'">
+      <p>Your enrollment has been submitted for verification.<br>
+         You will be notified once it is reviewed.</p>
+    </ng-container>
+
+    <ng-container *ngIf="paymentType === 'renewal'">
+      <p>Your renewal has been completed successfully.<br>
+         Your policy is now active.</p>
+    </ng-container>
+
+    <ng-container *ngIf="!paymentType">
+      <p>Your payment has been received and your policy is now active.</p>
+    </ng-container>
+
+    <p class="ref-id" *ngIf="referenceId">Ref: {{ referenceId }}</p>
+
+    <ion-button expand="block" color="primary" (click)="continue()">
+      Continue
+    </ion-button>
+  </div>
+
+  <!-- Failed -->
+  <div class="result-card" *ngIf="status === 'failed'">
+    <ion-icon name="close-circle-outline" class="icon failed-icon"></ion-icon>
+    <h2>Payment Failed</h2>
+    <p>
+      <ng-container *ngIf="errorCode === 'verification_failed'">
+        The payment could not be verified by the gateway.
+      </ng-container>
+      <ng-container *ngIf="errorCode === 'amount_mismatch'">
+        The payment amount did not match the expected premium.
+      </ng-container>
+      <ng-container *ngIf="!errorCode || errorCode === 'invalid_callback' || errorCode === 'not_found'">
+        Something went wrong with your payment.
+      </ng-container>
+      Please try again or contact support.
+    </p>
+    <p class="ref-id" *ngIf="referenceId">Ref: {{ referenceId }}</p>
+
+    <ion-button expand="block" color="danger" (click)="retryPayment()">
+      Try Again
+    </ion-button>
+    <ion-button expand="block" fill="outline" color="medium" (click)="goToDashboard()">
+      Back to Dashboard
+    </ion-button>
+  </div>
+
+</ion-content>

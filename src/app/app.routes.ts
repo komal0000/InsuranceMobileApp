@@ -49,6 +49,12 @@ export const routes: Routes = [
       import('./pages/payment/payment.page').then(m => m.PaymentPage),
   },
   {
+    path: 'payment-result',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./pages/payment-result/payment-result.page').then(m => m.PaymentResultPage),
+  },
+  {
     path: 'home',
     redirectTo: 'tabs/dashboard',
     pathMatch: 'full',
