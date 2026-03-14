@@ -6,9 +6,9 @@ import {
   IonInfiniteScrollContent
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { walletOutline, cashOutline, calendarOutline } from 'ionicons/icons';
+import { walletOutline, cashOutline, calendarOutline, documentTextOutline } from 'ionicons/icons';
 import { ApiService } from '../../services/api.service';
-import { ApiResponse, PaginatedData } from '../../interfaces/api-response.interface';
+import { ApiResponse } from '../../interfaces/api-response.interface';
 
 @Component({
   selector: 'app-my-payments',
@@ -29,7 +29,7 @@ export class MyPaymentsPage implements OnInit {
   hasMore = true;
 
   constructor(private api: ApiService) {
-    addIcons({ walletOutline, cashOutline, calendarOutline });
+    addIcons({ walletOutline, cashOutline, calendarOutline, documentTextOutline });
   }
 
   ngOnInit() { this.load(); }
@@ -39,7 +39,7 @@ export class MyPaymentsPage implements OnInit {
     this.api.get<ApiResponse>('/my-payments', { page: this.page }).subscribe({
       next: (res) => {
         const data = res.data;
-        const items = Array.isArray(data) ? data : (data?.data || []);
+        const items: any[] = Array.isArray(data) ? data : (data?.data ?? []);
         this.payments = this.page === 1 ? items : [...this.payments, ...items];
         this.hasMore = data?.last_page ? this.page < data.last_page : false;
         this.loading = false;
@@ -53,7 +53,7 @@ export class MyPaymentsPage implements OnInit {
     this.api.get<ApiResponse>('/my-payments', { page: 1 }).subscribe({
       next: (res) => {
         const data = res.data;
-        this.payments = Array.isArray(data) ? data : (data?.data || []);
+        this.payments = Array.isArray(data) ? data : (data?.data ?? []);
         event.target.complete();
       },
       error: () => event.target.complete(),
@@ -64,5 +64,13 @@ export class MyPaymentsPage implements OnInit {
     this.page++;
     this.load();
     event.target.complete();
+  }
+
+  statusColor(status: string): string {
+    switch (status) {
+      case 'paid':    return 'success';
+      case 'failed':  return 'danger';
+      default:        return 'warning';
+    }
   }
 }

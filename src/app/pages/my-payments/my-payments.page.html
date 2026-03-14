@@ -16,24 +16,26 @@
       <div class="payments-content" *ngIf="!loading">
         <div *ngIf="payments.length > 0">
           <div class="payment-card" *ngFor="let p of payments">
-            <div class="payment-icon-box" [class.paid]="p.status === 'paid'">
+            <div class="payment-icon-box" [class.paid]="p.status === 'paid'" [class.failed]="p.status === 'failed'">
               <ion-icon name="cash-outline"></ion-icon>
             </div>
             <div class="payment-body">
               <div class="payment-top">
-                <strong class="payment-amount">Rs. {{ p.amount || 0 }}</strong>
-                <ion-badge [color]="p.status === 'paid' ? 'success' : 'warning'">
-                  {{ p.status | titlecase }}
-                </ion-badge>
+                <strong class="payment-amount">Rs. {{ p.amount | number:'1.2-2' }}</strong>
+                <ion-badge [color]="statusColor(p.status)">{{ p.status | titlecase }}</ion-badge>
               </div>
-              <p class="payment-type">{{ p.payment_type || 'Premium Payment' }}</p>
+              <p class="payment-type">{{ p.type === 'renewal' ? 'Policy Renewal' : 'New Enrollment' }} &bull; {{ p.gateway | uppercase }}</p>
+              <div *ngIf="p.enrollment_number" class="payment-ref">
+                <ion-icon name="document-text-outline"></ion-icon>
+                <span>{{ p.enrollment_number }}</span>
+              </div>
               <div class="payment-meta">
                 <ion-icon name="calendar-outline"></ion-icon>
-                <span>{{ p.paid_at || p.created_at | date:'medium' }}</span>
+                <span>{{ (p.paid_at || p.created_at) | date:'dd MMM yyyy, h:mm a' }}</span>
               </div>
-              <div *ngIf="p.receipt_number" class="payment-receipt">
+              <div *ngIf="p.gateway_transaction_id" class="payment-receipt">
                 <ion-icon name="wallet-outline"></ion-icon>
-                <span>Receipt: {{ p.receipt_number }}</span>
+                <span>Txn: {{ p.gateway_transaction_id }}</span>
               </div>
             </div>
           </div>
