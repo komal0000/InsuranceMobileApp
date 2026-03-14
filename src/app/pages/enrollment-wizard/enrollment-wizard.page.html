@@ -199,18 +199,18 @@
             <!-- Nepali name -->
             <p style="font-size:0.7rem;font-weight:700;color:#6c757d;text-transform:uppercase;margin:8px 0 4px">नेपाली नाम (Nepali Name)</p>
             <ion-item class="form-item">
-              <ion-input label="पहिलो नाम" labelPlacement="stacked" placeholder="पहिलो नाम"
-                         [(ngModel)]="headData.first_name_ne">
+              <ion-input label="पहिलो नाम" labelPlacement="stacked" placeholder="Type in English e.g. Komal"
+                         appNepaliInput [(ngModel)]="headData.first_name_ne">
               </ion-input>
             </ion-item>
             <ion-item class="form-item">
-              <ion-input label="बीचको नाम" labelPlacement="stacked" placeholder="बीचको नाम (वैकल्पिक)"
-                         [(ngModel)]="headData.middle_name_ne">
+              <ion-input label="बीचको नाम" labelPlacement="stacked" placeholder="Type in English (optional)"
+                         appNepaliInput [(ngModel)]="headData.middle_name_ne">
               </ion-input>
             </ion-item>
             <ion-item class="form-item">
-              <ion-input label="थर" labelPlacement="stacked" placeholder="थर"
-                         [(ngModel)]="headData.last_name_ne">
+              <ion-input label="थर" labelPlacement="stacked" placeholder="Type in English e.g. Shrestha"
+                         appNepaliInput [(ngModel)]="headData.last_name_ne">
               </ion-input>
             </ion-item>
 
@@ -572,18 +572,18 @@
               <!-- Nepali name -->
               <p style="font-size:0.7rem;font-weight:700;color:#6c757d;text-transform:uppercase;margin:8px 0 4px">नेपाली नाम</p>
               <ion-item class="form-item">
-                <ion-input label="पहिलो नाम" labelPlacement="stacked" placeholder="पहिलो नाम"
-                           [(ngModel)]="newMember.first_name_ne">
+                <ion-input label="पहिलो नाम" labelPlacement="stacked" placeholder="Type in English e.g. Komal"
+                           appNepaliInput [(ngModel)]="newMember.first_name_ne">
                 </ion-input>
               </ion-item>
               <ion-item class="form-item">
-                <ion-input label="बीचको नाम" labelPlacement="stacked" placeholder="बीचको नाम"
-                           [(ngModel)]="newMember.middle_name_ne">
+                <ion-input label="बीचको नाम" labelPlacement="stacked" placeholder="Type in English (optional)"
+                           appNepaliInput [(ngModel)]="newMember.middle_name_ne">
                 </ion-input>
               </ion-item>
               <ion-item class="form-item">
-                <ion-input label="थर" labelPlacement="stacked" placeholder="थर"
-                           [(ngModel)]="newMember.last_name_ne">
+                <ion-input label="थर" labelPlacement="stacked" placeholder="Type in English e.g. Shrestha"
+                           appNepaliInput [(ngModel)]="newMember.last_name_ne">
                 </ion-input>
               </ion-item>
 

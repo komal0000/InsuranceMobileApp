@@ -62,8 +62,9 @@ export class DashboardPage implements OnInit {
     this.api.get<ApiResponse>('/dashboard').subscribe({
       next: (res) => { this.stats = res.data || {}; this.loading = false;
       console.log('Dashboard stats loaded:', this.stats);
-      // Hide "New Enrollment" for beneficiaries who already have an enrollment
-      if (this.isBeneficiary && (this.stats.my_enrollments ?? 0) > 0) {
+      // Hide "New Enrollment" only when the beneficiary has an active policy
+      // (draft enrollments should still allow seeing the enrollment section)
+      if (this.isBeneficiary && (this.stats.active_policies ?? 0) > 0) {
         this.canCreateEnrollment = false;
       }
     },

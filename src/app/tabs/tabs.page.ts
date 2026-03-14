@@ -43,13 +43,14 @@ export class TabsPage implements OnInit {
       this.unreadCount = count;
     });
 
-    // Hide enrollment tab for beneficiary users who already have an enrollment
+    // Hide enrollment tab only when the beneficiary has an active policy
+    // (draft / pending enrollments should still show the tab)
     const user = this.authService.getCurrentUser();
     if (user?.role === 'beneficiary') {
       this.api.get<ApiResponse>('/dashboard').subscribe({
         next: (res) => {
           const stats = res.data || {};
-          this.hideEnrollmentTab = (stats.my_enrollments ?? 0) > 0;
+          this.hideEnrollmentTab = (stats.active_policies ?? 0) > 0;
         },
       });
     }

@@ -20,6 +20,7 @@ import {
 import { EnrollmentService } from '../../services/enrollment.service';
 import { GeoService } from '../../services/geo.service';
 import { ApiResponse } from '../../interfaces/api-response.interface';
+import { NepaliInputDirective } from '../../directives/nepali-input.directive';
 import {
   Enrollment, EnrollmentConfig, FamilyMember, HouseholdHead, Step1Data,
   SubsidyResult, SubsidySummary
@@ -31,7 +32,7 @@ const STEP_TITLES = ['Household Info', 'Household Head', 'Family Members', 'Revi
   selector: 'app-enrollment-wizard',
   standalone: true,
   imports: [
-    CommonModule, FormsModule,
+    CommonModule, FormsModule, NepaliInputDirective,
     IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton,
     IonButton, IonItem, IonInput, IonSelect, IonSelectOption,
     IonCard, IonCardContent, IonIcon, IonSpinner,
@@ -107,7 +108,7 @@ export class EnrollmentWizardPage implements OnInit {
     first_name_ne: '', middle_name_ne: '', last_name_ne: '',
     gender: '', date_of_birth: '', relationship: '',
     blood_group: '', marital_status: '', mobile_number: '',
-    document_type: 'citizenship',
+    document_type: '',
     citizenship_number: '', citizenship_issue_date: '', citizenship_issue_district: '',
     birth_certificate_number: '', birth_certificate_issue_date: '',
     is_target_group: false, target_group_type: '', target_group_id_number: '',
@@ -442,7 +443,7 @@ export class EnrollmentWizardPage implements OnInit {
       first_name_ne: '', middle_name_ne: '', last_name_ne: '',
       gender: '', date_of_birth: '', relationship: '',
       blood_group: '', marital_status: '', mobile_number: '',
-      document_type: 'citizenship',
+      document_type: '',
       citizenship_number: '', citizenship_issue_date: '', citizenship_issue_district: '',
       birth_certificate_number: '', birth_certificate_issue_date: '',
       is_target_group: false,
@@ -473,7 +474,7 @@ export class EnrollmentWizardPage implements OnInit {
     if (this.newMember.mobile_number && !/^\d{10}$/.test(this.newMember.mobile_number)) {
       this.showToast('Mobile number must be exactly 10 digits.', 'warning'); return;
     }
-    const docType = this.newMember.document_type || 'citizenship';
+    const docType = this.newMember.document_type || null;
     if (docType === 'citizenship' && this.calculateAge(this.newMember.date_of_birth) < 16) {
       this.showToast('Member with citizenship document must be at least 16 years old.', 'warning'); return;
     }

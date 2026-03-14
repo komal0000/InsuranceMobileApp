@@ -10,6 +10,7 @@ import { ToastController } from '@ionic/angular/standalone';
 import { AuthService } from '../../services/auth.service';
 import { ApiService } from '../../services/api.service';
 import { RegisterRequest } from '../../interfaces/user.interface';
+import { NepaliInputDirective } from '../../directives/nepali-input.directive';
 import { ApiResponse } from '../../interfaces/api-response.interface';
 import { GeoItem } from '../../interfaces/geo.interface';
 import { addIcons } from 'ionicons';
@@ -23,7 +24,7 @@ import {
   selector: 'app-register',
   standalone: true,
   imports: [
-    CommonModule, FormsModule, RouterLink,
+    CommonModule, FormsModule, RouterLink, NepaliInputDirective,
     IonContent, IonButton, IonItem, IonInput, IonSelect, IonSelectOption,
     IonSpinner, IonIcon
   ],
