@@ -28,7 +28,8 @@ export interface InsurancePolicy {
 }
 
 export interface PaymentCreateResponse {
-  redirect_url: string;
+  redirect_url?: string;
+  html_content?: string;
   reference_id: string;
   payment_id: number;
   policy_id: number;

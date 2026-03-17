@@ -108,8 +108,13 @@ export class PaymentPage implements OnInit {
     this.paymentSvc.createPayment(this.selectedGateway, this.paymentType, options).subscribe({
       next: async (res) => {
         this.loading = false;
-        if (res.success && res.data.redirect_url) {
-          await this.openGateway(res.data.redirect_url, res.data.reference_id);
+        if (res.success) {
+          const url = res.data.redirect_url || res.data.html_content;
+          if (url && url.trim() !== '') {
+            await this.openGatewayUrl(url, res.data.reference_id);
+          } else {
+            this.showToast('Invalid gateway response.', 'danger');
+          }
         } else {
           this.showToast(res.message || 'Failed to initiate payment.', 'danger');
         }
@@ -122,29 +127,23 @@ export class PaymentPage implements OnInit {
   }
 
   /**
-   * Open the payment gateway URL.
-   * In a real Capacitor build, this would use InAppBrowser.
-   * For development, we use window.open and poll on focus return.
+   * Open the payment gateway URL in Capacitor Browser.
+   * Works for all gateways — Khalti (redirect URL), eSewa (server-hosted form URL).
+   * Uses browserFinished to trigger polling when the user returns.
    */
-  private async openGateway(url: string, referenceId: string) {
+  private async openGatewayUrl(url: string, referenceId: string) {
     try {
       const { Browser } = await import('@capacitor/browser');
-
-      // Listen for the user returning from the browser
       const finishHandler = Browser.addListener('browserFinished', () => {
+        finishHandler.then(h => h.remove());
         this.startPolling(referenceId);
       });
-
       await Browser.open({ url });
 
-      // Fallback: if browserFinished doesn't fire, start polling after a delay
       setTimeout(() => {
-        if (!this.polling) {
-          this.startPolling(referenceId);
-        }
+        if (!this.polling) this.startPolling(referenceId);
       }, 10000);
     } catch {
-      // Fallback for web dev
       window.open(url, '_blank');
       this.startPolling(referenceId);
     }
