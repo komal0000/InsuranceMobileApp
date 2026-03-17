@@ -28,6 +28,7 @@ export interface LoginRequest {
   identifier_type: 'mobile' | 'hib_number' | 'national_id' | 'dob';
   identifier: string;
   password: string;
+  remember?: boolean;
 }
 
 export interface RegisterRequest {

@@ -25,7 +25,7 @@ import {
   standalone: true,
   imports: [
     CommonModule, FormsModule, RouterLink, NepaliInputDirective,
-    IonContent, IonButton, IonItem, IonInput, IonSelect, IonSelectOption,
+    IonContent, IonButton, IonItem, IonInput,
     IonSpinner, IonIcon
   ],
   templateUrl: './register.page.html',
@@ -33,12 +33,9 @@ import {
 })
 export class RegisterPage implements OnInit {
   formData: RegisterRequest = {
-    name: '', name_ne: '', mobile_number: '', national_id: '',
-    date_of_birth: '', province: '', district: '', email: '',
+    name: '', name_ne: '', mobile_number: '', email: '',
     password: '', password_confirmation: '',
   };
-  provinces: GeoItem[] = [];
-  districts: GeoItem[] = [];
   loading = false;
 
   constructor(
@@ -54,29 +51,7 @@ export class RegisterPage implements OnInit {
     });
   }
 
-  ngOnInit() { this.loadProvinces(); }
-
-  loadProvinces() {
-    this.api.get<ApiResponse<GeoItem[]>>('/geo/provinces').subscribe({
-      next: (res) => {
-        this.provinces = res.data || [];
-        console.log('Provinces loaded:', this.provinces);
-      },
-    });
-  }
-
-  onProvinceChange() {
-    this.formData.district = '';
-    this.districts = [];
-    if (this.formData.province) {
-      this.api.get<ApiResponse<GeoItem[]>>(`/geo/districts/${this.formData.province}`).subscribe({
-        next: (res) => {
-           this.districts = res.data || [];
-           console.log('Districts loaded:', this.districts);
-          },
-      });
-    }
-  }
+  ngOnInit() { }
 
   async register() {
     if (!this.formData.name || !this.formData.mobile_number || !this.formData.password) {

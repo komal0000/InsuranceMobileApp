@@ -82,7 +82,8 @@ export class LoginPage {
     }
 
     this.loading = true;
-    this.authService.login(this.loginData).subscribe({
+    const requestData = { ...this.loginData, remember: this.rememberMe };
+    this.authService.login(requestData).subscribe({
       next: async (res) => {
         this.loading = false;
         if (res.success) {

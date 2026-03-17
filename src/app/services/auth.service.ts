@@ -22,8 +22,17 @@ export class AuthService {
 
   async init(): Promise<void> {
     if (this.initialized) return;
-    const { value: token } = await Preferences.get({ key: TOKEN_KEY });
-    const { value: userJson } = await Preferences.get({ key: USER_KEY });
+
+    let token = sessionStorage.getItem(TOKEN_KEY);
+    let userJson = sessionStorage.getItem(USER_KEY);
+
+    if (!token) {
+      const prefToken = await Preferences.get({ key: TOKEN_KEY });
+      token = prefToken.value;
+      const prefUser = await Preferences.get({ key: USER_KEY });
+      userJson = prefUser.value;
+    }
+
     if (token) {
       this.tokenSubject.next(token);
       if (userJson) {
@@ -60,10 +69,11 @@ export class AuthService {
   }
 
   login(data: LoginRequest): Observable<ApiResponse<AuthData>> {
+    const remember = data.remember ?? false;
     return this.api.post<ApiResponse<AuthData>>('/login', data).pipe(
       tap(res => {
         if (res.success) {
-          this.setSession(res.data);
+          this.setSession(res.data, remember);
         }
       })
     );
@@ -98,14 +108,24 @@ export class AuthService {
   async clearSession(): Promise<void> {
     this.tokenSubject.next(null);
     this.currentUserSubject.next(null);
+    sessionStorage.removeItem(TOKEN_KEY);
+    sessionStorage.removeItem(USER_KEY);
     await Preferences.remove({ key: TOKEN_KEY });
     await Preferences.remove({ key: USER_KEY });
   }
 
-  private async setSession(auth: AuthData): Promise<void> {
+  private async setSession(auth: AuthData, remember: boolean = true): Promise<void> {
     this.tokenSubject.next(auth.token);
     this.currentUserSubject.next(auth.user);
-    await Preferences.set({ key: TOKEN_KEY, value: auth.token });
-    await Preferences.set({ key: USER_KEY, value: JSON.stringify(auth.user) });
+
+    if (remember) {
+      await Preferences.set({ key: TOKEN_KEY, value: auth.token });
+      await Preferences.set({ key: USER_KEY, value: JSON.stringify(auth.user) });
+    } else {
+      await Preferences.remove({ key: TOKEN_KEY });
+      await Preferences.remove({ key: USER_KEY });
+      sessionStorage.setItem(TOKEN_KEY, auth.token);
+      sessionStorage.setItem(USER_KEY, JSON.stringify(auth.user));
+    }
   }
 }
