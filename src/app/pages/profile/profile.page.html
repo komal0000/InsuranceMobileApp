@@ -33,7 +33,7 @@
           </div>
           <div class="quick-row" *ngIf="user.date_of_birth">
             <ion-icon name="calendar-outline"></ion-icon>
-            <span>{{ user.date_of_birth | date:'mediumDate' }}</span>
+            <span>{{ displayDate(user.date_of_birth, user.date_of_birth_bs) }}</span>
           </div>
         </div>
 
@@ -63,10 +63,12 @@
               <ion-input label="Email" labelPlacement="stacked" type="email"
                 [(ngModel)]="profileData.email" [readonly]="!editing"></ion-input>
             </ion-item>
-            <ion-item class="form-item">
-              <ion-input label="Date of Birth" labelPlacement="stacked" type="date"
-                [(ngModel)]="profileData.date_of_birth" [readonly]="!editing"></ion-input>
-            </ion-item>
+            <app-bs-date-picker
+              [(ngModel)]="profileData.date_of_birth"
+              label="Date of Birth"
+              placeholder="Select BS date"
+              [disabled]="!editing">
+            </app-bs-date-picker>
 
             <div class="btn-row">
               <ion-button expand="block" *ngIf="!editing" (click)="editing = true">

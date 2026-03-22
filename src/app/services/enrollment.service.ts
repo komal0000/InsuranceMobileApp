@@ -5,10 +5,21 @@ import { ApiResponse, PaginatedData } from '../interfaces/api-response.interface
 import {
   Enrollment, EnrollmentConfig, EnrollmentShowResponse, FamilyMember, NidLookupResponse
 } from '../interfaces/enrollment.interface';
+import { DateService } from './date.service';
 
 @Injectable({ providedIn: 'root' })
 export class EnrollmentService {
-  constructor(private api: ApiService) {}
+  private readonly headDateFields = ['date_of_birth', 'citizenship_issue_date'];
+  private readonly memberDateFields = [
+    'date_of_birth',
+    'citizenship_issue_date',
+    'birth_certificate_issue_date',
+  ];
+
+  constructor(
+    private api: ApiService,
+    private dateService: DateService
+  ) {}
 
   // ── Config ──────────────────────────────────────────────────
 
@@ -37,14 +48,18 @@ export class EnrollmentService {
   }
 
   saveStep2(id: number, formData: FormData): Observable<ApiResponse<Enrollment>> {
-    return this.api.postFormData<ApiResponse<Enrollment>>(`/enrollments/${id}/step2`, formData);
+    return this.api.postFormData<ApiResponse<Enrollment>>(
+      `/enrollments/${id}/step2`,
+      this.dateService.prepareFormDataForApi(formData, this.headDateFields)
+    );
   }
 
   // ── Members ─────────────────────────────────────────────────
 
   addMember(enrollmentId: number, formData: FormData): Observable<ApiResponse<FamilyMember>> {
     return this.api.postFormData<ApiResponse<FamilyMember>>(
-      `/enrollments/${enrollmentId}/members`, formData
+      `/enrollments/${enrollmentId}/members`,
+      this.dateService.prepareFormDataForApi(formData, this.memberDateFields)
     );
   }
 

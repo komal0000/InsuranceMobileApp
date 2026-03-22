@@ -224,11 +224,11 @@
                 <ion-select-option value="other">Other</ion-select-option>
               </ion-select>
             </ion-item>
-            <ion-item class="form-item">
-              <ion-input label="Date of Birth *" labelPlacement="stacked" placeholder="YYYY-MM-DD"
-                         type="date" [(ngModel)]="headData.date_of_birth">
-              </ion-input>
-            </ion-item>
+            <app-bs-date-picker
+              [(ngModel)]="headData.date_of_birth"
+              label="Date of Birth *"
+              placeholder="Select BS date">
+            </app-bs-date-picker>
             <ion-item class="form-item">
               <ion-select label="Blood Group" labelPlacement="stacked" placeholder="Select Blood Group"
                           [(ngModel)]="headData.blood_group">
@@ -272,11 +272,11 @@
                          [(ngModel)]="headData.citizenship_number">
               </ion-input>
             </ion-item>
-            <ion-item class="form-item">
-              <ion-input label="Issue Date" labelPlacement="stacked" placeholder="YYYY-MM-DD"
-                         type="date" [(ngModel)]="headData.citizenship_issue_date">
-              </ion-input>
-            </ion-item>
+            <app-bs-date-picker
+              [(ngModel)]="headData.citizenship_issue_date"
+              label="Issue Date"
+              placeholder="Select BS date">
+            </app-bs-date-picker>
             <ion-item class="form-item">
               <ion-input label="Issue District" labelPlacement="stacked" placeholder="e.g. Kathmandu"
                          [(ngModel)]="headData.citizenship_issue_district">
@@ -597,11 +597,11 @@
                   <ion-select-option value="other">Other</ion-select-option>
                 </ion-select>
               </ion-item>
-              <ion-item class="form-item">
-                <ion-input label="Date of Birth *" labelPlacement="stacked" placeholder="YYYY-MM-DD"
-                           type="date" [(ngModel)]="newMember.date_of_birth">
-                </ion-input>
-              </ion-item>
+                <app-bs-date-picker
+                  [(ngModel)]="newMember.date_of_birth"
+                  label="Date of Birth *"
+                  placeholder="Select BS date">
+                </app-bs-date-picker>
               <ion-item class="form-item">
                 <ion-select label="Relationship to Head *" labelPlacement="stacked" placeholder="Select Relationship"
                             [(ngModel)]="newMember.relationship">
@@ -668,11 +668,11 @@
                              [(ngModel)]="newMember.citizenship_number">
                   </ion-input>
                 </ion-item>
-                <ion-item class="form-item">
-                  <ion-input label="Issue Date" labelPlacement="stacked" placeholder="YYYY-MM-DD"
-                             type="date" [(ngModel)]="newMember.citizenship_issue_date">
-                  </ion-input>
-                </ion-item>
+                  <app-bs-date-picker
+                    [(ngModel)]="newMember.citizenship_issue_date"
+                    label="Issue Date"
+                    placeholder="Select BS date">
+                  </app-bs-date-picker>
                 <ion-item class="form-item">
                   <ion-input label="Issue District" labelPlacement="stacked" placeholder="e.g. Kathmandu"
                              [(ngModel)]="newMember.citizenship_issue_district">
@@ -708,11 +708,11 @@
                              [(ngModel)]="newMember.birth_certificate_number">
                   </ion-input>
                 </ion-item>
-                <ion-item class="form-item">
-                  <ion-input label="Issue Date" labelPlacement="stacked" placeholder="YYYY-MM-DD"
-                             type="date" [(ngModel)]="newMember.birth_certificate_issue_date">
-                  </ion-input>
-                </ion-item>
+                  <app-bs-date-picker
+                    [(ngModel)]="newMember.birth_certificate_issue_date"
+                    label="Issue Date"
+                    placeholder="Select BS date">
+                  </app-bs-date-picker>
                 <!-- Birth Certificate Images -->
                 <div class="capture-section">
                   <div class="capture-row">
@@ -957,7 +957,7 @@
                 <div class="member-avatar">{{ (m.first_name || '?')[0].toUpperCase() }}</div>
                 <div class="member-info">
                   <strong>{{ m.first_name }} {{ m.last_name }}</strong>
-                  <span>{{ m.relationship }} · Age {{ getAge(m.date_of_birth) }}</span>
+                  <span>{{ m.relationship }} · {{ displayDate(m.date_of_birth, m.date_of_birth_bs) }} · Age {{ getAge(m.date_of_birth_bs || m.date_of_birth) }}</span>
                 </div>
               </div>
             </div>

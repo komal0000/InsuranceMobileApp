@@ -128,9 +128,7 @@
                   <ion-select-option value="other">Other</ion-select-option>
                 </ion-select>
               </ion-item>
-              <ion-item class="form-item">
-                <ion-input label="Date of Birth *" labelPlacement="stacked" type="date" [(ngModel)]="newMember.date_of_birth"></ion-input>
-              </ion-item>
+              <app-bs-date-picker [(ngModel)]="newMember.date_of_birth" label="Date of Birth *" placeholder="Select BS date"></app-bs-date-picker>
               <ion-item class="form-item">
                 <ion-select label="Relationship *" labelPlacement="stacked" [(ngModel)]="newMember.relationship">
                   <ion-select-option value="spouse">Spouse</ion-select-option>

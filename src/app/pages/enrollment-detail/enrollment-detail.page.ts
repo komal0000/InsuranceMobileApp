@@ -15,6 +15,7 @@ import {
 } from 'ionicons/icons';
 import { ApiService } from '../../services/api.service';
 import { AuthService } from '../../services/auth.service';
+import { DateService } from '../../services/date.service';
 import { ApiResponse } from '../../interfaces/api-response.interface';
 import { Enrollment } from '../../interfaces/enrollment.interface';
 
@@ -43,6 +44,7 @@ export class EnrollmentDetailPage implements OnInit {
     private router: Router,
     private api: ApiService,
     private authService: AuthService,
+    private dateService: DateService,
     private toastCtrl: ToastController,
     private alertCtrl: AlertController
   ) {
@@ -189,5 +191,9 @@ export class EnrollmentDetailPage implements OnInit {
   getDocUrl(member: any, type: string): string | null {
     const doc = member?.documents?.find((d: any) => d.document_type === type);
     return doc?.url || null;
+  }
+
+  displayDate(adDate?: string | null, bsDate?: string | null): string {
+    return this.dateService.formatForDisplay(adDate, bsDate) || '';
   }
 }

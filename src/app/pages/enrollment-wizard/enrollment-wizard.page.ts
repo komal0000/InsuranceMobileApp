@@ -19,8 +19,10 @@ import {
 } from 'ionicons/icons';
 import { EnrollmentService } from '../../services/enrollment.service';
 import { GeoService } from '../../services/geo.service';
+import { DateService } from '../../services/date.service';
 import { ApiResponse } from '../../interfaces/api-response.interface';
 import { NepaliInputDirective } from '../../directives/nepali-input.directive';
+import { BsDatePickerComponent } from '../../components/bs-date-picker/bs-date-picker.component';
 import {
   Enrollment, EnrollmentConfig, FamilyMember, HouseholdHead, Step1Data,
   SubsidyResult, SubsidySummary
@@ -32,7 +34,7 @@ const STEP_TITLES = ['Household Info', 'Household Head', 'Family Members', 'Revi
   selector: 'app-enrollment-wizard',
   standalone: true,
   imports: [
-    CommonModule, FormsModule, NepaliInputDirective,
+    CommonModule, FormsModule, NepaliInputDirective, BsDatePickerComponent,
     IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton,
     IonButton, IonItem, IonInput, IonSelect, IonSelectOption,
     IonCard, IonCardContent, IonIcon, IonSpinner,
@@ -133,6 +135,7 @@ export class EnrollmentWizardPage implements OnInit {
     private router: Router,
     private enrollmentSvc: EnrollmentService,
     private geoSvc: GeoService,
+    private dateService: DateService,
     private toastCtrl: ToastController,
     private alertCtrl: AlertController
   ) {
@@ -204,11 +207,15 @@ export class EnrollmentWizardPage implements OnInit {
         last_name: head.last_name || '',
         first_name_ne: head.first_name_ne || '', middle_name_ne: head.middle_name_ne || '',
         last_name_ne: head.last_name_ne || '',
-        gender: head.gender || '', date_of_birth: head.date_of_birth || '',
+        gender: head.gender || '',
+        date_of_birth: this.dateService.formatForDisplay(head.date_of_birth, head.date_of_birth_bs) || '',
         blood_group: head.blood_group || '', marital_status: head.marital_status || '',
         mobile_number: head.mobile_number || '', email: head.email || '',
         citizenship_number: head.citizenship_number || '',
-        citizenship_issue_date: head.citizenship_issue_date || '',
+        citizenship_issue_date: this.dateService.formatForDisplay(
+          head.citizenship_issue_date,
+          head.citizenship_issue_date_bs
+        ) || '',
         citizenship_issue_district: head.citizenship_issue_district || '',
         is_target_group: !!head.is_target_group,
         target_group_type: head.target_group_type || '',
@@ -226,7 +233,18 @@ export class EnrollmentWizardPage implements OnInit {
 
     // ── Step 3: Family members ────────────────────────────────────────────────
     this.householdHead = head || null;
-    this.members = (e.family_members || e.members || []) as FamilyMember[];
+    this.members = ((e.family_members || e.members || []) as FamilyMember[]).map(member => ({
+      ...member,
+      date_of_birth_bs: this.dateService.formatForDisplay(member.date_of_birth, member.date_of_birth_bs) || '',
+      citizenship_issue_date_bs: this.dateService.formatForDisplay(
+        member.citizenship_issue_date,
+        member.citizenship_issue_date_bs
+      ) || '',
+      birth_certificate_issue_date_bs: this.dateService.formatForDisplay(
+        member.birth_certificate_issue_date,
+        member.birth_certificate_issue_date_bs
+      ) || '',
+    }));
     if (this.initialLoad) {
       this.initialLoad = false;
       // Use current_step from the server (1-3). If 4 (submitted), go to step 3.
@@ -290,7 +308,7 @@ export class EnrollmentWizardPage implements OnInit {
           this.headData.first_name = d.first_name || '';
           this.headData.last_name = d.last_name || '';
           this.headData.gender = d.gender || '';
-          this.headData.date_of_birth = d.date_of_birth || '';
+          this.headData.date_of_birth = this.dateService.formatForDisplay(d.date_of_birth, d.date_of_birth_bs) || '';
           this.headData.mobile_number = d.mobile_number || '';
           this.headData.email = d.email || '';
           this.showNidGate2 = false;
@@ -317,7 +335,7 @@ export class EnrollmentWizardPage implements OnInit {
           this.newMember.first_name = d.first_name || '';
           this.newMember.last_name = d.last_name || '';
           this.newMember.gender = d.gender || '';
-          this.newMember.date_of_birth = d.date_of_birth || '';
+          this.newMember.date_of_birth = this.dateService.formatForDisplay(d.date_of_birth, d.date_of_birth_bs) || '';
           this.newMember.mobile_number = d.mobile_number || '';
           this.showNidGateMember = false;
           this.showToast('Record found! Fields have been auto-filled.', 'success');
@@ -629,7 +647,12 @@ export class EnrollmentWizardPage implements OnInit {
 
   getAge(dob: string): number {
     if (!dob) return 0;
-    return Math.floor((Date.now() - new Date(dob).getTime()) / (1000 * 60 * 60 * 24 * 365.25));
+    const adDate = this.dateService.toApiDate(dob);
+    return Math.floor((Date.now() - new Date(adDate).getTime()) / (1000 * 60 * 60 * 24 * 365.25));
+  }
+
+  displayDate(adDate?: string | null, bsDate?: string | null): string {
+    return this.dateService.formatForDisplay(adDate, bsDate) || '—';
   }
 
   formatStatus(s: string): string {
@@ -665,7 +688,7 @@ export class EnrollmentWizardPage implements OnInit {
 
   private calculateAge(dob: string): number {
     if (!dob) return 0;
-    const birth = new Date(dob);
+    const birth = new Date(this.dateService.toApiDate(dob));
     const today = new Date();
     let age = today.getFullYear() - birth.getFullYear();
     const m = today.getMonth() - birth.getMonth();

@@ -10,7 +10,9 @@ export interface Renewal {
   penalty_amount?: number;
   final_amount?: number;
   renewal_start_date?: string;
+  renewal_start_date_bs?: string;
   renewal_end_date?: string;
+  renewal_end_date_bs?: string;
   previous_policy_start?: string;
   previous_policy_end?: string;
   is_within_grace_period?: boolean;

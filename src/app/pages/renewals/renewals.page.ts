@@ -19,14 +19,16 @@ import {
 } from 'ionicons/icons';
 import { ApiService } from '../../services/api.service';
 import { AuthService } from '../../services/auth.service';
+import { DateService } from '../../services/date.service';
 import { ApiResponse, PaginatedData } from '../../interfaces/api-response.interface';
 import { Renewal } from '../../interfaces/renewal.interface';
+import { BsDatePickerComponent } from '../../components/bs-date-picker/bs-date-picker.component';
 
 @Component({
   selector: 'app-renewals',
   standalone: true,
   imports: [
-    CommonModule, FormsModule,
+    CommonModule, FormsModule, BsDatePickerComponent,
     IonContent, IonHeader, IonToolbar, IonTitle, IonBadge, IonSearchbar,
     IonSegment, IonSegmentButton, IonRefresher, IonRefresherContent,
     IonInfiniteScroll, IonInfiniteScrollContent, IonFab, IonFabButton,
@@ -66,6 +68,7 @@ export class RenewalsPage implements OnInit {
   constructor(
     private api: ApiService,
     private authService: AuthService,
+    private dateService: DateService,
     private router: Router,
     private toastCtrl: ToastController
   ) {
@@ -269,7 +272,7 @@ export class RenewalsPage implements OnInit {
     }
     const docType = m.document_type || 'citizenship';
     if (docType === 'citizenship') {
-      const birth = new Date(m.date_of_birth);
+      const birth = new Date(this.dateService.toApiDate(m.date_of_birth));
       const today = new Date();
       let age = today.getFullYear() - birth.getFullYear();
       const mo = today.getMonth() - birth.getMonth();
@@ -291,11 +294,16 @@ export class RenewalsPage implements OnInit {
     });
 
     this.savingMember = true;
+    const prepared = this.dateService.prepareFormDataForApi(fd, [
+      'date_of_birth',
+      'citizenship_issue_date',
+      'birth_certificate_issue_date',
+    ]);
 
     // For approved enrollments the policy isn't active yet — add directly to enrollment,
     // bypassing the renewal eligibility check which requires active/expired status.
     if (this.enrollment.status === 'approved') {
-      this.api.postFormData<ApiResponse>(`/enrollments/${this.enrollment.id}/members`, fd).subscribe({
+      this.api.postFormData<ApiResponse>(`/enrollments/${this.enrollment.id}/members`, prepared).subscribe({
         next: async (res) => {
           this.savingMember = false;
           if (res.success) {
@@ -315,7 +323,7 @@ export class RenewalsPage implements OnInit {
     }
 
     const addToRenewal = (renewalId: number) =>
-      this.api.postFormData<ApiResponse>(`/renewals/${renewalId}/members`, fd);
+      this.api.postFormData<ApiResponse>(`/renewals/${renewalId}/members`, prepared);
 
     const activeRenewal = this.renewals.find(r => ['eligible', 'draft'].includes(r.status));
     if (activeRenewal) {
@@ -472,5 +480,9 @@ export class RenewalsPage implements OnInit {
       rejected: 'Rejected',
     };
     return map[status] || status;
+  }
+
+  displayDate(adDate?: string | null, bsDate?: string | null): string {
+    return this.dateService.formatForDisplay(adDate, bsDate) || '';
   }
 }

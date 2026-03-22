@@ -70,7 +70,7 @@
                   <span class="nepali-name" *ngIf="enrollment.household_head.first_name_ne">{{ enrollment.household_head.first_name_ne }} {{ enrollment.household_head.middle_name_ne || '' }} {{ enrollment.household_head.last_name_ne || '' }}</span>
                   <div class="head-meta">
                     <span *ngIf="enrollment.household_head.gender"><ion-icon name="male-female-outline"></ion-icon> {{ enrollment.household_head.gender | titlecase }}</span>
-                    <span *ngIf="enrollment.household_head.date_of_birth"><ion-icon name="calendar-outline"></ion-icon> {{ enrollment.household_head.date_of_birth | date:'mediumDate' }}</span>
+                    <span *ngIf="enrollment.household_head.date_of_birth"><ion-icon name="calendar-outline"></ion-icon> {{ displayDate(enrollment.household_head.date_of_birth, enrollment.household_head.date_of_birth_bs) }}</span>
                   </div>
                   <div class="head-meta">
                     <span *ngIf="enrollment.household_head.mobile_number"><ion-icon name="call-outline"></ion-icon> {{ enrollment.household_head.mobile_number }}</span>
@@ -326,9 +326,7 @@
                   <ion-select-option value="other">Other</ion-select-option>
                 </ion-select>
               </ion-item>
-              <ion-item class="form-item">
-                <ion-input label="Date of Birth *" labelPlacement="stacked" type="date" [(ngModel)]="newMember.date_of_birth"></ion-input>
-              </ion-item>
+              <app-bs-date-picker [(ngModel)]="newMember.date_of_birth" label="Date of Birth *" placeholder="Select BS date"></app-bs-date-picker>
               <ion-item class="form-item">
                 <ion-select label="Relationship to Head *" labelPlacement="stacked" [(ngModel)]="newMember.relationship">
                   <ion-select-option value="spouse">Spouse</ion-select-option>
@@ -384,9 +382,7 @@
                 <ion-item class="form-item">
                   <ion-input label="Citizenship Number" labelPlacement="stacked" [(ngModel)]="newMember.citizenship_number"></ion-input>
                 </ion-item>
-                <ion-item class="form-item">
-                  <ion-input label="Issue Date" labelPlacement="stacked" type="date" [(ngModel)]="newMember.citizenship_issue_date"></ion-input>
-                </ion-item>
+                <app-bs-date-picker [(ngModel)]="newMember.citizenship_issue_date" label="Issue Date" placeholder="Select BS date"></app-bs-date-picker>
                 <ion-item class="form-item">
                   <ion-input label="Issue District" labelPlacement="stacked" [(ngModel)]="newMember.citizenship_issue_district"></ion-input>
                 </ion-item>
@@ -417,9 +413,7 @@
                 <ion-item class="form-item">
                   <ion-input label="Birth Certificate Number" labelPlacement="stacked" [(ngModel)]="newMember.birth_certificate_number"></ion-input>
                 </ion-item>
-                <ion-item class="form-item">
-                  <ion-input label="Issue Date" labelPlacement="stacked" type="date" [(ngModel)]="newMember.birth_certificate_issue_date"></ion-input>
-                </ion-item>
+                <app-bs-date-picker [(ngModel)]="newMember.birth_certificate_issue_date" label="Issue Date" placeholder="Select BS date"></app-bs-date-picker>
                 <div class="capture-section">
                   <div class="capture-row">
                     <span class="capture-label">Birth Certificate Front</span>

@@ -58,15 +58,15 @@
               <div class="info-grid">
                 <div class="info-cell" *ngIf="policy.start_date">
                   <span class="info-label">Valid From</span>
-                  <span class="info-value">{{ policy.start_date | date:'mediumDate' }}</span>
+                  <span class="info-value">{{ displayDate(policy.start_date, policy.start_date_bs) }}</span>
                 </div>
                 <div class="info-cell" *ngIf="policy.end_date">
                   <span class="info-label">Valid Until</span>
-                  <span class="info-value">{{ policy.end_date | date:'mediumDate' }}</span>
+                  <span class="info-value">{{ displayDate(policy.end_date, policy.end_date_bs) }}</span>
                 </div>
                 <div class="info-cell" *ngIf="policy.enrollment_date">
                   <span class="info-label">Enrolled On</span>
-                  <span class="info-value">{{ policy.enrollment_date | date:'mediumDate' }}</span>
+                  <span class="info-value">{{ displayDate(policy.enrollment_date, policy.enrollment_date_bs) }}</span>
                 </div>
                 <div class="info-cell" *ngIf="policy.payment_method">
                   <span class="info-label">Payment Via</span>
@@ -137,7 +137,7 @@
                 </div>
                 <div class="info-cell" *ngIf="policy.household_head.date_of_birth">
                   <span class="info-label">Date of Birth</span>
-                  <span class="info-value">{{ policy.household_head.date_of_birth | date:'mediumDate' }}</span>
+                  <span class="info-value">{{ displayDate(policy.household_head.date_of_birth, policy.household_head.date_of_birth_bs) }}</span>
                 </div>
                 <div class="info-cell" *ngIf="policy.household_head.citizenship_number">
                   <span class="info-label">Citizenship No.</span>
@@ -172,7 +172,7 @@
                     <strong>{{ m.full_name }}</strong>
                     <span class="member-meta">
                       {{ m.relationship || 'Member' }} &bull; {{ m.gender | titlecase }}
-                      <span *ngIf="m.date_of_birth"> &bull; {{ m.date_of_birth | date:'mediumDate' }}</span>
+                      <span *ngIf="m.date_of_birth"> &bull; {{ displayDate(m.date_of_birth, m.date_of_birth_bs) }}</span>
                     </span>
                     <span class="member-id" *ngIf="m.citizenship_number">ID: {{ m.citizenship_number }}</span>
                   </div>
@@ -205,11 +205,11 @@
                 </div>
                 <div class="info-cell" *ngIf="policy.renewal.renewal_start">
                   <span class="info-label">Period Start</span>
-                  <span class="info-value">{{ policy.renewal.renewal_start | date:'mediumDate' }}</span>
+                  <span class="info-value">{{ displayDate(policy.renewal.renewal_start, policy.renewal.renewal_start_bs) }}</span>
                 </div>
                 <div class="info-cell" *ngIf="policy.renewal.renewal_end">
                   <span class="info-label">Period End</span>
-                  <span class="info-value">{{ policy.renewal.renewal_end | date:'mediumDate' }}</span>
+                  <span class="info-value">{{ displayDate(policy.renewal.renewal_end, policy.renewal.renewal_end_bs) }}</span>
                 </div>
               </div>
             </ion-card-content>
@@ -229,7 +229,7 @@
                 <div class="history-item" *ngFor="let h of history">
                   <div class="history-left">
                     <strong>{{ h.enrollment_number || '#' + h.id }}</strong>
-                    <span class="history-date">{{ h.created_at | date:'mediumDate' }}</span>
+                    <span class="history-date">{{ displayDate(h.created_at, h.created_at_bs) }}</span>
                   </div>
                   <ion-badge [color]="getStatusColor(h.status)">
                     {{ formatStatus(h.status) }}

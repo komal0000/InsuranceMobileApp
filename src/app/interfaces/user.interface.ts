@@ -6,6 +6,7 @@ export interface User {
   mobile_number: string;
   national_id?: string;
   date_of_birth?: string;
+  date_of_birth_bs?: string;
   province?: string;
   district?: string;
   profile_image?: string;
@@ -61,6 +62,7 @@ export interface ProfileUpdateRequest {
   email?: string;
   mobile_number?: string;
   date_of_birth?: string;
+  date_of_birth_bs?: string;
   province?: string;
   district?: string;
 }

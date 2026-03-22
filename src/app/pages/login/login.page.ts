@@ -8,18 +8,20 @@ import {
 } from '@ionic/angular/standalone';
 import { ToastController } from '@ionic/angular/standalone';
 import { AuthService } from '../../services/auth.service';
+import { DateService } from '../../services/date.service';
 import { LoginRequest } from '../../interfaces/user.interface';
 import { addIcons } from 'ionicons';
 import {
   logInOutline, personOutline, lockClosedOutline, eyeOutline,
   eyeOffOutline, shieldCheckmarkOutline, languageOutline
 } from 'ionicons/icons';
+import { BsDatePickerComponent } from '../../components/bs-date-picker/bs-date-picker.component';
 
 @Component({
   selector: 'app-login',
   standalone: true,
   imports: [
-    CommonModule, FormsModule, RouterLink,
+    CommonModule, FormsModule, RouterLink, BsDatePickerComponent,
     IonContent, IonButton, IonItem, IonInput, IonSelect, IonSelectOption,
     IonCheckbox, IonSpinner, IonIcon
   ],
@@ -43,6 +45,7 @@ export class LoginPage {
 
   constructor(
     private authService: AuthService,
+    private dateService: DateService,
     private router: Router,
     private toastCtrl: ToastController
   ) {
@@ -82,7 +85,13 @@ export class LoginPage {
     }
 
     this.loading = true;
-    const requestData = { ...this.loginData, remember: this.rememberMe };
+    const requestData = {
+      ...this.loginData,
+      identifier: this.loginData.identifier_type === 'dob'
+        ? this.dateService.toApiDate(this.loginData.identifier)
+        : this.loginData.identifier,
+      remember: this.rememberMe
+    };
     this.authService.login(requestData).subscribe({
       next: async (res) => {
         this.loading = false;

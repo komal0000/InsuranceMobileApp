@@ -17,12 +17,15 @@ export interface Enrollment {
   subsidy_amount: number;
   final_premium: number;
   policy_start_date: string;
+  policy_start_date_bs?: string;
   policy_end_date: string;
+  policy_end_date_bs?: string;
   current_step: 1 | 2 | 3 | 4;
   step_data: any;
   payment_method: string;
   payment_reference: string;
   payment_date: string;
+  payment_date_bs?: string;
   rejection_reason?: string;
   created_at: string;
   updated_at: string;
@@ -54,6 +57,7 @@ export interface HouseholdHead {
   last_name_ne?: string;
   gender: 'male' | 'female' | 'other';
   date_of_birth: string;
+  date_of_birth_bs?: string;
   blood_group?: string;
   marital_status?: string;
   relationship?: string;
@@ -61,6 +65,7 @@ export interface HouseholdHead {
   email?: string;
   citizenship_number?: string;
   citizenship_issue_date?: string;
+  citizenship_issue_date_bs?: string;
   citizenship_issue_district?: string;
   is_target_group: boolean;
   target_group_type?: string;
@@ -90,6 +95,7 @@ export interface FamilyMember {
   last_name_ne?: string;
   gender: 'male' | 'female' | 'other';
   date_of_birth: string;
+  date_of_birth_bs?: string;
   blood_group?: string;
   marital_status?: string;
   relationship: string;
@@ -99,9 +105,11 @@ export interface FamilyMember {
   document_type?: 'citizenship' | 'birth_certificate';
   citizenship_number?: string;
   citizenship_issue_date?: string;
+  citizenship_issue_date_bs?: string;
   citizenship_issue_district?: string;
   birth_certificate_number?: string;
   birth_certificate_issue_date?: string;
+  birth_certificate_issue_date_bs?: string;
   birth_certificate_front_image?: string;
   birth_certificate_back_image?: string;
   is_target_group: boolean;
@@ -170,6 +178,7 @@ export interface NidLookupResponse {
     name_ne: string | null;
     gender: string | null;
     date_of_birth: string | null;
+    date_of_birth_bs?: string | null;
     mobile_number: string | null;
     email: string | null;
     national_id: string;

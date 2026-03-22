@@ -14,14 +14,16 @@ import {
   checkmarkCircleOutline, createOutline, walletOutline, shieldCheckmarkOutline
 } from 'ionicons/icons';
 import { ApiService } from '../../services/api.service';
+import { DateService } from '../../services/date.service';
 import { ApiResponse } from '../../interfaces/api-response.interface';
 import { Renewal } from '../../interfaces/renewal.interface';
+import { BsDatePickerComponent } from '../../components/bs-date-picker/bs-date-picker.component';
 
 @Component({
   selector: 'app-renewal-detail',
   standalone: true,
   imports: [
-    CommonModule, FormsModule,
+    CommonModule, FormsModule, BsDatePickerComponent,
     IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton,
     IonCard, IonCardContent, IonBadge, IonIcon, IonButton, IonSpinner,
     IonInput, IonItem, IonSelect, IonSelectOption
@@ -41,6 +43,7 @@ export class RenewalDetailPage implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private api: ApiService,
+    private dateService: DateService,
     private toastCtrl: ToastController,
     private alertCtrl: AlertController
   ) {
@@ -82,7 +85,7 @@ export class RenewalDetailPage implements OnInit {
 
   addMember() {
     if (this.newMember.date_of_birth) {
-      const birth = new Date(this.newMember.date_of_birth);
+      const birth = new Date(this.dateService.toApiDate(this.newMember.date_of_birth));
       const today = new Date();
       let age = today.getFullYear() - birth.getFullYear();
       const m = today.getMonth() - birth.getMonth();
@@ -92,7 +95,8 @@ export class RenewalDetailPage implements OnInit {
         return;
       }
     }
-    this.api.post<ApiResponse>(`/renewals/${this.renewalId}/members`, this.newMember).subscribe({
+    const payload = this.dateService.preparePayloadForApi(this.newMember as Record<string, unknown>, ['date_of_birth']);
+    this.api.post<ApiResponse>(`/renewals/${this.renewalId}/members`, payload).subscribe({
       next: async (res) => {
         if (res.success) {
           this.showMemberForm = false;
@@ -202,5 +206,9 @@ export class RenewalDetailPage implements OnInit {
 
   formatStatus(s: string): string {
     return (s || '').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  }
+
+  displayDate(adDate?: string | null, bsDate?: string | null): string {
+    return this.dateService.formatForDisplay(adDate, bsDate) || '';
   }
 }

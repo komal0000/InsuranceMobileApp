@@ -15,14 +15,16 @@ import {
 } from 'ionicons/icons';
 import { AuthService } from '../../services/auth.service';
 import { ApiService } from '../../services/api.service';
+import { DateService } from '../../services/date.service';
 import { ApiResponse } from '../../interfaces/api-response.interface';
 import { User, ProfileUpdateRequest, ChangePasswordRequest } from '../../interfaces/user.interface';
+import { BsDatePickerComponent } from '../../components/bs-date-picker/bs-date-picker.component';
 
 @Component({
   selector: 'app-profile',
   standalone: true,
   imports: [
-    CommonModule, FormsModule,
+    CommonModule, FormsModule, BsDatePickerComponent,
     IonContent, IonHeader, IonToolbar, IonTitle, IonCard, IonCardContent,
     IonItem, IonInput, IonIcon, IonButton, IonSpinner
   ],
@@ -44,6 +46,7 @@ export class ProfilePage implements OnInit {
   constructor(
     private authService: AuthService,
     private api: ApiService,
+    private dateService: DateService,
     private router: Router,
     private toastCtrl: ToastController,
     private alertCtrl: AlertController,
@@ -73,7 +76,7 @@ export class ProfilePage implements OnInit {
         name_ne: this.user.name_ne,
         email: this.user.email,
         mobile_number: this.user.mobile_number,
-        date_of_birth: this.user.date_of_birth,
+        date_of_birth: this.dateService.formatForDisplay(this.user.date_of_birth, this.user.date_of_birth_bs),
         province: this.user.province,
         district: this.user.district,
       };
@@ -139,7 +142,11 @@ export class ProfilePage implements OnInit {
       return;
     }
     this.savingProfile = true;
-    this.api.put<ApiResponse>('/profile', this.profileData).subscribe({
+    const payload = this.dateService.preparePayloadForApi(
+      this.profileData as Record<string, unknown>,
+      ['date_of_birth']
+    );
+    this.api.put<ApiResponse>('/profile', payload).subscribe({
       next: async (res) => {
         this.savingProfile = false;
         this.editing = false;
@@ -211,5 +218,9 @@ export class ProfilePage implements OnInit {
 
   formatRole(role?: string): string {
     return (role || '').replace(/_/g, ' ');
+  }
+
+  displayDate(adDate?: string | null, bsDate?: string | null): string {
+    return this.dateService.formatForDisplay(adDate, bsDate) || '';
   }
 }

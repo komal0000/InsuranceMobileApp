@@ -11,6 +11,7 @@ import {
   refreshOutline
 } from 'ionicons/icons';
 import { ApiService } from '../../services/api.service';
+import { DateService } from '../../services/date.service';
 import { ApiResponse } from '../../interfaces/api-response.interface';
 
 @Component({
@@ -29,7 +30,10 @@ export class MyPolicyPage implements OnInit {
   history: any[] = [];
   loading = true;
 
-  constructor(private api: ApiService) {
+  constructor(
+    private api: ApiService,
+    private dateService: DateService
+  ) {
     addIcons({
       shieldCheckmarkOutline, documentTextOutline, calendarOutline,
       peopleOutline, personOutline, locationOutline, cashOutline,
@@ -85,5 +89,9 @@ export class MyPolicyPage implements OnInit {
     const end = new Date(this.policy.end_date);
     const now = new Date();
     return Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+  }
+
+  displayDate(adDate?: string | null, bsDate?: string | null): string {
+    return this.dateService.formatForDisplay(adDate, bsDate) || '';
   }
 }

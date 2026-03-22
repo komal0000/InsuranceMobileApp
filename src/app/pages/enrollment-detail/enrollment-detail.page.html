@@ -104,7 +104,7 @@
               </ng-template>
               <div class="head-details">
                 <strong>{{ enrollment.household_head.first_name }} {{ enrollment.household_head.last_name }}</strong>
-                <span>{{ enrollment.household_head.gender | titlecase }} | DOB: {{ enrollment.household_head.date_of_birth | date:'mediumDate' }}</span>
+                <span>{{ enrollment.household_head.gender | titlecase }} | DOB: {{ displayDate(enrollment.household_head.date_of_birth, enrollment.household_head.date_of_birth_bs) }}</span>
                 <span *ngIf="enrollment.household_head.citizenship_number">Citizenship: {{ enrollment.household_head.citizenship_number }}</span>
                 <span *ngIf="enrollment.household_head.mobile_number">Mobile: {{ enrollment.household_head.mobile_number }}</span>
               </div>
@@ -126,7 +126,7 @@
                 <div class="member-avatar">{{ (member.first_name || '').charAt(0) | uppercase }}</div>
                 <div class="member-info">
                   <strong>{{ member.first_name }} {{ member.last_name }}</strong>
-                  <span>{{ member.relationship_type }} | {{ member.gender }} | DOB: {{ member.date_of_birth | date:'mediumDate' }}</span>
+                  <span>{{ member.relationship_type }} | {{ member.gender }} | DOB: {{ displayDate(member.date_of_birth, member.date_of_birth_bs) }}</span>
                 </div>
               </div>
             </div>
