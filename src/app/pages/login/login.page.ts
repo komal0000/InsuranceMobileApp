@@ -8,20 +8,18 @@ import {
 } from '@ionic/angular/standalone';
 import { ToastController } from '@ionic/angular/standalone';
 import { AuthService } from '../../services/auth.service';
-import { DateService } from '../../services/date.service';
 import { LoginRequest } from '../../interfaces/user.interface';
 import { addIcons } from 'ionicons';
 import {
   logInOutline, personOutline, lockClosedOutline, eyeOutline,
   eyeOffOutline, shieldCheckmarkOutline, languageOutline
 } from 'ionicons/icons';
-import { BsDatePickerComponent } from '../../components/bs-date-picker/bs-date-picker.component';
 
 @Component({
   selector: 'app-login',
   standalone: true,
   imports: [
-    CommonModule, FormsModule, RouterLink, BsDatePickerComponent,
+    CommonModule, FormsModule, RouterLink,
     IonContent, IonButton, IonItem, IonInput, IonSelect, IonSelectOption,
     IonCheckbox, IonSpinner, IonIcon
   ],
@@ -39,13 +37,11 @@ export class LoginPage {
   showPassword = false;
   lang = 'en';
 
-  identifierLabel = 'Mobile Number';
   identifierPlaceholder = 'Enter mobile number';
   identifierInputType = 'tel';
 
   constructor(
     private authService: AuthService,
-    private dateService: DateService,
     private router: Router,
     private toastCtrl: ToastController
   ) {
@@ -61,14 +57,11 @@ export class LoginPage {
   }
 
   onIdentifierTypeChange() {
-    const typeMap: Record<string, { label: string; labelNe: string; placeholder: string; placeholderNe: string; type: string }> = {
-      mobile:      { label: 'Mobile Number', labelNe: 'मोबाइल नम्बर', placeholder: 'Enter mobile number', placeholderNe: 'मोबाइल नम्बर प्रविष्ट गर्नुहोस्', type: 'tel' },
-      hib_number:  { label: 'HIB Number', labelNe: 'HIB नम्बर', placeholder: 'Enter HIB number', placeholderNe: 'HIB नम्बर प्रविष्ट गर्नुहोस्', type: 'text' },
-      national_id: { label: 'National ID', labelNe: 'राष्ट्रिय परिचयपत्र', placeholder: 'Enter national ID', placeholderNe: 'राष्ट्रिय परिचयपत्र प्रविष्ट गर्नुहोस्', type: 'text' },
-      dob:         { label: 'Date of Birth', labelNe: 'जन्म मिति', placeholder: 'YYYY-MM-DD', placeholderNe: 'YYYY-MM-DD', type: 'date' },
+    const typeMap: Record<string, { placeholder: string; placeholderNe: string; type: string }> = {
+      mobile:      { placeholder: 'Enter mobile number', placeholderNe: 'मोबाइल नम्बर प्रविष्ट गर्नुहोस्', type: 'tel' },
+      hib_number:  { placeholder: 'Enter HIB number', placeholderNe: 'HIB नम्बर प्रविष्ट गर्नुहोस्', type: 'text' },
     };
-    const cfg = typeMap[this.loginData.identifier_type];
-    this.identifierLabel = this.lang === 'en' ? cfg.label : cfg.labelNe;
+    const cfg = typeMap[this.loginData.identifier_type] ?? typeMap.mobile;
     this.identifierPlaceholder = this.lang === 'en' ? cfg.placeholder : cfg.placeholderNe;
     this.identifierInputType = cfg.type;
     this.loginData.identifier = '';
@@ -87,9 +80,7 @@ export class LoginPage {
     this.loading = true;
     const requestData = {
       ...this.loginData,
-      identifier: this.loginData.identifier_type === 'dob'
-        ? this.dateService.toApiDate(this.loginData.identifier)
-        : this.loginData.identifier,
+      identifier: this.loginData.identifier,
       remember: this.rememberMe
     };
     this.authService.login(requestData).subscribe({

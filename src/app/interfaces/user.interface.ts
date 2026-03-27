@@ -26,7 +26,7 @@ export type UserRole =
   | 'beneficiary';
 
 export interface LoginRequest {
-  identifier_type: 'mobile' | 'hib_number' | 'national_id' | 'dob';
+  identifier_type: 'mobile' | 'hib_number';
   identifier: string;
   password: string;
   remember?: boolean;

@@ -34,14 +34,12 @@
             placeholder="Select login type">
             <ion-select-option value="mobile">{{ lang === 'en' ? 'Mobile Number' : 'मोबाइल नम्बर' }}</ion-select-option>
             <ion-select-option value="hib_number">{{ lang === 'en' ? 'HIB Number' : 'HIB नम्बर' }}</ion-select-option>
-            <ion-select-option value="national_id">{{ lang === 'en' ? 'National ID' : 'राष्ट्रिय परिचयपत्र' }}</ion-select-option>
-            <ion-select-option value="dob">{{ lang === 'en' ? 'Date of Birth' : 'जन्म मिति' }}</ion-select-option>
           </ion-select>
         </ion-item>
       </div>
 
       <div class="form-group">
-        <ion-item lines="none" class="form-item" *ngIf="loginData.identifier_type !== 'dob'">
+        <ion-item lines="none" class="form-item">
           <ion-icon name="person-outline" slot="start" class="input-icon"></ion-icon>
           <ion-input
             [type]="identifierInputType"
@@ -50,12 +48,6 @@
             required>
           </ion-input>
         </ion-item>
-        <app-bs-date-picker
-          *ngIf="loginData.identifier_type === 'dob'"
-          [(ngModel)]="loginData.identifier"
-          [label]="identifierLabel"
-          [placeholder]="identifierPlaceholder">
-        </app-bs-date-picker>
       </div>
 
       <div class="form-group">
