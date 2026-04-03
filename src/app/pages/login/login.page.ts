@@ -61,11 +61,13 @@ export class LoginPage {
       mobile:      { placeholder: 'Enter mobile number', placeholderNe: 'मोबाइल नम्बर प्रविष्ट गर्नुहोस्', type: 'tel' },
       hib_number:  { placeholder: 'Enter HIB number', placeholderNe: 'HIB नम्बर प्रविष्ट गर्नुहोस्', type: 'text' },
     };
-    const cfg = typeMap[this.loginData.identifier_type] ?? typeMap.mobile;
+    const cfg = typeMap[this.loginData.identifier_type] ?? typeMap['mobile'];
     this.identifierPlaceholder = this.lang === 'en' ? cfg.placeholder : cfg.placeholderNe;
     this.identifierInputType = cfg.type;
     this.loginData.identifier = '';
+
   }
+
 
   async login() {
     if (!this.loginData.identifier || !this.loginData.password) {
