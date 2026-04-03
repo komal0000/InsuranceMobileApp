@@ -121,7 +121,11 @@ export class PaymentPage implements OnInit {
       },
       error: (err) => {
         this.loading = false;
-        this.showToast(err?.error?.message || 'Payment initiation failed.', 'danger');
+        const gatewayErr = err?.error?.gateway_error;
+        const detail = gatewayErr
+          ? ' (' + (gatewayErr.detail || gatewayErr.return_url?.[0] || gatewayErr.website_url?.[0] || gatewayErr.amount?.[0] || JSON.stringify(gatewayErr)) + ')'
+          : '';
+        this.showToast((err?.error?.message || 'Payment initiation failed.') + detail, 'danger');
       },
     });
   }
