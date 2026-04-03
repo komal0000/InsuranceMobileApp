@@ -75,16 +75,16 @@ export class PushNotificationService {
   }
 
   removeToken(token: string): void {
-    this.api.delete('/device-tokens').subscribe({
+    this.api.delete('/device-tokens', { token }).subscribe({
       error: (err) => console.error('Failed to remove FCM token:', err),
     });
   }
 
   fetchUnreadCount(): void {
-    this.api.get<{ success: boolean; data: { count: number } }>('/notifications/unread-count').subscribe({
+    this.api.get<{ success: boolean; data: { unread_count: number } }>('/notifications/unread-count').subscribe({
       next: (res) => {
         if (res.success) {
-          this.unreadCount$.next(res.data.count);
+          this.unreadCount$.next(res.data.unread_count);
         }
       },
       error: () => {},
