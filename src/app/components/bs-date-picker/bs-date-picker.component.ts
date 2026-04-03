@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, OnDestroy, Output, forwardRef } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
-import { IonIcon } from '@ionic/angular/standalone';
+import { IonIcon, IonModal } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { calendarClearOutline, calendarOutline, chevronBackOutline, chevronForwardOutline } from 'ionicons/icons';
 import { DateService } from '../../services/date.service';
@@ -25,7 +25,7 @@ const FALLBACK_TODAY: BsDateValue = { year: 2081, month: 12, day: 6 };
 @Component({
   selector: 'app-bs-date-picker',
   standalone: true,
-  imports: [CommonModule, IonIcon],
+  imports: [CommonModule, IonIcon, IonModal],
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
@@ -39,12 +39,14 @@ const FALLBACK_TODAY: BsDateValue = { year: 2081, month: 12, day: 6 };
         {{ label }}<span *ngIf="required"> *</span>
       </label>
 
-      <button
-        type="button"
+      <div
         class="trigger-field"
         [class.is-disabled]="disabled"
-        [disabled]="disabled"
-        (click)="openSheet()"
+        (click)="!disabled && openSheet()"
+        role="button"
+        [attr.tabindex]="disabled ? -1 : 0"
+        (keydown.enter)="!disabled && openSheet()"
+        (keydown.space)="!disabled && openSheet()"
       >
         <span class="trigger-value" [class.is-placeholder]="!selectedDate">
           {{ displayValue || placeholder }}
@@ -59,94 +61,94 @@ const FALLBACK_TODAY: BsDateValue = { year: 2081, month: 12, day: 6 };
         >
           <ion-icon name="calendar-outline"></ion-icon>
         </button>
-      </button>
+      </div>
     </div>
 
-    <div
-      *ngIf="isOpen"
-      class="sheet-overlay open"
-      (click)="closeSheet()"
-      aria-hidden="true"
-    ></div>
-
-    <section
-      *ngIf="isOpen"
-      class="sheet-panel open"
-      [attr.aria-hidden]="!isOpen"
-      (click)="$event.stopPropagation()"
+    <ion-modal
+      [isOpen]="isOpen"
+      (didDismiss)="closeSheet()"
+      [breakpoints]="[0, 0.55, 0.7]"
+      [initialBreakpoint]="0.55"
+      [backdropDismiss]="true"
+      [showBackdrop]="true"
+      cssClass="bs-date-modal"
     >
-      <div class="sheet-handle" aria-hidden="true"></div>
+      <ng-template>
+        <div class="sheet-panel">
+          <div class="sheet-handle" aria-hidden="true"></div>
 
-      <header class="sheet-header">
-        <div class="header-copy">
-          <span class="header-label">बिक्रम सम्वत्</span>
-          <strong class="header-title">{{ selectedFullDate || 'मिति छान्नुहोस्' }}</strong>
+          <header class="sheet-header">
+            <div class="header-copy">
+              <span class="header-label">बिक्रम सम्वत्</span>
+              <strong class="header-title">{{ selectedFullDate || 'मिति छान्नुहोस्' }}</strong>
+            </div>
+          </header>
+
+          <div class="calendar-toolbar">
+            <button type="button" class="nav-button" (click)="goToPreviousMonth()" aria-label="अघिल्लो महिना">
+              <ion-icon name="chevron-back-outline"></ion-icon>
+            </button>
+
+            <div class="select-group">
+              <select class="picker-select month-select" [value]="viewMonth" (change)="onMonthChange($event)">
+                <option *ngFor="let month of months; let index = index" [value]="index + 1">
+                  {{ month }}
+                </option>
+              </select>
+
+              <select class="picker-select year-select" [value]="viewYear" (change)="onYearChange($event)">
+                <option *ngFor="let year of years" [value]="year">{{ toNepaliNumber(year) }}</option>
+              </select>
+            </div>
+
+            <button type="button" class="nav-button" (click)="goToNextMonth()" aria-label="अर्को महिना">
+              <ion-icon name="chevron-forward-outline"></ion-icon>
+            </button>
+          </div>
+
+          <div class="weekday-row">
+            <span
+              *ngFor="let dayName of weekdayLabels; let index = index"
+              class="weekday"
+              [class.saturday]="index === 6"
+            >
+              {{ dayName }}
+            </span>
+          </div>
+
+          <div class="calendar-grid">
+            <div *ngFor="let _ of leadingPlaceholders" class="day-placeholder"></div>
+
+            <button
+              *ngFor="let cell of calendarCells"
+              type="button"
+              class="day-cell"
+              [class.is-today]="cell.today"
+              [class.is-selected]="cell.selected"
+              (click)="selectDay(cell.day)"
+            >
+              <span class="day-number">{{ toNepaliNumber(cell.day) }}</span>
+              <span *ngIf="cell.today && !cell.selected" class="today-dot" aria-hidden="true"></span>
+            </button>
+          </div>
+
+          <footer class="sheet-footer">
+            <button type="button" class="footer-button subtle" (click)="selectToday()">
+              <ion-icon name="calendar-clear-outline"></ion-icon>
+              <span>आज</span>
+            </button>
+
+            <button type="button" class="footer-button accent" (click)="closeSheet()">
+              <span>पुष्टि गर्नुहोस्</span>
+            </button>
+          </footer>
+
+          <button *ngIf="selectedDate" type="button" class="clear-link" (click)="clearSelection()">
+            मेटाउनुहोस्
+          </button>
         </div>
-      </header>
-
-      <div class="calendar-toolbar">
-        <button type="button" class="nav-button" (click)="goToPreviousMonth()" aria-label="अघिल्लो महिना">
-          <ion-icon name="chevron-back-outline"></ion-icon>
-        </button>
-
-        <div class="select-group">
-          <select class="picker-select month-select" [value]="viewMonth" (change)="onMonthChange($event)">
-            <option *ngFor="let month of months; let index = index" [value]="index + 1">
-              {{ month }}
-            </option>
-          </select>
-
-          <select class="picker-select year-select" [value]="viewYear" (change)="onYearChange($event)">
-            <option *ngFor="let year of years" [value]="year">{{ toNepaliNumber(year) }}</option>
-          </select>
-        </div>
-
-        <button type="button" class="nav-button" (click)="goToNextMonth()" aria-label="अर्को महिना">
-          <ion-icon name="chevron-forward-outline"></ion-icon>
-        </button>
-      </div>
-
-      <div class="weekday-row">
-        <span
-          *ngFor="let dayName of weekdayLabels; let index = index"
-          class="weekday"
-          [class.saturday]="index === 6"
-        >
-          {{ dayName }}
-        </span>
-      </div>
-
-      <div class="calendar-grid">
-        <div *ngFor="let _ of leadingPlaceholders" class="day-placeholder"></div>
-
-        <button
-          *ngFor="let cell of calendarCells"
-          type="button"
-          class="day-cell"
-          [class.is-today]="cell.today"
-          [class.is-selected]="cell.selected"
-          (click)="selectDay(cell.day)"
-        >
-          <span class="day-number">{{ toNepaliNumber(cell.day) }}</span>
-          <span *ngIf="cell.today && !cell.selected" class="today-dot" aria-hidden="true"></span>
-        </button>
-      </div>
-
-      <footer class="sheet-footer">
-        <button type="button" class="footer-button subtle" (click)="selectToday()">
-          <ion-icon name="calendar-clear-outline"></ion-icon>
-          <span>आज</span>
-        </button>
-
-        <button type="button" class="footer-button accent" (click)="closeSheet()">
-          <span>पुष्टि गर्नुहोस्</span>
-        </button>
-      </footer>
-
-      <button *ngIf="selectedDate" type="button" class="clear-link" (click)="clearSelection()">
-        मेटाउनुहोस्
-      </button>
-    </section>
+      </ng-template>
+    </ion-modal>
   `,
   styles: [`
     :host {
@@ -233,41 +235,14 @@ const FALLBACK_TODAY: BsDateValue = { year: 2081, month: 12, day: 6 };
       cursor: pointer;
     }
 
-    .sheet-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(20, 8, 8, 0.5);
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.25s ease;
-      z-index: 99998;
-    }
-
-    .sheet-overlay.open {
-      opacity: 1;
-      pointer-events: auto;
-    }
-
     .sheet-panel {
-      position: fixed;
-      left: 0;
-      right: 0;
-      bottom: 56px;
-      width: min(100%, 316px);
+      width: 100%;
+      max-width: 316px;
       margin: 0 auto;
-      padding: 8px 12px calc(env(safe-area-inset-bottom, 8px) + 10px);
+      padding: 8px 12px 16px;
       background: #fff;
-      border-radius: 16px;
-      box-shadow: 0 16px 34px rgba(0, 0, 0, 0.22);
-      transform: translateY(24px);
-      opacity: 0;
-      transition: transform 0.28s ease, opacity 0.28s ease;
-      z-index: 99999;
-    }
-
-    .sheet-panel.open {
-      transform: translateY(0);
-      opacity: 1;
+      color: #4a1010;
+      font-size: 14px;
     }
 
     .sheet-handle {
@@ -473,13 +448,6 @@ const FALLBACK_TODAY: BsDateValue = { year: 2081, month: 12, day: 6 };
     }
 
     @media (max-width: 360px) {
-      .sheet-panel {
-        bottom: 44px;
-        width: calc(100vw - 34px);
-        padding-left: 10px;
-        padding-right: 10px;
-      }
-
       .select-group {
         grid-template-columns: minmax(0, 1fr) 76px;
       }
@@ -599,6 +567,8 @@ export class BsDatePickerComponent implements ControlValueAccessor, OnDestroy {
     if (this.disabled) {
       return;
     }
+
+    console.log('[BS Date Picker] clicked');
 
     const focusDate = this.selectedDate ?? this.todayDate;
     this.viewYear = focusDate.year;

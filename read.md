@@ -34,7 +34,7 @@ The mobile app calls the backend API from these files:
 Current value:
 
 ```ts
-apiUrl: 'http://192.168.254.30:8000/api'
+apiUrl: 'http://192.168.254.20:8000/api'
 ```
 
 Update this value if your Laravel backend is running on a different IP address, host, or port.
