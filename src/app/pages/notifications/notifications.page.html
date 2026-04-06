@@ -31,7 +31,7 @@
               <ion-badge color="primary" *ngIf="!n.is_read" class="new-badge">New</ion-badge>
             </div>
             <p class="notif-message">{{ n.message }}</p>
-            <span class="notif-date">{{ n.created_at | date:'medium' }}</span>
+            <span class="notif-date">{{ displayDateTime(n.created_at) }}</span>
           </div>
         </div>
       </div>

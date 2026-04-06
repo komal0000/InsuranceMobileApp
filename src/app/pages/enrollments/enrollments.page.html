@@ -51,7 +51,7 @@
         </div>
 
         <div class="card-bottom-row">
-          <span class="date-text">{{ e.created_at | date:'mediumDate' }}</span>
+          <span class="date-text">{{ displayDate(e.created_at) }}</span>
           <span class="premium-text" *ngIf="e.premium_amount">Rs. {{ e.premium_amount }}</span>
         </div>
 

@@ -19,6 +19,10 @@ export class DateService {
       return '';
     }
 
+    if (!this.isAdDate(normalized)) {
+      return normalized;
+    }
+
     try {
       return convertAdToBs(normalized);
     } catch {
@@ -32,11 +36,19 @@ export class DateService {
       return '';
     }
 
-    try {
-      return convertBsToAd(normalized);
-    } catch {
+    if (this.isBsDate(normalized)) {
+      try {
+        return convertBsToAd(normalized);
+      } catch {
+        return normalized;
+      }
+    }
+
+    if (this.isAdDate(normalized)) {
       return normalized;
     }
+
+    return normalized;
   }
 
   getCurrentBs(): string {
@@ -76,8 +88,54 @@ export class DateService {
     return this.adToBs(adDate);
   }
 
+  formatDateTimeForDisplay(
+    adDate?: string | null,
+    bsDate?: string | null,
+    includeSeconds = false
+  ): string {
+    const datePart = this.formatForDisplay(adDate, bsDate);
+    if (!datePart) {
+      return '';
+    }
+
+    const timePart = this.extractTime(adDate ?? bsDate ?? null);
+    if (!timePart) {
+      return datePart;
+    }
+
+    const [hours = '00', minutes = '00', seconds = '00'] = timePart.split(':');
+    const safeTime = includeSeconds
+      ? `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}:${seconds.padStart(2, '0')}`
+      : `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`;
+
+    return `${datePart} ${safeTime}`;
+  }
+
   toApiDate(value: string | Date | null | undefined): string {
-    return this.bsToAd(value);
+    const normalized = this.normalizeDate(value);
+    if (!normalized) {
+      return '';
+    }
+
+    return this.isBsDate(normalized) ? this.bsToAd(normalized) : normalized;
+  }
+
+  calculateAge(value: string | Date | null | undefined): number {
+    const adDate = this.toApiDate(value);
+    const parts = this.extractIsoParts(adDate);
+    if (!parts) {
+      return 0;
+    }
+
+    const today = new Date();
+    let age = today.getFullYear() - parts.year;
+    const monthDiff = (today.getMonth() + 1) - parts.month;
+
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < parts.day)) {
+      age--;
+    }
+
+    return Math.max(age, 0);
   }
 
   preparePayloadForApi<T extends Record<string, unknown>>(payload: T, dateFields: string[]): T {
@@ -94,7 +152,7 @@ export class DateService {
       }
 
       normalized[field] = this.toApiDate(raw);
-      normalized[bsField] = this.adToBs(raw);
+      normalized[bsField] = this.normalizeDate(raw) ?? raw;
     }
 
     return normalized as T;
@@ -124,7 +182,7 @@ export class DateService {
       }
 
       prepared.append(field, this.toApiDate(raw));
-      prepared.append(bsField, this.adToBs(raw));
+      prepared.append(bsField, this.normalizeDate(raw) ?? raw);
     }
 
     return prepared;
@@ -175,5 +233,35 @@ export class DateService {
 
   private getStringValue(value: unknown): string | null {
     return typeof value === 'string' ? value : null;
+  }
+
+  private extractIsoParts(value: string | null | undefined): { year: number; month: number; day: number } | null {
+    if (!value || !this.isoDatePattern.test(value)) {
+      return null;
+    }
+
+    return {
+      year: Number(value.slice(0, 4)),
+      month: Number(value.slice(5, 7)),
+      day: Number(value.slice(8, 10)),
+    };
+  }
+
+  private extractTime(value: string | Date | null | undefined): string | null {
+    if (!value) {
+      return null;
+    }
+
+    if (value instanceof Date) {
+      return [
+        String(value.getHours()).padStart(2, '0'),
+        String(value.getMinutes()).padStart(2, '0'),
+        String(value.getSeconds()).padStart(2, '0'),
+      ].join(':');
+    }
+
+    const trimmed = value.trim();
+    const match = trimmed.match(/\b(\d{2}:\d{2}(?::\d{2})?)\b/);
+    return match ? match[1] : null;
   }
 }

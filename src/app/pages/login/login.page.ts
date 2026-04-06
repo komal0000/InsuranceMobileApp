@@ -94,7 +94,7 @@ export class LoginPage {
             duration: 1500, color: 'success', position: 'top',
           });
           await toast.present();
-          this.router.navigateByUrl('/tabs/dashboard');
+          this.router.navigateByUrl('/tabs/dashboard', { replaceUrl: true });
         }
       },
       error: () => {

@@ -21,6 +21,8 @@ interface CalendarCell {
 
 const NEPALI_DIGITS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
 const FALLBACK_TODAY: BsDateValue = { year: 2081, month: 12, day: 6 };
+const MIN_SELECTABLE_YEAR = 1970;
+const MAX_SELECTABLE_YEAR = 2100;
 
 @Component({
   selector: 'app-bs-date-picker',
@@ -90,14 +92,14 @@ const FALLBACK_TODAY: BsDateValue = { year: 2081, month: 12, day: 6 };
             </button>
 
             <div class="select-group">
-              <select class="picker-select month-select" [value]="viewMonth" (change)="onMonthChange($event)">
-                <option *ngFor="let month of months; let index = index" [value]="index + 1">
+              <select class="picker-select month-select" (change)="onMonthChange($event)">
+                <option *ngFor="let month of months; let index = index" [value]="index + 1" [selected]="index + 1 === viewMonth">
                   {{ month }}
                 </option>
               </select>
 
-              <select class="picker-select year-select" [value]="viewYear" (change)="onYearChange($event)">
-                <option *ngFor="let year of years" [value]="year">{{ toNepaliNumber(year) }}</option>
+              <select class="picker-select year-select" (change)="onYearChange($event)">
+                <option *ngFor="let year of years" [value]="year" [selected]="year === viewYear">{{ toNepaliNumber(year) }}</option>
               </select>
             </div>
 
@@ -472,7 +474,7 @@ export class BsDatePickerComponent implements ControlValueAccessor, OnDestroy {
     'कार्तिक', 'मंसिर', 'पुष', 'माघ', 'फागुन', 'चैत',
   ];
   readonly weekdayLabels = ['आइत', 'सोम', 'मंगल', 'बुध', 'बिहि', 'शुक्र', 'शनि'];
-  readonly years = Array.from({ length: 131 }, (_, index) => 1970 + index);
+  readonly years: number[];
 
   isOpen = false;
   selectedDate: BsDateValue | null = null;
@@ -493,6 +495,7 @@ export class BsDatePickerComponent implements ControlValueAccessor, OnDestroy {
     });
 
     this.todayDate = this.resolveTodayDate();
+    this.years = this.buildYearOptions();
     this.viewYear = this.todayDate.year;
     this.viewMonth = this.todayDate.month;
   }
@@ -532,6 +535,8 @@ export class BsDatePickerComponent implements ControlValueAccessor, OnDestroy {
   writeValue(value: string | null): void {
     if (!value) {
       this.selectedDate = null;
+      this.viewYear = this.todayDate.year;
+      this.viewMonth = this.todayDate.month;
       return;
     }
 
@@ -541,8 +546,10 @@ export class BsDatePickerComponent implements ControlValueAccessor, OnDestroy {
       parsed = this.parseBsDate(this.dateService.adToBs(value));
     }
 
-    if (!parsed) {
+    if (!parsed || !this.isYearSelectable(parsed.year)) {
       this.selectedDate = null;
+      this.viewYear = this.todayDate.year;
+      this.viewMonth = this.todayDate.month;
       return;
     }
 
@@ -570,10 +577,14 @@ export class BsDatePickerComponent implements ControlValueAccessor, OnDestroy {
 
     console.log('[BS Date Picker] clicked');
 
-    const focusDate = this.selectedDate ?? this.todayDate;
+    const hasValidSelection = this.selectedDate !== null && this.isYearSelectable(this.selectedDate.year);
+    const focusDate: BsDateValue = hasValidSelection
+      ? this.selectedDate as BsDateValue
+      : this.todayDate;
     this.viewYear = focusDate.year;
     this.viewMonth = focusDate.month;
     this.isOpen = true;
+    this.scrollSelectedIntoView();
   }
 
   closeSheet(): void {
@@ -598,7 +609,7 @@ export class BsDatePickerComponent implements ControlValueAccessor, OnDestroy {
   goToPreviousMonth(): void {
     if (this.viewMonth === 1) {
       this.viewMonth = 12;
-      this.viewYear = Math.max(this.years[0], this.viewYear - 1);
+      this.viewYear = Math.max(MIN_SELECTABLE_YEAR, this.viewYear - 1);
       return;
     }
 
@@ -608,7 +619,7 @@ export class BsDatePickerComponent implements ControlValueAccessor, OnDestroy {
   goToNextMonth(): void {
     if (this.viewMonth === 12) {
       this.viewMonth = 1;
-      this.viewYear = Math.min(this.years[this.years.length - 1], this.viewYear + 1);
+      this.viewYear = Math.min(MAX_SELECTABLE_YEAR, this.viewYear + 1);
       return;
     }
 
@@ -617,6 +628,7 @@ export class BsDatePickerComponent implements ControlValueAccessor, OnDestroy {
 
   selectDay(day: number): void {
     this.commitValue({ year: this.viewYear, month: this.viewMonth, day });
+    this.scrollSelectedIntoView();
     this.scheduleClose();
   }
 
@@ -659,8 +671,23 @@ export class BsDatePickerComponent implements ControlValueAccessor, OnDestroy {
     this.closeTimeout = setTimeout(() => this.closeSheet(), 180);
   }
 
+  private scrollSelectedIntoView(): void {
+    setTimeout(() => {
+      document.querySelector('.day-cell.is-selected')?.scrollIntoView({
+        block: 'center',
+        behavior: 'smooth',
+      });
+    }, 100);
+  }
+
   private resolveTodayDate(): BsDateValue {
-    return this.parseBsDate(this.dateService.adToBs(new Date())) ?? FALLBACK_TODAY;
+    const fromCurrentBs = this.parseBsDate(this.dateService.getCurrentBs());
+    if (fromCurrentBs) {
+      return fromCurrentBs;
+    }
+
+    const fromConvertedAd = this.parseBsDate(this.dateService.adToBs(new Date()));
+    return fromConvertedAd ?? FALLBACK_TODAY;
   }
 
   private parseBsDate(value: string | null | undefined): BsDateValue | null {
@@ -679,11 +706,22 @@ export class BsDatePickerComponent implements ControlValueAccessor, OnDestroy {
       day: Number(match[3]),
     };
 
-    if (parsed.month < 1 || parsed.month > 12 || parsed.day < 1 || parsed.day > 32) {
+    if (!this.isYearSelectable(parsed.year) || parsed.month < 1 || parsed.month > 12 || parsed.day < 1 || parsed.day > 32) {
       return null;
     }
 
     return parsed;
+  }
+
+  private buildYearOptions(): number[] {
+    return Array.from(
+      { length: MAX_SELECTABLE_YEAR - MIN_SELECTABLE_YEAR + 1 },
+      (_, index) => MAX_SELECTABLE_YEAR - index,
+    );
+  }
+
+  private isYearSelectable(year: number): boolean {
+    return Number.isInteger(year) && year >= MIN_SELECTABLE_YEAR && year <= MAX_SELECTABLE_YEAR;
   }
 
   private toIso(date: BsDateValue): string {

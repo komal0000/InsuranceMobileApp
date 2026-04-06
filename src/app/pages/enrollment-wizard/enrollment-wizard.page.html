@@ -605,24 +605,14 @@
               <ion-item class="form-item">
                 <ion-select label="Relationship to Head *" labelPlacement="stacked" placeholder="Select Relationship"
                             [(ngModel)]="newMember.relationship">
-                  <ion-select-option value="Spouse">Spouse</ion-select-option>
-                  <ion-select-option value="Son">Son</ion-select-option>
-                  <ion-select-option value="Daughter">Daughter</ion-select-option>
-                  <ion-select-option value="Father">Father</ion-select-option>
-                  <ion-select-option value="Mother">Mother</ion-select-option>
-                  <ion-select-option value="Brother">Brother</ion-select-option>
-                  <ion-select-option value="Sister">Sister</ion-select-option>
-                  <ion-select-option value="Grandfather">Grandfather</ion-select-option>
-                  <ion-select-option value="Grandmother">Grandmother</ion-select-option>
-                  <ion-select-option value="Grandson">Grandson</ion-select-option>
-                  <ion-select-option value="Granddaughter">Granddaughter</ion-select-option>
-                  <ion-select-option value="Uncle">Uncle</ion-select-option>
-                  <ion-select-option value="Aunt">Aunt</ion-select-option>
-                  <ion-select-option value="Nephew">Nephew</ion-select-option>
-                  <ion-select-option value="Niece">Niece</ion-select-option>
-                  <ion-select-option value="Other">Other</ion-select-option>
+                  <ion-select-option *ngFor="let option of availableMemberRelationshipOptions" [value]="option.value">
+                    {{ option.label }}
+                  </ion-select-option>
                 </ion-select>
               </ion-item>
+              <p *ngIf="isHeadSingle" style="margin:2px 4px 8px;color:#6c757d;font-size:0.75rem;">
+                Spouse option is hidden because household head marital status is single.
+              </p>
               <ion-item class="form-item">
                 <ion-select label="Blood Group" labelPlacement="stacked" placeholder="Select"
                             [(ngModel)]="newMember.blood_group">
@@ -639,10 +629,10 @@
               <ion-item class="form-item">
                 <ion-select label="Marital Status" labelPlacement="stacked" placeholder="Select"
                             [(ngModel)]="newMember.marital_status">
-                  <ion-select-option value="Single">Single</ion-select-option>
-                  <ion-select-option value="Married">Married</ion-select-option>
-                  <ion-select-option value="Divorced">Divorced</ion-select-option>
-                  <ion-select-option value="Widowed">Widowed</ion-select-option>
+                  <ion-select-option value="single">Single</ion-select-option>
+                  <ion-select-option value="married">Married</ion-select-option>
+                  <ion-select-option value="divorced">Divorced</ion-select-option>
+                  <ion-select-option value="widowed">Widowed</ion-select-option>
                 </ion-select>
               </ion-item>
               <ion-item class="form-item">

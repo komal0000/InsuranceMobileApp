@@ -16,6 +16,7 @@ import {
 } from 'ionicons/icons';
 import { ApiService } from '../../services/api.service';
 import { AuthService } from '../../services/auth.service';
+import { DateService } from '../../services/date.service';
 import { ApiResponse, PaginatedData } from '../../interfaces/api-response.interface';
 import { Subsidy } from '../../interfaces/subsidy.interface';
 
@@ -45,6 +46,7 @@ export class SubsidiesPage implements OnInit {
   constructor(
     private api: ApiService,
     private authService: AuthService,
+    private dateService: DateService,
     private router: Router,
     private toastCtrl: ToastController,
     private alertCtrl: AlertController
@@ -181,5 +183,13 @@ export class SubsidiesPage implements OnInit {
       fixed_discount: 'Fixed Discount',
     };
     return labels[type] || type;
+  }
+
+  displayDate(adDate?: string | null, bsDate?: string | null): string {
+    return this.dateService.formatForDisplay(adDate, bsDate) || '';
+  }
+
+  displayDateTime(adDate?: string | null, bsDate?: string | null): string {
+    return this.dateService.formatDateTimeForDisplay(adDate, bsDate) || '';
   }
 }

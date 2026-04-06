@@ -14,6 +14,7 @@ import { addIcons } from 'ionicons';
 import { addOutline, documentTextOutline, locationOutline, peopleOutline, personOutline, informationCircleOutline } from 'ionicons/icons';
 import { ApiService } from '../../services/api.service';
 import { AuthService } from '../../services/auth.service';
+import { DateService } from '../../services/date.service';
 import { ApiResponse, PaginatedData } from '../../interfaces/api-response.interface';
 import { Enrollment, EnrollmentStatus } from '../../interfaces/enrollment.interface';
 
@@ -44,6 +45,7 @@ export class EnrollmentsPage implements OnInit {
   constructor(
     private api: ApiService,
     private authService: AuthService,
+    private dateService: DateService,
     private router: Router,
     private toastCtrl: ToastController
   ) {
@@ -162,5 +164,9 @@ export class EnrollmentsPage implements OnInit {
 
   formatStatus(status: string): string {
     return (status || '').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  }
+
+  displayDate(adDate?: string | null, bsDate?: string | null): string {
+    return this.dateService.formatForDisplay(adDate, bsDate) || '';
   }
 }

@@ -24,6 +24,25 @@ import { ApiResponse, PaginatedData } from '../../interfaces/api-response.interf
 import { Renewal } from '../../interfaces/renewal.interface';
 import { BsDatePickerComponent } from '../../components/bs-date-picker/bs-date-picker.component';
 
+const DEFAULT_MEMBER_RELATIONSHIPS: Array<{ value: string; label: string }> = [
+  { value: 'spouse', label: 'Spouse' },
+  { value: 'son', label: 'Son' },
+  { value: 'daughter', label: 'Daughter' },
+  { value: 'father', label: 'Father' },
+  { value: 'mother', label: 'Mother' },
+  { value: 'brother', label: 'Brother' },
+  { value: 'sister', label: 'Sister' },
+  { value: 'grandfather', label: 'Grandfather' },
+  { value: 'grandmother', label: 'Grandmother' },
+  { value: 'grandson', label: 'Grandson' },
+  { value: 'granddaughter', label: 'Granddaughter' },
+  { value: 'father_in_law', label: 'Father In Law' },
+  { value: 'mother_in_law', label: 'Mother In Law' },
+  { value: 'son_in_law', label: 'Son In Law' },
+  { value: 'daughter_in_law', label: 'Daughter In Law' },
+  { value: 'other', label: 'Other' },
+];
+
 @Component({
   selector: 'app-renewals',
   standalone: true,
@@ -55,6 +74,7 @@ export class RenewalsPage implements OnInit {
   showMemberForm = false;
   newMember: any = {};
   savingMember = false;
+  relationshipOptions: Array<{ value: string; label: string }> = [...DEFAULT_MEMBER_RELATIONSHIPS];
 
   // Image previews for new member form
   memberPhotoPreview: string | null = null;
@@ -81,6 +101,8 @@ export class RenewalsPage implements OnInit {
   }
 
   ngOnInit() {
+    this.loadRelationshipOptions();
+
     const user = this.authService.getCurrentUser();
     this.isBeneficiary = user?.role === 'beneficiary';
     if (this.isBeneficiary) {
@@ -183,15 +205,16 @@ export class RenewalsPage implements OnInit {
 
   // Add new member directly from renewal tab
   showAddMemberForm() {
+    const currentBs = this.dateService.getCurrentBs();
     this.newMember = {
       first_name: '', middle_name: '', last_name: '',
       first_name_ne: '', middle_name_ne: '', last_name_ne: '',
-      gender: '', date_of_birth: '', relationship: '',
+      gender: '', date_of_birth: currentBs, relationship: '',
       blood_group: '', marital_status: '',
       mobile_number: '',
       document_type: 'citizenship',
-      citizenship_number: '', citizenship_issue_date: '', citizenship_issue_district: '',
-      birth_certificate_number: '', birth_certificate_issue_date: '',
+      citizenship_number: '', citizenship_issue_date: currentBs, citizenship_issue_district: '',
+      birth_certificate_number: '', birth_certificate_issue_date: currentBs,
       is_target_group: false, target_group_type: '', target_group_id_number: '',
     };
     this.memberPhotoPreview = null;
@@ -266,21 +289,29 @@ export class RenewalsPage implements OnInit {
       this.toastCtrl.create({ message: 'Please fill all required fields.', duration: 2000, color: 'warning', position: 'top' }).then(t => t.present());
       return;
     }
+
+    const relationship = this.normalizeKey(m.relationship);
+    if (!relationship || !this.availableMemberRelationshipOptions.some(option => option.value === relationship)) {
+      this.toastCtrl.create({ message: 'Please select a valid relationship.', duration: 2000, color: 'warning', position: 'top' }).then(t => t.present());
+      return;
+    }
+    if (this.isHeadSingle && relationship === 'spouse') {
+      this.toastCtrl.create({ message: 'Spouse relationship is not allowed when household head marital status is single.', duration: 2500, color: 'warning', position: 'top' }).then(t => t.present());
+      return;
+    }
+    m.relationship = relationship;
+    if (m.marital_status) {
+      m.marital_status = this.normalizeKey(m.marital_status);
+    }
+
     if (m.mobile_number && !/^\d{10}$/.test(m.mobile_number)) {
       this.toastCtrl.create({ message: 'Mobile number must be exactly 10 digits.', duration: 2000, color: 'warning', position: 'top' }).then(t => t.present());
       return;
     }
     const docType = m.document_type || 'citizenship';
-    if (docType === 'citizenship') {
-      const birth = new Date(this.dateService.toApiDate(m.date_of_birth));
-      const today = new Date();
-      let age = today.getFullYear() - birth.getFullYear();
-      const mo = today.getMonth() - birth.getMonth();
-      if (mo < 0 || (mo === 0 && today.getDate() < birth.getDate())) age--;
-      if (age < 16) {
-        this.toastCtrl.create({ message: 'Member with citizenship must be at least 16 years old.', duration: 2500, color: 'warning', position: 'top' }).then(t => t.present());
-        return;
-      }
+    if (docType === 'citizenship' && this.dateService.calculateAge(m.date_of_birth) < 16) {
+      this.toastCtrl.create({ message: 'Member with citizenship must be at least 16 years old.', duration: 2500, color: 'warning', position: 'top' }).then(t => t.present());
+      return;
     }
 
     // Build FormData so images can be uploaded
@@ -480,6 +511,79 @@ export class RenewalsPage implements OnInit {
       rejected: 'Rejected',
     };
     return map[status] || status;
+  }
+
+  get isHeadSingle(): boolean {
+    return this.normalizeKey(this.enrollment?.household_head?.marital_status) === 'single';
+  }
+
+  get availableMemberRelationshipOptions(): Array<{ value: string; label: string }> {
+    if (!this.isHeadSingle) {
+      return this.relationshipOptions;
+    }
+
+    return this.relationshipOptions.filter(option => option.value !== 'spouse');
+  }
+
+  private loadRelationshipOptions() {
+    this.api.get<ApiResponse<any>>('/enrollment-config').subscribe({
+      next: (res) => {
+        this.relationshipOptions = this.buildRelationshipOptions(res?.data?.relationship_types);
+      },
+    });
+  }
+
+  private buildRelationshipOptions(raw: unknown): Array<{ value: string; label: string }> {
+    if (Array.isArray(raw)) {
+      const options = raw
+        .map(item => this.normalizeKey(item))
+        .filter((value): value is string => value.length > 0 && value !== 'self')
+        .map(value => ({ value, label: this.formatStatus(value) }));
+      return this.dedupeRelationshipOptions(options);
+    }
+
+    if (raw && typeof raw === 'object') {
+      const options = Object.entries(raw as Record<string, unknown>)
+        .map(([key, label]) => {
+          const value = this.normalizeKey(key);
+          if (!value || value === 'self') return null;
+          const labelText = typeof label === 'string' && label.trim().length > 0
+            ? label.trim()
+            : this.formatStatus(value);
+          return { value, label: labelText };
+        })
+        .filter((option): option is { value: string; label: string } => option !== null);
+      return this.dedupeRelationshipOptions(options);
+    }
+
+    return [...DEFAULT_MEMBER_RELATIONSHIPS];
+  }
+
+  private dedupeRelationshipOptions(options: Array<{ value: string; label: string }>): Array<{ value: string; label: string }> {
+    if (!options.length) {
+      return [...DEFAULT_MEMBER_RELATIONSHIPS];
+    }
+
+    const seen = new Set<string>();
+    const deduped: Array<{ value: string; label: string }> = [];
+    for (const option of options) {
+      if (seen.has(option.value)) {
+        continue;
+      }
+
+      seen.add(option.value);
+      deduped.push(option);
+    }
+
+    return deduped;
+  }
+
+  private normalizeKey(value: unknown): string {
+    if (typeof value !== 'string') {
+      return '';
+    }
+
+    return value.trim().toLowerCase().replace(/[\s-]+/g, '_');
   }
 
   displayDate(adDate?: string | null, bsDate?: string | null): string {

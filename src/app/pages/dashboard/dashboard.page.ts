@@ -1,6 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import {
   IonContent, IonHeader, IonToolbar, IonTitle, IonCard, IonCardContent,
   IonIcon, IonRefresher, IonRefresherContent, IonSpinner
@@ -28,13 +30,15 @@ import { User } from '../../interfaces/user.interface';
   templateUrl: './dashboard.page.html',
   styleUrls: ['./dashboard.page.scss'],
 })
-export class DashboardPage implements OnInit {
+export class DashboardPage implements OnInit, OnDestroy {
   user: User | null = null;
   stats: any = {};
   loading = true;
   isBeneficiary = true;
   isEnrollmentAssistant = false;
   canCreateEnrollment = true;
+  private readonly destroy$ = new Subject<void>();
+  private dashboardRequestId = 0;
 
   constructor(
     private api: ApiService,
@@ -49,34 +53,101 @@ export class DashboardPage implements OnInit {
   }
 
   ngOnInit() {
-    this.user = this.authService.getCurrentUser();
-    this.isBeneficiary = this.user?.role === 'beneficiary';
-    this.isEnrollmentAssistant = this.user?.role === 'enrollment_assistant';
-    this.canCreateEnrollment = ['beneficiary', 'enrollment_assistant', 'admin', 'super_admin']
-      .includes(this.user?.role || '');
-    this.loadDashboard();
+    this.authService.currentUser$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((user) => {
+        this.user = user;
+        this.isBeneficiary = user?.role === 'beneficiary';
+        this.isEnrollmentAssistant = user?.role === 'enrollment_assistant';
+        this.canCreateEnrollment = this.canRoleCreateEnrollment(user?.role);
+
+        if (!user) {
+          this.dashboardRequestId++;
+          this.stats = {};
+          this.loading = false;
+          return;
+        }
+
+        this.loadDashboard();
+      });
   }
 
   loadDashboard() {
+    if (!this.user) {
+      this.loading = false;
+      this.stats = {};
+      return;
+    }
+
     this.loading = true;
-    this.api.get<ApiResponse>('/dashboard').subscribe({
-      next: (res) => { this.stats = res.data || {}; this.loading = false;
-      console.log('Dashboard stats loaded:', this.stats);
-      // Hide "New Enrollment" only when the beneficiary has an active policy
-      // (draft enrollments should still allow seeing the enrollment section)
-      if (this.isBeneficiary && (this.stats.active_policies ?? 0) > 0) {
-        this.canCreateEnrollment = false;
-      }
-    },
-      error: () => { this.loading = false; },
-    });
+    const requestId = ++this.dashboardRequestId;
+    const baseCanCreateEnrollment = this.canRoleCreateEnrollment(this.user.role);
+
+    this.api.get<ApiResponse>('/dashboard')
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res) => {
+          if (requestId !== this.dashboardRequestId) {
+            return;
+          }
+
+          this.stats = res.data || {};
+          this.loading = false;
+          this.canCreateEnrollment = baseCanCreateEnrollment;
+
+          // Hide "New Enrollment" only when the beneficiary has an active policy.
+          if (this.isBeneficiary && (this.stats.active_policies ?? 0) > 0) {
+            this.canCreateEnrollment = false;
+          }
+        },
+        error: () => {
+          if (requestId !== this.dashboardRequestId) {
+            return;
+          }
+
+          this.loading = false;
+          this.canCreateEnrollment = baseCanCreateEnrollment;
+        },
+      });
   }
 
   refresh(event: any) {
-    this.api.get<ApiResponse>('/dashboard').subscribe({
-      next: (res) => { this.stats = res.data || {}; event.target.complete(); },
-      error: () => event.target.complete(),
-    });
+    if (!this.user) {
+      event.target.complete();
+      return;
+    }
+
+    const requestId = ++this.dashboardRequestId;
+    const baseCanCreateEnrollment = this.canRoleCreateEnrollment(this.user.role);
+
+    this.api.get<ApiResponse>('/dashboard')
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res) => {
+          if (requestId !== this.dashboardRequestId) {
+            event.target.complete();
+            return;
+          }
+
+          this.stats = res.data || {};
+          this.canCreateEnrollment = baseCanCreateEnrollment;
+
+          if (this.isBeneficiary && (this.stats.active_policies ?? 0) > 0) {
+            this.canCreateEnrollment = false;
+          }
+
+          event.target.complete();
+        },
+        error: () => {
+          if (requestId !== this.dashboardRequestId) {
+            event.target.complete();
+            return;
+          }
+
+          this.canCreateEnrollment = baseCanCreateEnrollment;
+          event.target.complete();
+        },
+      });
   }
 
   navigate(path: string) { this.router.navigateByUrl(path); }
@@ -94,5 +165,15 @@ export class DashboardPage implements OnInit {
 
   formatRole(role?: string): string {
     return (role || '').replace(/_/g, ' ');
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  private canRoleCreateEnrollment(role?: string): boolean {
+    return ['beneficiary', 'enrollment_assistant', 'admin', 'super_admin']
+      .includes(role || '');
   }
 }

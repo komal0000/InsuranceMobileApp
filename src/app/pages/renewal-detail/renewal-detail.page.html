@@ -17,7 +17,7 @@
         <div class="status-banner">
           <div class="banner-left">
             <span class="renewal-number">{{ renewal.renewal_number || 'Renewal #' + renewal.id }}</span>
-            <span class="renewal-date">Created {{ renewal.created_at | date:'mediumDate' }}</span>
+            <span class="renewal-date">Created {{ displayDate(renewal.created_at) }}</span>
           </div>
           <ion-badge [color]="getStatusColor(renewal.status)">{{ formatStatus(renewal.status) }}</ion-badge>
         </div>
@@ -59,7 +59,7 @@
             <div class="renewal-dates" *ngIf="renewal.renewal_start_date">
               <div class="premium-row">
                 <span>New Policy Period</span>
-                <strong>{{ renewal.renewal_start_date | date:'mediumDate' }} — {{ renewal.renewal_end_date | date:'mediumDate' }}</strong>
+                <strong>{{ displayDate(renewal.renewal_start_date, renewal.renewal_start_date_bs) }} — {{ displayDate(renewal.renewal_end_date, renewal.renewal_end_date_bs) }}</strong>
               </div>
             </div>
           </ion-card-content>
@@ -131,19 +131,20 @@
               <app-bs-date-picker [(ngModel)]="newMember.date_of_birth" label="Date of Birth *" placeholder="Select BS date"></app-bs-date-picker>
               <ion-item class="form-item">
                 <ion-select label="Relationship *" labelPlacement="stacked" [(ngModel)]="newMember.relationship">
-                  <ion-select-option value="spouse">Spouse</ion-select-option>
-                  <ion-select-option value="son">Son</ion-select-option>
-                  <ion-select-option value="daughter">Daughter</ion-select-option>
-                  <ion-select-option value="father">Father</ion-select-option>
-                  <ion-select-option value="mother">Mother</ion-select-option>
-                  <ion-select-option value="brother">Brother</ion-select-option>
-                  <ion-select-option value="sister">Sister</ion-select-option>
-                  <ion-select-option value="grandfather">Grandfather</ion-select-option>
-                  <ion-select-option value="grandmother">Grandmother</ion-select-option>
-                  <ion-select-option value="father_in_law">Father-in-law</ion-select-option>
-                  <ion-select-option value="mother_in_law">Mother-in-law</ion-select-option>
-                  <ion-select-option value="daughter_in_law">Daughter-in-law</ion-select-option>
-                  <ion-select-option value="other">Other</ion-select-option>
+                  <ion-select-option *ngFor="let option of availableMemberRelationshipOptions" [value]="option.value">
+                    {{ option.label }}
+                  </ion-select-option>
+                </ion-select>
+              </ion-item>
+              <p *ngIf="isHeadSingle" style="margin:2px 4px 8px;color:#6c757d;font-size:0.75rem;">
+                Spouse option is hidden because household head marital status is single.
+              </p>
+              <ion-item class="form-item">
+                <ion-select label="Marital Status" labelPlacement="stacked" [(ngModel)]="newMember.marital_status">
+                  <ion-select-option value="single">Single</ion-select-option>
+                  <ion-select-option value="married">Married</ion-select-option>
+                  <ion-select-option value="divorced">Divorced</ion-select-option>
+                  <ion-select-option value="widowed">Widowed</ion-select-option>
                 </ion-select>
               </ion-item>
               <ion-item class="form-item">

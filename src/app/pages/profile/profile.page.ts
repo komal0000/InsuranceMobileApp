@@ -71,12 +71,13 @@ export class ProfilePage implements OnInit {
 
   resetProfileData() {
     if (this.user) {
+      const currentBs = this.dateService.getCurrentBs();
       this.profileData = {
         name: this.user.name,
         name_ne: this.user.name_ne,
         email: this.user.email,
         mobile_number: this.user.mobile_number,
-        date_of_birth: this.dateService.formatForDisplay(this.user.date_of_birth, this.user.date_of_birth_bs),
+        date_of_birth: this.dateService.formatForDisplay(this.user.date_of_birth, this.user.date_of_birth_bs) || currentBs,
         province: this.user.province,
         district: this.user.district,
       };
@@ -204,9 +205,9 @@ export class ProfilePage implements OnInit {
           cssClass: 'danger',
           handler: () => {
             this.authService.logout().subscribe({
-              next: () => this.router.navigateByUrl('/login'),
+              next: () => this.router.navigateByUrl('/login', { replaceUrl: true }),
               error: () => {
-                this.authService.clearSession().then(() => this.router.navigateByUrl('/login'));
+                this.authService.clearSession().then(() => this.router.navigateByUrl('/login', { replaceUrl: true }));
               },
             });
           },

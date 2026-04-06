@@ -86,7 +86,9 @@ export class MyPolicyPage implements OnInit {
 
   get daysRemaining(): number | null {
     if (!this.policy?.end_date) return null;
-    const end = new Date(this.policy.end_date);
+    const endAd = this.policy?.end_date_ad || this.dateService.toApiDate(this.policy.end_date);
+    if (!endAd) return null;
+    const end = new Date(`${endAd}T00:00:00`);
     const now = new Date();
     return Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
   }

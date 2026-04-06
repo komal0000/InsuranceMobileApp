@@ -11,9 +11,10 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const toastCtrl = inject(ToastController);
 
   const token = authService.getToken();
+  const isPublicAuthRequest = /\/(login|register)(\?|$)/i.test(req.url);
   let authReq = req;
 
-  if (token) {
+  if (token && !isPublicAuthRequest) {
     authReq = req.clone({
       setHeaders: {
         Authorization: `Bearer ${token}`,
@@ -30,7 +31,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     catchError((error: HttpErrorResponse) => {
       if (error.status === 401) {
         authService.clearSession().then(() => {
-          router.navigateByUrl('/login');
+          router.navigateByUrl('/login', { replaceUrl: true });
         });
       }
       const message = error.error?.message || error.message || 'An error occurred';

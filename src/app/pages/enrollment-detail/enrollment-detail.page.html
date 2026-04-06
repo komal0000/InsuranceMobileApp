@@ -17,7 +17,7 @@
         <div class="status-banner">
           <div class="banner-left">
             <span class="enroll-number">{{ enrollment.enrollment_number || 'Draft #' + enrollment.id }}</span>
-            <span class="enroll-date">Created {{ enrollment.created_at | date:'mediumDate' }}</span>
+            <span class="enroll-date">Created {{ displayDate(enrollment.created_at) }}</span>
           </div>
           <ion-badge [color]="getStatusColor(enrollment.status)">{{ formatStatus(enrollment.status) }}</ion-badge>
         </div>

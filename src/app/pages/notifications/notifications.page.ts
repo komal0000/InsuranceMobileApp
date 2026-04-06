@@ -9,6 +9,7 @@ import { addIcons } from 'ionicons';
 import { notificationsOutline, mailOpenOutline, mailOutline, checkmarkDoneOutline } from 'ionicons/icons';
 import { ApiService } from '../../services/api.service';
 import { PushNotificationService } from '../../services/push-notification.service';
+import { DateService } from '../../services/date.service';
 import { ApiResponse, PaginatedData } from '../../interfaces/api-response.interface';
 import { AppNotification } from '../../interfaces/notification.interface';
 
@@ -32,7 +33,8 @@ export class NotificationsPage implements OnInit, ViewDidEnter {
 
   constructor(
     private api: ApiService,
-    private pushService: PushNotificationService
+    private pushService: PushNotificationService,
+    private dateService: DateService
   ) {
     addIcons({ notificationsOutline, mailOpenOutline, mailOutline, checkmarkDoneOutline });
   }
@@ -98,5 +100,9 @@ export class NotificationsPage implements OnInit, ViewDidEnter {
 
   get hasUnread(): boolean {
     return this.notifications.some(n => !n.is_read);
+  }
+
+  displayDateTime(adDate?: string | null, bsDate?: string | null): string {
+    return this.dateService.formatDateTimeForDisplay(adDate, bsDate) || '';
   }
 }

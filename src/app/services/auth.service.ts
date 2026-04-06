@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, from, of } from 'rxjs';
+import { BehaviorSubject, Observable, from, of, throwError } from 'rxjs';
 import { map, switchMap, tap } from 'rxjs/operators';
+import { catchError } from 'rxjs/operators';
 import { Preferences } from '@capacitor/preferences';
 import { User, AuthData, LoginRequest, RegisterRequest } from '../interfaces/user.interface';
 import { ApiResponse } from '../interfaces/api-response.interface';
@@ -71,27 +72,44 @@ export class AuthService {
   login(data: LoginRequest): Observable<ApiResponse<AuthData>> {
     const remember = data.remember ?? false;
     return this.api.post<ApiResponse<AuthData>>('/login', data).pipe(
-      tap(res => {
-        if (res.success) {
-          this.setSession(res.data, remember);
+      switchMap(res => {
+        if (!res.success) {
+          return of(res);
         }
+
+        return from(this.setSession(res.data, remember)).pipe(
+          map(() => res)
+        );
       })
     );
   }
 
   register(data: RegisterRequest): Observable<ApiResponse<AuthData>> {
     return this.api.post<ApiResponse<AuthData>>('/register', data).pipe(
-      tap(res => {
-        if (res.success) {
-          this.setSession(res.data);
+      switchMap(res => {
+        if (!res.success) {
+          return of(res);
         }
+
+        return from(this.setSession(res.data)).pipe(
+          map(() => res)
+        );
       })
     );
   }
 
   logout(): Observable<any> {
     return this.api.post('/logout', {}).pipe(
-      tap(() => this.clearSession()),
+      switchMap(res =>
+        from(this.clearSession()).pipe(
+          map(() => res)
+        )
+      ),
+      catchError((error) =>
+        from(this.clearSession()).pipe(
+          switchMap(() => throwError(() => error))
+        )
+      )
     );
   }
 
@@ -118,14 +136,15 @@ export class AuthService {
     this.tokenSubject.next(auth.token);
     this.currentUserSubject.next(auth.user);
 
+    sessionStorage.setItem(TOKEN_KEY, auth.token);
+    sessionStorage.setItem(USER_KEY, JSON.stringify(auth.user));
+
     if (remember) {
       await Preferences.set({ key: TOKEN_KEY, value: auth.token });
       await Preferences.set({ key: USER_KEY, value: JSON.stringify(auth.user) });
     } else {
       await Preferences.remove({ key: TOKEN_KEY });
       await Preferences.remove({ key: USER_KEY });
-      sessionStorage.setItem(TOKEN_KEY, auth.token);
-      sessionStorage.setItem(USER_KEY, JSON.stringify(auth.user));
     }
   }
 }

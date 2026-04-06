@@ -8,6 +8,7 @@ import {
 import { addIcons } from 'ionicons';
 import { walletOutline, cashOutline, calendarOutline, documentTextOutline } from 'ionicons/icons';
 import { ApiService } from '../../services/api.service';
+import { DateService } from '../../services/date.service';
 import { ApiResponse } from '../../interfaces/api-response.interface';
 
 @Component({
@@ -28,7 +29,10 @@ export class MyPaymentsPage implements OnInit {
   page = 1;
   hasMore = true;
 
-  constructor(private api: ApiService) {
+  constructor(
+    private api: ApiService,
+    private dateService: DateService
+  ) {
     addIcons({ walletOutline, cashOutline, calendarOutline, documentTextOutline });
   }
 
@@ -72,5 +76,9 @@ export class MyPaymentsPage implements OnInit {
       case 'failed':  return 'danger';
       default:        return 'warning';
     }
+  }
+
+  displayDateTime(adDate?: string | null, bsDate?: string | null): string {
+    return this.dateService.formatDateTimeForDisplay(adDate, bsDate) || '';
   }
 }

@@ -30,6 +30,25 @@ import {
 
 const STEP_TITLES = ['Household Info', 'Household Head', 'Family Members', 'Review & Submit'];
 
+const DEFAULT_MEMBER_RELATIONSHIPS: Array<{ value: string; label: string }> = [
+  { value: 'spouse', label: 'Spouse' },
+  { value: 'son', label: 'Son' },
+  { value: 'daughter', label: 'Daughter' },
+  { value: 'father', label: 'Father' },
+  { value: 'mother', label: 'Mother' },
+  { value: 'brother', label: 'Brother' },
+  { value: 'sister', label: 'Sister' },
+  { value: 'grandfather', label: 'Grandfather' },
+  { value: 'grandmother', label: 'Grandmother' },
+  { value: 'grandson', label: 'Grandson' },
+  { value: 'granddaughter', label: 'Granddaughter' },
+  { value: 'father_in_law', label: 'Father In Law' },
+  { value: 'mother_in_law', label: 'Mother In Law' },
+  { value: 'son_in_law', label: 'Son In Law' },
+  { value: 'daughter_in_law', label: 'Daughter In Law' },
+  { value: 'other', label: 'Other' },
+];
+
 @Component({
   selector: 'app-enrollment-wizard',
   standalone: true,
@@ -55,6 +74,7 @@ export class EnrollmentWizardPage implements OnInit {
   submitting = false;
   confirmed = false;
   stepTitles = STEP_TITLES;
+  relationshipOptions: Array<{ value: string; label: string }> = [...DEFAULT_MEMBER_RELATIONSHIPS];
   private initialLoad = true;
 
   // Subsidy data from API
@@ -149,8 +169,16 @@ export class EnrollmentWizardPage implements OnInit {
 
   ngOnInit() {
     this.enrollmentId = Number(this.route.snapshot.paramMap.get('id'));
+    const currentBs = this.dateService.getCurrentBs();
+    if (!this.headData.date_of_birth) this.headData.date_of_birth = currentBs;
+    if (!this.headData.citizenship_issue_date) this.headData.citizenship_issue_date = currentBs;
     this.geoSvc.provinces().subscribe({ next: r => this.provinces = r.data || [] });
-    this.enrollmentSvc.getConfig().subscribe({ next: r => this.config = r.data });
+    this.enrollmentSvc.getConfig().subscribe({
+      next: r => {
+        this.config = r.data;
+        this.relationshipOptions = this.buildRelationshipOptions((r.data as unknown as { relationship_types?: unknown })?.relationship_types);
+      },
+    });
     this.loadEnrollment();
   }
 
@@ -456,14 +484,15 @@ export class EnrollmentWizardPage implements OnInit {
 
 
   showAddMember() {
+    const currentBs = this.dateService.getCurrentBs();
     this.newMember = {
       first_name: '', middle_name: '', last_name: '',
       first_name_ne: '', middle_name_ne: '', last_name_ne: '',
-      gender: '', date_of_birth: '', relationship: '',
+      gender: '', date_of_birth: currentBs, relationship: '',
       blood_group: '', marital_status: '', mobile_number: '',
       document_type: '',
-      citizenship_number: '', citizenship_issue_date: '', citizenship_issue_district: '',
-      birth_certificate_number: '', birth_certificate_issue_date: '',
+      citizenship_number: '', citizenship_issue_date: currentBs, citizenship_issue_district: '',
+      birth_certificate_number: '', birth_certificate_issue_date: currentBs,
       is_target_group: false,
       target_group_type: '', target_group_id_number: '',
       photo: null, citizenship_front_image: null, citizenship_back_image: null,
@@ -489,6 +518,19 @@ export class EnrollmentWizardPage implements OnInit {
         !this.newMember.gender || !this.newMember.date_of_birth || !this.newMember.relationship) {
       this.showToast('Please fill all required member fields.', 'warning'); return;
     }
+
+    const relationship = this.normalizeKey(this.newMember.relationship);
+    if (!relationship || !this.availableMemberRelationshipOptions.some(option => option.value === relationship)) {
+      this.showToast('Please select a valid relationship.', 'warning'); return;
+    }
+    if (this.isHeadSingle && relationship === 'spouse') {
+      this.showToast('Spouse relationship is not allowed when household head marital status is single.', 'warning'); return;
+    }
+    this.newMember.relationship = relationship;
+    if (this.newMember.marital_status) {
+      this.newMember.marital_status = this.normalizeKey(this.newMember.marital_status);
+    }
+
     if (this.newMember.mobile_number && !/^\d{10}$/.test(this.newMember.mobile_number)) {
       this.showToast('Mobile number must be exactly 10 digits.', 'warning'); return;
     }
@@ -646,9 +688,7 @@ export class EnrollmentWizardPage implements OnInit {
   }
 
   getAge(dob: string): number {
-    if (!dob) return 0;
-    const adDate = this.dateService.toApiDate(dob);
-    return Math.floor((Date.now() - new Date(adDate).getTime()) / (1000 * 60 * 60 * 24 * 365.25));
+    return this.dateService.calculateAge(dob);
   }
 
   displayDate(adDate?: string | null, bsDate?: string | null): string {
@@ -657,6 +697,71 @@ export class EnrollmentWizardPage implements OnInit {
 
   formatStatus(s: string): string {
     return (s || '').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  }
+
+  get isHeadSingle(): boolean {
+    return this.normalizeKey(this.headData?.marital_status) === 'single';
+  }
+
+  get availableMemberRelationshipOptions(): Array<{ value: string; label: string }> {
+    if (!this.isHeadSingle) {
+      return this.relationshipOptions;
+    }
+
+    return this.relationshipOptions.filter(option => option.value !== 'spouse');
+  }
+
+  private buildRelationshipOptions(raw: unknown): Array<{ value: string; label: string }> {
+    if (Array.isArray(raw)) {
+      const options = raw
+        .map(item => this.normalizeKey(item))
+        .filter((value): value is string => value.length > 0 && value !== 'self')
+        .map(value => ({ value, label: this.formatStatus(value) }));
+      return this.dedupeRelationshipOptions(options);
+    }
+
+    if (raw && typeof raw === 'object') {
+      const options = Object.entries(raw as Record<string, unknown>)
+        .map(([key, label]) => {
+          const value = this.normalizeKey(key);
+          if (!value || value === 'self') return null;
+          const labelText = typeof label === 'string' && label.trim().length > 0
+            ? label.trim()
+            : this.formatStatus(value);
+          return { value, label: labelText };
+        })
+        .filter((option): option is { value: string; label: string } => option !== null);
+      return this.dedupeRelationshipOptions(options);
+    }
+
+    return [...DEFAULT_MEMBER_RELATIONSHIPS];
+  }
+
+  private dedupeRelationshipOptions(options: Array<{ value: string; label: string }>): Array<{ value: string; label: string }> {
+    if (!options.length) {
+      return [...DEFAULT_MEMBER_RELATIONSHIPS];
+    }
+
+    const seen = new Set<string>();
+    const deduped: Array<{ value: string; label: string }> = [];
+    for (const option of options) {
+      if (seen.has(option.value)) {
+        continue;
+      }
+
+      seen.add(option.value);
+      deduped.push(option);
+    }
+
+    return deduped;
+  }
+
+  private normalizeKey(value: unknown): string {
+    if (typeof value !== 'string') {
+      return '';
+    }
+
+    return value.trim().toLowerCase().replace(/[\s-]+/g, '_');
   }
 
   private confirmationLabels: Record<string, string> = {
@@ -687,13 +792,7 @@ export class EnrollmentWizardPage implements OnInit {
   }
 
   private calculateAge(dob: string): number {
-    if (!dob) return 0;
-    const birth = new Date(this.dateService.toApiDate(dob));
-    const today = new Date();
-    let age = today.getFullYear() - birth.getFullYear();
-    const m = today.getMonth() - birth.getMonth();
-    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
-    return age;
+    return this.dateService.calculateAge(dob);
   }
 
   private dataUrlToBlob(dataUrl: string): Blob {
