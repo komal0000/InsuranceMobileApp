@@ -7,9 +7,14 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
+    "build:prod": "ng build --configuration production",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "lint": "ng lint"
+    "lint": "ng lint",
+    "android:sync": "npx cap sync android",
+    "android:open": "npx cap open android",
+    "android:release:apk": "npm run build:prod && npm run android:sync && cd android && gradlew.bat assembleRelease",
+    "android:release:aab": "npm run build:prod && npm run android:sync && cd android && gradlew.bat bundleRelease"
   },
   "private": true,
   "dependencies": {

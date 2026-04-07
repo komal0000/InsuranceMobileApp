@@ -34,7 +34,7 @@ The mobile app calls the backend API from these files:
 Current value:
 
 ```ts
-apiUrl: 'http://192.168.254.20:8000/api'
+apiUrl: 'https://insurance.needtechnosoft.com/api'
 ```
 
 Update this value if your Laravel backend is running on a different IP address, host, or port.
@@ -99,6 +99,43 @@ From Android Studio you can:
 - select an emulator or connected device
 - run the app
 
+## Signed Release Build Setup
+
+For signed release APK/AAB builds, configure Android signing once.
+
+1. Generate a keystore (run from `android/`):
+
+```powershell
+keytool -genkeypair -v -keystore release-keystore.jks -alias upload -keyalg RSA -keysize 2048 -validity 10000
+```
+
+1. Create `android/key.properties` using `android/key.properties.example` as template.
+
+1. Fill these values in `android/key.properties`:
+
+```properties
+storeFile=release-keystore.jks
+storePassword=YOUR_STORE_PASSWORD
+keyAlias=upload
+keyPassword=YOUR_KEY_PASSWORD
+```
+
+The Gradle release build now fails fast if `android/key.properties` is missing.
+
+## Build Signed Release Artifacts
+
+From project root:
+
+```powershell
+npm run android:release:apk
+npm run android:release:aab
+```
+
+Outputs:
+
+- APK: `android/app/build/outputs/apk/release/app-release.apk`
+- AAB: `android/app/build/outputs/bundle/release/app-release.aab`
+
 ## Firebase / Push Notifications
 
 This project includes Capacitor push notifications and already contains:
@@ -118,10 +155,13 @@ Notes:
 ```powershell
 npm start
 npm run build
+npm run build:prod
 npm test
 npm run lint
 npx cap sync android
 npx cap open android
+npm run android:release:apk
+npm run android:release:aab
 ```
 
 ## Common Setup Flow
