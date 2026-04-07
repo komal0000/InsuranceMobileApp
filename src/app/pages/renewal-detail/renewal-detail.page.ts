@@ -11,7 +11,8 @@ import { ToastController, AlertController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
   personOutline, peopleOutline, addOutline, trashOutline,
-  checkmarkCircleOutline, createOutline, walletOutline, shieldCheckmarkOutline
+  checkmarkCircleOutline, createOutline, walletOutline, shieldCheckmarkOutline,
+  cameraOutline
 } from 'ionicons/icons';
 import { ApiService } from '../../services/api.service';
 import { DateService } from '../../services/date.service';
@@ -58,8 +59,38 @@ export class RenewalDetailPage implements OnInit {
   submitting = false;
   renewalId!: number;
   showMemberForm = false;
+  editingMemberId: number | null = null;
+  savingMember = false;
   relationshipOptions: Array<{ value: string; label: string }> = [...DEFAULT_MEMBER_RELATIONSHIPS];
-  newMember: any = { first_name: '', middle_name: '', last_name: '', first_name_ne: '', middle_name_ne: '', last_name_ne: '', gender: '', date_of_birth: '', relationship: '', marital_status: '', mobile_number: '', citizenship_number: '' };
+  newMember: any = {
+    first_name: '', middle_name: '', last_name: '',
+    first_name_ne: '', middle_name_ne: '', last_name_ne: '',
+    gender: '', date_of_birth: '', relationship: '',
+    blood_group: '', marital_status: '', mobile_number: '', email: '',
+    document_type: '',
+    citizenship_number: '', citizenship_issue_date: '', citizenship_issue_district: '',
+    birth_certificate_number: '', birth_certificate_issue_date: '',
+    is_target_group: false, target_group_type: '', target_group_id_number: '',
+    photo: null as File | Blob | null,
+    citizenship_front_image: null as File | Blob | null,
+    citizenship_back_image: null as File | Blob | null,
+    birth_certificate_front_image: null as File | Blob | null,
+    birth_certificate_back_image: null as File | Blob | null,
+    target_group_front_image: null as File | Blob | null,
+    target_group_back_image: null as File | Blob | null,
+  };
+  memberPhotoPreview = '';
+  memberCitizenshipFrontPreview = '';
+  memberCitizenshipBackPreview = '';
+  memberBirthCertFrontPreview = '';
+  memberBirthCertBackPreview = '';
+  memberTargetGroupFrontPreview = '';
+  memberTargetGroupBackPreview = '';
+  private readonly memberDateFields = [
+    'date_of_birth',
+    'citizenship_issue_date',
+    'birth_certificate_issue_date',
+  ];
 
   constructor(
     private route: ActivatedRoute,
@@ -69,7 +100,17 @@ export class RenewalDetailPage implements OnInit {
     private toastCtrl: ToastController,
     private alertCtrl: AlertController
   ) {
-    addIcons({ personOutline, peopleOutline, addOutline, trashOutline, checkmarkCircleOutline, createOutline, walletOutline, shieldCheckmarkOutline });
+    addIcons({
+      personOutline,
+      peopleOutline,
+      addOutline,
+      trashOutline,
+      checkmarkCircleOutline,
+      createOutline,
+      walletOutline,
+      shieldCheckmarkOutline,
+      cameraOutline,
+    });
   }
 
   ngOnInit() {
@@ -103,11 +144,87 @@ export class RenewalDetailPage implements OnInit {
 
   showAddMember() {
     const currentBs = this.dateService.getCurrentBs();
-    this.newMember = { first_name: '', middle_name: '', last_name: '', first_name_ne: '', middle_name_ne: '', last_name_ne: '', gender: '', date_of_birth: currentBs, relationship: '', marital_status: '', mobile_number: '', citizenship_number: '' };
+    this.editingMemberId = null;
+    this.newMember = this.createEmptyMemberForm(currentBs);
+    this.resetMemberPreviews();
     this.showMemberForm = true;
   }
 
-  addMember() {
+  editMember(member: any) {
+    this.editingMemberId = Number(member.id);
+    this.newMember = {
+      first_name: member.first_name || '',
+      middle_name: member.middle_name || '',
+      last_name: member.last_name || '',
+      first_name_ne: member.first_name_ne || '',
+      middle_name_ne: member.middle_name_ne || '',
+      last_name_ne: member.last_name_ne || '',
+      gender: member.gender || '',
+      date_of_birth: this.dateService.formatForDisplay(member.date_of_birth, member.date_of_birth_bs) || '',
+      relationship: member.relationship || member.relationship_type || '',
+      blood_group: member.blood_group || '',
+      marital_status: member.marital_status || '',
+      mobile_number: member.mobile_number || '',
+      email: member.email || '',
+      document_type: member.document_type || '',
+      citizenship_number: member.citizenship_number || '',
+      citizenship_issue_date: this.dateService.formatForDisplay(
+        member.citizenship_issue_date,
+        member.citizenship_issue_date_bs
+      ) || '',
+      citizenship_issue_district: member.citizenship_issue_district || '',
+      birth_certificate_number: member.birth_certificate_number || '',
+      birth_certificate_issue_date: this.dateService.formatForDisplay(
+        member.birth_certificate_issue_date,
+        member.birth_certificate_issue_date_bs
+      ) || '',
+      is_target_group: !!member.is_target_group,
+      target_group_type: member.target_group_type || '',
+      target_group_id_number: member.target_group_id_number || '',
+      photo: null,
+      citizenship_front_image: null,
+      citizenship_back_image: null,
+      birth_certificate_front_image: null,
+      birth_certificate_back_image: null,
+      target_group_front_image: null,
+      target_group_back_image: null,
+    };
+
+    this.resetMemberPreviews();
+    this.memberPhotoPreview = this.getDocUrl(member, 'photo') || '';
+    this.memberCitizenshipFrontPreview = this.getDocUrl(member, 'citizenship_front') || '';
+    this.memberCitizenshipBackPreview = this.getDocUrl(member, 'citizenship_back') || '';
+    this.memberBirthCertFrontPreview = this.getDocUrl(member, 'birth_certificate_front') || '';
+    this.memberBirthCertBackPreview = this.getDocUrl(member, 'birth_certificate_back') || '';
+    this.memberTargetGroupFrontPreview = this.getDocUrl(member, 'target_group_front') || '';
+    this.memberTargetGroupBackPreview = this.getDocUrl(member, 'target_group_back') || '';
+
+    this.showMemberForm = true;
+  }
+
+  get isEditingMember(): boolean {
+    return this.editingMemberId !== null;
+  }
+
+  cancelMemberForm() {
+    this.showMemberForm = false;
+    this.editingMemberId = null;
+    this.newMember = this.createEmptyMemberForm(this.dateService.getCurrentBs());
+    this.resetMemberPreviews();
+  }
+
+  saveMember() {
+    if (!this.newMember.first_name || !this.newMember.last_name ||
+        !this.newMember.gender || !this.newMember.date_of_birth || !this.newMember.relationship) {
+      this.toastCtrl.create({
+        message: 'Please fill all required member fields.',
+        duration: 2200,
+        color: 'warning',
+        position: 'top',
+      }).then(t => t.present());
+      return;
+    }
+
     const relationship = this.normalizeKey(this.newMember.relationship);
     if (!relationship || !this.availableMemberRelationshipOptions.some(option => option.value === relationship)) {
       this.toastCtrl.create({ message: 'Please select a valid relationship.', duration: 2000, color: 'warning', position: 'top' }).then(t => t.present());
@@ -122,44 +239,137 @@ export class RenewalDetailPage implements OnInit {
       this.newMember.marital_status = this.normalizeKey(this.newMember.marital_status);
     }
 
-    if (this.newMember.date_of_birth && this.dateService.calculateAge(this.newMember.date_of_birth, 'bs') < 16) {
-      this.toastCtrl.create({ message: 'Member must be at least 16 years old.', duration: 2000, color: 'warning', position: 'top' }).then(t => t.present());
+    if (this.newMember.mobile_number && !/^\d{10}$/.test(this.newMember.mobile_number)) {
+      this.toastCtrl.create({ message: 'Mobile number must be exactly 10 digits.', duration: 2000, color: 'warning', position: 'top' }).then(t => t.present());
       return;
     }
-    const payload = this.dateService.preparePayloadForApi(this.newMember as Record<string, unknown>, ['date_of_birth']);
-    this.api.post<ApiResponse>(`/renewals/${this.renewalId}/members`, payload).subscribe({
+
+    const docType = this.newMember.document_type || null;
+    if (docType === 'citizenship' && this.newMember.date_of_birth && this.dateService.calculateAge(this.newMember.date_of_birth, 'bs') < 16) {
+      this.toastCtrl.create({ message: 'Member with citizenship document must be at least 16 years old.', duration: 2200, color: 'warning', position: 'top' }).then(t => t.present());
+      return;
+    }
+
+    const fd = new FormData();
+    Object.keys(this.newMember).forEach(key => {
+      const val = this.newMember[key];
+      if (val === null || val === undefined || val === '') return;
+      if (typeof val === 'boolean') {
+        fd.append(key, val ? '1' : '0');
+        return;
+      }
+      if (val instanceof Blob) {
+        fd.append(key, val, `${key}.jpg`);
+        return;
+      }
+      fd.append(key, String(val));
+    });
+
+    const prepared = this.dateService.prepareFormDataForApi(fd, this.memberDateFields);
+    const editingMemberId = this.editingMemberId;
+    const wasEditing = editingMemberId !== null;
+    if (wasEditing) {
+      prepared.append('_method', 'PUT');
+    }
+
+    const endpoint = wasEditing
+      ? `/renewals/${this.renewalId}/members/${editingMemberId}`
+      : `/renewals/${this.renewalId}/members`;
+
+    this.savingMember = true;
+    this.api.postFormData<ApiResponse>(endpoint, prepared).subscribe({
       next: async (res) => {
+        this.savingMember = false;
         if (res.success) {
-          this.showMemberForm = false;
+          this.cancelMemberForm();
           this.loadDetail();
-          const toast = await this.toastCtrl.create({ message: 'Member added', duration: 1500, color: 'success', position: 'top' });
+          const toast = await this.toastCtrl.create({
+            message: wasEditing ? 'Member updated' : 'Member added',
+            duration: 1500,
+            color: 'success',
+            position: 'top',
+          });
           await toast.present();
         }
+      },
+      error: async (err) => {
+        this.savingMember = false;
+        const toast = await this.toastCtrl.create({
+          message: err?.error?.message || 'Failed to save member',
+          duration: 2200,
+          color: 'danger',
+          position: 'top',
+        });
+        await toast.present();
       },
     });
   }
 
-  async editMember(member: any) {
-    const alert = await this.alertCtrl.create({
-      header: 'Edit Member',
-      inputs: [
-        { name: 'first_name', type: 'text', value: member.first_name, placeholder: 'First Name' },
-        { name: 'last_name', type: 'text', value: member.last_name, placeholder: 'Last Name' },
-        { name: 'mobile_number', type: 'tel', value: member.mobile_number, placeholder: 'Mobile Number' },
-      ],
-      buttons: [
-        { text: 'Cancel', role: 'cancel' },
-        {
-          text: 'Save',
-          handler: (data) => {
-            this.api.put<ApiResponse>(`/renewals/${this.renewalId}/members/${member.id}`, data).subscribe({
-              next: () => this.loadDetail(),
-            });
-          },
-        },
-      ],
-    });
-    await alert.present();
+  async captureImage(
+    field: 'photo' | 'citizenship_front_image' | 'citizenship_back_image' |
+           'birth_certificate_front_image' | 'birth_certificate_back_image' |
+           'target_group_front_image' | 'target_group_back_image'
+  ) {
+    try {
+      const { Camera, CameraResultType, CameraSource } = await import('@capacitor/camera');
+      const image = await Camera.getPhoto({
+        quality: 80,
+        allowEditing: false,
+        resultType: CameraResultType.DataUrl,
+        source: CameraSource.Prompt,
+        width: 1024,
+      });
+
+      if (image.dataUrl) {
+        this.applyImage(field, this.dataUrlToBlob(image.dataUrl), image.dataUrl);
+      }
+    } catch {
+      this.fallbackFileInput(field);
+    }
+  }
+
+  private fallbackFileInput(
+    field: 'photo' | 'citizenship_front_image' | 'citizenship_back_image' |
+           'birth_certificate_front_image' | 'birth_certificate_back_image' |
+           'target_group_front_image' | 'target_group_back_image'
+  ) {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/jpg,image/jpeg,image/png';
+    input.onchange = (event: Event) => {
+      const target = event.target as HTMLInputElement | null;
+      const file = target?.files?.[0];
+      if (!file) return;
+      if (file.size > 2 * 1024 * 1024) {
+        this.toastCtrl.create({ message: 'Image must be less than 2MB.', duration: 2000, color: 'danger', position: 'top' }).then(t => t.present());
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.applyImage(field, file, reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    };
+    input.click();
+  }
+
+  private applyImage(
+    field: 'photo' | 'citizenship_front_image' | 'citizenship_back_image' |
+           'birth_certificate_front_image' | 'birth_certificate_back_image' |
+           'target_group_front_image' | 'target_group_back_image',
+    blob: Blob,
+    dataUrl: string,
+  ) {
+    this.newMember[field] = blob;
+
+    if (field === 'photo') this.memberPhotoPreview = dataUrl;
+    else if (field === 'citizenship_front_image') this.memberCitizenshipFrontPreview = dataUrl;
+    else if (field === 'citizenship_back_image') this.memberCitizenshipBackPreview = dataUrl;
+    else if (field === 'birth_certificate_front_image') this.memberBirthCertFrontPreview = dataUrl;
+    else if (field === 'birth_certificate_back_image') this.memberBirthCertBackPreview = dataUrl;
+    else if (field === 'target_group_front_image') this.memberTargetGroupFrontPreview = dataUrl;
+    else if (field === 'target_group_back_image') this.memberTargetGroupBackPreview = dataUrl;
   }
 
   async removeMember(member: any) {
@@ -310,6 +520,54 @@ export class RenewalDetailPage implements OnInit {
     }
 
     return value.trim().toLowerCase().replace(/[\s-]+/g, '_');
+  }
+
+  private createEmptyMemberForm(currentBs: string): Record<string, unknown> {
+    return {
+      first_name: '', middle_name: '', last_name: '',
+      first_name_ne: '', middle_name_ne: '', last_name_ne: '',
+      gender: '', date_of_birth: currentBs, relationship: '',
+      blood_group: '', marital_status: '', mobile_number: '', email: '',
+      document_type: '',
+      citizenship_number: '', citizenship_issue_date: currentBs, citizenship_issue_district: '',
+      birth_certificate_number: '', birth_certificate_issue_date: currentBs,
+      is_target_group: false, target_group_type: '', target_group_id_number: '',
+      photo: null,
+      citizenship_front_image: null,
+      citizenship_back_image: null,
+      birth_certificate_front_image: null,
+      birth_certificate_back_image: null,
+      target_group_front_image: null,
+      target_group_back_image: null,
+    };
+  }
+
+  private resetMemberPreviews() {
+    this.memberPhotoPreview = '';
+    this.memberCitizenshipFrontPreview = '';
+    this.memberCitizenshipBackPreview = '';
+    this.memberBirthCertFrontPreview = '';
+    this.memberBirthCertBackPreview = '';
+    this.memberTargetGroupFrontPreview = '';
+    this.memberTargetGroupBackPreview = '';
+  }
+
+  getDocUrl(member: any, type: string): string | null {
+    if (!member?.documents?.length) return null;
+    const doc = member.documents.find((item: any) => item.document_type === type);
+    return doc?.url || null;
+  }
+
+  private dataUrlToBlob(dataUrl: string): Blob {
+    const parts = dataUrl.split(',');
+    const mime = parts[0].match(/:(.*?);/)?.[1] || 'image/jpeg';
+    const byteStr = atob(parts[1]);
+    const ab = new ArrayBuffer(byteStr.length);
+    const ia = new Uint8Array(ab);
+    for (let i = 0; i < byteStr.length; i++) {
+      ia[i] = byteStr.charCodeAt(i);
+    }
+    return new Blob([ab], { type: mime });
   }
 
   displayDate(adDate?: string | null, bsDate?: string | null): string {

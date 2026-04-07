@@ -431,6 +431,9 @@
               <strong>{{ m.first_name }} {{ m.middle_name }} {{ m.last_name }}</strong>
               <span>{{ m.relationship }} · Age {{ getAge(m.date_of_birth, m.date_of_birth_bs) }}</span>
             </div>
+            <ion-button size="small" fill="clear" color="primary" (click)="editMember(m)">
+              <ion-icon slot="icon-only" name="create-outline"></ion-icon>
+            </ion-button>
             <ion-button size="small" fill="clear" color="danger" (click)="removeMember(m)">
               <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
             </ion-button>
@@ -507,11 +510,11 @@
             <div class="section-icon" style="background:rgba(0,48,135,0.08)">
               <ion-icon name="person-outline" style="color:#003087"></ion-icon>
             </div>
-            <h3>New Family Member</h3>
+            <h3>{{ isEditingMember ? 'Edit Family Member' : 'New Family Member' }}</h3>
           </div>
 
           <!-- Member NID Gate -->
-          <div *ngIf="showNidGateMember">
+          <div *ngIf="showNidGateMember && !isEditingMember">
             <p style="font-size:0.85rem;color:#6c757d;margin:0 0 10px">Enter NID to auto-fill, or skip to fill manually.</p>
             <div class="form-group">
               <ion-item class="form-item">
@@ -776,9 +779,9 @@
             <!-- Save / Cancel -->
             <div class="btn-row" style="margin-top:14px">
               <ion-button expand="block" fill="outline" color="medium" (click)="cancelAddMember()">Cancel</ion-button>
-              <ion-button expand="block" (click)="addMember()" [disabled]="savingMember">
+              <ion-button expand="block" (click)="saveMember()" [disabled]="savingMember">
                 <ion-spinner *ngIf="savingMember" name="crescent"></ion-spinner>
-                <span *ngIf="!savingMember">Save Member</span>
+                <span *ngIf="!savingMember">{{ isEditingMember ? 'Update Member' : 'Save Member' }}</span>
               </ion-button>
             </div>
           </div>

@@ -121,6 +121,7 @@ export class EnrollmentWizardPage implements OnInit {
   members: FamilyMember[] = [];
   householdHead: HouseholdHead | null = null;
   showMemberForm = false;
+  editingMemberId: number | null = null;
   savingMember = false;
   showNidGateMember = true;
   nidNumberMember = '';
@@ -487,6 +488,7 @@ export class EnrollmentWizardPage implements OnInit {
 
   showAddMember() {
     const currentBs = this.dateService.getCurrentBs();
+    this.editingMemberId = null;
     this.newMember = {
       first_name: '', middle_name: '', last_name: '',
       first_name_ne: '', middle_name_ne: '', last_name_ne: '',
@@ -513,9 +515,69 @@ export class EnrollmentWizardPage implements OnInit {
     this.showMemberForm = true;
   }
 
-  cancelAddMember() { this.showMemberForm = false; }
+  editMember(member: FamilyMember) {
+    this.editingMemberId = member.id;
+    this.showNidGateMember = false;
+    this.showMemberForm = true;
+    this.nidNumberMember = '';
+    this.nidMessageMember = '';
 
-  async addMember() {
+    this.newMember = {
+      first_name: member.first_name || '',
+      middle_name: member.middle_name || '',
+      last_name: member.last_name || '',
+      first_name_ne: member.first_name_ne || '',
+      middle_name_ne: member.middle_name_ne || '',
+      last_name_ne: member.last_name_ne || '',
+      gender: member.gender || '',
+      date_of_birth: this.dateService.formatForDisplay(member.date_of_birth, member.date_of_birth_bs) || '',
+      relationship: member.relationship || member.relationship_type || '',
+      blood_group: member.blood_group || '',
+      marital_status: member.marital_status || '',
+      mobile_number: member.mobile_number || '',
+      document_type: member.document_type || '',
+      citizenship_number: member.citizenship_number || '',
+      citizenship_issue_date: this.dateService.formatForDisplay(
+        member.citizenship_issue_date,
+        member.citizenship_issue_date_bs
+      ) || '',
+      citizenship_issue_district: member.citizenship_issue_district || '',
+      birth_certificate_number: member.birth_certificate_number || '',
+      birth_certificate_issue_date: this.dateService.formatForDisplay(
+        member.birth_certificate_issue_date,
+        member.birth_certificate_issue_date_bs
+      ) || '',
+      is_target_group: !!member.is_target_group,
+      target_group_type: member.target_group_type || '',
+      target_group_id_number: member.target_group_id_number || '',
+      photo: null,
+      citizenship_front_image: null,
+      citizenship_back_image: null,
+      birth_certificate_front_image: null,
+      birth_certificate_back_image: null,
+      target_group_front_image: null,
+      target_group_back_image: null,
+    };
+
+    this.memberPhotoPreview = this.getDocUrl(member, 'photo') || '';
+    this.memberCitizenshipFrontPreview = this.getDocUrl(member, 'citizenship_front') || '';
+    this.memberCitizenshipBackPreview = this.getDocUrl(member, 'citizenship_back') || '';
+    this.memberBirthCertFrontPreview = this.getDocUrl(member, 'birth_certificate_front') || '';
+    this.memberBirthCertBackPreview = this.getDocUrl(member, 'birth_certificate_back') || '';
+    this.memberTargetGroupFrontPreview = this.getDocUrl(member, 'target_group_front') || '';
+    this.memberTargetGroupBackPreview = this.getDocUrl(member, 'target_group_back') || '';
+  }
+
+  cancelAddMember() {
+    this.showMemberForm = false;
+    this.editingMemberId = null;
+  }
+
+  get isEditingMember(): boolean {
+    return this.editingMemberId !== null;
+  }
+
+  async saveMember() {
     if (!this.newMember.first_name || !this.newMember.last_name ||
         !this.newMember.gender || !this.newMember.date_of_birth || !this.newMember.relationship) {
       this.showToast('Please fill all required member fields.', 'warning'); return;
@@ -540,6 +602,7 @@ export class EnrollmentWizardPage implements OnInit {
     if (docType === 'citizenship' && this.calculateAge(this.newMember.date_of_birth) < 16) {
       this.showToast('Member with citizenship document must be at least 16 years old.', 'warning'); return;
     }
+
     this.savingMember = true;
     const fd = new FormData();
     Object.keys(this.newMember).forEach(key => {
@@ -549,14 +612,20 @@ export class EnrollmentWizardPage implements OnInit {
       if (val instanceof Blob) { fd.append(key, val, `${key}.jpg`); return; }
       fd.append(key, String(val));
     });
-    this.enrollmentSvc.addMember(this.enrollmentId, fd).subscribe({
+
+    const saveRequest = this.isEditingMember && this.editingMemberId !== null
+      ? this.enrollmentSvc.updateMember(this.enrollmentId, this.editingMemberId, fd)
+      : this.enrollmentSvc.addMember(this.enrollmentId, fd);
+    const wasEditing = this.isEditingMember;
+
+    saveRequest.subscribe({
       next: async (res) => {
         this.savingMember = false;
         if (res.success) {
-          this.members.push(res.data);
           this.showMemberForm = false;
+          this.editingMemberId = null;
           this.loadEnrollment();
-          this.showToast('Member added successfully.', 'success');
+          this.showToast(wasEditing ? 'Member updated successfully.' : 'Member added successfully.', 'success');
         }
       },
       error: () => { this.savingMember = false; },

@@ -63,6 +63,15 @@ export class EnrollmentService {
     );
   }
 
+  updateMember(enrollmentId: number, memberId: number, formData: FormData): Observable<ApiResponse<FamilyMember>> {
+    const prepared = this.dateService.prepareFormDataForApi(formData, this.memberDateFields);
+    prepared.append('_method', 'PUT');
+    return this.api.postFormData<ApiResponse<FamilyMember>>(
+      `/enrollments/${enrollmentId}/members/${memberId}`,
+      prepared
+    );
+  }
+
   removeMember(enrollmentId: number, memberId: number): Observable<ApiResponse<any>> {
     return this.api.delete<ApiResponse<any>>(`/enrollments/${enrollmentId}/members/${memberId}`);
   }
