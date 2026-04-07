@@ -413,7 +413,7 @@
             </div>
             <div class="member-info">
               <strong>{{ householdHead.first_name }} {{ householdHead.middle_name }} {{ householdHead.last_name }}</strong>
-              <span>Household Head · Age {{ getAge(householdHead.date_of_birth) }}</span>
+              <span>Household Head · Age {{ getAge(householdHead.date_of_birth, householdHead.date_of_birth_bs) }}</span>
             </div>
             <ion-badge color="primary">Head</ion-badge>
           </div>
@@ -429,7 +429,7 @@
             </div>
             <div class="member-info">
               <strong>{{ m.first_name }} {{ m.middle_name }} {{ m.last_name }}</strong>
-              <span>{{ m.relationship }} · Age {{ getAge(m.date_of_birth) }}</span>
+              <span>{{ m.relationship }} · Age {{ getAge(m.date_of_birth, m.date_of_birth_bs) }}</span>
             </div>
             <ion-button size="small" fill="clear" color="danger" (click)="removeMember(m)">
               <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
@@ -611,7 +611,7 @@
                 </ion-select>
               </ion-item>
               <p *ngIf="isHeadSingle" style="margin:2px 4px 8px;color:#6c757d;font-size:0.75rem;">
-                Spouse option is hidden because household head marital status is single.
+                Spouse, son, and daughter options are hidden because household head marital status is single.
               </p>
               <ion-item class="form-item">
                 <ion-select label="Blood Group" labelPlacement="stacked" placeholder="Select"
@@ -947,7 +947,7 @@
                 <div class="member-avatar">{{ (m.first_name || '?')[0].toUpperCase() }}</div>
                 <div class="member-info">
                   <strong>{{ m.first_name }} {{ m.last_name }}</strong>
-                  <span>{{ m.relationship }} · {{ displayDate(m.date_of_birth, m.date_of_birth_bs) }} · Age {{ getAge(m.date_of_birth_bs || m.date_of_birth) }}</span>
+                  <span>{{ m.relationship }} · {{ displayDate(m.date_of_birth, m.date_of_birth_bs) }} · Age {{ getAge(m.date_of_birth, m.date_of_birth_bs) }}</span>
                 </div>
               </div>
             </div>

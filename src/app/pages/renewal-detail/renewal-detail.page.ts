@@ -38,6 +38,8 @@ const DEFAULT_MEMBER_RELATIONSHIPS: Array<{ value: string; label: string }> = [
   { value: 'other', label: 'Other' },
 ];
 
+const SINGLE_HEAD_BLOCKED_RELATIONSHIPS = ['spouse', 'son', 'daughter'];
+
 @Component({
   selector: 'app-renewal-detail',
   standalone: true,
@@ -111,8 +113,8 @@ export class RenewalDetailPage implements OnInit {
       this.toastCtrl.create({ message: 'Please select a valid relationship.', duration: 2000, color: 'warning', position: 'top' }).then(t => t.present());
       return;
     }
-    if (this.isHeadSingle && relationship === 'spouse') {
-      this.toastCtrl.create({ message: 'Spouse relationship is not allowed when household head marital status is single.', duration: 2500, color: 'warning', position: 'top' }).then(t => t.present());
+    if (this.isHeadSingle && SINGLE_HEAD_BLOCKED_RELATIONSHIPS.includes(relationship)) {
+      this.toastCtrl.create({ message: 'Spouse, son, and daughter relationships are not allowed when household head marital status is single.', duration: 2500, color: 'warning', position: 'top' }).then(t => t.present());
       return;
     }
     this.newMember.relationship = relationship;
@@ -120,7 +122,7 @@ export class RenewalDetailPage implements OnInit {
       this.newMember.marital_status = this.normalizeKey(this.newMember.marital_status);
     }
 
-    if (this.newMember.date_of_birth && this.dateService.calculateAge(this.newMember.date_of_birth) < 16) {
+    if (this.newMember.date_of_birth && this.dateService.calculateAge(this.newMember.date_of_birth, 'bs') < 16) {
       this.toastCtrl.create({ message: 'Member must be at least 16 years old.', duration: 2000, color: 'warning', position: 'top' }).then(t => t.present());
       return;
     }
@@ -246,7 +248,7 @@ export class RenewalDetailPage implements OnInit {
       return this.relationshipOptions;
     }
 
-    return this.relationshipOptions.filter(option => option.value !== 'spouse');
+    return this.relationshipOptions.filter(option => !SINGLE_HEAD_BLOCKED_RELATIONSHIPS.includes(option.value));
   }
 
   private loadRelationshipOptions() {

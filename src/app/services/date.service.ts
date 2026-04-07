@@ -9,6 +9,8 @@ import {
   toDateInt as convertToDateInt,
 } from '../../utils/nepali-calendar';
 
+type CalendarSource = 'auto' | 'bs' | 'ad';
+
 @Injectable({ providedIn: 'root' })
 export class DateService {
   private readonly isoDatePattern = /^\d{4}-\d{2}-\d{2}$/;
@@ -111,17 +113,50 @@ export class DateService {
     return `${datePart} ${safeTime}`;
   }
 
-  toApiDate(value: string | Date | null | undefined): string {
+  toApiDate(value: string | Date | null | undefined, source: CalendarSource = 'auto'): string {
     const normalized = this.normalizeDate(value);
     if (!normalized) {
       return '';
     }
 
-    return this.isBsDate(normalized) ? this.bsToAd(normalized) : normalized;
+    const isBs = this.isBsDate(normalized);
+    const isAd = this.isAdDate(normalized);
+
+    if (source === 'bs') {
+      return isBs ? this.bsToAd(normalized) : normalized;
+    }
+
+    if (source === 'ad') {
+      return normalized;
+    }
+
+    if (isBs && !isAd) {
+      return this.bsToAd(normalized);
+    }
+
+    return normalized;
   }
 
-  calculateAge(value: string | Date | null | undefined): number {
-    const adDate = this.toApiDate(value);
+  calculateAge(value: string | Date | null | undefined, source: CalendarSource = 'auto'): number {
+    const adDate = this.toApiDate(value, source);
+    return this.calculateAgeFromAdDate(adDate);
+  }
+
+  calculateAgeFromDates(adDate?: string | null, bsDate?: string | null): number {
+    const normalizedBs = this.normalizeDate(bsDate);
+    if (normalizedBs && this.isBsDate(normalizedBs)) {
+      return this.calculateAgeFromAdDate(this.toApiDate(normalizedBs, 'bs'));
+    }
+
+    const normalizedAd = this.normalizeDate(adDate);
+    if (!normalizedAd) {
+      return 0;
+    }
+
+    return this.calculateAgeFromAdDate(this.toApiDate(normalizedAd, 'ad'));
+  }
+
+  private calculateAgeFromAdDate(adDate: string): number {
     const parts = this.extractIsoParts(adDate);
     if (!parts) {
       return 0;
@@ -151,7 +186,7 @@ export class DateService {
         continue;
       }
 
-      normalized[field] = this.toApiDate(raw);
+      normalized[field] = this.toApiDate(raw, 'bs');
       normalized[bsField] = this.normalizeDate(raw) ?? raw;
     }
 
@@ -181,7 +216,7 @@ export class DateService {
         continue;
       }
 
-      prepared.append(field, this.toApiDate(raw));
+      prepared.append(field, this.toApiDate(raw, 'bs'));
       prepared.append(bsField, this.normalizeDate(raw) ?? raw);
     }
 

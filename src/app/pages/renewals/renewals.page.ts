@@ -43,6 +43,8 @@ const DEFAULT_MEMBER_RELATIONSHIPS: Array<{ value: string; label: string }> = [
   { value: 'other', label: 'Other' },
 ];
 
+const SINGLE_HEAD_BLOCKED_RELATIONSHIPS = ['spouse', 'son', 'daughter'];
+
 @Component({
   selector: 'app-renewals',
   standalone: true,
@@ -295,8 +297,8 @@ export class RenewalsPage implements OnInit {
       this.toastCtrl.create({ message: 'Please select a valid relationship.', duration: 2000, color: 'warning', position: 'top' }).then(t => t.present());
       return;
     }
-    if (this.isHeadSingle && relationship === 'spouse') {
-      this.toastCtrl.create({ message: 'Spouse relationship is not allowed when household head marital status is single.', duration: 2500, color: 'warning', position: 'top' }).then(t => t.present());
+    if (this.isHeadSingle && SINGLE_HEAD_BLOCKED_RELATIONSHIPS.includes(relationship)) {
+      this.toastCtrl.create({ message: 'Spouse, son, and daughter relationships are not allowed when household head marital status is single.', duration: 2500, color: 'warning', position: 'top' }).then(t => t.present());
       return;
     }
     m.relationship = relationship;
@@ -309,7 +311,7 @@ export class RenewalsPage implements OnInit {
       return;
     }
     const docType = m.document_type || 'citizenship';
-    if (docType === 'citizenship' && this.dateService.calculateAge(m.date_of_birth) < 16) {
+    if (docType === 'citizenship' && this.dateService.calculateAge(m.date_of_birth, 'bs') < 16) {
       this.toastCtrl.create({ message: 'Member with citizenship must be at least 16 years old.', duration: 2500, color: 'warning', position: 'top' }).then(t => t.present());
       return;
     }
@@ -522,7 +524,7 @@ export class RenewalsPage implements OnInit {
       return this.relationshipOptions;
     }
 
-    return this.relationshipOptions.filter(option => option.value !== 'spouse');
+    return this.relationshipOptions.filter(option => !SINGLE_HEAD_BLOCKED_RELATIONSHIPS.includes(option.value));
   }
 
   private loadRelationshipOptions() {

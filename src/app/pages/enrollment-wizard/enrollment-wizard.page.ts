@@ -49,6 +49,8 @@ const DEFAULT_MEMBER_RELATIONSHIPS: Array<{ value: string; label: string }> = [
   { value: 'other', label: 'Other' },
 ];
 
+const SINGLE_HEAD_BLOCKED_RELATIONSHIPS = ['spouse', 'son', 'daughter'];
+
 @Component({
   selector: 'app-enrollment-wizard',
   standalone: true,
@@ -523,8 +525,8 @@ export class EnrollmentWizardPage implements OnInit {
     if (!relationship || !this.availableMemberRelationshipOptions.some(option => option.value === relationship)) {
       this.showToast('Please select a valid relationship.', 'warning'); return;
     }
-    if (this.isHeadSingle && relationship === 'spouse') {
-      this.showToast('Spouse relationship is not allowed when household head marital status is single.', 'warning'); return;
+    if (this.isHeadSingle && SINGLE_HEAD_BLOCKED_RELATIONSHIPS.includes(relationship)) {
+      this.showToast('Spouse, son, and daughter relationships are not allowed when household head marital status is single.', 'warning'); return;
     }
     this.newMember.relationship = relationship;
     if (this.newMember.marital_status) {
@@ -687,8 +689,8 @@ export class EnrollmentWizardPage implements OnInit {
     return doc?.url || null;
   }
 
-  getAge(dob: string): number {
-    return this.dateService.calculateAge(dob);
+  getAge(adDate?: string | null, bsDate?: string | null): number {
+    return this.dateService.calculateAgeFromDates(adDate, bsDate);
   }
 
   displayDate(adDate?: string | null, bsDate?: string | null): string {
@@ -708,7 +710,7 @@ export class EnrollmentWizardPage implements OnInit {
       return this.relationshipOptions;
     }
 
-    return this.relationshipOptions.filter(option => option.value !== 'spouse');
+    return this.relationshipOptions.filter(option => !SINGLE_HEAD_BLOCKED_RELATIONSHIPS.includes(option.value));
   }
 
   private buildRelationshipOptions(raw: unknown): Array<{ value: string; label: string }> {
@@ -792,7 +794,7 @@ export class EnrollmentWizardPage implements OnInit {
   }
 
   private calculateAge(dob: string): number {
-    return this.dateService.calculateAge(dob);
+    return this.dateService.calculateAge(dob, 'bs');
   }
 
   private dataUrlToBlob(dataUrl: string): Blob {
