@@ -9,7 +9,8 @@ export interface Payment {
   gateway_transaction_id: string | null;
   status: 'pending' | 'paid' | 'failed';
   paid_at: string | null;
-  gateway_response: any;
+  gateway_response?: any;
+  failure_reason?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -30,12 +31,27 @@ export interface InsurancePolicy {
 export interface PaymentCreateResponse {
   redirect_url?: string;
   html_content?: string;
-  reference_id: string;
-  payment_id: number;
-  policy_id: number;
+  reference_id?: string;
+  payment_id?: number;
+  policy_id?: number;
+  locked_amount?: number;
+  attempt_number?: number;
+  retry_allowed?: boolean;
+  requires_payment?: boolean;
+  renewal_id?: number;
+}
+
+export interface PaymentRetryMeta {
+  retry_allowed: boolean;
+  retry_count: number;
+  attempt_number: number;
+  locked_amount: number | null;
+  latest_reference_id: string | null;
+  latest_status: 'pending' | 'paid' | 'failed' | null;
 }
 
 export interface PaymentStatusResponse {
   payment: Payment;
   policy: InsurancePolicy;
+  retry?: PaymentRetryMeta;
 }

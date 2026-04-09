@@ -1,7 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import {
   IonContent, IonHeader, IonToolbar, IonTitle, IonBadge, IonSearchbar,
   IonSegment, IonSegmentButton, IonRefresher, IonRefresherContent,
@@ -18,6 +20,7 @@ import {
   informationCircleOutline, cameraOutline, documentTextOutline
 } from 'ionicons/icons';
 import { ApiService } from '../../services/api.service';
+import { AppSyncEvent, AppSyncService } from '../../services/app-sync.service';
 import { AuthService } from '../../services/auth.service';
 import { DateService } from '../../services/date.service';
 import { ApiResponse, PaginatedData } from '../../interfaces/api-response.interface';
@@ -59,7 +62,7 @@ const SINGLE_HEAD_BLOCKED_RELATIONSHIPS = ['spouse', 'son', 'daughter'];
   templateUrl: './renewals.page.html',
   styleUrls: ['./renewals.page.scss'],
 })
-export class RenewalsPage implements OnInit {
+export class RenewalsPage implements OnInit, OnDestroy {
   renewals: Renewal[] = [];
   search = '';
   statusFilter = '';
@@ -86,9 +89,12 @@ export class RenewalsPage implements OnInit {
   memberBirthCertBackPreview: string | null = null;
   memberTargetGroupFrontPreview: string | null = null;
   memberTargetGroupBackPreview: string | null = null;
+  private readonly destroy$ = new Subject<void>();
+  private hasEnteredView = false;
 
   constructor(
     private api: ApiService,
+    private syncService: AppSyncService,
     private authService: AuthService,
     private dateService: DateService,
     private router: Router,
@@ -112,6 +118,28 @@ export class RenewalsPage implements OnInit {
     } else {
       this.loadRenewals();
     }
+
+    this.syncService.events$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((event) => {
+        if (this.shouldRefreshRenewals(event)) {
+          this.refreshCurrentView();
+        }
+      });
+  }
+
+  ionViewWillEnter() {
+    if (!this.hasEnteredView) {
+      this.hasEnteredView = true;
+      return;
+    }
+
+    this.refreshCurrentView();
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   loadBeneficiaryEnrollment() {
@@ -590,5 +618,25 @@ export class RenewalsPage implements OnInit {
 
   displayDate(adDate?: string | null, bsDate?: string | null): string {
     return this.dateService.formatForDisplay(adDate, bsDate) || '';
+  }
+
+  private refreshCurrentView(): void {
+    this.page = 1;
+
+    if (this.isBeneficiary) {
+      this.loadBeneficiaryEnrollment();
+      return;
+    }
+
+    this.loadRenewals();
+  }
+
+  private shouldRefreshRenewals(event: AppSyncEvent): boolean {
+    return [
+      'global_refresh',
+      'enrollment_changed',
+      'renewal_changed',
+      'dashboard_changed',
+    ].includes(event.type);
   }
 }

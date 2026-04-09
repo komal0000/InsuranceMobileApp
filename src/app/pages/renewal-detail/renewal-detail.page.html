@@ -68,12 +68,27 @@
               <div class="section-icon" style="background: rgba(13,202,240,0.1);">
                 <ion-icon name="people-outline" style="color: #0dcaf0;"></ion-icon>
               </div>
-              <h3>Members ({{ renewal.total_members || renewal.members?.length || 0 }})</h3>
+              <h3>Members ({{ renewal.total_members || renewalMembers.length || 0 }})</h3>
             </div>
 
-            <div class="member-list" *ngIf="renewal.members && renewal.members.length > 0">
-              <div class="member-row" *ngFor="let member of renewal.members">
-                <div class="member-avatar">{{ (member.first_name || member.full_name || '').charAt(0).toUpperCase() }}</div>
+            <div class="member-row" *ngIf="householdHead" style="margin-bottom: 12px; border-bottom: 1px solid #eef2f7; padding-bottom: 12px;">
+              <div class="member-avatar" style="overflow: hidden;">
+                <img *ngIf="getHeadPhotoUrl()" [src]="getHeadPhotoUrl()" alt="Head Photo" style="width: 100%; height: 100%; object-fit: cover;" />
+                <span *ngIf="!getHeadPhotoUrl()">{{ (householdHead.first_name || householdHead.name || '').charAt(0).toUpperCase() }}</span>
+              </div>
+              <div class="member-info">
+                <strong>{{ householdHead.first_name || householdHead.name || '' }} {{ householdHead.middle_name || '' }} {{ householdHead.last_name || '' }}</strong>
+                <span class="nepali-name" *ngIf="householdHead.first_name_ne">{{ householdHead.first_name_ne }} {{ householdHead.middle_name_ne || '' }} {{ householdHead.last_name_ne || '' }}</span>
+                <span>Household Head | {{ householdHead.gender || '' }}</span>
+              </div>
+            </div>
+
+            <div class="member-list" *ngIf="renewalMembers.length > 0">
+              <div class="member-row" *ngFor="let member of renewalMembers">
+                <div class="member-avatar" style="overflow: hidden;">
+                  <img *ngIf="getMemberPhotoUrl(member)" [src]="getMemberPhotoUrl(member)" alt="Member Photo" style="width: 100%; height: 100%; object-fit: cover;" />
+                  <span *ngIf="!getMemberPhotoUrl(member)">{{ (member.first_name || member.full_name || '').charAt(0).toUpperCase() }}</span>
+                </div>
                 <div class="member-info">
                   <strong>{{ member.first_name || '' }} {{ member.last_name || member.full_name || '' }}</strong>
                   <span class="nepali-name" *ngIf="member.first_name_ne">{{ member.first_name_ne }} {{ member.middle_name_ne || '' }} {{ member.last_name_ne || '' }}</span>

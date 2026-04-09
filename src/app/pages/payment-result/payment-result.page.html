@@ -50,6 +50,15 @@
       <ng-container *ngIf="errorCode === 'amount_mismatch'">
         The payment amount did not match the expected premium.
       </ng-container>
+      <ng-container *ngIf="errorCode === 'gateway_mismatch'">
+        The callback gateway did not match the payment gateway you selected.
+      </ng-container>
+      <ng-container *ngIf="errorCode === 'superseded_by_paid_attempt'">
+        This attempt was replaced by another successful payment.
+      </ng-container>
+      <ng-container *ngIf="errorCode === 'stale_or_failed_attempt'">
+        This payment attempt is no longer active.
+      </ng-container>
       <ng-container *ngIf="!errorCode || errorCode === 'invalid_callback' || errorCode === 'not_found'">
         Something went wrong with your payment.
       </ng-container>

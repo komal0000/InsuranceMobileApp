@@ -14,6 +14,7 @@ import {
   arrowForwardOutline, walletOutline, receiptOutline
 } from 'ionicons/icons';
 import { ApiService } from '../../services/api.service';
+import { AppSyncEvent, AppSyncService } from '../../services/app-sync.service';
 import { AuthService } from '../../services/auth.service';
 import { ApiResponse } from '../../interfaces/api-response.interface';
 import { Enrollment } from '../../interfaces/enrollment.interface';
@@ -43,7 +44,8 @@ export class DashboardPage implements OnInit, OnDestroy {
   constructor(
     private api: ApiService,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private syncService: AppSyncService
   ) {
     addIcons({
       documentTextOutline, shieldCheckmarkOutline, refreshOutline,
@@ -70,6 +72,20 @@ export class DashboardPage implements OnInit, OnDestroy {
 
         this.loadDashboard();
       });
+
+    this.syncService.events$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((event) => {
+        if (this.shouldRefreshDashboard(event) && this.user) {
+          this.loadDashboard();
+        }
+      });
+  }
+
+  ionViewWillEnter() {
+    if (this.user) {
+      this.loadDashboard();
+    }
   }
 
   loadDashboard() {
@@ -175,5 +191,15 @@ export class DashboardPage implements OnInit, OnDestroy {
   private canRoleCreateEnrollment(role?: string): boolean {
     return ['beneficiary', 'enrollment_assistant', 'admin', 'super_admin']
       .includes(role || '');
+  }
+
+  private shouldRefreshDashboard(event: AppSyncEvent): boolean {
+    return [
+      'global_refresh',
+      'enrollment_changed',
+      'renewal_changed',
+      'dashboard_changed',
+      'tabs_visibility_changed',
+    ].includes(event.type);
   }
 }

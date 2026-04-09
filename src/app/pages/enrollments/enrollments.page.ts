@@ -1,7 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import {
   IonContent, IonHeader, IonToolbar, IonTitle,
   IonBadge, IonSearchbar, IonSegment, IonSegmentButton,
@@ -13,6 +15,7 @@ import { ToastController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { addOutline, documentTextOutline, locationOutline, peopleOutline, personOutline, informationCircleOutline } from 'ionicons/icons';
 import { ApiService } from '../../services/api.service';
+import { AppSyncEvent, AppSyncService } from '../../services/app-sync.service';
 import { AuthService } from '../../services/auth.service';
 import { DateService } from '../../services/date.service';
 import { ApiResponse, PaginatedData } from '../../interfaces/api-response.interface';
@@ -32,7 +35,7 @@ import { Enrollment, EnrollmentStatus } from '../../interfaces/enrollment.interf
   templateUrl: './enrollments.page.html',
   styleUrls: ['./enrollments.page.scss'],
 })
-export class EnrollmentsPage implements OnInit {
+export class EnrollmentsPage implements OnInit, OnDestroy {
   enrollments: Enrollment[] = [];
   search = '';
   statusFilter = '';
@@ -41,9 +44,12 @@ export class EnrollmentsPage implements OnInit {
   loading = false;
   canCreate = true;
   isBeneficiary = false;
+  private readonly destroy$ = new Subject<void>();
+  private hasEnteredView = false;
 
   constructor(
     private api: ApiService,
+    private syncService: AppSyncService,
     private authService: AuthService,
     private dateService: DateService,
     private router: Router,
@@ -58,6 +64,28 @@ export class EnrollmentsPage implements OnInit {
     this.canCreate = ['beneficiary', 'enrollment_assistant', 'admin', 'super_admin']
       .includes(user?.role || '');
     this.loadEnrollments();
+
+    this.syncService.events$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((event) => {
+        if (this.shouldRefreshEnrollments(event)) {
+          this.reloadFirstPage();
+        }
+      });
+  }
+
+  ionViewWillEnter() {
+    if (!this.hasEnteredView) {
+      this.hasEnteredView = true;
+      return;
+    }
+
+    this.reloadFirstPage();
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   loadEnrollments(append = false) {
@@ -168,5 +196,19 @@ export class EnrollmentsPage implements OnInit {
 
   displayDate(adDate?: string | null, bsDate?: string | null): string {
     return this.dateService.formatForDisplay(adDate, bsDate) || '';
+  }
+
+  private reloadFirstPage(): void {
+    this.page = 1;
+    this.loadEnrollments();
+  }
+
+  private shouldRefreshEnrollments(event: AppSyncEvent): boolean {
+    return [
+      'global_refresh',
+      'enrollment_changed',
+      'dashboard_changed',
+      'tabs_visibility_changed',
+    ].includes(event.type);
   }
 }

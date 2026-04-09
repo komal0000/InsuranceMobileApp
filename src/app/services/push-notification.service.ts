@@ -4,6 +4,7 @@ import { PushNotifications, Token, PushNotificationSchema, ActionPerformed } fro
 import { Router } from '@angular/router';
 import { BehaviorSubject } from 'rxjs';
 import { ApiService } from './api.service';
+import { AppSyncService } from './app-sync.service';
 
 @Injectable({ providedIn: 'root' })
 export class PushNotificationService {
@@ -13,7 +14,8 @@ export class PushNotificationService {
   constructor(
     private api: ApiService,
     private router: Router,
-    private zone: NgZone
+    private zone: NgZone,
+    private syncService: AppSyncService
   ) {}
 
   async initialize(): Promise<void> {
@@ -45,7 +47,8 @@ export class PushNotificationService {
     PushNotifications.addListener('pushNotificationReceived', (notification: PushNotificationSchema) => {
       console.log('Push received in foreground:', notification);
       this.zone.run(() => {
-        this.incrementUnread();
+        this.fetchUnreadCount();
+        this.syncService.emitFromNotificationData(notification.data);
       });
     });
 
@@ -54,6 +57,9 @@ export class PushNotificationService {
       console.log('Push action performed:', action);
       const data = action.notification.data;
       this.zone.run(() => {
+        this.fetchUnreadCount();
+        this.syncService.emitFromNotificationData(data);
+
         if (data?.enrollment_id) {
           this.router.navigate(['/enrollment-detail', data.enrollment_id]);
         } else if (data?.renewal_id) {
@@ -89,10 +95,6 @@ export class PushNotificationService {
       },
       error: () => {},
     });
-  }
-
-  private incrementUnread(): void {
-    this.unreadCount$.next(this.unreadCount$.value + 1);
   }
 
   decrementUnread(): void {

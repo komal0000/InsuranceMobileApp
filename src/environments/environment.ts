@@ -4,7 +4,14 @@
 
 export const environment = {
   production: false,
-  apiUrl: 'https://insurance.needtechnosoft.com/api'
+  apiUrl: 'https://insurance.needtechnosoft.com/api',
+  // Ordered by preference for local testing, with production fallback last.
+  apiUrls: [
+    'http://192.168.254.20:8000/api',
+    'http://10.0.2.2:8000/api',
+    'http://localhost:8000/api',
+    'https://insurance.needtechnosoft.com/api'
+  ]
 };
 
 /*

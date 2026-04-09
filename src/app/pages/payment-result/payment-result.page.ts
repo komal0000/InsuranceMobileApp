@@ -10,7 +10,6 @@ import { addIcons } from 'ionicons';
 import {
   checkmarkCircleOutline, closeCircleOutline, timeOutline,
 } from 'ionicons/icons';
-import { EnrollmentService } from '../../services/enrollment.service';
 
 @Component({
   selector: 'app-payment-result',
@@ -28,16 +27,14 @@ export class PaymentResultPage implements OnInit {
   status: 'success' | 'failed' | 'pending' | 'processing' = 'processing';
   referenceId = '';
   paymentType: 'new' | 'renewal' | null = null;
+  policyId: number | null = null;
   enrollmentId: number | null = null;
   renewalId: number | null = null;
   errorCode = '';
 
-  submitting = false;
-
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private enrollmentSvc: EnrollmentService,
     private toastCtrl: ToastController,
   ) {
     addIcons({ checkmarkCircleOutline, closeCircleOutline, timeOutline });
@@ -47,6 +44,7 @@ export class PaymentResultPage implements OnInit {
     const p = this.route.snapshot.queryParams;
     this.referenceId  = p['reference_id'] || '';
     this.paymentType  = p['type'] || null;
+    this.policyId     = p['policy_id'] ? +p['policy_id'] : null;
     this.enrollmentId = p['enrollment_id'] ? +p['enrollment_id'] : null;
     this.renewalId    = p['renewal_id'] ? +p['renewal_id'] : null;
     this.errorCode    = p['error'] || '';
@@ -63,27 +61,7 @@ export class PaymentResultPage implements OnInit {
   // ── Success flow ──────────────────────────────────────────────
 
   private handleSuccess() {
-    if (this.paymentType === 'new' && this.enrollmentId) {
-      // Submit the enrollment for verification now that payment is done
-      this.submitting = true;
-      this.status = 'processing';
-      this.enrollmentSvc.submit(this.enrollmentId).subscribe({
-        next: () => {
-          this.submitting = false;
-          this.status = 'success';
-          this.showToast('Enrollment submitted for verification!', 'success');
-        },
-        error: () => {
-          // Payment succeeded even if submit call failed — still show success
-          this.submitting = false;
-          this.status = 'success';
-          this.showToast('Payment received. Enrollment is being processed.', 'success');
-        },
-      });
-    } else {
-      // Renewal or policy-only payment — nothing extra to submit
-      this.status = 'success';
-    }
+    this.status = 'success';
   }
 
   // ── Navigation ────────────────────────────────────────────────
@@ -101,12 +79,20 @@ export class PaymentResultPage implements OnInit {
   }
 
   retryPayment() {
-    // Navigate back so user can pick a gateway and try again
-    if (this.paymentType === 'renewal') {
-      this.router.navigateByUrl('/tabs/renewals', { replaceUrl: true });
-    } else {
-      this.router.navigateByUrl('/tabs/dashboard', { replaceUrl: true });
+    const queryParams: Record<string, string> = {
+      type: this.paymentType ?? 'new',
+    };
+
+    if (this.policyId) queryParams['policyId'] = String(this.policyId);
+    if (this.enrollmentId) queryParams['enrollmentId'] = String(this.enrollmentId);
+    if (this.renewalId) queryParams['renewalId'] = String(this.renewalId);
+
+    if (this.policyId || this.enrollmentId || this.renewalId) {
+      this.router.navigate(['/payment'], { queryParams, replaceUrl: true });
+      return;
     }
+
+    this.router.navigateByUrl('/tabs/dashboard', { replaceUrl: true });
   }
 
   // ── Helpers ───────────────────────────────────────────────────

@@ -1,6 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import {
   IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton,
   IonCard, IonCardContent, IonBadge, IonIcon, IonButton, IonSpinner,
@@ -14,6 +16,7 @@ import {
   shieldCheckmarkOutline
 } from 'ionicons/icons';
 import { ApiService } from '../../services/api.service';
+import { AppSyncEvent, AppSyncService } from '../../services/app-sync.service';
 import { AuthService } from '../../services/auth.service';
 import { DateService } from '../../services/date.service';
 import { ApiResponse } from '../../interfaces/api-response.interface';
@@ -31,18 +34,21 @@ import { Enrollment } from '../../interfaces/enrollment.interface';
   templateUrl: './enrollment-detail.page.html',
   styleUrls: ['./enrollment-detail.page.scss'],
 })
-export class EnrollmentDetailPage implements OnInit {
+export class EnrollmentDetailPage implements OnInit, OnDestroy {
   enrollment: Enrollment | null = null;
   loading = true;
   enrollmentId!: number;
   canVerify = false;
   canApprove = false;
   canReject = false;
+  private readonly destroy$ = new Subject<void>();
+  private hasEnteredView = false;
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private api: ApiService,
+    private syncService: AppSyncService,
     private authService: AuthService,
     private dateService: DateService,
     private toastCtrl: ToastController,
@@ -62,6 +68,28 @@ export class EnrollmentDetailPage implements OnInit {
     this.canApprove = ['province', 'admin', 'super_admin'].includes(user?.role || '');
     this.canReject = ['district_eo', 'province', 'admin', 'super_admin'].includes(user?.role || '');
     this.loadDetail();
+
+    this.syncService.events$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((event) => {
+        if (this.shouldRefreshDetail(event)) {
+          this.loadDetail();
+        }
+      });
+  }
+
+  ionViewWillEnter() {
+    if (!this.hasEnteredView) {
+      this.hasEnteredView = true;
+      return;
+    }
+
+    this.loadDetail();
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   loadDetail() {
@@ -195,5 +223,17 @@ export class EnrollmentDetailPage implements OnInit {
 
   displayDate(adDate?: string | null, bsDate?: string | null): string {
     return this.dateService.formatForDisplay(adDate, bsDate) || '';
+  }
+
+  private shouldRefreshDetail(event: AppSyncEvent): boolean {
+    if (event.type === 'global_refresh') {
+      return true;
+    }
+
+    if (event.type === 'enrollment_changed' && event.enrollmentId !== undefined) {
+      return event.enrollmentId === this.enrollmentId;
+    }
+
+    return false;
   }
 }

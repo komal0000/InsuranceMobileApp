@@ -1,5 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import {
   IonContent, IonHeader, IonToolbar, IonTitle, IonBadge, IonIcon,
   IonSpinner, IonRefresher, IonRefresherContent, IonInfiniteScroll,
@@ -8,6 +10,7 @@ import {
 import { addIcons } from 'ionicons';
 import { notificationsOutline, mailOpenOutline, mailOutline, checkmarkDoneOutline } from 'ionicons/icons';
 import { ApiService } from '../../services/api.service';
+import { AppSyncEvent, AppSyncService } from '../../services/app-sync.service';
 import { PushNotificationService } from '../../services/push-notification.service';
 import { DateService } from '../../services/date.service';
 import { ApiResponse, PaginatedData } from '../../interfaces/api-response.interface';
@@ -25,26 +28,53 @@ import { AppNotification } from '../../interfaces/notification.interface';
   templateUrl: './notifications.page.html',
   styleUrls: ['./notifications.page.scss'],
 })
-export class NotificationsPage implements OnInit, ViewDidEnter {
+export class NotificationsPage implements OnInit, OnDestroy, ViewDidEnter {
   notifications: AppNotification[] = [];
   page = 1;
   lastPage = 1;
   loading = false;
+  private readonly destroy$ = new Subject<void>();
+  private hasEnteredView = false;
 
   constructor(
     private api: ApiService,
+    private syncService: AppSyncService,
     private pushService: PushNotificationService,
     private dateService: DateService
   ) {
     addIcons({ notificationsOutline, mailOpenOutline, mailOutline, checkmarkDoneOutline });
   }
 
-  ngOnInit() { this.load(); }
+  ngOnInit() {
+    this.load();
+
+    this.syncService.events$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((event) => {
+        if (this.shouldRefreshNotifications(event)) {
+          this.reloadFirstPage();
+        }
+      });
+  }
+
+  ionViewWillEnter() {
+    if (!this.hasEnteredView) {
+      this.hasEnteredView = true;
+      return;
+    }
+
+    this.reloadFirstPage();
+  }
 
   ionViewDidEnter() {
     if (this.hasUnread) {
       this.markAllRead();
     }
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   load() {
@@ -104,5 +134,15 @@ export class NotificationsPage implements OnInit, ViewDidEnter {
 
   displayDateTime(adDate?: string | null, bsDate?: string | null): string {
     return this.dateService.formatDateTimeForDisplay(adDate, bsDate) || '';
+  }
+
+  private reloadFirstPage(): void {
+    this.page = 1;
+    this.load();
+    this.pushService.fetchUnreadCount();
+  }
+
+  private shouldRefreshNotifications(event: AppSyncEvent): boolean {
+    return ['global_refresh', 'notification_changed'].includes(event.type);
   }
 }

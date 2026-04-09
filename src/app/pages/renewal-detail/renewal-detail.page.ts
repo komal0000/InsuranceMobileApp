@@ -1,7 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import {
   IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton,
   IonCard, IonCardContent, IonBadge, IonIcon, IonButton, IonSpinner,
@@ -15,6 +17,7 @@ import {
   cameraOutline
 } from 'ionicons/icons';
 import { ApiService } from '../../services/api.service';
+import { AppSyncEvent, AppSyncService } from '../../services/app-sync.service';
 import { DateService } from '../../services/date.service';
 import { ApiResponse } from '../../interfaces/api-response.interface';
 import { Renewal } from '../../interfaces/renewal.interface';
@@ -53,7 +56,7 @@ const SINGLE_HEAD_BLOCKED_RELATIONSHIPS = ['spouse', 'son', 'daughter'];
   templateUrl: './renewal-detail.page.html',
   styleUrls: ['./renewal-detail.page.scss'],
 })
-export class RenewalDetailPage implements OnInit {
+export class RenewalDetailPage implements OnInit, OnDestroy {
   renewal: Renewal | null = null;
   loading = true;
   submitting = false;
@@ -91,11 +94,14 @@ export class RenewalDetailPage implements OnInit {
     'citizenship_issue_date',
     'birth_certificate_issue_date',
   ];
+  private readonly destroy$ = new Subject<void>();
+  private hasEnteredView = false;
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private api: ApiService,
+    private syncService: AppSyncService,
     private dateService: DateService,
     private toastCtrl: ToastController,
     private alertCtrl: AlertController
@@ -117,6 +123,28 @@ export class RenewalDetailPage implements OnInit {
     this.renewalId = Number(this.route.snapshot.paramMap.get('id'));
     this.loadRelationshipOptions();
     this.loadDetail();
+
+    this.syncService.events$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((event) => {
+        if (this.shouldRefreshRenewalDetail(event)) {
+          this.loadDetail();
+        }
+      });
+  }
+
+  ionViewWillEnter() {
+    if (!this.hasEnteredView) {
+      this.hasEnteredView = true;
+      return;
+    }
+
+    this.loadDetail();
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   loadDetail() {
@@ -450,7 +478,66 @@ export class RenewalDetailPage implements OnInit {
   }
 
   get isHeadSingle(): boolean {
-    return this.normalizeKey(this.renewal?.enrollment?.household_head?.marital_status) === 'single';
+    return this.normalizeKey(this.householdHead?.marital_status) === 'single';
+  }
+
+  get householdHead(): any {
+    const enrollment = this.renewal?.enrollment;
+    return enrollment?.household_head ?? enrollment?.householdHead ?? null;
+  }
+
+  get renewalMembers(): any[] {
+    if (!this.renewal) {
+      return [];
+    }
+
+    if (Array.isArray(this.renewal.members) && this.renewal.members.length > 0) {
+      return this.renewal.members;
+    }
+
+    const enrollment = this.renewal.enrollment;
+    const familyMembers = enrollment?.family_members ?? enrollment?.familyMembers;
+
+    return Array.isArray(familyMembers) ? familyMembers : [];
+  }
+
+  getHeadPhotoUrl(): string | null {
+    const head = this.householdHead;
+    if (!head) {
+      return null;
+    }
+
+    const photoDoc = head.documents?.find((doc: any) => doc.document_type === 'photo');
+    if (photoDoc?.url) {
+      return photoDoc.url;
+    }
+
+    if (head.profile_image_url) {
+      return head.profile_image_url;
+    }
+
+    if (head.photo) {
+      return head.photo;
+    }
+
+    return null;
+  }
+
+  getMemberPhotoUrl(member: any): string | null {
+    if (!member) {
+      return null;
+    }
+
+    const photoDoc = member.documents?.find((doc: any) => doc.document_type === 'photo');
+    if (photoDoc?.url) {
+      return photoDoc.url;
+    }
+
+    if (member.photo) {
+      return member.photo;
+    }
+
+    return null;
   }
 
   get availableMemberRelationshipOptions(): Array<{ value: string; label: string }> {
@@ -572,5 +659,21 @@ export class RenewalDetailPage implements OnInit {
 
   displayDate(adDate?: string | null, bsDate?: string | null): string {
     return this.dateService.formatForDisplay(adDate, bsDate) || '';
+  }
+
+  private shouldRefreshRenewalDetail(event: AppSyncEvent): boolean {
+    if (event.type === 'global_refresh') {
+      return true;
+    }
+
+    if (event.type === 'renewal_changed') {
+      return event.renewalId === undefined || event.renewalId === this.renewalId;
+    }
+
+    if (event.type === 'enrollment_changed' && event.enrollmentId !== undefined) {
+      return event.enrollmentId === this.renewal?.enrollment_id;
+    }
+
+    return false;
   }
 }

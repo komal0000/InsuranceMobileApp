@@ -14,7 +14,6 @@ import {
 } from 'ionicons/icons';
 import { timer, switchMap, takeWhile, tap } from 'rxjs';
 import { PaymentService } from '../../services/payment.service';
-import { EnrollmentService } from '../../services/enrollment.service';
 import { ApiResponse } from '../../interfaces/api-response.interface';
 import { PaymentStatusResponse } from '../../interfaces/payment.interface';
 
@@ -61,12 +60,12 @@ export class PaymentPage implements OnInit {
   pollCount = 0;
   maxPolls = 5;
   paymentStatus: string | null = null;
+  activeReferenceId: string | null = null;
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private paymentSvc: PaymentService,
-    private enrollmentSvc: EnrollmentService,
     private toastCtrl: ToastController,
     private alertCtrl: AlertController,
   ) {
@@ -109,9 +108,16 @@ export class PaymentPage implements OnInit {
       next: async (res) => {
         this.loading = false;
         if (res.success) {
+          if (res.data?.requires_payment === false) {
+            this.paymentStatus = 'paid';
+            this.navigateToResult('success', res.data.reference_id || '');
+            return;
+          }
+
           const url = res.data.redirect_url || res.data.html_content;
-          if (url && url.trim() !== '') {
-            await this.openGatewayUrl(url, res.data.reference_id);
+          const referenceId = res.data.reference_id ?? '';
+          if (url && url.trim() !== '' && referenceId.length > 0) {
+            await this.openGatewayUrl(url, referenceId);
           } else {
             this.showToast('Invalid gateway response.', 'danger');
           }
@@ -158,6 +164,7 @@ export class PaymentPage implements OnInit {
    * When resolved, navigate to /payment-result with the appropriate params.
    */
   private startPolling(referenceId: string) {
+    this.activeReferenceId = referenceId;
     this.polling = true;
     this.pollCount = 0;
     this.paymentStatus = 'checking';
@@ -165,19 +172,29 @@ export class PaymentPage implements OnInit {
     timer(2000, 3000).pipe(
       takeWhile(() => this.pollCount < this.maxPolls && this.paymentStatus === 'checking'),
       tap(() => this.pollCount++),
-      switchMap(() => this.paymentSvc.getPaymentStatus(referenceId)),
+      switchMap(() => this.paymentSvc.getPaymentStatus(this.activeReferenceId || referenceId)),
     ).subscribe({
       next: (res: ApiResponse<PaymentStatusResponse>) => {
         if (res.success) {
+          const retry = res.data.retry;
+          const currentReference = this.activeReferenceId || referenceId;
+          const latestReference = retry?.latest_reference_id || null;
+
+          if (latestReference && latestReference !== currentReference) {
+            this.activeReferenceId = latestReference;
+            this.pollCount = 0;
+            return;
+          }
+
           const status = res.data.payment.status;
           if (status === 'paid') {
             this.paymentStatus = 'paid';
             this.polling = false;
-            this.navigateToResult('success', referenceId);
+            this.navigateToResult('success', currentReference);
           } else if (status === 'failed') {
             this.paymentStatus = 'failed';
             this.polling = false;
-            this.navigateToResult('failed', referenceId);
+            this.navigateToResult('failed', currentReference);
           }
           // status is still 'pending' — continue polling
         }
@@ -190,7 +207,7 @@ export class PaymentPage implements OnInit {
         if (this.paymentStatus === 'checking') {
           // Polling exhausted without definitive result
           this.paymentStatus = 'timeout';
-          this.showTimeoutAlert(referenceId);
+            this.showTimeoutAlert(this.activeReferenceId || referenceId);
         }
       },
     });
@@ -205,6 +222,7 @@ export class PaymentPage implements OnInit {
       reference_id: referenceId,
       type: this.paymentType,
     };
+    if (this.policyId) queryParams['policy_id'] = String(this.policyId);
     if (this.enrollmentId) queryParams['enrollment_id'] = String(this.enrollmentId);
     if (this.renewalId)    queryParams['renewal_id']    = String(this.renewalId);
 
