@@ -1,12 +1,13 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { catchError, tap } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
   private readonly baseUrls = this.resolveBaseUrls();
+  private preferredBaseUrlIndex = 0;
 
   constructor(private http: HttpClient) {}
 
@@ -90,13 +91,21 @@ export class ApiService {
     return `${baseUrl}${normalizedPath}`;
   }
 
-  private requestWithFallback<T>(requestFactory: (baseUrl: string) => Observable<T>, index = 0): Observable<T> {
-    const baseUrl = this.baseUrls[index] ?? this.baseUrls[0];
+  private requestWithFallback<T>(
+    requestFactory: (baseUrl: string) => Observable<T>,
+    attemptOrder = this.getAttemptOrder(),
+    attemptIndex = 0
+  ): Observable<T> {
+    const baseUrlIndex = attemptOrder[attemptIndex] ?? attemptOrder[0] ?? 0;
+    const baseUrl = this.baseUrls[baseUrlIndex] ?? this.baseUrls[0];
 
     return requestFactory(baseUrl).pipe(
+      tap(() => {
+        this.preferredBaseUrlIndex = baseUrlIndex;
+      }),
       catchError((error: unknown) => {
-        if (this.shouldRetryWithNextBaseUrl(error, index)) {
-          return this.requestWithFallback(requestFactory, index + 1);
+        if (this.shouldRetryWithNextBaseUrl(error, attemptOrder, attemptIndex)) {
+          return this.requestWithFallback(requestFactory, attemptOrder, attemptIndex + 1);
         }
 
         return throwError(() => error);
@@ -104,8 +113,14 @@ export class ApiService {
     );
   }
 
-  private shouldRetryWithNextBaseUrl(error: unknown, index: number): boolean {
-    const hasNextBaseUrl = index < this.baseUrls.length - 1;
+  private getAttemptOrder(): number[] {
+    const orderedIndexes = this.baseUrls.map((_, index) => index);
+    const preferred = orderedIndexes.splice(this.preferredBaseUrlIndex, 1);
+    return [...preferred, ...orderedIndexes];
+  }
+
+  private shouldRetryWithNextBaseUrl(error: unknown, attemptOrder: number[], attemptIndex: number): boolean {
+    const hasNextBaseUrl = attemptIndex < attemptOrder.length - 1;
     return hasNextBaseUrl && error instanceof HttpErrorResponse && error.status === 0;
   }
 }

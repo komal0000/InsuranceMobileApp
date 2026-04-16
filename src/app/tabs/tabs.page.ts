@@ -13,9 +13,8 @@ import {
 } from 'ionicons/icons';
 import { AuthService } from '../services/auth.service';
 import { PushNotificationService } from '../services/push-notification.service';
-import { ApiService } from '../services/api.service';
 import { AppSyncEvent, AppSyncService } from '../services/app-sync.service';
-import { ApiResponse } from '../interfaces/api-response.interface';
+import { DashboardDataService } from '../services/dashboard-data.service';
 
 @Component({
   selector: 'app-tabs',
@@ -33,7 +32,7 @@ export class TabsPage implements OnInit, OnDestroy {
   constructor(
     private authService: AuthService,
     private pushService: PushNotificationService,
-    private api: ApiService,
+    private dashboardData: DashboardDataService,
     private syncService: AppSyncService
   ) {
     addIcons({
@@ -71,7 +70,7 @@ export class TabsPage implements OnInit, OnDestroy {
         }
 
         if (this.shouldRefreshEnrollmentTab(event)) {
-          this.refreshEnrollmentTabVisibility();
+          this.refreshEnrollmentTabVisibility(true);
         }
       });
   }
@@ -90,7 +89,7 @@ export class TabsPage implements OnInit, OnDestroy {
     ].includes(event.type);
   }
 
-  private refreshEnrollmentTabVisibility(): void {
+  private refreshEnrollmentTabVisibility(forceRefresh = false): void {
     const user = this.authService.getCurrentUser();
     if (user?.role !== 'beneficiary') {
       this.hideEnrollmentTab = false;
@@ -99,7 +98,7 @@ export class TabsPage implements OnInit, OnDestroy {
 
     const requestId = ++this.enrollmentTabRequestId;
 
-    this.api.get<ApiResponse>('/dashboard')
+    this.dashboardData.getDashboard(forceRefresh)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (res) => {

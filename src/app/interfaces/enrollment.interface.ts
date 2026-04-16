@@ -169,22 +169,34 @@ export interface EnrollmentStep {
   fields?: string[];
 }
 
+export interface NidLookupData {
+  national_id: string;
+  first_name: string | null;
+  last_name: string | null;
+  first_name_ne?: string | null;
+  last_name_ne?: string | null;
+  name_ne: string | null;
+  gender: string | null;
+  date_of_birth: string | null;
+  date_of_birth_bs?: string | null;
+  father_name?: string | null;
+  mother_name?: string | null;
+  mobile_number: string | null;
+  email: string | null;
+  address?: string | null;
+  province: string | null;
+  district: string | null;
+  citizenship_number?: string | null;
+  citizenship_issue_date?: string | null;
+  citizenship_issue_date_bs?: string | null;
+  citizenship_issue_district?: string | null;
+  photo_url?: string | null;
+}
+
 export interface NidLookupResponse {
   success: boolean;
   message: string;
-  data?: {
-    first_name: string | null;
-    last_name: string | null;
-    name_ne: string | null;
-    gender: string | null;
-    date_of_birth: string | null;
-    date_of_birth_bs?: string | null;
-    mobile_number: string | null;
-    email: string | null;
-    national_id: string;
-    province: string | null;
-    district: string | null;
-  };
+  data?: NidLookupData;
 }
 
 export interface SubsidyResult {

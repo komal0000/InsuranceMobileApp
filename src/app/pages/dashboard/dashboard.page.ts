@@ -19,6 +19,7 @@ import { AuthService } from '../../services/auth.service';
 import { ApiResponse } from '../../interfaces/api-response.interface';
 import { Enrollment } from '../../interfaces/enrollment.interface';
 import { User } from '../../interfaces/user.interface';
+import { DashboardDataService } from '../../services/dashboard-data.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -45,7 +46,8 @@ export class DashboardPage implements OnInit, OnDestroy {
     private api: ApiService,
     private authService: AuthService,
     private router: Router,
-    private syncService: AppSyncService
+    private syncService: AppSyncService,
+    private dashboardData: DashboardDataService
   ) {
     addIcons({
       documentTextOutline, shieldCheckmarkOutline, refreshOutline,
@@ -67,6 +69,7 @@ export class DashboardPage implements OnInit, OnDestroy {
           this.dashboardRequestId++;
           this.stats = {};
           this.loading = false;
+          this.dashboardData.clear();
           return;
         }
 
@@ -77,18 +80,12 @@ export class DashboardPage implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe((event) => {
         if (this.shouldRefreshDashboard(event) && this.user) {
-          this.loadDashboard();
+          this.loadDashboard(true);
         }
       });
   }
 
-  ionViewWillEnter() {
-    if (this.user) {
-      this.loadDashboard();
-    }
-  }
-
-  loadDashboard() {
+  loadDashboard(forceRefresh = false) {
     if (!this.user) {
       this.loading = false;
       this.stats = {};
@@ -99,7 +96,7 @@ export class DashboardPage implements OnInit, OnDestroy {
     const requestId = ++this.dashboardRequestId;
     const baseCanCreateEnrollment = this.canRoleCreateEnrollment(this.user.role);
 
-    this.api.get<ApiResponse>('/dashboard')
+    this.dashboardData.getDashboard(forceRefresh)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (res) => {
@@ -136,7 +133,7 @@ export class DashboardPage implements OnInit, OnDestroy {
     const requestId = ++this.dashboardRequestId;
     const baseCanCreateEnrollment = this.canRoleCreateEnrollment(this.user.role);
 
-    this.api.get<ApiResponse>('/dashboard')
+    this.dashboardData.getDashboard(true)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (res) => {

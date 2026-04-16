@@ -133,9 +133,10 @@
           <div class="form-group">
             <ion-item class="form-item">
               <ion-input label="NID Number" labelPlacement="stacked"
-                         placeholder="Enter NID number"
+                         placeholder="Enter NID number (min. 8 digits)"
                          [(ngModel)]="nidNumber2"
-                         type="text">
+                         type="text"
+                         inputmode="numeric">
               </ion-input>
             </ion-item>
           </div>
@@ -145,8 +146,9 @@
           <div class="btn-row" style="margin-top:12px">
             <ion-button expand="block" (click)="lookupNid2()" [disabled]="nidLooking2 || !nidNumber2.trim()">
               <ion-spinner *ngIf="nidLooking2" name="crescent"></ion-spinner>
+              <span *ngIf="nidLooking2">Verifying...</span>
               <ion-icon *ngIf="!nidLooking2" slot="start" name="search-outline"></ion-icon>
-              <span *ngIf="!nidLooking2">Look Up</span>
+              <span *ngIf="!nidLooking2">Verify NID</span>
             </ion-button>
             <ion-button expand="block" fill="outline" color="medium" (click)="skipNidGate2()">
               Skip &amp; Fill Manually
@@ -163,6 +165,10 @@
               <ion-icon name="person-outline" style="color:#003087"></ion-icon>
             </div>
             <h3>Household Head Details</h3>
+            <ion-badge *ngIf="nidVerifiedHead" color="success" style="margin-left:8px;font-size:0.7rem;vertical-align:middle">
+              <ion-icon name="checkmark-circle-outline" style="vertical-align:middle;margin-right:2px"></ion-icon>
+              NID Verified
+            </ion-badge>
           </div>
 
           <div class="form-group">
@@ -511,6 +517,10 @@
               <ion-icon name="person-outline" style="color:#003087"></ion-icon>
             </div>
             <h3>{{ isEditingMember ? 'Edit Family Member' : 'New Family Member' }}</h3>
+            <ion-badge *ngIf="nidVerifiedMember && !isEditingMember" color="success" style="margin-left:8px;font-size:0.7rem;vertical-align:middle">
+              <ion-icon name="checkmark-circle-outline" style="vertical-align:middle;margin-right:2px"></ion-icon>
+              NID Verified
+            </ion-badge>
           </div>
 
           <!-- Member NID Gate -->
@@ -519,8 +529,9 @@
             <div class="form-group">
               <ion-item class="form-item">
                 <ion-input label="NID Number" labelPlacement="stacked"
-                           placeholder="Enter NID number"
-                           [(ngModel)]="nidNumberMember">
+                           placeholder="Enter NID number (min. 8 digits)"
+                           [(ngModel)]="nidNumberMember"
+                           inputmode="numeric">
                 </ion-input>
               </ion-item>
             </div>
@@ -530,8 +541,9 @@
             <div class="btn-row" style="margin-top:10px">
               <ion-button expand="block" (click)="lookupNidMember()" [disabled]="nidLookingMember || !nidNumberMember.trim()">
                 <ion-spinner *ngIf="nidLookingMember" name="crescent"></ion-spinner>
+                <span *ngIf="nidLookingMember">Verifying...</span>
                 <ion-icon *ngIf="!nidLookingMember" slot="start" name="search-outline"></ion-icon>
-                <span *ngIf="!nidLookingMember">Look Up</span>
+                <span *ngIf="!nidLookingMember">Verify NID</span>
               </ion-button>
               <ion-button expand="block" fill="outline" color="medium" (click)="skipNidGateMember()">
                 Skip

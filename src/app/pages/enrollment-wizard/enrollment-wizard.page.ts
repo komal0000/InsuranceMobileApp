@@ -127,6 +127,8 @@ export class EnrollmentWizardPage implements OnInit {
   nidNumberMember = '';
   nidLookingMember = false;
   nidMessageMember = '';
+  nidVerifiedHead = false;
+  nidVerifiedMember = false;
 
   newMember: any = {
     first_name: '', middle_name: '', last_name: '',
@@ -328,53 +330,103 @@ export class EnrollmentWizardPage implements OnInit {
 
 
   lookupNid2() {
-    if (!this.nidNumber2.trim()) return;
+    const nin = this.nidNumber2.trim();
+    if (!nin) return;
+    if (nin.length < 8) {
+      this.nidMessage2 = 'Please enter a valid NID number (at least 8 characters).';
+      return;
+    }
+    if (this.nidLooking2) return;
+
     this.nidLooking2 = true;
     this.nidMessage2 = '';
-    this.enrollmentSvc.nidLookup(this.nidNumber2.trim()).subscribe({
+    this.nidVerifiedHead = false;
+
+    this.enrollmentSvc.nidLookup(nin).subscribe({
       next: (res) => {
         this.nidLooking2 = false;
         if (res.success && res.data) {
           const d = res.data;
-          this.headData.first_name = d.first_name || '';
-          this.headData.last_name = d.last_name || '';
-          this.headData.gender = d.gender || '';
-          this.headData.date_of_birth = this.dateService.formatForDisplay(d.date_of_birth, d.date_of_birth_bs) || '';
-          this.headData.mobile_number = d.mobile_number || '';
-          this.headData.email = d.email || '';
-          this.showNidGate2 = false;
-          this.showToast('Record found! Fields have been auto-filled.', 'success');
+          this.headData.first_name                 = d.first_name    || '';
+          this.headData.last_name                  = d.last_name     || '';
+          this.headData.first_name_ne              = d.first_name_ne || this.headData.first_name_ne;
+          this.headData.last_name_ne               = d.last_name_ne  || this.headData.last_name_ne;
+          this.headData.gender                     = d.gender        || '';
+          this.headData.date_of_birth              = this.dateService.formatForDisplay(d.date_of_birth, d.date_of_birth_bs) || '';
+          this.headData.mobile_number              = d.mobile_number || '';
+          this.headData.email                      = d.email         || '';
+          if (d.citizenship_number)          this.headData.citizenship_number          = d.citizenship_number;
+          if (d.citizenship_issue_date_bs)   this.headData.citizenship_issue_date      = d.citizenship_issue_date_bs;
+          if (d.citizenship_issue_district)  this.headData.citizenship_issue_district  = d.citizenship_issue_district;
+          if (d.photo_url) this.headPhotoPreview = d.photo_url;
+          this.nidVerifiedHead = true;
+          this.showNidGate2    = false;
+          this.showToast('NID verified! Fields have been auto-filled.', 'success');
         } else {
-          this.nidMessage2 = 'No record found. Please fill the form manually.';
+          this.nidMessage2 = res.message || 'No matching record found. Please fill the form manually.';
         }
       },
-      error: () => { this.nidLooking2 = false; this.nidMessage2 = 'No record found. Please fill the form manually.'; },
+      error: (err) => {
+        this.nidLooking2 = false;
+        if (err?.status === 404) {
+          this.nidMessage2 = 'No matching record found. Please fill the form manually.';
+        } else if (err?.status === 422) {
+          this.nidMessage2 = 'Invalid NID format. Please check and try again.';
+        } else {
+          this.nidMessage2 = 'Verification failed. Please try again or fill manually.';
+        }
+      },
     });
   }
 
   skipNidGate2() { this.showNidGate2 = false; }
 
   lookupNidMember() {
-    if (!this.nidNumberMember.trim()) return;
+    const nin = this.nidNumberMember.trim();
+    if (!nin) return;
+    if (nin.length < 8) {
+      this.nidMessageMember = 'Please enter a valid NID number (at least 8 characters).';
+      return;
+    }
+    if (this.nidLookingMember) return;
+
     this.nidLookingMember = true;
     this.nidMessageMember = '';
-    this.enrollmentSvc.nidLookup(this.nidNumberMember.trim()).subscribe({
+    this.nidVerifiedMember = false;
+
+    this.enrollmentSvc.nidLookup(nin).subscribe({
       next: (res) => {
         this.nidLookingMember = false;
         if (res.success && res.data) {
           const d = res.data;
-          this.newMember.first_name = d.first_name || '';
-          this.newMember.last_name = d.last_name || '';
-          this.newMember.gender = d.gender || '';
+          this.newMember.first_name    = d.first_name    || '';
+          this.newMember.last_name     = d.last_name     || '';
+          this.newMember.first_name_ne = d.first_name_ne || this.newMember.first_name_ne;
+          this.newMember.last_name_ne  = d.last_name_ne  || this.newMember.last_name_ne;
+          this.newMember.gender        = d.gender        || '';
           this.newMember.date_of_birth = this.dateService.formatForDisplay(d.date_of_birth, d.date_of_birth_bs) || '';
           this.newMember.mobile_number = d.mobile_number || '';
+          if (d.citizenship_number)         this.newMember.citizenship_number         = d.citizenship_number;
+          if (d.citizenship_issue_date_bs)  this.newMember.citizenship_issue_date     = d.citizenship_issue_date_bs;
+          if (d.citizenship_issue_district) this.newMember.citizenship_issue_district = d.citizenship_issue_district;
+          if (d.photo_url) this.memberPhotoPreview = d.photo_url;
+          this.nidVerifiedMember = true;
           this.showNidGateMember = false;
-          this.showToast('Record found! Fields have been auto-filled.', 'success');
+          this.showToast('NID verified! Fields have been auto-filled.', 'success');
         } else {
-          this.nidMessageMember = 'No record found. Please fill the form manually.';
+          this.nidMessageMember = res.message || 'No matching record found. Please fill the form manually.';
         }
       },
-      error: () => { this.nidLookingMember = false; this.nidMessageMember = 'No record found. Please fill the form manually.'; },
+      error: (err) => {
+        this.nidLookingMember = false;
+        if (err?.status === 404) {
+          this.nidMessageMember = 'No matching record found. Please fill the form manually.';
+        } else if (err?.status === 422) {
+          this.nidMessageMember = 'Invalid NID format. Please check and try again.';
+        } else {
+          this.nidMessageMember = 'Verification failed. Please try again or fill manually.';
+        }
+      },
     });
   }
 
@@ -511,6 +563,7 @@ export class EnrollmentWizardPage implements OnInit {
     this.memberTargetGroupFrontPreview = '';
     this.memberTargetGroupBackPreview = '';
     this.nidNumberMember = ''; this.nidMessageMember = '';
+    this.nidVerifiedMember = false;
     this.showNidGateMember = true;
     this.showMemberForm = true;
   }
@@ -571,6 +624,7 @@ export class EnrollmentWizardPage implements OnInit {
   cancelAddMember() {
     this.showMemberForm = false;
     this.editingMemberId = null;
+    this.nidVerifiedMember = false;
   }
 
   get isEditingMember(): boolean {
