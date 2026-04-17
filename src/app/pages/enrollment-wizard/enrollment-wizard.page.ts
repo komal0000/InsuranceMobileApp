@@ -13,9 +13,9 @@ import { ToastController, AlertController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
   locationOutline, personOutline, peopleOutline,
-  checkmarkCircleOutline, cameraOutline, addOutline, trashOutline,
+  checkmarkCircleOutline, cameraOutline, trashOutline,
   arrowForwardOutline, arrowBackOutline, searchOutline,
-  cardOutline, documentTextOutline, cashOutline, createOutline
+  cardOutline, documentTextOutline, createOutline
 } from 'ionicons/icons';
 import { EnrollmentService } from '../../services/enrollment.service';
 import { GeoService } from '../../services/geo.service';
@@ -120,7 +120,7 @@ export class EnrollmentWizardPage implements OnInit {
 
   members: FamilyMember[] = [];
   householdHead: HouseholdHead | null = null;
-  showMemberForm = false;
+  showMemberForm = true;
   editingMemberId: number | null = null;
   savingMember = false;
   showNidGateMember = true;
@@ -166,9 +166,9 @@ export class EnrollmentWizardPage implements OnInit {
   ) {
     addIcons({
       locationOutline, personOutline, peopleOutline,
-      checkmarkCircleOutline, cameraOutline, addOutline, trashOutline,
+      checkmarkCircleOutline, cameraOutline, trashOutline,
       arrowForwardOutline, arrowBackOutline, searchOutline,
-      cardOutline, documentTextOutline, cashOutline, createOutline
+      cardOutline, documentTextOutline, createOutline
     });
   }
 
@@ -177,6 +177,7 @@ export class EnrollmentWizardPage implements OnInit {
     const currentBs = this.dateService.getCurrentBs();
     if (!this.headData.date_of_birth) this.headData.date_of_birth = currentBs;
     if (!this.headData.citizenship_issue_date) this.headData.citizenship_issue_date = currentBs;
+    this.resetMemberForm();
     this.geoSvc.provinces().subscribe({ next: r => this.provinces = r.data || [] });
     this.enrollmentSvc.getConfig().subscribe({
       next: r => {
@@ -538,7 +539,7 @@ export class EnrollmentWizardPage implements OnInit {
   goToStep(step: number) { if (step < this.currentStep) this.currentStep = step; }
 
 
-  showAddMember() {
+  private resetMemberForm() {
     const currentBs = this.dateService.getCurrentBs();
     this.editingMemberId = null;
     this.newMember = {
@@ -622,9 +623,7 @@ export class EnrollmentWizardPage implements OnInit {
   }
 
   cancelAddMember() {
-    this.showMemberForm = false;
-    this.editingMemberId = null;
-    this.nidVerifiedMember = false;
+    this.resetMemberForm();
   }
 
   get isEditingMember(): boolean {
@@ -676,8 +675,7 @@ export class EnrollmentWizardPage implements OnInit {
       next: async (res) => {
         this.savingMember = false;
         if (res.success) {
-          this.showMemberForm = false;
-          this.editingMemberId = null;
+          this.resetMemberForm();
           this.loadEnrollment();
           this.showToast(wasEditing ? 'Member updated successfully.' : 'Member added successfully.', 'success');
         }
