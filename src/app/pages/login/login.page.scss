@@ -153,6 +153,32 @@
   }
 }
 
+.send-otp-btn {
+  --color: #003087;
+  font-size: 0.72rem;
+  font-weight: 700;
+  margin: 0;
+  min-width: 74px;
+}
+
+.setup-panel {
+  background: #f8fafc;
+  border: 1px solid #dbe5f1;
+  border-radius: 12px;
+  margin: -4px 0 16px;
+  padding: 12px;
+}
+
+.setup-btn {
+  --background: #003087;
+  --border-radius: 10px;
+  --padding-top: 12px;
+  --padding-bottom: 12px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  margin: 8px 0 0;
+}
+
 .remember-row {
   display: flex;
   justify-content: space-between;

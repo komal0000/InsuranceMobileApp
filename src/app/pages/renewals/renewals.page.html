@@ -429,49 +429,6 @@
                 </div>
               </div>
 
-              <!-- Target Group -->
-              <p class="field-section-label">Target Group</p>
-              <ion-item class="form-item">
-                <ion-label>Is Target Group Member?</ion-label>
-                <ion-toggle slot="end" [(ngModel)]="newMember.is_target_group"></ion-toggle>
-              </ion-item>
-              <div *ngIf="newMember.is_target_group">
-                <ion-item class="form-item">
-                  <ion-select label="Target Group Type" labelPlacement="stacked" [(ngModel)]="newMember.target_group_type">
-                    <ion-select-option value="ultra_poor">Ultra Poor</ion-select-option>
-                    <ion-select-option value="fchv">FCHV</ion-select-option>
-                    <ion-select-option value="senior_citizen">Senior Citizen</ion-select-option>
-                    <ion-select-option value="hiv">HIV</ion-select-option>
-                    <ion-select-option value="leprosy">Leprosy</ion-select-option>
-                    <ion-select-option value="null_disability">Null Disability</ion-select-option>
-                    <ion-select-option value="mdr_tb">MDR-TB</ion-select-option>
-                  </ion-select>
-                </ion-item>
-                <ion-item class="form-item">
-                  <ion-input label="Target Group ID Number" labelPlacement="stacked" [(ngModel)]="newMember.target_group_id_number"></ion-input>
-                </ion-item>
-                <div class="capture-section">
-                  <div class="capture-row">
-                    <span class="capture-label">Target Group ID Front</span>
-                    <ion-button size="small" fill="outline" (click)="captureRenewalMemberImage('target_group_front_image')">
-                      <ion-icon slot="start" name="camera-outline"></ion-icon>
-                      {{ memberTargetGroupFrontPreview ? 'Change' : 'Capture' }}
-                    </ion-button>
-                  </div>
-                  <img *ngIf="memberTargetGroupFrontPreview" [src]="memberTargetGroupFrontPreview" class="preview-img" alt="Target Group Front" />
-                </div>
-                <div class="capture-section">
-                  <div class="capture-row">
-                    <span class="capture-label">Target Group ID Back</span>
-                    <ion-button size="small" fill="outline" (click)="captureRenewalMemberImage('target_group_back_image')">
-                      <ion-icon slot="start" name="camera-outline"></ion-icon>
-                      {{ memberTargetGroupBackPreview ? 'Change' : 'Capture' }}
-                    </ion-button>
-                  </div>
-                  <img *ngIf="memberTargetGroupBackPreview" [src]="memberTargetGroupBackPreview" class="preview-img" alt="Target Group Back" />
-                </div>
-              </div>
-
               <div class="btn-row" style="margin-top:16px;">
                 <ion-button expand="block" (click)="addNewMember()" [disabled]="savingMember || !newMember.first_name || !newMember.last_name || !newMember.gender || !newMember.date_of_birth || !newMember.relationship">
                   <ion-spinner *ngIf="savingMember" name="crescent" slot="start"></ion-spinner>

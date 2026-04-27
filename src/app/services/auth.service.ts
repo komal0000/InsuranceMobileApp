@@ -3,7 +3,23 @@ import { BehaviorSubject, Observable, from, of, throwError } from 'rxjs';
 import { map, switchMap, tap } from 'rxjs/operators';
 import { catchError } from 'rxjs/operators';
 import { Preferences } from '@capacitor/preferences';
-import { User, AuthData, LoginRequest, RegisterRequest } from '../interfaces/user.interface';
+import {
+  User,
+  AuthData,
+  LoginRequest,
+  RegisterRequest,
+  PendingRegistrationData,
+  SendOtpRequest,
+  VerifyOtpRequest,
+  SetPasswordRequest,
+  LoginSetupOtpSendRequest,
+  LoginSetupOtpVerifyRequest,
+  LoginSetupPasswordCreateRequest,
+  PasswordOtpSendRequest,
+  PasswordOtpVerifyRequest,
+  PasswordOtpResetRequest,
+  PasswordEmailResetRequest,
+} from '../interfaces/user.interface';
 import { ApiResponse } from '../interfaces/api-response.interface';
 import { ApiService } from './api.service';
 
@@ -84,18 +100,59 @@ export class AuthService {
     );
   }
 
-  register(data: RegisterRequest): Observable<ApiResponse<AuthData>> {
-    return this.api.post<ApiResponse<AuthData>>('/register', data).pipe(
+  registerBeneficiary(data: RegisterRequest): Observable<ApiResponse<PendingRegistrationData>> {
+    return this.api.post<ApiResponse<PendingRegistrationData>>('/register', data);
+  }
+
+  sendRegistrationOtp(data: SendOtpRequest): Observable<ApiResponse<PendingRegistrationData>> {
+    return this.api.post<ApiResponse<PendingRegistrationData>>('/register/send-otp', data);
+  }
+
+  verifyRegistrationOtp(data: VerifyOtpRequest): Observable<ApiResponse<PendingRegistrationData>> {
+    return this.api.post<ApiResponse<PendingRegistrationData>>('/register/verify-otp', data);
+  }
+
+  setRegistrationPassword(data: SetPasswordRequest): Observable<ApiResponse<PendingRegistrationData>> {
+    return this.api.post<ApiResponse<PendingRegistrationData>>('/register/set-password', data);
+  }
+
+  sendLoginSetupOtp(data: LoginSetupOtpSendRequest): Observable<ApiResponse<PendingRegistrationData>> {
+    return this.api.post<ApiResponse<PendingRegistrationData>>('/login/otp/send', data);
+  }
+
+  verifyLoginSetupOtp(data: LoginSetupOtpVerifyRequest): Observable<ApiResponse<PendingRegistrationData>> {
+    return this.api.post<ApiResponse<PendingRegistrationData>>('/login/otp/verify', data);
+  }
+
+  createLoginSetupPassword(data: LoginSetupPasswordCreateRequest): Observable<ApiResponse<AuthData>> {
+    const remember = data.remember ?? false;
+    return this.api.post<ApiResponse<AuthData>>('/login/password/create', data).pipe(
       switchMap(res => {
         if (!res.success) {
           return of(res);
         }
 
-        return from(this.setSession(res.data)).pipe(
+        return from(this.setSession(res.data, remember)).pipe(
           map(() => res)
         );
       })
     );
+  }
+
+  sendPasswordOtp(data: PasswordOtpSendRequest): Observable<ApiResponse<{ mobile_number: string; expires_at?: string }>> {
+    return this.api.post<ApiResponse<{ mobile_number: string; expires_at?: string }>>('/password/otp/send', data);
+  }
+
+  verifyPasswordOtp(data: PasswordOtpVerifyRequest): Observable<ApiResponse<{ mobile_number: string }>> {
+    return this.api.post<ApiResponse<{ mobile_number: string }>>('/password/otp/verify', data);
+  }
+
+  resetPasswordWithOtp(data: PasswordOtpResetRequest): Observable<ApiResponse<void>> {
+    return this.api.post<ApiResponse<void>>('/password/otp/reset', data);
+  }
+
+  sendPasswordResetEmail(data: PasswordEmailResetRequest): Observable<ApiResponse<void>> {
+    return this.api.post<ApiResponse<void>>('/password/email', data);
   }
 
   logout(): Observable<any> {

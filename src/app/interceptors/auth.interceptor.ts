@@ -11,7 +11,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const toastCtrl = inject(ToastController);
 
   const token = authService.getToken();
-  const isPublicAuthRequest = /\/(login|register)(\?|$)/i.test(req.url);
+  const isPublicAuthRequest = /\/(login|register|password)(\/|$|\?)/i.test(req.url);
   let authReq = req;
 
   if (token && !isPublicAuthRequest) {

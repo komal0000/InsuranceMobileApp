@@ -9,7 +9,7 @@ import {
   IonSegment, IonSegmentButton, IonRefresher, IonRefresherContent,
   IonInfiniteScroll, IonInfiniteScrollContent, IonFab, IonFabButton,
   IonIcon, IonSpinner, IonCard, IonCardContent, IonButton, IonButtons,
-  IonInput, IonItem, IonSelect, IonSelectOption, IonToggle, IonLabel
+  IonInput, IonItem, IonSelect, IonSelectOption
 } from '@ionic/angular/standalone';
 import { ToastController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -57,7 +57,7 @@ const SINGLE_HEAD_BLOCKED_RELATIONSHIPS = ['spouse', 'son', 'daughter'];
     IonSegment, IonSegmentButton, IonRefresher, IonRefresherContent,
     IonInfiniteScroll, IonInfiniteScrollContent, IonFab, IonFabButton,
     IonIcon, IonSpinner, IonCard, IonCardContent, IonButton, IonButtons,
-    IonInput, IonItem, IonSelect, IonSelectOption, IonToggle, IonLabel
+    IonInput, IonItem, IonSelect, IonSelectOption
   ],
   templateUrl: './renewals.page.html',
   styleUrls: ['./renewals.page.scss'],
@@ -87,8 +87,6 @@ export class RenewalsPage implements OnInit, OnDestroy {
   memberCitizenshipBackPreview: string | null = null;
   memberBirthCertFrontPreview: string | null = null;
   memberBirthCertBackPreview: string | null = null;
-  memberTargetGroupFrontPreview: string | null = null;
-  memberTargetGroupBackPreview: string | null = null;
   private readonly destroy$ = new Subject<void>();
   private hasEnteredView = false;
 
@@ -245,22 +243,18 @@ export class RenewalsPage implements OnInit, OnDestroy {
       document_type: 'citizenship',
       citizenship_number: '', citizenship_issue_date: currentBs, citizenship_issue_district: '',
       birth_certificate_number: '', birth_certificate_issue_date: currentBs,
-      is_target_group: false, target_group_type: '', target_group_id_number: '',
     };
     this.memberPhotoPreview = null;
     this.memberCitizenshipFrontPreview = null;
     this.memberCitizenshipBackPreview = null;
     this.memberBirthCertFrontPreview = null;
     this.memberBirthCertBackPreview = null;
-    this.memberTargetGroupFrontPreview = null;
-    this.memberTargetGroupBackPreview = null;
     this.showMemberForm = true;
   }
 
   async captureRenewalMemberImage(
     field: 'photo' | 'citizenship_front_image' | 'citizenship_back_image' |
-           'birth_certificate_front_image' | 'birth_certificate_back_image' |
-           'target_group_front_image' | 'target_group_back_image'
+           'birth_certificate_front_image' | 'birth_certificate_back_image'
   ) {
     try {
       const { Camera, CameraResultType, CameraSource } = await import('@capacitor/camera');
@@ -298,8 +292,6 @@ export class RenewalsPage implements OnInit, OnDestroy {
     else if (field === 'citizenship_back_image') this.memberCitizenshipBackPreview = dataUrl;
     else if (field === 'birth_certificate_front_image') this.memberBirthCertFrontPreview = dataUrl;
     else if (field === 'birth_certificate_back_image') this.memberBirthCertBackPreview = dataUrl;
-    else if (field === 'target_group_front_image') this.memberTargetGroupFrontPreview = dataUrl;
-    else if (field === 'target_group_back_image') this.memberTargetGroupBackPreview = dataUrl;
   }
 
   private dataUrlToBlob(dataUrl: string): Blob {
@@ -347,6 +339,7 @@ export class RenewalsPage implements OnInit, OnDestroy {
     // Build FormData so images can be uploaded
     const fd = new FormData();
     Object.keys(m).forEach(key => {
+      if (key.startsWith('target_group') || key === 'is_target_group') return;
       const val = m[key];
       if (val === null || val === undefined || val === '') return;
       if (typeof val === 'boolean') { fd.append(key, val ? '1' : '0'); return; }

@@ -45,9 +45,81 @@
             [type]="identifierInputType"
             [placeholder]="identifierPlaceholder"
             [(ngModel)]="loginData.identifier"
+            (ionInput)="onIdentifierInputChange()"
             required>
           </ion-input>
+          <ion-button
+            *ngIf="showRegistrationSetup"
+            slot="end"
+            fill="clear"
+            size="small"
+            class="send-otp-btn"
+            (click)="sendSetupOtp()"
+            [disabled]="setupLoadingAction !== null">
+            <ion-spinner *ngIf="setupLoadingAction === 'sendOtp'" name="crescent"></ion-spinner>
+            <span *ngIf="setupLoadingAction !== 'sendOtp'">Send OTP</span>
+          </ion-button>
         </ion-item>
+      </div>
+
+      <div *ngIf="showRegistrationSetup && otpSent" class="setup-panel">
+        <div class="form-group">
+          <label class="form-label">Enter OTP</label>
+          <ion-item lines="none" class="form-item">
+            <ion-icon name="key-outline" slot="start" class="input-icon"></ion-icon>
+            <ion-input
+              type="text"
+              placeholder="Enter 6-digit OTP"
+              [(ngModel)]="setupOtp"
+              maxlength="6"
+              inputmode="numeric">
+            </ion-input>
+          </ion-item>
+        </div>
+
+        <ion-button
+          expand="block"
+          (click)="verifySetupOtp()"
+          [disabled]="setupLoadingAction !== null"
+          class="setup-btn">
+          <ion-spinner *ngIf="setupLoadingAction === 'verifyOtp'" name="crescent" slot="start"></ion-spinner>
+          {{ setupLoadingAction === 'verifyOtp' ? 'Verifying...' : 'Verify' }}
+        </ion-button>
+      </div>
+
+      <div *ngIf="showRegistrationSetup && otpVerified" class="setup-panel">
+        <div class="form-group">
+          <label class="form-label">New Password</label>
+          <ion-item lines="none" class="form-item">
+            <ion-icon name="lock-closed-outline" slot="start" class="input-icon"></ion-icon>
+            <ion-input
+              type="password"
+              placeholder="At least 8 characters"
+              [(ngModel)]="setupPassword">
+            </ion-input>
+          </ion-item>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Confirm Password</label>
+          <ion-item lines="none" class="form-item">
+            <ion-icon name="lock-closed-outline" slot="start" class="input-icon"></ion-icon>
+            <ion-input
+              type="password"
+              placeholder="Re-enter password"
+              [(ngModel)]="setupPasswordConfirmation">
+            </ion-input>
+          </ion-item>
+        </div>
+
+        <ion-button
+          expand="block"
+          (click)="createSetupPassword()"
+          [disabled]="setupLoadingAction !== null"
+          class="setup-btn">
+          <ion-spinner *ngIf="setupLoadingAction === 'createPassword'" name="crescent" slot="start"></ion-spinner>
+          {{ setupLoadingAction === 'createPassword' ? 'Creating...' : 'Create Password' }}
+        </ion-button>
       </div>
 
       <div class="form-group">
@@ -72,7 +144,7 @@
             {{ lang === 'en' ? 'Remember me' : 'मलाई सम्झनुहोस्' }}
           </ion-checkbox>
         </ion-item>
-        <a class="forgot-link">{{ lang === 'en' ? 'Forgot Password?' : 'पासवर्ड बिर्सनुभयो?' }}</a>
+        <a class="forgot-link" routerLink="/forgot-password">{{ lang === 'en' ? 'Forgot Password?' : 'पासवर्ड बिर्सनुभयो?' }}</a>
       </div>
 
       <ion-button

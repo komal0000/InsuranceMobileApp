@@ -54,6 +54,17 @@ export class EnrollmentService {
     );
   }
 
+  headNidLookup(id: number, nationalId: string): Observable<NidLookupResponse> {
+    return this.api.post<NidLookupResponse>(`/enrollments/${id}/head/nid-lookup`, { national_id: nationalId });
+  }
+
+  saveHouseholdHead(id: number, formData: FormData): Observable<ApiResponse<Enrollment>> {
+    return this.api.postFormData<ApiResponse<Enrollment>>(
+      `/enrollments/${id}/household-head`,
+      this.dateService.prepareFormDataForApi(formData, this.headDateFields)
+    );
+  }
+
   // ── Members ─────────────────────────────────────────────────
 
   addMember(enrollmentId: number, formData: FormData): Observable<ApiResponse<FamilyMember>> {

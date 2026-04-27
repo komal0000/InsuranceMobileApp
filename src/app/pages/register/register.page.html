@@ -8,12 +8,13 @@
     </div>
     <p class="header-title">Health Insurance Board, Nepal</p>
     <div class="red-line"></div>
-    <p class="header-sub">Create your account</p>
+    <p class="header-sub">Create your beneficiary account</p>
   </div>
 
   <div class="card-section">
     <div class="register-card">
       <h2 class="card-title">Register</h2>
+      <p class="card-subtitle">Enter your beneficiary details. OTP verification and password setup happen on the login page.</p>
       <div class="accent-bar">
         <span class="bar-red"></span>
         <span class="bar-blue"></span>
@@ -23,60 +24,50 @@
         <label class="form-label">Full Name *</label>
         <ion-item lines="none" class="form-item">
           <ion-icon name="person-outline" slot="start" class="input-icon"></ion-icon>
-          <ion-input placeholder="Enter your full name" [(ngModel)]="formData.name" required></ion-input>
+          <ion-input placeholder="Enter your full name" [(ngModel)]="formData.name"></ion-input>
         </ion-item>
       </div>
 
-      <!-- Name in Nepali -->
       <div class="form-group">
-        <label class="form-label">Name in Nepali</label>
+        <label class="form-label">Full Name (Nepali) *</label>
         <ion-item lines="none" class="form-item">
-          <ion-input placeholder="Type in English e.g. Komal Shrestha" appNepaliInput
-            [(ngModel)]="formData.name_ne"></ion-input>
+          <ion-input
+            placeholder="Type in English e.g. Komal Shrestha"
+            appNepaliInput
+            [(ngModel)]="formData.name_ne">
+          </ion-input>
         </ion-item>
       </div>
 
-      <!-- Mobile Number -->
       <div class="form-group">
         <label class="form-label">Mobile Number *</label>
         <ion-item lines="none" class="form-item">
           <ion-icon name="call-outline" slot="start" class="input-icon"></ion-icon>
-          <ion-input type="tel" placeholder="98XXXXXXXX" [(ngModel)]="formData.mobile_number" required maxlength="10"
-            minlength="10"></ion-input>
+          <ion-input
+            type="tel"
+            placeholder="98XXXXXXXX"
+            [(ngModel)]="formData.mobile_number"
+            maxlength="10"
+            inputmode="numeric">
+          </ion-input>
         </ion-item>
       </div>
-      <!-- Email -->
+
       <div class="form-group">
-        <label class="form-label">Email</label>
+        <label class="form-label">Email (Optional)</label>
         <ion-item lines="none" class="form-item">
           <ion-icon name="mail-outline" slot="start" class="input-icon"></ion-icon>
-          <ion-input type="email" placeholder="email@example.com (optional)" [(ngModel)]="formData.email"></ion-input>
-        </ion-item>
-      </div>
-
-      <!-- Password -->
-      <div class="form-group">
-        <label class="form-label">Password *</label>
-        <ion-item lines="none" class="form-item">
-          <ion-icon name="lock-closed-outline" slot="start" class="input-icon"></ion-icon>
-          <ion-input type="password" placeholder="At least 8 characters" [(ngModel)]="formData.password"
-            required></ion-input>
-        </ion-item>
-      </div>
-
-      <!-- Confirm Password -->
-      <div class="form-group">
-        <label class="form-label">Confirm Password *</label>
-        <ion-item lines="none" class="form-item">
-          <ion-icon name="lock-closed-outline" slot="start" class="input-icon"></ion-icon>
-          <ion-input type="password" placeholder="Re-enter password" [(ngModel)]="formData.password_confirmation"
-            required></ion-input>
+          <ion-input
+            type="email"
+            placeholder="email@example.com"
+            [(ngModel)]="formData.email">
+          </ion-input>
         </ion-item>
       </div>
 
       <ion-button expand="block" (click)="register()" [disabled]="loading" class="register-btn">
         <ion-spinner *ngIf="loading" name="crescent" slot="start"></ion-spinner>
-        {{ loading ? 'Creating Account...' : 'Register' }}
+        {{ loading ? 'Saving...' : 'Register' }}
       </ion-button>
 
       <div class="login-link">

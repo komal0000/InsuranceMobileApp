@@ -73,22 +73,17 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
     document_type: '',
     citizenship_number: '', citizenship_issue_date: '', citizenship_issue_district: '',
     birth_certificate_number: '', birth_certificate_issue_date: '',
-    is_target_group: false, target_group_type: '', target_group_id_number: '',
     photo: null as File | Blob | null,
     citizenship_front_image: null as File | Blob | null,
     citizenship_back_image: null as File | Blob | null,
     birth_certificate_front_image: null as File | Blob | null,
     birth_certificate_back_image: null as File | Blob | null,
-    target_group_front_image: null as File | Blob | null,
-    target_group_back_image: null as File | Blob | null,
   };
   memberPhotoPreview = '';
   memberCitizenshipFrontPreview = '';
   memberCitizenshipBackPreview = '';
   memberBirthCertFrontPreview = '';
   memberBirthCertBackPreview = '';
-  memberTargetGroupFrontPreview = '';
-  memberTargetGroupBackPreview = '';
   private readonly memberDateFields = [
     'date_of_birth',
     'citizenship_issue_date',
@@ -206,16 +201,11 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
         member.birth_certificate_issue_date,
         member.birth_certificate_issue_date_bs
       ) || '',
-      is_target_group: !!member.is_target_group,
-      target_group_type: member.target_group_type || '',
-      target_group_id_number: member.target_group_id_number || '',
       photo: null,
       citizenship_front_image: null,
       citizenship_back_image: null,
       birth_certificate_front_image: null,
       birth_certificate_back_image: null,
-      target_group_front_image: null,
-      target_group_back_image: null,
     };
 
     this.resetMemberPreviews();
@@ -224,9 +214,6 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
     this.memberCitizenshipBackPreview = this.getDocUrl(member, 'citizenship_back') || '';
     this.memberBirthCertFrontPreview = this.getDocUrl(member, 'birth_certificate_front') || '';
     this.memberBirthCertBackPreview = this.getDocUrl(member, 'birth_certificate_back') || '';
-    this.memberTargetGroupFrontPreview = this.getDocUrl(member, 'target_group_front') || '';
-    this.memberTargetGroupBackPreview = this.getDocUrl(member, 'target_group_back') || '';
-
     this.showMemberForm = true;
   }
 
@@ -280,6 +267,7 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
 
     const fd = new FormData();
     Object.keys(this.newMember).forEach(key => {
+      if (key.startsWith('target_group') || key === 'is_target_group') return;
       const val = this.newMember[key];
       if (val === null || val === undefined || val === '') return;
       if (typeof val === 'boolean') {
@@ -335,8 +323,7 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
 
   async captureImage(
     field: 'photo' | 'citizenship_front_image' | 'citizenship_back_image' |
-           'birth_certificate_front_image' | 'birth_certificate_back_image' |
-           'target_group_front_image' | 'target_group_back_image'
+           'birth_certificate_front_image' | 'birth_certificate_back_image'
   ) {
     try {
       const { Camera, CameraResultType, CameraSource } = await import('@capacitor/camera');
@@ -358,8 +345,7 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
 
   private fallbackFileInput(
     field: 'photo' | 'citizenship_front_image' | 'citizenship_back_image' |
-           'birth_certificate_front_image' | 'birth_certificate_back_image' |
-           'target_group_front_image' | 'target_group_back_image'
+           'birth_certificate_front_image' | 'birth_certificate_back_image'
   ) {
     const input = document.createElement('input');
     input.type = 'file';
@@ -384,8 +370,7 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
 
   private applyImage(
     field: 'photo' | 'citizenship_front_image' | 'citizenship_back_image' |
-           'birth_certificate_front_image' | 'birth_certificate_back_image' |
-           'target_group_front_image' | 'target_group_back_image',
+           'birth_certificate_front_image' | 'birth_certificate_back_image',
     blob: Blob,
     dataUrl: string,
   ) {
@@ -396,8 +381,6 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
     else if (field === 'citizenship_back_image') this.memberCitizenshipBackPreview = dataUrl;
     else if (field === 'birth_certificate_front_image') this.memberBirthCertFrontPreview = dataUrl;
     else if (field === 'birth_certificate_back_image') this.memberBirthCertBackPreview = dataUrl;
-    else if (field === 'target_group_front_image') this.memberTargetGroupFrontPreview = dataUrl;
-    else if (field === 'target_group_back_image') this.memberTargetGroupBackPreview = dataUrl;
   }
 
   async removeMember(member: any) {
@@ -618,14 +601,11 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
       document_type: '',
       citizenship_number: '', citizenship_issue_date: currentBs, citizenship_issue_district: '',
       birth_certificate_number: '', birth_certificate_issue_date: currentBs,
-      is_target_group: false, target_group_type: '', target_group_id_number: '',
       photo: null,
       citizenship_front_image: null,
       citizenship_back_image: null,
       birth_certificate_front_image: null,
       birth_certificate_back_image: null,
-      target_group_front_image: null,
-      target_group_back_image: null,
     };
   }
 
@@ -635,8 +615,6 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
     this.memberCitizenshipBackPreview = '';
     this.memberBirthCertFrontPreview = '';
     this.memberBirthCertBackPreview = '';
-    this.memberTargetGroupFrontPreview = '';
-    this.memberTargetGroupBackPreview = '';
   }
 
   getDocUrl(member: any, type: string): string | null {
