@@ -186,7 +186,7 @@ export class DashboardPage implements OnInit, OnDestroy {
   }
 
   private canRoleCreateEnrollment(role?: string): boolean {
-    return ['beneficiary', 'enrollment_assistant', 'admin', 'super_admin']
+    return ['beneficiary', 'enrollment_assistant']
       .includes(role || '');
   }
 

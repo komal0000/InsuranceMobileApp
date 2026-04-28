@@ -529,7 +529,18 @@ export class EnrollmentWizardPage implements OnInit {
     });
   }
 
-  skipNidGate2() { this.showNidGate2 = false; }
+  skipNidGate2() {
+    const manualNid = this.nidNumber2.trim();
+    if (manualNid) {
+      this.headData.national_id = manualNid;
+    }
+    this.nidMessage2 = '';
+    this.showNidGate2 = false;
+  }
+
+  get showHouseholdHeadForm(): boolean {
+    return !this.showNidGate2;
+  }
 
   isHeadFieldReadonly(field: string): boolean {
     return this.nidLockedHeadFields.has(field);

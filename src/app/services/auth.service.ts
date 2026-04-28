@@ -22,6 +22,7 @@ import {
 } from '../interfaces/user.interface';
 import { ApiResponse } from '../interfaces/api-response.interface';
 import { ApiService } from './api.service';
+import { AppLanguage, LanguageService } from './language.service';
 
 const TOKEN_KEY = 'auth_token';
 const USER_KEY = 'auth_user';
@@ -35,7 +36,10 @@ export class AuthService {
   currentUser$ = this.currentUserSubject.asObservable();
   isAuthenticated$ = this.tokenSubject.pipe(map(t => !!t));
 
-  constructor(private api: ApiService) {}
+  constructor(
+    private api: ApiService,
+    private languageService: LanguageService
+  ) {}
 
   async init(): Promise<void> {
     if (this.initialized) return;
@@ -54,7 +58,9 @@ export class AuthService {
       this.tokenSubject.next(token);
       if (userJson) {
         try {
-          this.currentUserSubject.next(JSON.parse(userJson));
+          const user = JSON.parse(userJson) as User;
+          this.currentUserSubject.next(user);
+          this.languageService.useUserPreference(user.preferred_language);
         } catch {
           this.currentUserSubject.next(null);
         }
@@ -175,7 +181,20 @@ export class AuthService {
       map(res => res.data),
       tap(user => {
         this.currentUserSubject.next(user);
+        this.languageService.useUserPreference(user.preferred_language);
+        sessionStorage.setItem(USER_KEY, JSON.stringify(user));
         Preferences.set({ key: USER_KEY, value: JSON.stringify(user) });
+      })
+    );
+  }
+
+  updateLanguage(language: AppLanguage): Observable<User> {
+    return this.languageService.setLanguage(language).pipe(
+      tap(user => {
+        const updatedUser = { ...(this.currentUserSubject.value || user), ...user };
+        this.currentUserSubject.next(updatedUser);
+        sessionStorage.setItem(USER_KEY, JSON.stringify(updatedUser));
+        Preferences.set({ key: USER_KEY, value: JSON.stringify(updatedUser) });
       })
     );
   }
@@ -192,6 +211,7 @@ export class AuthService {
   private async setSession(auth: AuthData, remember: boolean = true): Promise<void> {
     this.tokenSubject.next(auth.token);
     this.currentUserSubject.next(auth.user);
+    this.languageService.useUserPreference(auth.user.preferred_language);
 
     sessionStorage.setItem(TOKEN_KEY, auth.token);
     sessionStorage.setItem(USER_KEY, JSON.stringify(auth.user));

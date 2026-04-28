@@ -13,6 +13,7 @@ export interface User {
   profile_image?: string;
   hib_number?: string;
   registration_status?: RegistrationStatus;
+  preferred_language?: 'en' | 'ne';
   role: UserRole;
   permissions: string[];
   created_at?: string;
@@ -112,4 +113,5 @@ export interface ProfileUpdateRequest {
   date_of_birth_bs?: string;
   province?: string;
   district?: string;
+  preferred_language?: 'en' | 'ne';
 }

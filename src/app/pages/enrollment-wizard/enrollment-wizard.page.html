@@ -26,15 +26,15 @@
 
   <div class="wizard-content">
 
-    <!-- ═══════════════════════  STEP 1 : LOCATION  ═══════════════════════ -->
-    <div *ngIf="currentStep === 1">
+    <!-- Address fields are rendered after the NID gate and household-head details. -->
+    <ng-template #householdAddressFields>
       <ion-card>
         <ion-card-content>
           <div class="section-title">
             <div class="section-icon" style="background:rgba(0,48,135,0.08)">
               <ion-icon name="location-outline" style="color:#003087"></ion-icon>
             </div>
-            <h3>Household Location</h3>
+            <h3>Permanent Address</h3>
           </div>
 
           <div class="form-group">
@@ -186,10 +186,10 @@
         </ion-card-content>
       </ion-card>
 
-    </div>
+    </ng-template>
 
 
-    <!-- ═══════════════════════  STEP 2 : HOUSEHOLD HEAD  ════════════════════ -->
+    <!-- ═══════════════════════  STEP 1 : HOUSEHOLD HEAD  ════════════════════ -->
     <div *ngIf="currentStep === 1">
 
       <!-- NID Gate -->
@@ -232,7 +232,7 @@
       </ion-card>
 
       <!-- Head Form -->
-      <ion-card *ngIf="!showNidGate2">
+      <ion-card *ngIf="showHouseholdHeadForm">
         <ion-card-content>
           <div class="section-title">
             <div class="section-icon" style="background:rgba(0,48,135,0.08)">
@@ -497,8 +497,10 @@
         </ion-card-content>
       </ion-card>
 
+      <ng-container *ngIf="showHouseholdHeadForm" [ngTemplateOutlet]="householdAddressFields"></ng-container>
+
       <!-- Navigation -->
-      <div class="nav-buttons" *ngIf="!showNidGate2">
+      <div class="nav-buttons" *ngIf="showHouseholdHeadForm">
         <ion-button expand="block" fill="outline" color="medium" (click)="prevStep()">
           <ion-icon slot="start" name="arrow-back-outline"></ion-icon>
           Back

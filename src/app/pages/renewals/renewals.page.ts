@@ -70,6 +70,7 @@ export class RenewalsPage implements OnInit, OnDestroy {
   lastPage = 1;
   loading = false;
   isBeneficiary = false;
+  canInitiateRenewal = false;
   enrollment: any = null;
   enrollmentLoading = false;
   initiating = false;
@@ -110,7 +111,9 @@ export class RenewalsPage implements OnInit, OnDestroy {
     this.loadRelationshipOptions();
 
     const user = this.authService.getCurrentUser();
-    this.isBeneficiary = user?.role === 'beneficiary';
+    const role = user?.role || '';
+    this.isBeneficiary = role === 'beneficiary';
+    this.canInitiateRenewal = ['beneficiary', 'enrollment_assistant'].includes(role);
     if (this.isBeneficiary) {
       this.loadBeneficiaryEnrollment();
     } else {
@@ -209,7 +212,7 @@ export class RenewalsPage implements OnInit, OnDestroy {
   }
 
   initiateRenewal() {
-    if (!this.enrollment) return;
+    if (!this.canInitiateRenewal || !this.enrollment) return;
     this.initiating = true;
     this.api.post<ApiResponse<any>>('/renewals/initiate', { enrollment_id: this.enrollment.id }).subscribe({
       next: async (res) => {
@@ -233,6 +236,8 @@ export class RenewalsPage implements OnInit, OnDestroy {
 
   // Add new member directly from renewal tab
   showAddMemberForm() {
+    if (!this.canInitiateRenewal) return;
+
     const currentBs = this.dateService.getCurrentBs();
     this.newMember = {
       first_name: '', middle_name: '', last_name: '',
@@ -305,7 +310,7 @@ export class RenewalsPage implements OnInit, OnDestroy {
   }
 
   async addNewMember() {
-    if (!this.enrollment) return;
+    if (!this.canInitiateRenewal || !this.enrollment) return;
     const m = this.newMember;
     if (!m.first_name || !m.last_name || !m.gender || !m.date_of_birth || !m.relationship) {
       this.toastCtrl.create({ message: 'Please fill all required fields.', duration: 2000, color: 'warning', position: 'top' }).then(t => t.present());
@@ -501,7 +506,11 @@ export class RenewalsPage implements OnInit, OnDestroy {
   }
 
   viewDetail(renewal: Renewal) { this.router.navigateByUrl(`/renewal-detail/${renewal.id}`); }
-  goToSearch() { this.router.navigateByUrl('/renewal-search'); }
+  goToSearch() {
+    if (!this.canInitiateRenewal) return;
+
+    this.router.navigateByUrl('/renewal-search');
+  }
 
   getStatusColor(status: string): string {
     const map: Record<string, string> = {

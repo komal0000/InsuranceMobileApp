@@ -11,6 +11,7 @@ import { ToastController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { searchOutline, arrowForwardOutline } from 'ionicons/icons';
 import { ApiService } from '../../services/api.service';
+import { AuthService } from '../../services/auth.service';
 import { ApiResponse } from '../../interfaces/api-response.interface';
 
 @Component({
@@ -30,17 +31,21 @@ export class RenewalSearchPage {
   searchValue = '';
   searching = false;
   results: any[] | null = null;
+  canInitiateRenewal = false;
 
   constructor(
     private api: ApiService,
     private router: Router,
-    private toastCtrl: ToastController
+    private toastCtrl: ToastController,
+    private authService: AuthService
   ) {
     addIcons({ searchOutline, arrowForwardOutline });
+    const role = this.authService.getCurrentUser()?.role || '';
+    this.canInitiateRenewal = ['beneficiary', 'enrollment_assistant'].includes(role);
   }
 
   searchPolicy() {
-    if (!this.searchValue) return;
+    if (!this.canInitiateRenewal || !this.searchValue) return;
     this.searching = true;
     this.api.post<ApiResponse>('/renewals/search', {
       search_type: this.searchType,
@@ -55,6 +60,8 @@ export class RenewalSearchPage {
   }
 
   async initiateRenewal(enrollment: any) {
+    if (!this.canInitiateRenewal) return;
+
     this.api.post<ApiResponse>('/renewals/initiate', { enrollment_id: enrollment.id }).subscribe({
       next: async (res) => {
         if (res.success) {

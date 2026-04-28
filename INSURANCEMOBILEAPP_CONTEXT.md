@@ -1,6 +1,6 @@
 # InsuranceMobileApp Current Context
 
-Last updated: 2026-04-25
+Last updated: 2026-04-27
 
 This file captures the current Ionic/Angular state so future conversations do not need to rediscover the mobile app.
 
@@ -28,6 +28,10 @@ This file captures the current Ionic/Angular state so future conversations do no
   - registration handoff: Send OTP, Verify, Create Password on the login page.
 - Final setup-password and password-reset requests send the OTP code again because the backend re-checks it before changing passwords.
 - Existing user login remains password-based by mobile or HIB number.
+- Authenticated user payloads now include `preferred_language`.
+- `AuthService` syncs backend `preferred_language` into the mobile language service on login, setup-password login, profile fetch, and language update.
+- `AuthService.updateLanguage()` calls `PATCH /api/user/language` and updates the cached user.
+- Mobile startup stores a local fallback language with Capacitor Preferences, but the backend user preference is authoritative after authentication.
 
 Important auth files:
 - `src\app\pages\register\register.page.ts`
@@ -36,6 +40,11 @@ Important auth files:
 - `src\app\pages\login\login.page.html`
 - `src\app\pages\forgot-password\*`
 - `src\app\services\auth.service.ts`
+- `src\app\services\language.service.ts`
+- `src\app\components\language-toggle\language-toggle.component.ts`
+- `src\app\pipes\translate.pipe.ts`
+- `src\app\i18n\en.ts`
+- `src\app\i18n\ne.ts`
 - `src\app\interfaces\user.interface.ts`
 - `src\app\app.routes.ts`
 
@@ -77,12 +86,17 @@ Step 1 includes:
 - household target group
 
 NID behavior:
+- Step 1 starts with the household-head NID lookup/manual fallback gate, matching the web enrollment flow; permanent and temporary address fields are not shown until lookup succeeds or the user chooses manual entry.
+- Manual fallback preserves the typed NID number into the household-head `national_id` field as unverified manual data.
 - `headNidLookup(id, nationalId)` calls `POST /api/enrollments/{id}/head/nid-lookup`.
 - On success, returned NID fields are written into `headData` and permanent address state.
 - Populated NID fields are tracked in `nidLockedHeadFields`.
 - Locked fields are readonly/disabled in UI, including date picker fields.
 - Missing NID fields remain editable.
 - NID photo preview is used when `photo_url` is returned.
+- Mobile consumes backend-mapped NID display fields directly: `province`, `district`, `municipality`, `ward_number`, `tole_village`, `citizenship_issue_district`, and JPEG `photo_url`.
+- Household-head NID tests cover Bagamati/Makawanpur/Hetauda mapped address selection, locked citizenship issue district, and JPEG photo preview.
+- Member NID tests cover `citizenship_issue_district` and JPEG `photo_url` preview.
 
 Save behavior:
 - `saveHouseholdHead(id, formData)` calls `POST /api/enrollments/{id}/household-head`.
@@ -130,6 +144,17 @@ Family members:
   - `src\app\pages\renewals\renewals.page.ts`
   - `src\app\pages\renewals\renewals.page.html`
 - Renewal member FormData builders skip stale `target_group*` and `is_target_group` keys.
+- Admin/staff management roles no longer see renewal search/initiation entry points.
+- `RenewalsPage.canInitiateRenewal` permits renewal initiation only for `beneficiary` and `enrollment_assistant`.
+- `RenewalSearchPage` also blocks direct renewal search/initiation for management roles and shows a management-safe notice.
+- Dashboard enrollment creation now permits only `beneficiary` and `enrollment_assistant`.
+
+## Language Toggle
+- A global floating English/Nepali toggle is mounted in `AppComponent`.
+- The toggle persists locally for guest/startup screens and syncs to the backend for authenticated users.
+- The lightweight translation system uses `LanguageService`, `TranslatePipe`, and exact phrase dictionaries under `src\app\i18n`.
+- DOM phrase translation is started at app root so existing standalone pages and toast/alert DOM content switch without adding a new npm dependency.
+- Nepali text-entry fields using `appNepaliInput` now use the phonetic `TransliterateService` on committed Ionic input values instead of the `nepalify` keyboard-layout formatter; examples covered include `Komal Shrestha`, `Ram`, and `Shrestha`.
 
 ## Geo Loading Cache
 - `src\app\services\geo.service.ts` has in-session caching using shared observable behavior for repeated geo calls.
@@ -152,8 +177,36 @@ Current results:
 - Build passes.
 - Tests pass: `17 SUCCESS`.
 - Build warning remains:
-  - `src/app/pages/renewals/renewals.page.scss exceeded maximum budget`
-  - Budget is 4.00 kB, file is about 5.80 kB.
+- `src/app/pages/renewals/renewals.page.scss exceeded maximum budget`
+- Budget is 4.00 kB, file is about 5.80 kB.
+
+Additional verification on 2026-04-27:
+```powershell
+cd C:\Insurance\InsuranceMobileApp
+npm run build
+npx tsc -p tsconfig.spec.json --noEmit
+npm test -- --watch=false --browsers=ChromeHeadless
+```
+
+Result:
+- `npm run build` passes.
+- `npx tsc -p tsconfig.spec.json --noEmit` passes.
+- Existing SCSS budget warning remains for `src/app/pages/renewals/renewals.page.scss`.
+- `npm test` could not launch ChromeHeadless in this local sandbox: Karma fails with `spawn EPERM` before executing browser tests.
+
+Additional verification on 2026-04-27 after mobile enrollment/Nepali input fixes:
+```powershell
+cd C:\Insurance\InsuranceMobileApp
+npx tsc -p tsconfig.spec.json --noEmit
+npm run build
+npm test -- --watch=false --browsers=ChromeHeadless
+```
+
+Result:
+- `npx tsc -p tsconfig.spec.json --noEmit` passes.
+- `npm run build` passes.
+- Existing SCSS budget warning remains for `src/app/pages/renewals/renewals.page.scss`.
+- `npm test` is still blocked locally because Karma cannot spawn ChromeHeadless (`spawn EPERM`) before executing tests.
 
 ## Deployment Notes
 - Environment API URL is configured in:
@@ -177,3 +230,6 @@ npx cap sync android
   - `POST /api/enrollments/{enrollment}/members`
   - `PUT /api/enrollments/{enrollment}/members/{member}`
   - `POST /api/enrollments/{enrollment}/submit`
+- Backend language endpoints:
+  - `PATCH /api/user/language`
+  - `POST /language` for web/session language changes.

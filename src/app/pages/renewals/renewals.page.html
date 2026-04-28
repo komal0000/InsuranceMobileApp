@@ -1,7 +1,7 @@
     <ion-header>
       <ion-toolbar color="primary">
         <ion-title>{{ isBeneficiary ? 'My Insurance' : 'Renewals' }}</ion-title>
-        <ion-buttons slot="end" *ngIf="!isBeneficiary">
+        <ion-buttons slot="end" *ngIf="canInitiateRenewal && !isBeneficiary">
           <ion-button (click)="goToSearch()">
             <ion-icon name="search-outline"></ion-icon>
           </ion-button>
@@ -250,7 +250,7 @@
             <!-- Renew Button -->
             <ion-button expand="block" color="primary"
                         (click)="initiateRenewal()" [disabled]="initiating"
-                        *ngIf="['approved', 'active', 'expired'].includes(enrollment.status)">
+                        *ngIf="canInitiateRenewal && ['approved', 'active', 'expired'].includes(enrollment.status)">
               <ion-spinner *ngIf="initiating" name="crescent" slot="start"></ion-spinner>
               <ion-icon name="refresh-outline" slot="start" *ngIf="!initiating"></ion-icon>
               {{ initiating ? 'Initiating...' : 'Renew Enrollment' }}
@@ -258,7 +258,7 @@
 
             <!-- Add New Member Button -->
             <ion-button expand="block" fill="outline" color="secondary"
-                        (click)="showAddMemberForm()" *ngIf="!showMemberForm && ['approved', 'active', 'expired'].includes(enrollment.status)">
+                        (click)="showAddMemberForm()" *ngIf="canInitiateRenewal && !showMemberForm && ['approved', 'active', 'expired'].includes(enrollment.status)">
               <ion-icon name="add-outline" slot="start"></ion-icon>
               Add New Member
             </ion-button>
@@ -485,15 +485,15 @@
         <div *ngIf="!loading && renewals.length === 0" class="empty-state ion-text-center ion-padding">
           <ion-icon name="refresh-outline" class="empty-icon"></ion-icon>
           <h3>No renewals found</h3>
-          <p>Search for a policy to initiate a renewal</p>
-          <ion-button (click)="goToSearch()">Search Policy</ion-button>
+          <p *ngIf="canInitiateRenewal">Search for a policy to initiate a renewal</p>
+          <ion-button *ngIf="canInitiateRenewal" (click)="goToSearch()">Search Policy</ion-button>
         </div>
 
         <ion-infinite-scroll (ionInfinite)="loadMore($event)" [disabled]="page >= lastPage">
           <ion-infinite-scroll-content loadingSpinner="crescent"></ion-infinite-scroll-content>
         </ion-infinite-scroll>
 
-        <ion-fab slot="fixed" vertical="bottom" horizontal="end">
+        <ion-fab *ngIf="canInitiateRenewal" slot="fixed" vertical="bottom" horizontal="end">
           <ion-fab-button (click)="goToSearch()">
             <ion-icon name="search-outline"></ion-icon>
           </ion-fab-button>

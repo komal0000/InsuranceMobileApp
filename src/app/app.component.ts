@@ -2,7 +2,9 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { App, URLOpenListenerEvent } from '@capacitor/app';
 import { IonApp, IonRouterOutlet } from '@ionic/angular/standalone';
+import { LanguageToggleComponent } from './components/language-toggle/language-toggle.component';
 import { AppSyncService } from './services/app-sync.service';
+import { LanguageService } from './services/language.service';
 
 interface RemovableListener {
   remove: () => Promise<void>;
@@ -11,17 +13,21 @@ interface RemovableListener {
 @Component({
   selector: 'app-root',
   templateUrl: 'app.component.html',
-  imports: [IonApp, IonRouterOutlet],
+  imports: [IonApp, IonRouterOutlet, LanguageToggleComponent],
 })
 export class AppComponent implements OnInit, OnDestroy {
   private readonly appListeners: RemovableListener[] = [];
 
   constructor(
     private router: Router,
-    private syncService: AppSyncService
+    private syncService: AppSyncService,
+    private languageService: LanguageService
   ) {}
 
   ngOnInit() {
+    this.languageService.startDomTranslator();
+    void this.languageService.init();
+
     // Intercept deep links from payment gateways (io.ionic.starter://payment-result?...)
     void App.addListener('appUrlOpen', (event: URLOpenListenerEvent) => {
       const url = new URL(event.url);

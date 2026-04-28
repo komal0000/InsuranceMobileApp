@@ -1,14 +1,13 @@
-import { Directive, HostListener, Optional, Self } from '@angular/core';
+import { Directive, ElementRef, HostListener, Optional, Self } from '@angular/core';
 import { NgModel } from '@angular/forms';
-import nepalify from 'nepalify';
+import { TransliterateService } from '../services/transliterate.service';
+
+type IonInputEvent = CustomEvent<{ value?: string | null }> & {
+  target: HTMLIonInputElement | null;
+};
 
 /**
- * Directive for ion-input that transliterates English keystrokes to Nepali (Devanagari).
- * Uses nepalify.format() (romanized layout) on every ionInput event.
- * nepalify.format() is idempotent on already-converted Devanagari characters.
- *
- * Usage:
- *   <ion-input appNepaliInput [(ngModel)]="model.first_name_ne"></ion-input>
+ * Converts romanized Nepali text in Ionic inputs when the user commits the value.
  */
 @Directive({
   selector: 'ion-input[appNepaliInput]',
@@ -18,27 +17,61 @@ export class NepaliInputDirective {
   private converting = false;
 
   constructor(
+    private host: ElementRef<HTMLIonInputElement>,
     @Optional() @Self() private ngModel: NgModel,
+    private transliterateService: TransliterateService,
   ) {}
 
   @HostListener('ionInput', ['$event'])
-  onIonInput(event: any) {
-    if (this.converting) return;
+  onIonInput(event: IonInputEvent) {
+    this.readValue(event);
+  }
 
-    const ionEl = event.target;
-    const raw: string = ionEl?.value ?? '';
-    if (!raw) return;
+  @HostListener('ionChange', ['$event'])
+  onIonChange(event: IonInputEvent) {
+    this.normalizeValue(event);
+  }
 
-    const converted = nepalify.format(raw);
-    if (converted === raw) return;
+  @HostListener('ionBlur', ['$event'])
+  onIonBlur(event: IonInputEvent) {
+    this.normalizeValue(event);
+  }
+
+  private normalizeValue(event: IonInputEvent) {
+    if (this.converting) {
+      return;
+    }
+
+    const raw = this.readValue(event);
+    if (!raw.trim()) {
+      return;
+    }
+
+    const converted = this.transliterateService.transliterate(raw);
+    if (converted === raw) {
+      return;
+    }
 
     this.converting = true;
-    ionEl.value = converted;
+    this.writeValue(converted);
+    this.converting = false;
+  }
+
+  private readValue(event: IonInputEvent): string {
+    const value = event.detail?.value ?? event.target?.value ?? this.host.nativeElement.value ?? '';
+    return String(value);
+  }
+
+  private writeValue(value: string) {
+    const ionEl = this.host.nativeElement;
+    ionEl.value = value;
+    void ionEl.getInputElement?.().then(input => {
+      input.value = value;
+    });
 
     if (this.ngModel?.control) {
-      this.ngModel.control.setValue(converted, { emitEvent: false });
-      this.ngModel.viewToModelUpdate(converted);
+      this.ngModel.control.setValue(value, { emitEvent: false });
+      this.ngModel.viewToModelUpdate(value);
     }
-    this.converting = false;
   }
 }

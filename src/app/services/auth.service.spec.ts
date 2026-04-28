@@ -5,11 +5,13 @@ import { AuthData, PendingRegistrationData, RegisterRequest } from '../interface
 
 describe('AuthService', () => {
   let api: jasmine.SpyObj<{ post: (...args: unknown[]) => unknown; get: (...args: unknown[]) => unknown }>;
+  let languageService: jasmine.SpyObj<{ useUserPreference: (...args: unknown[]) => void; setLanguage: (...args: unknown[]) => unknown }>;
   let service: AuthService;
 
   beforeEach(() => {
     api = jasmine.createSpyObj('ApiService', ['post', 'get']);
-    service = new AuthService(api as any);
+    languageService = jasmine.createSpyObj('LanguageService', ['useUserPreference', 'setLanguage']);
+    service = new AuthService(api as any, languageService as any);
   });
 
   it('posts beneficiary registration details to /register', (done) => {
@@ -102,6 +104,7 @@ describe('AuthService', () => {
           id: 1,
           name: 'Komal Shrestha',
           mobile_number: payload.identifier,
+          preferred_language: 'ne',
           role: 'beneficiary',
           permissions: [],
         },
@@ -114,6 +117,7 @@ describe('AuthService', () => {
       expect(result).toEqual(response);
       expect(api.post).toHaveBeenCalledWith('/login/password/create', payload);
       expect(service.getToken()).toBe('token-123');
+      expect(languageService.useUserPreference).toHaveBeenCalledWith('ne');
       done();
     });
   });

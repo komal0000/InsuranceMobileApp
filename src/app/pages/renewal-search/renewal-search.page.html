@@ -9,7 +9,15 @@
 
     <ion-content>
       <div class="search-content">
-        <ion-card>
+        <ion-card *ngIf="!canInitiateRenewal">
+          <ion-card-content>
+            <ion-text color="medium">
+              Renewal initiation is available to beneficiaries and enrollment assistants only.
+            </ion-text>
+          </ion-card-content>
+        </ion-card>
+
+        <ion-card *ngIf="canInitiateRenewal">
           <ion-card-content>
             <div class="section-title">
               <div class="section-icon" style="background: rgba(0,48,135,0.08);">
@@ -38,7 +46,7 @@
         </ion-card>
 
         <!-- Results -->
-        <ion-card *ngIf="results">
+        <ion-card *ngIf="canInitiateRenewal && results">
           <ion-card-content>
             <h4 class="results-title">Search Results</h4>
             <div *ngIf="results.length === 0" class="empty-text">
