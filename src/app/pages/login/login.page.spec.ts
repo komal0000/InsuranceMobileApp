@@ -3,6 +3,13 @@ import { convertToParamMap } from '@angular/router';
 import { LoginPage } from './login.page';
 
 describe('LoginPage', () => {
+  const createLanguageService = () => ({
+    currentLanguage: 'en',
+    t: (key: string) => key,
+    toggleLanguage: jasmine.createSpy().and.returnValue('ne'),
+    setLocalLanguage: jasmine.createSpy().and.resolveTo(),
+  });
+
   const createRoute = (params: Record<string, string> = {}) => ({
     queryParamMap: of(convertToParamMap(params)),
   });
@@ -21,7 +28,13 @@ describe('LoginPage', () => {
       'createLoginSetupPassword',
     ]);
     const router = jasmine.createSpyObj('Router', ['navigateByUrl']);
-    const page = new LoginPage(authService as any, router as any, createRoute() as any, createToastController() as any);
+    const page = new LoginPage(
+      authService as any,
+      router as any,
+      createRoute() as any,
+      createToastController() as any,
+      createLanguageService() as any
+    );
 
     expect(page.showRegistrationSetup).toBeFalse();
     expect(page.loginData.identifier).toBe('');
@@ -35,11 +48,17 @@ describe('LoginPage', () => {
       'createLoginSetupPassword',
     ]);
     const router = jasmine.createSpyObj('Router', ['navigateByUrl']);
-    const page = new LoginPage(authService as any, router as any, createRoute({
-      setup: 'registration',
-      identifier_type: 'mobile',
-      identifier: '9812345678',
-    }) as any, createToastController() as any);
+    const page = new LoginPage(
+      authService as any,
+      router as any,
+      createRoute({
+        setup: 'registration',
+        identifier_type: 'mobile',
+        identifier: '9812345678',
+      }) as any,
+      createToastController() as any,
+      createLanguageService() as any
+    );
 
     expect(page.showRegistrationSetup).toBeTrue();
     expect(page.loginData.identifier_type).toBe('mobile');
@@ -55,11 +74,17 @@ describe('LoginPage', () => {
     ]);
     const router = jasmine.createSpyObj('Router', ['navigateByUrl']);
     router.navigateByUrl.and.resolveTo(true);
-    const page = new LoginPage(authService as any, router as any, createRoute({
-      setup: 'registration',
-      identifier_type: 'mobile',
-      identifier: '9812345678',
-    }) as any, createToastController() as any);
+    const page = new LoginPage(
+      authService as any,
+      router as any,
+      createRoute({
+        setup: 'registration',
+        identifier_type: 'mobile',
+        identifier: '9812345678',
+      }) as any,
+      createToastController() as any,
+      createLanguageService() as any
+    );
 
     authService.sendLoginSetupOtp.and.returnValue(of({
       success: true,

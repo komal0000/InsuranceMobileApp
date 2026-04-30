@@ -20,6 +20,7 @@ import { ApiResponse } from '../../interfaces/api-response.interface';
 import { Enrollment } from '../../interfaces/enrollment.interface';
 import { User } from '../../interfaces/user.interface';
 import { DashboardDataService } from '../../services/dashboard-data.service';
+import { LanguageService } from '../../services/language.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -47,7 +48,8 @@ export class DashboardPage implements OnInit, OnDestroy {
     private authService: AuthService,
     private router: Router,
     private syncService: AppSyncService,
-    private dashboardData: DashboardDataService
+    private dashboardData: DashboardDataService,
+    private languageService: LanguageService
   ) {
     addIcons({
       documentTextOutline, shieldCheckmarkOutline, refreshOutline,
@@ -178,6 +180,14 @@ export class DashboardPage implements OnInit, OnDestroy {
 
   formatRole(role?: string): string {
     return (role || '').replace(/_/g, ' ');
+  }
+
+  t(key: string): string {
+    return this.languageService.t(key);
+  }
+
+  formatCount(value: unknown): string {
+    return this.languageService.formatNumber(Number(value ?? 0), 0);
   }
 
   ngOnDestroy() {

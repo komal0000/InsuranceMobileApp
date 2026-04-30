@@ -5,6 +5,7 @@ import { IonIcon, IonModal } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { calendarClearOutline, calendarOutline, chevronBackOutline, chevronForwardOutline } from 'ionicons/icons';
 import { DateService } from '../../services/date.service';
+import { LanguageService } from '../../services/language.service';
 
 interface BsDateValue {
   year: number;
@@ -19,7 +20,7 @@ interface CalendarCell {
   today: boolean;
 }
 
-const NEPALI_DIGITS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+const NEPALI_DIGITS = ['०', '१', '२', '३', '४', '५', '६', '७', '८', '९'];
 const FALLBACK_TODAY: BsDateValue = { year: 2081, month: 12, day: 6 };
 const MIN_SELECTABLE_YEAR = 1970;
 const MAX_SELECTABLE_YEAR = 2100;
@@ -51,13 +52,13 @@ const MAX_SELECTABLE_YEAR = 2100;
         (keydown.space)="!disabled && openSheet()"
       >
         <span class="trigger-value" [class.is-placeholder]="!selectedDate">
-          {{ displayValue || placeholder }}
+          {{ displayValue || effectivePlaceholder }}
         </span>
 
         <button
           type="button"
           class="trigger-icon"
-          aria-label="मिति छान्नुहोस्"
+          [attr.aria-label]="t('common.select_bs_date')"
           [disabled]="disabled"
           (click)="openSheet(); $event.stopPropagation()"
         >
@@ -81,13 +82,13 @@ const MAX_SELECTABLE_YEAR = 2100;
 
           <header class="sheet-header">
             <div class="header-copy">
-              <span class="header-label">बिक्रम सम्वत्</span>
-              <strong class="header-title">{{ selectedFullDate || 'मिति छान्नुहोस्' }}</strong>
+              <span class="header-label">{{ t('common.bikram_sambat') }}</span>
+              <strong class="header-title">{{ selectedFullDate || t('common.select_bs_date') }}</strong>
             </div>
           </header>
 
           <div class="calendar-toolbar">
-            <button type="button" class="nav-button" (click)="goToPreviousMonth()" aria-label="अघिल्लो महिना">
+            <button type="button" class="nav-button" (click)="goToPreviousMonth()" [attr.aria-label]="t('common.previous_month')">
               <ion-icon name="chevron-back-outline"></ion-icon>
             </button>
 
@@ -99,11 +100,11 @@ const MAX_SELECTABLE_YEAR = 2100;
               </select>
 
               <select class="picker-select year-select" (change)="onYearChange($event)">
-                <option *ngFor="let year of years" [value]="year" [selected]="year === viewYear">{{ toNepaliNumber(year) }}</option>
+                <option *ngFor="let year of years" [value]="year" [selected]="year === viewYear">{{ formatNumberForLocale(year) }}</option>
               </select>
             </div>
 
-            <button type="button" class="nav-button" (click)="goToNextMonth()" aria-label="अर्को महिना">
+            <button type="button" class="nav-button" (click)="goToNextMonth()" [attr.aria-label]="t('common.next_month')">
               <ion-icon name="chevron-forward-outline"></ion-icon>
             </button>
           </div>
@@ -137,16 +138,16 @@ const MAX_SELECTABLE_YEAR = 2100;
           <footer class="sheet-footer">
             <button type="button" class="footer-button subtle" (click)="selectToday()">
               <ion-icon name="calendar-clear-outline"></ion-icon>
-              <span>आज</span>
+              <span>{{ t('common.today') }}</span>
             </button>
 
             <button type="button" class="footer-button accent" (click)="closeSheet()">
-              <span>पुष्टि गर्नुहोस्</span>
+              <span>{{ t('common.confirm') }}</span>
             </button>
           </footer>
 
           <button *ngIf="selectedDate" type="button" class="clear-link" (click)="clearSelection()">
-            मेटाउनुहोस्
+            {{ t('common.clear') }}
           </button>
         </div>
       </ng-template>
@@ -464,16 +465,15 @@ const MAX_SELECTABLE_YEAR = 2100;
 })
 export class BsDatePickerComponent implements ControlValueAccessor, OnDestroy {
   @Input() label = '';
-  @Input() placeholder = 'मिति छान्नुहोस्';
+  @Input() placeholder = '';
   @Input() required = false;
   @Input() disabled = false;
   @Output() bsDateChange = new EventEmitter<string>();
 
-  readonly months = [
-    'बैशाख', 'जेठ', 'असार', 'साउन', 'भदौ', 'असोज',
-    'कार्तिक', 'मंसिर', 'पुष', 'माघ', 'फागुन', 'चैत',
-  ];
-  readonly weekdayLabels = ['आइत', 'सोम', 'मंगल', 'बुध', 'बिहि', 'शुक्र', 'शनि'];
+  readonly englishMonths = ['Baisakh', 'Jestha', 'Asar', 'Shrawan', 'Bhadra', 'Ashoj', 'Kartik', 'Mangsir', 'Poush', 'Magh', 'Falgun', 'Chaitra'];
+  readonly nepaliMonths = ['बैशाख', 'जेठ', 'असार', 'साउन', 'भदौ', 'असोज', 'कार्तिक', 'मंसिर', 'पुष', 'माघ', 'फागुन', 'चैत'];
+  readonly englishWeekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  readonly nepaliWeekdays = ['आइत', 'सोम', 'मंगल', 'बुध', 'बिहि', 'शुक्र', 'शनि'];
   readonly years: number[];
 
   isOpen = false;
@@ -486,7 +486,10 @@ export class BsDatePickerComponent implements ControlValueAccessor, OnDestroy {
   private onChange: (value: string) => void = () => undefined;
   private onTouched: () => void = () => undefined;
 
-  constructor(private dateService: DateService) {
+  constructor(
+    private dateService: DateService,
+    private languageService: LanguageService
+  ) {
     addIcons({
       calendarClearOutline,
       calendarOutline,
@@ -501,7 +504,7 @@ export class BsDatePickerComponent implements ControlValueAccessor, OnDestroy {
   }
 
   get displayValue(): string {
-    return this.selectedDate ? this.toNepaliNumber(this.toIso(this.selectedDate)) : '';
+    return this.selectedDate ? this.formatNumberForLocale(this.toIso(this.selectedDate)) : '';
   }
 
   get selectedFullDate(): string {
@@ -509,7 +512,19 @@ export class BsDatePickerComponent implements ControlValueAccessor, OnDestroy {
       return '';
     }
 
-    return `${this.toNepaliNumber(this.selectedDate.year)} ${this.months[this.selectedDate.month - 1]} ${this.toNepaliNumber(this.selectedDate.day)}`;
+    return `${this.formatNumberForLocale(this.selectedDate.year)} ${this.months[this.selectedDate.month - 1]} ${this.formatNumberForLocale(this.selectedDate.day)}`;
+  }
+
+  get effectivePlaceholder(): string {
+    return this.placeholder || this.t('common.select_bs_date');
+  }
+
+  get months(): string[] {
+    return this.languageService.currentLanguage === 'ne' ? this.nepaliMonths : this.englishMonths;
+  }
+
+  get weekdayLabels(): string[] {
+    return this.languageService.currentLanguage === 'ne' ? this.nepaliWeekdays : this.englishWeekdays;
   }
 
   get leadingPlaceholders(): null[] {
@@ -654,6 +669,16 @@ export class BsDatePickerComponent implements ControlValueAccessor, OnDestroy {
 
   toNepaliNumber(value: string | number): string {
     return String(value).replace(/\d/g, digit => NEPALI_DIGITS[Number(digit)]);
+  }
+
+  t(key: string): string {
+    return this.languageService.t(key);
+  }
+
+  formatNumberForLocale(value: string | number): string {
+    return this.languageService.currentLanguage === 'ne'
+      ? this.toNepaliNumber(value)
+      : String(value);
   }
 
   private commitValue(date: BsDateValue): void {
@@ -840,4 +865,3 @@ export class BsDatePickerComponent implements ControlValueAccessor, OnDestroy {
     return left.year === right.year && left.month === right.month && left.day === right.day;
   }
 }
-

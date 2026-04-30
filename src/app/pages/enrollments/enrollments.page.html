@@ -1,10 +1,10 @@
 <ion-header>
   <ion-toolbar color="primary">
-    <ion-title>Enrollments</ion-title>
+    <ion-title>{{ t('enrollments.title') }}</ion-title>
   </ion-toolbar>
   <ion-toolbar color="primary">
     <ion-searchbar
-      placeholder="Search by name, enrollment no..."
+      [placeholder]="t('enrollments.search_placeholder')"
       [(ngModel)]="search"
       (ionInput)="onSearch()"
       debounce="500"
@@ -14,11 +14,11 @@
   </ion-toolbar>
   <ion-toolbar color="primary">
     <ion-segment [(ngModel)]="statusFilter" (ionChange)="onFilterChange()" class="header-segment">
-      <ion-segment-button value="">All</ion-segment-button>
-      <ion-segment-button value="draft">Draft</ion-segment-button>
-      <ion-segment-button value="verified">Verified</ion-segment-button>
-      <ion-segment-button value="approved">Approved</ion-segment-button>
-      <ion-segment-button value="rejected">Rejected</ion-segment-button>
+      <ion-segment-button value="">{{ t('enrollments.all') }}</ion-segment-button>
+      <ion-segment-button value="draft">{{ t('enrollments.draft') }}</ion-segment-button>
+      <ion-segment-button value="verified">{{ t('enrollments.verified') }}</ion-segment-button>
+      <ion-segment-button value="approved">{{ t('enrollments.approved') }}</ion-segment-button>
+      <ion-segment-button value="rejected">{{ t('enrollments.rejected') }}</ion-segment-button>
     </ion-segment>
   </ion-toolbar>
 </ion-header>
@@ -36,7 +36,7 @@
     <ion-card *ngFor="let e of enrollments" button (click)="viewDetail(e)" class="enrollment-card">
       <ion-card-content>
         <div class="card-top-row">
-          <div class="enroll-number">{{ e.enrollment_number || 'Draft #' + e.id }}</div>
+          <div class="enroll-number">{{ formatEnrollmentNumber(e) }}</div>
           <ion-badge [color]="getStatusColor(e.status)">{{ formatStatus(e.status) }}</ion-badge>
         </div>
 
@@ -52,14 +52,14 @@
 
         <div class="card-bottom-row">
           <span class="date-text">{{ displayDate(e.created_at) }}</span>
-          <span class="premium-text" *ngIf="e.premium_amount">Rs. {{ e.premium_amount }}</span>
+          <span class="premium-text" *ngIf="e.premium_amount">{{ formatPremium(e.premium_amount) }}</span>
         </div>
 
         <!-- Continue button for draft/incomplete enrollments -->
         <div *ngIf="e.status === 'draft'" class="continue-row">
           <ion-button expand="block" size="small" fill="solid" color="primary"
                       (click)="continueEnrollment(e, $event)">
-            Continue Enrollment
+            {{ t('enrollments.continue') }}
           </ion-button>
         </div>
       </ion-card-content>
@@ -68,16 +68,16 @@
 
   <div *ngIf="!loading && enrollments.length === 0" class="empty-state ion-text-center ion-padding">
     <ion-icon name="document-text-outline" class="empty-icon"></ion-icon>
-    <h3>No enrollments found</h3>
-    <p *ngIf="canCreate">Tap the + button to create a new enrollment</p>
-    <p *ngIf="!canCreate && isBeneficiary">Your enrollment has not been created yet. Please contact an enrollment assistant.</p>
+    <h3>{{ t('enrollments.no_records') }}</h3>
+    <p *ngIf="canCreate">{{ t('enrollments.create_prompt') }}</p>
+    <p *ngIf="!canCreate && isBeneficiary">{{ t('enrollments.beneficiary_prompt') }}</p>
   </div>
 
   <!-- Beneficiary one-enrollment info -->
   <div *ngIf="isBeneficiary && enrollments.length > 0 && !loading" class="ion-text-center ion-padding" style="padding-top:0">
     <p style="font-size:0.8rem;color:#6c757d;margin:0">
       <ion-icon name="information-circle-outline" style="vertical-align:middle;margin-right:4px"></ion-icon>
-      As a beneficiary, you can have only one enrollment.
+      {{ t('enrollments.one_only') }}
     </p>
   </div>
 

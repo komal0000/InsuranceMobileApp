@@ -18,6 +18,7 @@ import { ApiService } from '../../services/api.service';
 import { AppSyncEvent, AppSyncService } from '../../services/app-sync.service';
 import { AuthService } from '../../services/auth.service';
 import { DateService } from '../../services/date.service';
+import { LanguageService } from '../../services/language.service';
 import { ApiResponse, PaginatedData } from '../../interfaces/api-response.interface';
 import { Enrollment, EnrollmentStatus } from '../../interfaces/enrollment.interface';
 
@@ -53,7 +54,8 @@ export class EnrollmentsPage implements OnInit, OnDestroy {
     private authService: AuthService,
     private dateService: DateService,
     private router: Router,
-    private toastCtrl: ToastController
+    private toastCtrl: ToastController,
+    private languageService: LanguageService
   ) {
     addIcons({ addOutline, documentTextOutline, informationCircleOutline });
   }
@@ -170,7 +172,7 @@ export class EnrollmentsPage implements OnInit, OnDestroy {
         }
       },
       error: async (err) => {
-        const msg = err?.error?.message || 'Failed to create enrollment.';
+        const msg = err?.error?.message || this.t('enrollments.create_failed');
         const t = await this.toastCtrl.create({ message: msg, duration: 3000, color: 'danger', position: 'top' });
         await t.present();
       },
@@ -192,6 +194,26 @@ export class EnrollmentsPage implements OnInit, OnDestroy {
 
   formatStatus(status: string): string {
     return (status || '').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  }
+
+  t(key: string): string {
+    return this.languageService.t(key);
+  }
+
+  formatNumber(value: string | number | null | undefined, decimals = 0): string {
+    return this.languageService.formatNumber(value, decimals);
+  }
+
+  formatEnrollmentNumber(enrollment: Enrollment): string {
+    return enrollment.enrollment_number || `${this.t('enrollments.draft_prefix')}${this.formatNumber(enrollment.id)}`;
+  }
+
+  formatPremium(amount: string | number | null | undefined): string {
+    if (amount === null || amount === undefined || amount === '') {
+      return '';
+    }
+
+    return `Rs. ${this.languageService.formatNumber(amount, 2)}`;
   }
 
   displayDate(adDate?: string | null, bsDate?: string | null): string {

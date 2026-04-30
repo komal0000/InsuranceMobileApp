@@ -20,6 +20,7 @@ import {
 import { EnrollmentService } from '../../services/enrollment.service';
 import { GeoService } from '../../services/geo.service';
 import { DateService } from '../../services/date.service';
+import { LanguageService } from '../../services/language.service';
 import { ApiResponse } from '../../interfaces/api-response.interface';
 import { NepaliInputDirective } from '../../directives/nepali-input.directive';
 import { BsDatePickerComponent } from '../../components/bs-date-picker/bs-date-picker.component';
@@ -28,7 +29,7 @@ import {
   SubsidyResult, SubsidySummary
 } from '../../interfaces/enrollment.interface';
 
-const STEP_TITLES = ['Household Head', 'Family Members', 'Review & Submit'];
+const STEP_TITLE_KEYS = ['wizard.step1', 'wizard.step2', 'wizard.step3'];
 
 const DEFAULT_MEMBER_RELATIONSHIPS: Array<{ value: string; label: string }> = [
   { value: 'spouse', label: 'Spouse' },
@@ -75,7 +76,7 @@ export class EnrollmentWizardPage implements OnInit {
   savingDraft = false;
   submitting = false;
   confirmed = false;
-  stepTitles = STEP_TITLES;
+  stepTitles = [...STEP_TITLE_KEYS];
   relationshipOptions: Array<{ value: string; label: string }> = [...DEFAULT_MEMBER_RELATIONSHIPS];
   private initialLoad = true;
 
@@ -198,6 +199,7 @@ export class EnrollmentWizardPage implements OnInit {
     private enrollmentSvc: EnrollmentService,
     private geoSvc: GeoService,
     private dateService: DateService,
+    private languageService: LanguageService,
     private toastCtrl: ToastController,
     private alertCtrl: AlertController
   ) {
@@ -207,9 +209,11 @@ export class EnrollmentWizardPage implements OnInit {
       arrowForwardOutline, arrowBackOutline, searchOutline,
       cardOutline, documentTextOutline, createOutline
     });
+    this.refreshStepTitles();
   }
 
   ngOnInit() {
+    this.languageService.language$.subscribe(() => this.refreshStepTitles());
     this.enrollmentId = Number(this.route.snapshot.paramMap.get('id'));
     const currentBs = this.dateService.getCurrentBs();
     if (!this.headData.date_of_birth) this.headData.date_of_birth = currentBs;
@@ -511,7 +515,7 @@ export class EnrollmentWizardPage implements OnInit {
           this.markLockedHeadFields(d);
           this.nidVerifiedHead = true;
           this.showNidGate2    = false;
-          this.showToast('NID verified! Fields have been auto-filled.', 'success');
+        this.showToast(this.t('wizard.nid_verified'), 'success');
         } else {
           this.nidMessage2 = res.message || 'No matching record found. Please fill the form manually.';
         }
@@ -609,7 +613,7 @@ export class EnrollmentWizardPage implements OnInit {
           if (d.photo_url) this.memberPhotoPreview = d.photo_url;
           this.nidVerifiedMember = true;
           this.showNidGateMember = false;
-          this.showToast('NID verified! Fields have been auto-filled.', 'success');
+        this.showToast(this.t('wizard.nid_verified'), 'success');
         } else {
           this.nidMessageMember = res.message || 'No matching record found. Please fill the form manually.';
         }
@@ -685,18 +689,18 @@ export class EnrollmentWizardPage implements OnInit {
   async nextStep() {
     if (this.currentStep === 1) {
       if (!this.step1.province || !this.step1.district || !this.step1.municipality || !this.step1.ward_number) {
-        this.showToast('Please fill all required location fields.', 'warning'); return;
+      this.showToast(this.t('wizard.required_location'), 'warning'); return;
       }
       if (!this.headData.first_name || !this.headData.last_name || !this.headData.gender ||
           !this.headData.date_of_birth || !this.headData.mobile_number ||
           !this.headData.citizenship_number || !this.headData.marital_status) {
-        this.showToast('Please fill all required fields.', 'warning'); return;
+      this.showToast(this.t('wizard.required_fields'), 'warning'); return;
       }
       if (!/^\d{10}$/.test(this.headData.mobile_number)) {
-        this.showToast('Mobile number must be exactly 10 digits.', 'warning'); return;
+        this.showToast(this.t('wizard.mobile_digits'), 'warning'); return;
       }
       if (this.calculateAge(this.headData.date_of_birth) < 16) {
-        this.showToast('Household head must be at least 16 years old.', 'warning'); return;
+        this.showToast(this.t('wizard.head_age'), 'warning'); return;
       }
       this.saving = true;
       const fd = this.buildHouseholdHeadFormData();
@@ -755,15 +759,15 @@ export class EnrollmentWizardPage implements OnInit {
           !this.headData.date_of_birth || !this.headData.mobile_number ||
           !this.headData.citizenship_number || !this.headData.citizenship_issue_date ||
           !this.headData.citizenship_issue_district || !this.headData.marital_status) {
-        this.showToast('Please fill all required fields before saving.', 'warning');
+      this.showToast(this.t('wizard.required_before_save'), 'warning');
         this.savingDraft = false; return;
       }
       if (!/^\d{10}$/.test(this.headData.mobile_number)) {
-        this.showToast('Mobile number must be exactly 10 digits.', 'warning');
+      this.showToast(this.t('wizard.mobile_digits'), 'warning');
         this.savingDraft = false; return;
       }
       if (this.calculateAge(this.headData.date_of_birth) < 16) {
-        this.showToast('Household head must be at least 16 years old.', 'warning');
+        this.showToast(this.t('wizard.head_age'), 'warning');
         this.savingDraft = false; return;
       }
       this.enrollmentSvc.saveHouseholdHead(this.enrollmentId, this.buildHouseholdHeadFormData()).subscribe({
@@ -771,10 +775,10 @@ export class EnrollmentWizardPage implements OnInit {
           this.savingDraft = false;
           if (res.success) {
             this.enrollment = res.data;
-            this.showToast('Draft saved.', 'success');
+          this.showToast(this.t('wizard.draft_saved'), 'success');
           }
         },
-        error: () => { this.savingDraft = false; this.showToast('Failed to save draft.', 'danger'); },
+      error: () => { this.savingDraft = false; this.showToast(this.t('wizard.draft_failed'), 'danger'); },
       });
     } else {
       this.savingDraft = false;
@@ -878,15 +882,15 @@ export class EnrollmentWizardPage implements OnInit {
   async saveMember() {
     if (!this.newMember.first_name || !this.newMember.last_name ||
         !this.newMember.gender || !this.newMember.date_of_birth || !this.newMember.relationship) {
-      this.showToast('Please fill all required member fields.', 'warning'); return;
+      this.showToast(this.t('wizard.member_required'), 'warning'); return;
     }
 
     const relationship = this.normalizeKey(this.newMember.relationship);
     if (!relationship || !this.availableMemberRelationshipOptions.some(option => option.value === relationship)) {
-      this.showToast('Please select a valid relationship.', 'warning'); return;
+      this.showToast(this.t('wizard.relationship_invalid'), 'warning'); return;
     }
     if (this.isHeadSingle && SINGLE_HEAD_BLOCKED_RELATIONSHIPS.includes(relationship)) {
-      this.showToast('Spouse, son, and daughter relationships are not allowed when household head marital status is single.', 'warning'); return;
+      this.showToast(this.t('wizard.relationship_single_block'), 'warning'); return;
     }
     this.newMember.relationship = relationship;
     if (this.newMember.marital_status) {
@@ -894,11 +898,11 @@ export class EnrollmentWizardPage implements OnInit {
     }
 
     if (this.newMember.mobile_number && !/^\d{10}$/.test(this.newMember.mobile_number)) {
-      this.showToast('Mobile number must be exactly 10 digits.', 'warning'); return;
+      this.showToast(this.t('wizard.mobile_digits'), 'warning'); return;
     }
     const docType = this.newMember.document_type || null;
     if (docType === 'citizenship' && this.calculateAge(this.newMember.date_of_birth) < 16) {
-      this.showToast('Member with citizenship document must be at least 16 years old.', 'warning'); return;
+      this.showToast(this.t('wizard.member_age_citizenship'), 'warning'); return;
     }
 
     this.savingMember = true;
@@ -930,7 +934,7 @@ export class EnrollmentWizardPage implements OnInit {
         if (res.success) {
           this.resetMemberForm();
           this.loadEnrollment();
-          this.showToast(wasEditing ? 'Member updated successfully.' : 'Member added successfully.', 'success');
+          this.showToast(this.t(wasEditing ? 'wizard.member_updated' : 'wizard.member_added'), 'success');
         }
       },
       error: () => { this.savingMember = false; },
@@ -939,12 +943,12 @@ export class EnrollmentWizardPage implements OnInit {
 
   async removeMember(member: FamilyMember) {
     const alert = await this.alertCtrl.create({
-      header: 'Remove Member',
-      message: `Remove ${member.first_name} ${member.last_name} from this enrollment?`,
+      header: this.t('wizard.remove_member_header'),
+      message: `${this.t('wizard.remove_member_message')} ${member.first_name} ${member.last_name}`,
       buttons: [
-        { text: 'Cancel', role: 'cancel' },
+        { text: this.t('common.cancel'), role: 'cancel' },
         {
-          text: 'Remove', cssClass: 'danger',
+          text: this.t('common.delete'), cssClass: 'danger',
           handler: () => {
             this.enrollmentSvc.removeMember(this.enrollmentId, member.id).subscribe({
               next: () => { this.members = this.members.filter(m => m.id !== member.id); this.loadEnrollment(); },
@@ -960,7 +964,7 @@ export class EnrollmentWizardPage implements OnInit {
 
   async payAndSubmit() {
     if (!this.confirmed) {
-      this.showToast('Please confirm the information is accurate.', 'warning');
+      this.showToast(this.t('wizard.confirm_information'), 'warning');
       return;
     }
     // Use subsidy-adjusted premium if available, otherwise raw premium
@@ -979,12 +983,12 @@ export class EnrollmentWizardPage implements OnInit {
   }
 
   async submitEnrollment() {
-    if (!this.confirmed) { this.showToast('Please confirm the information is accurate.', 'warning'); return; }
+    if (!this.confirmed) { this.showToast(this.t('wizard.confirm_information'), 'warning'); return; }
     this.submitting = true;
     this.enrollmentSvc.submit(this.enrollmentId).subscribe({
       next: async () => {
         this.submitting = false;
-        this.showToast('Enrollment submitted for verification!', 'success');
+        this.showToast(this.t('wizard.submitted'), 'success');
         this.router.navigateByUrl('/tabs/enrollments');
       },
       error: () => { this.submitting = false; },
@@ -1018,7 +1022,7 @@ export class EnrollmentWizardPage implements OnInit {
     input.onchange = (event: any) => {
       const file: File = event.target.files[0];
       if (!file) return;
-      if (file.size > 2 * 1024 * 1024) { this.showToast('Image must be less than 2MB.', 'danger'); return; }
+      if (file.size > 2 * 1024 * 1024) { this.showToast(this.t('wizard.image_size'), 'danger'); return; }
       const reader = new FileReader();
       reader.onload = () => this.applyImage(target, field as any, file, reader.result as string);
       reader.readAsDataURL(file);
@@ -1151,6 +1155,14 @@ export class EnrollmentWizardPage implements OnInit {
     }
 
     return value.trim().toLowerCase().replace(/[\s-]+/g, '_');
+  }
+
+  private t(key: string): string {
+    return this.languageService.t(key);
+  }
+
+  private refreshStepTitles(): void {
+    this.stepTitles = STEP_TITLE_KEYS.map((key) => this.languageService.t(key));
   }
 
   private confirmationLabels: Record<string, string> = {

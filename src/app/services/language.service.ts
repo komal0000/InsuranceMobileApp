@@ -5,6 +5,7 @@ import { map, switchMap, tap } from 'rxjs/operators';
 import { ApiResponse } from '../interfaces/api-response.interface';
 import { User } from '../interfaces/user.interface';
 import { ApiService } from './api.service';
+import { EN_TRANSLATIONS } from '../i18n/en';
 import { NE_TRANSLATIONS } from '../i18n/ne';
 
 export type AppLanguage = 'en' | 'ne';
@@ -70,11 +71,50 @@ export class LanguageService {
   }
 
   t(key: string): string {
-    if (this.currentLanguage === 'en') {
-      return key;
+    const currentMap = this.getTranslationMap(this.currentLanguage);
+    if (currentMap[key]) {
+      return currentMap[key];
     }
 
-    return NE_TRANSLATIONS[this.normalizePhrase(key)] ?? key;
+    if (this.currentLanguage === 'ne') {
+      const englishSource = EN_TRANSLATIONS[key] ?? key;
+      return NE_TRANSLATIONS[key]
+        ?? NE_TRANSLATIONS[this.normalizePhrase(englishSource)]
+        ?? NE_TRANSLATIONS[this.normalizePhrase(key)]
+        ?? englishSource;
+    }
+
+    return EN_TRANSLATIONS[key] ?? key;
+  }
+
+  localizeDigits(value: string | number | null | undefined): string {
+    if (value === null || value === undefined) {
+      return '';
+    }
+
+    const source = String(value);
+    if (this.currentLanguage !== 'ne') {
+      return source;
+    }
+
+    return source.replace(/\d/g, (digit) => '०१२३४५६७८९'[Number(digit)] ?? digit);
+  }
+
+  formatNumber(value: string | number | null | undefined, decimals = 0): string {
+    if (value === null || value === undefined || value === '') {
+      return '';
+    }
+
+    const numeric = typeof value === 'number' ? value : Number(value);
+    if (Number.isNaN(numeric)) {
+      return this.localizeDigits(String(value));
+    }
+
+    const locale = this.currentLanguage === 'ne' ? 'ne-NP-u-nu-deva' : 'en-US';
+    return new Intl.NumberFormat(locale, {
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals,
+    }).format(numeric);
   }
 
   startDomTranslator(): void {
@@ -172,6 +212,10 @@ export class LanguageService {
 
   private normalizePhrase(value: string): string {
     return value.trim().replace(/\s+/g, ' ');
+  }
+
+  private getTranslationMap(language: AppLanguage): Record<string, string> {
+    return language === 'ne' ? NE_TRANSLATIONS : EN_TRANSLATIONS;
   }
 
   private normalizeLanguage(value?: string | null): AppLanguage | null {

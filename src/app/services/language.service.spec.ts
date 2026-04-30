@@ -12,11 +12,19 @@ describe('LanguageService', () => {
     service = new LanguageService(api as any);
   });
 
-  it('translates known phrases and falls back to the source phrase', async () => {
+  it('translates keyed and phrase-based text in Nepali mode', async () => {
     await service.setLocalLanguage('ne');
 
+    expect(service.t('dashboard.title')).toBe('ड्यासबोर्ड');
     expect(service.t('Dashboard')).toBe('ड्यासबोर्ड');
     expect(service.t('Unmapped phrase')).toBe('Unmapped phrase');
+  });
+
+  it('localizes digits and formatted numbers in Nepali mode', async () => {
+    await service.setLocalLanguage('ne');
+
+    expect(service.localizeDigits('2083-01-15')).toBe('२०८३-०१-१५');
+    expect(service.formatNumber(3500.5, 2)).toBe('३,५००.५०');
   });
 
   it('persists the authenticated language preference through the backend', (done) => {

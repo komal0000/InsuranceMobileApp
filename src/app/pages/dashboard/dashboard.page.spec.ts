@@ -2,13 +2,21 @@ import { Subject } from 'rxjs';
 import { DashboardPage } from './dashboard.page';
 
 describe('DashboardPage', () => {
+  function languageService() {
+    return {
+      t: (key: string) => key,
+      formatNumber: (value: number) => String(value),
+    };
+  }
+
   function makePage(): DashboardPage {
     return new DashboardPage(
       {} as any,
       {} as any,
       {} as any,
       { events$: new Subject() } as any,
-      {} as any
+      {} as any,
+      languageService() as any
     );
   }
 

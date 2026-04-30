@@ -3,7 +3,7 @@
         <ion-buttons slot="start">
           <ion-back-button defaultHref="/tabs/enrollments"></ion-back-button>
         </ion-buttons>
-        <ion-title>Enrollment Detail</ion-title>
+        <ion-title>{{ t('enrollment_detail.title') }}</ion-title>
       </ion-toolbar>
     </ion-header>
 
@@ -17,7 +17,7 @@
         <div class="status-banner">
           <div class="banner-left">
             <span class="enroll-number">{{ enrollment.enrollment_number || 'Draft #' + enrollment.id }}</span>
-            <span class="enroll-date">Created {{ displayDate(enrollment.created_at) }}</span>
+            <span class="enroll-date">{{ t('enrollment_detail.created_prefix') }} {{ displayDate(enrollment.created_at) }}</span>
           </div>
           <ion-badge [color]="getStatusColor(enrollment.status)">{{ formatStatus(enrollment.status) }}</ion-badge>
         </div>
@@ -29,7 +29,7 @@
               <div class="section-icon" style="background: rgba(0,48,135,0.08);">
                 <ion-icon name="location-outline" style="color: #003087;"></ion-icon>
               </div>
-              <h3>Location Details</h3>
+              <h3>{{ t('enrollment_detail.location') }}</h3>
             </div>
             <div class="info-grid">
               <div class="info-item">
@@ -50,7 +50,7 @@
               </div>
             </div>
             <div class="info-item full-width" *ngIf="enrollment.full_address">
-              <span class="info-label">Full Address</span>
+              <span class="info-label">{{ t('enrollment_detail.location_full_address') }}</span>
               <span class="info-value">{{ enrollment.full_address }}</span>
             </div>
           </ion-card-content>
@@ -63,10 +63,10 @@
               <div class="section-icon" style="background: rgba(25,135,84,0.1);">
                 <ion-icon name="shield-checkmark-outline" style="color: #198754;"></ion-icon>
               </div>
-              <h3>Premium</h3>
+              <h3>{{ t('enrollment_detail.premium') }}</h3>
             </div>
             <div class="premium-display">
-              <span class="premium-amount">Rs. {{ enrollment.premium_amount }}</span>
+              <span class="premium-amount">Rs. {{ formatNumber(enrollment.premium_amount, 2) }}</span>
             </div>
           </ion-card-content>
         </ion-card>
@@ -78,7 +78,7 @@
               <div class="section-icon" style="background: rgba(220,20,60,0.08);">
                 <ion-icon name="close-circle-outline" style="color: #DC143C;"></ion-icon>
               </div>
-              <h3>Rejection Reason</h3>
+              <h3>{{ t('enrollment_detail.rejection_reason') }}</h3>
             </div>
             <p class="rejection-text">{{ enrollment.rejection_reason }}</p>
           </ion-card-content>
@@ -91,7 +91,7 @@
               <div class="section-icon" style="background: rgba(102,16,242,0.08);">
                 <ion-icon name="person-outline" style="color: #6610f2;"></ion-icon>
               </div>
-              <h3>Household Head</h3>
+              <h3>{{ t('common.household_head') }}</h3>
             </div>
             <div class="head-info">
               <div class="head-avatar" *ngIf="getDocUrl(enrollment.household_head, 'photo'); else initials">
@@ -105,8 +105,8 @@
               <div class="head-details">
                 <strong>{{ enrollment.household_head.first_name }} {{ enrollment.household_head.last_name }}</strong>
                 <span>{{ enrollment.household_head.gender | titlecase }} | DOB: {{ displayDate(enrollment.household_head.date_of_birth, enrollment.household_head.date_of_birth_bs) }}</span>
-                <span *ngIf="enrollment.household_head.citizenship_number">Citizenship: {{ enrollment.household_head.citizenship_number }}</span>
-                <span *ngIf="enrollment.household_head.mobile_number">Mobile: {{ enrollment.household_head.mobile_number }}</span>
+                <span *ngIf="enrollment.household_head.citizenship_number">{{ t('enrollment_detail.citizenship') }}: {{ enrollment.household_head.citizenship_number }}</span>
+                <span *ngIf="enrollment.household_head.mobile_number">{{ t('common.mobile') }}: {{ enrollment.household_head.mobile_number }}</span>
               </div>
             </div>
           </ion-card-content>
@@ -119,7 +119,7 @@
               <div class="section-icon" style="background: rgba(13,202,240,0.1);">
                 <ion-icon name="people-outline" style="color: #0dcaf0;"></ion-icon>
               </div>
-              <h3>Family Members ({{ enrollment.members.length }})</h3>
+              <h3>{{ t('enrollment_detail.family_members_count') }} ({{ formatNumber(enrollment.members.length) }})</h3>
             </div>
             <div class="member-list">
               <div class="member-item" *ngFor="let member of enrollment.members">
@@ -140,14 +140,14 @@
               <div class="section-icon" style="background: rgba(255,193,7,0.12);">
                 <ion-icon name="document-outline" style="color: #ffc107;"></ion-icon>
               </div>
-              <h3>Documents ({{ enrollment.documents.length }})</h3>
+              <h3>{{ t('enrollment_detail.documents') }} ({{ formatNumber(enrollment.documents.length) }})</h3>
             </div>
             <div class="doc-list">
               <div class="doc-item" *ngFor="let doc of enrollment.documents">
                 <ion-icon name="document-outline" class="doc-icon"></ion-icon>
                 <div class="doc-info">
                   <strong>{{ doc.document_type }}</strong>
-                  <span>{{ doc.file_name || 'Document' }}</span>
+                  <span>{{ doc.file_name || t('common.document') }}</span>
                 </div>
               </div>
             </div>
@@ -158,27 +158,27 @@
         <div class="action-section">
           <ion-button expand="block" (click)="editEnrollment()" *ngIf="enrollment.status === 'draft'">
             <ion-icon name="create-outline" slot="start"></ion-icon>
-            Continue Editing
+            {{ t('enrollment_detail.continue_editing') }}
           </ion-button>
           <ion-button expand="block" color="success" (click)="submitEnrollment()" *ngIf="enrollment.status === 'draft'">
             <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
-            Submit for Verification
+            {{ t('enrollment_detail.submit_verification') }}
           </ion-button>
           <ion-button expand="block" color="success" (click)="verifyEnrollment()" *ngIf="canVerify && enrollment.status === 'pending_verification'">
             <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
-            Verify
+            {{ t('enrollment_detail.verify') }}
           </ion-button>
           <ion-button expand="block" color="success" (click)="approveEnrollment()" *ngIf="canApprove && enrollment.status === 'verified'">
             <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
-            Approve
+            {{ t('enrollment_detail.approve') }}
           </ion-button>
           <ion-button expand="block" color="danger" (click)="rejectEnrollment()" *ngIf="canReject && (enrollment.status === 'pending_verification' || enrollment.status === 'verified')">
             <ion-icon name="close-circle-outline" slot="start"></ion-icon>
-            Reject
+            {{ t('enrollment_detail.reject') }}
           </ion-button>
           <ion-button expand="block" color="danger" fill="outline" (click)="deleteEnrollment()" *ngIf="enrollment.status === 'draft'">
             <ion-icon name="trash-outline" slot="start"></ion-icon>
-            Delete Draft
+            {{ t('enrollment_detail.delete_draft') }}
           </ion-button>
         </div>
       </div>

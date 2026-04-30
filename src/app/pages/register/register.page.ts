@@ -11,6 +11,7 @@ import {
   RegisterRequest,
 } from '../../interfaces/user.interface';
 import { NepaliInputDirective } from '../../directives/nepali-input.directive';
+import { LanguageService } from '../../services/language.service';
 import { addIcons } from 'ionicons';
 import {
   shieldCheckmarkOutline, arrowBackOutline, personOutline,
@@ -40,28 +41,33 @@ export class RegisterPage {
   constructor(
     private authService: AuthService,
     private router: Router,
-    private toastCtrl: ToastController
+    private toastCtrl: ToastController,
+    private languageService: LanguageService
   ) {
     addIcons({
       shieldCheckmarkOutline, arrowBackOutline, personOutline, callOutline, mailOutline,
     });
   }
 
+  t(key: string): string {
+    return this.languageService.t(key);
+  }
+
   async register() {
     this.formData.mobile_number = this.formData.mobile_number.replace(/\D+/g, '').slice(0, 10);
 
     if (!this.formData.name || !this.formData.name_ne || !this.formData.mobile_number) {
-      await this.presentToast('Full name, Nepali full name, and mobile number are required.', 'warning');
+      await this.presentToast(this.t('register.required_fields'), 'warning');
       return;
     }
 
     if (!/^\d{10}$/.test(this.formData.mobile_number)) {
-      await this.presentToast('Mobile number must be exactly 10 digits.', 'warning');
+      await this.presentToast(this.t('register.mobile_digits'), 'warning');
       return;
     }
 
     if (this.formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.formData.email)) {
-      await this.presentToast('Please enter a valid email address.', 'warning');
+      await this.presentToast(this.t('register.invalid_email'), 'warning');
       return;
     }
 
@@ -69,7 +75,7 @@ export class RegisterPage {
     this.authService.registerBeneficiary(this.formData).subscribe({
       next: async (res) => {
         this.loading = false;
-        await this.presentToast('Registration saved. Continue OTP setup from login.', 'success');
+        await this.presentToast(this.t('register.saved'), 'success');
         void this.router.navigate(['/login'], {
           replaceUrl: true,
           queryParams: {

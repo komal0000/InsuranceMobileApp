@@ -1,6 +1,6 @@
 # InsuranceMobileApp Current Context
 
-Last updated: 2026-04-27
+Last updated: 2026-04-30
 
 This file captures the current Ionic/Angular state so future conversations do not need to rediscover the mobile app.
 
@@ -152,8 +152,12 @@ Family members:
 ## Language Toggle
 - A global floating English/Nepali toggle is mounted in `AppComponent`.
 - The toggle persists locally for guest/startup screens and syncs to the backend for authenticated users.
-- The lightweight translation system uses `LanguageService`, `TranslatePipe`, and exact phrase dictionaries under `src\app\i18n`.
-- DOM phrase translation is started at app root so existing standalone pages and toast/alert DOM content switch without adding a new npm dependency.
+- The lightweight translation system uses `LanguageService`, `TranslatePipe`, and the dictionaries under `src\app\i18n`.
+- Login, register, dashboard, enrollments, enrollment detail, and enrollment wizard step titles/messages now resolve through `LanguageService`/`TranslatePipe` instead of relying only on DOM phrase replacement.
+- DOM phrase translation is still started at app root for residual standalone text and Ionic-rendered content that is not yet wired directly to keys.
+- `LanguageService` now also provides locale-aware number formatting and digit localization used by mobile summaries and date displays.
+- `DateService` display helpers now localize BS dates and time digits in Nepali mode.
+- `BsDatePickerComponent` now renders Nepali labels and Devanagari digits in Nepali mode.
 - Nepali text-entry fields using `appNepaliInput` now use the phonetic `TransliterateService` on committed Ionic input values instead of the `nepalify` keyboard-layout formatter; examples covered include `Komal Shrestha`, `Ram`, and `Shrestha`.
 
 ## Geo Loading Cache
@@ -207,6 +211,25 @@ Result:
 - `npm run build` passes.
 - Existing SCSS budget warning remains for `src/app/pages/renewals/renewals.page.scss`.
 - `npm test` is still blocked locally because Karma cannot spawn ChromeHeadless (`spawn EPERM`) before executing tests.
+
+Additional localization verification on 2026-04-30:
+```powershell
+cd C:\Insurance\InsuranceMobileApp
+npx tsc -p tsconfig.spec.json --noEmit
+npm run build
+npm test -- --watch=false --browsers=ChromeHeadless
+```
+
+Result:
+- `npx tsc -p tsconfig.spec.json --noEmit` passes after updating page specs for the newer `LanguageService` constructor usage.
+- `npm run build` passes after wiring localized step titles, toasts, BS date picker labels, and locale-aware number/date rendering.
+- New focused coverage exists in:
+  - `src\app\services\language.service.spec.ts`
+  - `src\app\services\date.service.spec.ts`
+  - `src\app\pages\enrollment-wizard\enrollment-wizard.page.spec.ts`
+  - updated login/register/dashboard specs
+- Existing SCSS budget warning remains for `src/app/pages/renewals/renewals.page.scss`.
+- `npm test` is still blocked locally because Karma cannot spawn ChromeHeadless (`spawn EPERM`) before executing browser tests.
 
 ## Deployment Notes
 - Environment API URL is configured in:

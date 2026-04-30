@@ -8,31 +8,31 @@
     </div>
     <p class="header-title">Health Insurance Board, Nepal</p>
     <div class="red-line"></div>
-    <p class="header-sub">Create your beneficiary account</p>
+    <p class="header-sub">{{ t('register.subtitle') }}</p>
   </div>
 
   <div class="card-section">
     <div class="register-card">
-      <h2 class="card-title">Register</h2>
-      <p class="card-subtitle">Enter your beneficiary details. OTP verification and password setup happen on the login page.</p>
+      <h2 class="card-title">{{ t('register.title') }}</h2>
+      <p class="card-subtitle">{{ t('register.subtitle') }}</p>
       <div class="accent-bar">
         <span class="bar-red"></span>
         <span class="bar-blue"></span>
       </div>
 
       <div class="form-group">
-        <label class="form-label">Full Name *</label>
+        <label class="form-label">{{ t('register.full_name') }}</label>
         <ion-item lines="none" class="form-item">
           <ion-icon name="person-outline" slot="start" class="input-icon"></ion-icon>
-          <ion-input placeholder="Enter your full name" [(ngModel)]="formData.name"></ion-input>
+          <ion-input [placeholder]="t('register.full_name_placeholder')" [(ngModel)]="formData.name"></ion-input>
         </ion-item>
       </div>
 
       <div class="form-group">
-        <label class="form-label">Full Name (Nepali) *</label>
+        <label class="form-label">{{ t('register.full_name_ne') }}</label>
         <ion-item lines="none" class="form-item">
           <ion-input
-            placeholder="Type in English e.g. Komal Shrestha"
+            [placeholder]="t('register.full_name_ne_placeholder')"
             appNepaliInput
             [(ngModel)]="formData.name_ne">
           </ion-input>
@@ -40,12 +40,12 @@
       </div>
 
       <div class="form-group">
-        <label class="form-label">Mobile Number *</label>
+        <label class="form-label">{{ t('register.mobile_number') }}</label>
         <ion-item lines="none" class="form-item">
           <ion-icon name="call-outline" slot="start" class="input-icon"></ion-icon>
           <ion-input
             type="tel"
-            placeholder="98XXXXXXXX"
+            [placeholder]="t('register.mobile_placeholder')"
             [(ngModel)]="formData.mobile_number"
             maxlength="10"
             inputmode="numeric">
@@ -54,12 +54,12 @@
       </div>
 
       <div class="form-group">
-        <label class="form-label">Email (Optional)</label>
+        <label class="form-label">{{ t('register.email_optional') }}</label>
         <ion-item lines="none" class="form-item">
           <ion-icon name="mail-outline" slot="start" class="input-icon"></ion-icon>
           <ion-input
             type="email"
-            placeholder="email@example.com"
+            [placeholder]="t('register.email_placeholder')"
             [(ngModel)]="formData.email">
           </ion-input>
         </ion-item>
@@ -67,12 +67,12 @@
 
       <ion-button expand="block" (click)="register()" [disabled]="loading" class="register-btn">
         <ion-spinner *ngIf="loading" name="crescent" slot="start"></ion-spinner>
-        {{ loading ? 'Saving...' : 'Register' }}
+        {{ loading ? t('register.saving') : t('register.title') }}
       </ion-button>
 
       <div class="login-link">
-        <span>Already have an account?</span>
-        <a routerLink="/login">Sign In</a>
+        <span>{{ t('register.already_have_account') }}</span>
+        <a routerLink="/login">{{ t('login.title') }}</a>
       </div>
     </div>
   </div>

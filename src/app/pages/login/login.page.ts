@@ -9,6 +9,7 @@ import {
 import { ToastController } from '@ionic/angular/standalone';
 import { AuthService } from '../../services/auth.service';
 import { LoginRequest } from '../../interfaces/user.interface';
+import { LanguageService } from '../../services/language.service';
 import { addIcons } from 'ionicons';
 import {
   logInOutline, personOutline, lockClosedOutline, eyeOutline,
@@ -37,7 +38,6 @@ export class LoginPage {
   rememberMe = false;
   loading = false;
   showPassword = false;
-  lang = 'en';
   showRegistrationSetup = false;
   otpSent = false;
   otpVerified = false;
@@ -53,7 +53,8 @@ export class LoginPage {
     private authService: AuthService,
     private router: Router,
     private route: ActivatedRoute,
-    private toastCtrl: ToastController
+    private toastCtrl: ToastController,
+    private languageService: LanguageService
   ) {
     addIcons({
       logInOutline, personOutline, lockClosedOutline, eyeOutline,
@@ -77,18 +78,26 @@ export class LoginPage {
     });
   }
 
+  get lang(): 'en' | 'ne' {
+    return this.languageService.currentLanguage;
+  }
+
+  t(key: string): string {
+    return this.languageService.t(key);
+  }
+
   toggleLang() {
-    this.lang = this.lang === 'en' ? 'ne' : 'en';
+    void this.languageService.setLocalLanguage(this.languageService.toggleLanguage());
     this.onIdentifierTypeChange(false);
   }
 
   onIdentifierTypeChange(clearIdentifier = true) {
-    const typeMap: Record<string, { placeholder: string; placeholderNe: string; type: string }> = {
-      mobile: { placeholder: 'Enter mobile number', placeholderNe: 'मोबाइल नम्बर प्रविष्ट गर्नुहोस्', type: 'tel' },
-      hib_number: { placeholder: 'Enter HIB number', placeholderNe: 'HIB नम्बर प्रविष्ट गर्नुहोस्', type: 'text' },
+    const typeMap: Record<string, { placeholderKey: string; type: string }> = {
+      mobile: { placeholderKey: 'login.enter_mobile_number', type: 'tel' },
+      hib_number: { placeholderKey: 'login.enter_hib_number', type: 'text' },
     };
     const cfg = typeMap[this.loginData.identifier_type] ?? typeMap['mobile'];
-    this.identifierPlaceholder = this.lang === 'en' ? cfg.placeholder : cfg.placeholderNe;
+    this.identifierPlaceholder = this.t(cfg.placeholderKey);
     this.identifierInputType = cfg.type;
 
     if (clearIdentifier) {
@@ -107,10 +116,7 @@ export class LoginPage {
 
   async login() {
     if (!this.loginData.identifier || !this.loginData.password) {
-      await this.presentToast(
-        this.lang === 'en' ? 'Please fill in all fields' : 'कृपया सबै फिल्डहरू भर्नुहोस्',
-        'warning'
-      );
+      await this.presentToast(this.t('login.fill_all_fields'), 'warning');
       return;
     }
 
@@ -124,7 +130,7 @@ export class LoginPage {
       next: async (res) => {
         this.loading = false;
         if (res.success) {
-          await this.presentToast(this.lang === 'en' ? 'Login successful!' : 'लगइन सफल!', 'success');
+          await this.presentToast(this.t('login.success'), 'success');
           void this.router.navigateByUrl('/tabs/dashboard', { replaceUrl: true });
         }
       },
@@ -136,7 +142,7 @@ export class LoginPage {
 
   async sendSetupOtp() {
     if (!this.normalizedIdentifier) {
-      await this.presentToast('Please enter your mobile or HIB number.', 'warning');
+      await this.presentToast(this.t('login.setup_required'), 'warning');
       return;
     }
 
@@ -149,7 +155,7 @@ export class LoginPage {
         this.setupLoadingAction = null;
         this.otpSent = true;
         this.otpVerified = false;
-        await this.presentToast('OTP sent successfully.', 'success');
+        await this.presentToast(this.t('login.otp_sent'), 'success');
       },
       error: () => {
         this.setupLoadingAction = null;
@@ -161,7 +167,7 @@ export class LoginPage {
     this.setupOtp = this.setupOtp.replace(/\D+/g, '').slice(0, 6);
 
     if (!/^\d{6}$/.test(this.setupOtp)) {
-      await this.presentToast('OTP must be exactly 6 digits.', 'warning');
+      await this.presentToast(this.t('login.otp_digits'), 'warning');
       return;
     }
 
@@ -174,7 +180,7 @@ export class LoginPage {
       next: async () => {
         this.setupLoadingAction = null;
         this.otpVerified = true;
-        await this.presentToast('OTP verified. Create your password.', 'success');
+        await this.presentToast(this.t('login.otp_verified'), 'success');
       },
       error: () => {
         this.setupLoadingAction = null;
@@ -184,12 +190,12 @@ export class LoginPage {
 
   async createSetupPassword() {
     if (this.setupPassword.length < 8) {
-      await this.presentToast('Password must be at least 8 characters long.', 'warning');
+      await this.presentToast(this.t('login.password_min_length'), 'warning');
       return;
     }
 
     if (this.setupPassword !== this.setupPasswordConfirmation) {
-      await this.presentToast('Passwords do not match.', 'warning');
+      await this.presentToast(this.t('login.password_mismatch'), 'warning');
       return;
     }
 
@@ -205,7 +211,7 @@ export class LoginPage {
       next: async (res) => {
         this.setupLoadingAction = null;
         if (res.success) {
-          await this.presentToast('Password created successfully.', 'success');
+          await this.presentToast(this.t('login.password_created'), 'success');
           void this.router.navigateByUrl('/tabs/dashboard', { replaceUrl: true });
         }
       },

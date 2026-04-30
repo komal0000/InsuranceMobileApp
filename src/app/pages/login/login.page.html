@@ -2,7 +2,7 @@
   <!-- Language Toggle -->
   <button class="lang-toggle" (click)="toggleLang()">
     <ion-icon name="language-outline"></ion-icon>
-    {{ lang === 'en' ? 'नेपाली' : 'English' }}
+    {{ lang === 'en' ? t('common.nepali') : t('common.english') }}
   </button>
 
   <!-- Gradient Header Section -->
@@ -18,22 +18,22 @@
   <!-- Sign In Card -->
   <div class="card-section">
     <div class="login-card">
-      <h2 class="card-title">{{ lang === 'en' ? 'Sign In' : 'लग इन गर्नुहोस्' }}</h2>
+      <h2 class="card-title">{{ t('login.title') }}</h2>
       <div class="accent-bar">
         <span class="bar-red"></span>
         <span class="bar-blue"></span>
       </div>
 
       <div class="form-group">
-        <label class="form-label">{{ lang === 'en' ? 'Login With' : 'लगइन माध्यम' }}</label>
+        <label class="form-label">{{ t('login.login_with') }}</label>
         <ion-item lines="none" class="form-item">
           <ion-select
             [(ngModel)]="loginData.identifier_type"
             (ionChange)="onIdentifierTypeChange()"
             interface="popover"
-            placeholder="Select login type">
-            <ion-select-option value="mobile">{{ lang === 'en' ? 'Mobile Number' : 'मोबाइल नम्बर' }}</ion-select-option>
-            <ion-select-option value="hib_number">{{ lang === 'en' ? 'HIB Number' : 'HIB नम्बर' }}</ion-select-option>
+            [placeholder]="t('login.select_login_type')">
+            <ion-select-option value="mobile">{{ t('login.mobile_number') }}</ion-select-option>
+            <ion-select-option value="hib_number">{{ t('login.hib_number') }}</ion-select-option>
           </ion-select>
         </ion-item>
       </div>
@@ -57,19 +57,19 @@
             (click)="sendSetupOtp()"
             [disabled]="setupLoadingAction !== null">
             <ion-spinner *ngIf="setupLoadingAction === 'sendOtp'" name="crescent"></ion-spinner>
-            <span *ngIf="setupLoadingAction !== 'sendOtp'">Send OTP</span>
+            <span *ngIf="setupLoadingAction !== 'sendOtp'">{{ t('login.send_otp') }}</span>
           </ion-button>
         </ion-item>
       </div>
 
       <div *ngIf="showRegistrationSetup && otpSent" class="setup-panel">
         <div class="form-group">
-          <label class="form-label">Enter OTP</label>
+          <label class="form-label">{{ t('login.enter_otp') }}</label>
           <ion-item lines="none" class="form-item">
             <ion-icon name="key-outline" slot="start" class="input-icon"></ion-icon>
             <ion-input
               type="text"
-              placeholder="Enter 6-digit OTP"
+              [placeholder]="t('login.enter_6_digit_otp')"
               [(ngModel)]="setupOtp"
               maxlength="6"
               inputmode="numeric">
@@ -83,30 +83,30 @@
           [disabled]="setupLoadingAction !== null"
           class="setup-btn">
           <ion-spinner *ngIf="setupLoadingAction === 'verifyOtp'" name="crescent" slot="start"></ion-spinner>
-          {{ setupLoadingAction === 'verifyOtp' ? 'Verifying...' : 'Verify' }}
+          {{ setupLoadingAction === 'verifyOtp' ? t('login.verifying') : t('login.verify') }}
         </ion-button>
       </div>
 
       <div *ngIf="showRegistrationSetup && otpVerified" class="setup-panel">
         <div class="form-group">
-          <label class="form-label">New Password</label>
+          <label class="form-label">{{ t('login.new_password') }}</label>
           <ion-item lines="none" class="form-item">
             <ion-icon name="lock-closed-outline" slot="start" class="input-icon"></ion-icon>
             <ion-input
               type="password"
-              placeholder="At least 8 characters"
+              [placeholder]="t('login.password_requirement')"
               [(ngModel)]="setupPassword">
             </ion-input>
           </ion-item>
         </div>
 
         <div class="form-group">
-          <label class="form-label">Confirm Password</label>
+          <label class="form-label">{{ t('login.confirm_password') }}</label>
           <ion-item lines="none" class="form-item">
             <ion-icon name="lock-closed-outline" slot="start" class="input-icon"></ion-icon>
             <ion-input
               type="password"
-              placeholder="Re-enter password"
+              [placeholder]="t('login.reenter_password')"
               [(ngModel)]="setupPasswordConfirmation">
             </ion-input>
           </ion-item>
@@ -118,17 +118,17 @@
           [disabled]="setupLoadingAction !== null"
           class="setup-btn">
           <ion-spinner *ngIf="setupLoadingAction === 'createPassword'" name="crescent" slot="start"></ion-spinner>
-          {{ setupLoadingAction === 'createPassword' ? 'Creating...' : 'Create Password' }}
+          {{ setupLoadingAction === 'createPassword' ? t('login.creating') : t('login.create_password') }}
         </ion-button>
       </div>
 
       <div class="form-group">
-        <label class="form-label">{{ lang === 'en' ? 'Password' : 'पासवर्ड' }}</label>
+        <label class="form-label">{{ t('login.password') }}</label>
         <ion-item lines="none" class="form-item">
           <ion-icon name="lock-closed-outline" slot="start" class="input-icon"></ion-icon>
           <ion-input
             [type]="showPassword ? 'text' : 'password'"
-            [placeholder]="lang === 'en' ? 'Enter your password' : 'पासवर्ड प्रविष्ट गर्नुहोस्'"
+            [placeholder]="t('login.enter_password')"
             [(ngModel)]="loginData.password"
             required>
           </ion-input>
@@ -141,10 +141,10 @@
       <div class="remember-row">
         <ion-item lines="none" class="checkbox-item">
           <ion-checkbox [(ngModel)]="rememberMe" labelPlacement="end">
-            {{ lang === 'en' ? 'Remember me' : 'मलाई सम्झनुहोस्' }}
+            {{ t('login.remember_me') }}
           </ion-checkbox>
         </ion-item>
-        <a class="forgot-link" routerLink="/forgot-password">{{ lang === 'en' ? 'Forgot Password?' : 'पासवर्ड बिर्सनुभयो?' }}</a>
+        <a class="forgot-link" routerLink="/forgot-password">{{ t('login.forgot_password') }}</a>
       </div>
 
       <ion-button
@@ -153,12 +153,12 @@
         [disabled]="loading"
         class="login-btn">
         <ion-spinner *ngIf="loading" name="crescent" slot="start"></ion-spinner>
-        {{ loading ? (lang === 'en' ? 'Signing In...' : 'प्रवेश गर्दै...') : (lang === 'en' ? 'Sign In' : 'प्रवेश गर्नुहोस्') }}
+        {{ loading ? t('login.signing_in') : t('login.title') }}
       </ion-button>
 
       <div class="register-link">
-        <span>{{ lang === 'en' ? "Don't have an account?" : 'खाता छैन?' }}</span>
-        <a routerLink="/register">{{ lang === 'en' ? 'Register' : 'दर्ता गर्नुहोस्' }}</a>
+        <span>{{ t('login.register_prompt') }}</span>
+        <a routerLink="/register">{{ t('register.title') }}</a>
       </div>
     </div>
 

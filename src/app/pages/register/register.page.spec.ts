@@ -2,6 +2,10 @@ import { of } from 'rxjs';
 import { RegisterPage } from './register.page';
 
 describe('RegisterPage', () => {
+  const createLanguageService = () => ({
+    t: (key: string) => key,
+  });
+
   const createToastController = () => ({
     create: jasmine.createSpy().and.callFake(async () => ({
       present: jasmine.createSpy().and.resolveTo(),
@@ -24,7 +28,12 @@ describe('RegisterPage', () => {
       },
     }));
 
-    const page = new RegisterPage(authService as any, router as any, toastCtrl as any);
+    const page = new RegisterPage(
+      authService as any,
+      router as any,
+      toastCtrl as any,
+      createLanguageService() as any
+    );
     page.formData = {
       name: 'Komal Shrestha',
       name_ne: 'कोमल श्रेष्ठ',

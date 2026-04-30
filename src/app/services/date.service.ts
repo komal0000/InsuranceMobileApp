@@ -8,12 +8,15 @@ import {
   isValidNepaliDate,
   toDateInt as convertToDateInt,
 } from '../../utils/nepali-calendar';
+import { LanguageService } from './language.service';
 
 type CalendarSource = 'auto' | 'bs' | 'ad';
 
 @Injectable({ providedIn: 'root' })
 export class DateService {
   private readonly isoDatePattern = /^\d{4}-\d{2}-\d{2}$/;
+
+  constructor(private languageService: LanguageService) {}
 
   adToBs(value: string | Date | null | undefined): string {
     const normalized = this.normalizeDate(value);
@@ -80,14 +83,14 @@ export class DateService {
 
   formatForDisplay(adDate?: string | null, bsDate?: string | null): string {
     if (bsDate) {
-      return this.normalizeDate(bsDate) ?? bsDate;
+      return this.languageService.localizeDigits(this.normalizeDate(bsDate) ?? bsDate);
     }
 
     if (!adDate) {
       return '';
     }
 
-    return this.adToBs(adDate);
+    return this.languageService.localizeDigits(this.adToBs(adDate));
   }
 
   formatDateTimeForDisplay(
@@ -110,7 +113,7 @@ export class DateService {
       ? `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}:${seconds.padStart(2, '0')}`
       : `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`;
 
-    return `${datePart} ${safeTime}`;
+    return `${datePart} ${this.languageService.localizeDigits(safeTime)}`;
   }
 
   toApiDate(value: string | Date | null | undefined, source: CalendarSource = 'auto'): string {

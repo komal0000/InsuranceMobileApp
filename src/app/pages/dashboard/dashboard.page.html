@@ -1,6 +1,6 @@
 <ion-header>
   <ion-toolbar color="primary">
-    <ion-title>Dashboard</ion-title>
+    <ion-title>{{ t('dashboard.title') }}</ion-title>
   </ion-toolbar>
 </ion-header>
 
@@ -12,8 +12,8 @@
   <div class="dashboard-content" *ngIf="!loading; else loadingTpl">
     <!-- Welcome Section -->
     <div class="welcome-section">
-      <h2 class="welcome-text">Welcome back, {{ user?.name || 'User' }}</h2>
-      <p class="welcome-sub">{{ isBeneficiary ? 'Your health insurance overview' : 'Administrative Dashboard' }}</p>
+      <h2 class="welcome-text">{{ t('dashboard.welcome_back') }}, {{ user?.name || t('common.user') }}</h2>
+      <p class="welcome-sub">{{ isBeneficiary ? t('dashboard.health_overview') : t('dashboard.admin_overview') }}</p>
       <span class="role-pill">{{ formatRole(user?.role) }}</span>
     </div>
 
@@ -24,8 +24,8 @@
           <ion-icon name="document-text-outline" style="color: #003087;"></ion-icon>
         </div>
         <div class="stat-info">
-          <span class="stat-value">{{ stats?.my_enrollments ?? 0 }}</span>
-          <span class="stat-label">My Enrollments</span>
+          <span class="stat-value">{{ formatCount(stats?.my_enrollments) }}</span>
+          <span class="stat-label">{{ t('dashboard.my_enrollments') }}</span>
         </div>
       </div>
 
@@ -34,8 +34,8 @@
           <ion-icon name="shield-checkmark-outline" style="color: #198754;"></ion-icon>
         </div>
         <div class="stat-info">
-          <span class="stat-value">{{ stats?.active_policies ?? 0 }}</span>
-          <span class="stat-label">Active Policies</span>
+          <span class="stat-value">{{ formatCount(stats?.active_policies) }}</span>
+          <span class="stat-label">{{ t('dashboard.active_policies') }}</span>
         </div>
       </div>
 
@@ -44,8 +44,8 @@
           <ion-icon name="refresh-outline" style="color: #fd7e14;"></ion-icon>
         </div>
         <div class="stat-info">
-          <span class="stat-value">{{ stats?.my_renewals ?? 0 }}</span>
-          <span class="stat-label">My Renewals</span>
+          <span class="stat-value">{{ formatCount(stats?.my_renewals) }}</span>
+          <span class="stat-label">{{ t('dashboard.my_renewals') }}</span>
         </div>
       </div>
 
@@ -54,8 +54,8 @@
           <ion-icon name="cash-outline" style="color: #ffc107;"></ion-icon>
         </div>
         <div class="stat-info">
-          <span class="stat-value">{{ stats?.my_subsidies ?? 0 }}</span>
-          <span class="stat-label">My Subsidies</span>
+          <span class="stat-value">{{ formatCount(stats?.my_subsidies) }}</span>
+          <span class="stat-label">{{ t('dashboard.my_subsidies') }}</span>
         </div>
       </div>
     </div>
@@ -67,8 +67,8 @@
           <ion-icon name="people-outline" style="color: #003087;"></ion-icon>
         </div>
         <div class="stat-info">
-          <span class="stat-value">{{ stats?.total_families ?? 0 }}</span>
-          <span class="stat-label">Total Families</span>
+          <span class="stat-value">{{ formatCount(stats?.total_families) }}</span>
+          <span class="stat-label">{{ t('dashboard.total_families') }}</span>
         </div>
       </div>
 
@@ -77,8 +77,8 @@
           <ion-icon name="alert-circle-outline" style="color: #ffc107;"></ion-icon>
         </div>
         <div class="stat-info">
-          <span class="stat-value">{{ stats?.pending_verifications ?? 0 }}</span>
-          <span class="stat-label">Pending Verifications</span>
+          <span class="stat-value">{{ formatCount(stats?.pending_verifications) }}</span>
+          <span class="stat-label">{{ t('dashboard.pending_verifications') }}</span>
         </div>
       </div>
 
@@ -87,8 +87,8 @@
           <ion-icon name="refresh-outline" style="color: #fd7e14;"></ion-icon>
         </div>
         <div class="stat-info">
-          <span class="stat-value">{{ stats?.renewals_due ?? 0 }}</span>
-          <span class="stat-label">Renewals Due</span>
+          <span class="stat-value">{{ formatCount(stats?.renewals_due) }}</span>
+          <span class="stat-label">{{ t('dashboard.renewals_due') }}</span>
         </div>
       </div>
 
@@ -97,8 +97,8 @@
           <ion-icon name="today-outline" style="color: #0dcaf0;"></ion-icon>
         </div>
         <div class="stat-info">
-          <span class="stat-value">{{ stats?.enrollments_today ?? 0 }}</span>
-          <span class="stat-label">Enrollments Today</span>
+          <span class="stat-value">{{ formatCount(stats?.enrollments_today) }}</span>
+          <span class="stat-label">{{ t('dashboard.enrollments_today') }}</span>
         </div>
       </div>
     </div>
@@ -110,8 +110,8 @@
           <ion-icon name="document-text-outline" style="color: #003087;"></ion-icon>
         </div>
         <div class="stat-info">
-          <span class="stat-value">{{ stats?.total_enrollments ?? stats?.total_families ?? 0 }}</span>
-          <span class="stat-label">My Enrollments</span>
+          <span class="stat-value">{{ formatCount(stats?.total_enrollments ?? stats?.total_families) }}</span>
+          <span class="stat-label">{{ t('dashboard.my_enrollments') }}</span>
         </div>
       </div>
 
@@ -120,8 +120,8 @@
           <ion-icon name="alert-circle-outline" style="color: #ffc107;"></ion-icon>
         </div>
         <div class="stat-info">
-          <span class="stat-value">{{ stats?.pending_verifications ?? 0 }}</span>
-          <span class="stat-label">Pending Verifications</span>
+          <span class="stat-value">{{ formatCount(stats?.pending_verifications) }}</span>
+          <span class="stat-label">{{ t('dashboard.pending_verifications') }}</span>
         </div>
       </div>
 
@@ -130,8 +130,8 @@
           <ion-icon name="refresh-outline" style="color: #fd7e14;"></ion-icon>
         </div>
         <div class="stat-info">
-          <span class="stat-value">{{ stats?.renewals_due ?? 0 }}</span>
-          <span class="stat-label">Renewals Due</span>
+          <span class="stat-value">{{ formatCount(stats?.renewals_due) }}</span>
+          <span class="stat-label">{{ t('dashboard.renewals_due') }}</span>
         </div>
       </div>
 
@@ -140,15 +140,15 @@
           <ion-icon name="checkmark-circle-outline" style="color: #198754;"></ion-icon>
         </div>
         <div class="stat-info">
-          <span class="stat-value">{{ stats?.completed_renewals ?? 0 }}</span>
-          <span class="stat-label">Completed Renewals</span>
+          <span class="stat-value">{{ formatCount(stats?.completed_renewals) }}</span>
+          <span class="stat-label">{{ t('dashboard.completed_renewals') }}</span>
         </div>
       </div>
     </div>
 
     <!-- Quick Actions -->
     <div class="section-header">
-      <h3>Quick Actions</h3>
+      <h3>{{ t('dashboard.quick_actions') }}</h3>
     </div>
 
     <ion-card button (click)="createNewEnrollment()" *ngIf="canCreateEnrollment" class="action-card">
@@ -157,8 +157,8 @@
           <ion-icon name="document-text-outline" style="color: #003087;"></ion-icon>
         </div>
         <div class="action-text">
-          <strong>New Enrollment</strong>
-          <span>Start a new enrollment application</span>
+          <strong>{{ t('dashboard.new_enrollment') }}</strong>
+          <span>{{ t('dashboard.start_new_enrollment') }}</span>
         </div>
         <ion-icon name="arrow-forward-outline" class="action-arrow"></ion-icon>
       </ion-card-content>
@@ -170,8 +170,8 @@
           <ion-icon name="shield-checkmark-outline" style="color: #198754;"></ion-icon>
         </div>
         <div class="action-text">
-          <strong>View My Policy</strong>
-          <span>Check your active policy details</span>
+          <strong>{{ t('dashboard.view_policy') }}</strong>
+          <span>{{ t('dashboard.active_policy_details') }}</span>
         </div>
         <ion-icon name="arrow-forward-outline" class="action-arrow"></ion-icon>
       </ion-card-content>
@@ -183,8 +183,8 @@
           <ion-icon name="receipt-outline" style="color: #6610f2;"></ion-icon>
         </div>
         <div class="action-text">
-          <strong>Payment History</strong>
-          <span>View your payment records</span>
+          <strong>{{ t('dashboard.payment_history') }}</strong>
+          <span>{{ t('dashboard.view_payment_records') }}</span>
         </div>
         <ion-icon name="arrow-forward-outline" class="action-arrow"></ion-icon>
       </ion-card-content>

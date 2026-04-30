@@ -3,6 +3,14 @@ import { EnrollmentWizardPage } from './enrollment-wizard.page';
 import { ApiResponse } from '../../interfaces/api-response.interface';
 
 describe('EnrollmentWizardPage', () => {
+  function languageService(language = 'en') {
+    return {
+      currentLanguage: language,
+      language$: of(language),
+      t: (key: string) => key,
+    };
+  }
+
   function response(data: string[]): ApiResponse<string[]> {
     return {
       success: true,
@@ -23,6 +31,7 @@ describe('EnrollmentWizardPage', () => {
     enrollmentSvc?: unknown;
     geoSvc?: unknown;
     dateService?: unknown;
+    languageService?: unknown;
   } = {}) {
     return new EnrollmentWizardPage(
       {} as any,
@@ -30,6 +39,7 @@ describe('EnrollmentWizardPage', () => {
       (overrides.enrollmentSvc || {}) as any,
       (overrides.geoSvc || {}) as any,
       (overrides.dateService || {}) as any,
+      (overrides.languageService || languageService()) as any,
       toastController() as any,
       {} as any
     );
@@ -69,6 +79,7 @@ describe('EnrollmentWizardPage', () => {
       {} as any,
       geoSvc as any,
       {} as any,
+      languageService() as any,
       {} as any,
       {} as any
     );
@@ -123,6 +134,7 @@ describe('EnrollmentWizardPage', () => {
       enrollmentSvc as any,
       geoSvc as any,
       { formatForDisplay: (_ad?: string, bs?: string) => bs || '' } as any,
+      languageService() as any,
       toastController() as any,
       {} as any
     );
@@ -164,6 +176,7 @@ describe('EnrollmentWizardPage', () => {
       enrollmentSvc as any,
       {} as any,
       { formatForDisplay: (_ad?: string, bs?: string) => bs || '' } as any,
+      languageService() as any,
       toastController() as any,
       {} as any
     );
@@ -175,5 +188,21 @@ describe('EnrollmentWizardPage', () => {
     expect(page.memberPhotoPreview).toBe('data:image/jpeg;base64,member123');
     expect(page.nidVerifiedMember).toBeTrue();
     expect(enrollmentSvc.nidLookup).toHaveBeenCalledWith('123456789');
+  });
+
+  it('localizes step titles from the language service', () => {
+    const localizedLanguageService = {
+      currentLanguage: 'ne',
+      language$: of('ne'),
+      t: (key: string) => `translated:${key}`,
+    };
+
+    const page = createPage({ languageService: localizedLanguageService });
+
+    expect(page.stepTitles).toEqual([
+      'translated:wizard.step1',
+      'translated:wizard.step2',
+      'translated:wizard.step3',
+    ]);
   });
 });

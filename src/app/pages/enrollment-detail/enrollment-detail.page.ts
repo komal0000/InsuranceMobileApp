@@ -19,6 +19,7 @@ import { ApiService } from '../../services/api.service';
 import { AppSyncEvent, AppSyncService } from '../../services/app-sync.service';
 import { AuthService } from '../../services/auth.service';
 import { DateService } from '../../services/date.service';
+import { LanguageService } from '../../services/language.service';
 import { ApiResponse } from '../../interfaces/api-response.interface';
 import { Enrollment } from '../../interfaces/enrollment.interface';
 
@@ -51,6 +52,7 @@ export class EnrollmentDetailPage implements OnInit, OnDestroy {
     private syncService: AppSyncService,
     private authService: AuthService,
     private dateService: DateService,
+    private languageService: LanguageService,
     private toastCtrl: ToastController,
     private alertCtrl: AlertController
   ) {
@@ -111,7 +113,7 @@ export class EnrollmentDetailPage implements OnInit, OnDestroy {
     this.api.post<ApiResponse>(`/enrollments/${this.enrollmentId}/submit`, {}).subscribe({
       next: async (res) => {
         const toast = await this.toastCtrl.create({
-          message: res.message || 'Enrollment submitted successfully',
+          message: res.message || this.t('enrollment_detail.submitted'),
           duration: 2000, color: 'success', position: 'top',
         });
         await toast.present();
@@ -124,7 +126,7 @@ export class EnrollmentDetailPage implements OnInit, OnDestroy {
     this.api.patch<ApiResponse>(`/enrollments/${this.enrollmentId}/verify`).subscribe({
       next: async (res) => {
         const toast = await this.toastCtrl.create({
-          message: res.message || 'Enrollment verified',
+          message: res.message || this.t('enrollment_detail.verified'),
           duration: 2000, color: 'success', position: 'top',
         });
         await toast.present();
@@ -137,7 +139,7 @@ export class EnrollmentDetailPage implements OnInit, OnDestroy {
     this.api.patch<ApiResponse>(`/enrollments/${this.enrollmentId}/approve`).subscribe({
       next: async (res) => {
         const toast = await this.toastCtrl.create({
-          message: res.message || 'Enrollment approved',
+          message: res.message || this.t('enrollment_detail.approved'),
           duration: 2000, color: 'success', position: 'top',
         });
         await toast.present();
@@ -148,19 +150,19 @@ export class EnrollmentDetailPage implements OnInit, OnDestroy {
 
   async rejectEnrollment() {
     const alert = await this.alertCtrl.create({
-      header: 'Reject Enrollment',
-      inputs: [{ name: 'reason', type: 'textarea', placeholder: 'Enter rejection reason' }],
+      header: this.t('enrollment_detail.reject_header'),
+      inputs: [{ name: 'reason', type: 'textarea', placeholder: this.t('enrollment_detail.reject_placeholder') }],
       buttons: [
-        { text: 'Cancel', role: 'cancel' },
+        { text: this.t('common.cancel'), role: 'cancel' },
         {
-          text: 'Reject',
+          text: this.t('enrollment_detail.reject'),
           handler: (data) => {
             this.api.patch<ApiResponse>(`/enrollments/${this.enrollmentId}/reject`, {
               rejection_reason: data.reason
             }).subscribe({
               next: async (res) => {
                 const toast = await this.toastCtrl.create({
-                  message: res.message || 'Enrollment rejected',
+                  message: res.message || this.t('enrollment_detail.rejected'),
                   duration: 2000, color: 'warning', position: 'top',
                 });
                 await toast.present();
@@ -176,18 +178,18 @@ export class EnrollmentDetailPage implements OnInit, OnDestroy {
 
   async deleteEnrollment() {
     const alert = await this.alertCtrl.create({
-      header: 'Delete Enrollment',
-      message: 'Are you sure you want to delete this draft enrollment?',
+      header: this.t('enrollment_detail.delete_header'),
+      message: this.t('enrollment_detail.delete_message'),
       buttons: [
-        { text: 'Cancel', role: 'cancel' },
+        { text: this.t('common.cancel'), role: 'cancel' },
         {
-          text: 'Delete',
+          text: this.t('common.delete'),
           cssClass: 'danger',
           handler: () => {
             this.api.delete<ApiResponse>(`/enrollments/${this.enrollmentId}`).subscribe({
               next: async () => {
                 const toast = await this.toastCtrl.create({
-                  message: 'Enrollment deleted',
+                  message: this.t('enrollment_detail.enrollment_deleted'),
                   duration: 2000, color: 'success', position: 'top',
                 });
                 await toast.present();
@@ -223,6 +225,14 @@ export class EnrollmentDetailPage implements OnInit, OnDestroy {
 
   displayDate(adDate?: string | null, bsDate?: string | null): string {
     return this.dateService.formatForDisplay(adDate, bsDate) || '';
+  }
+
+  t(key: string): string {
+    return this.languageService.t(key);
+  }
+
+  formatNumber(value: string | number | null | undefined, decimals = 0): string {
+    return this.languageService.formatNumber(value, decimals);
   }
 
   private shouldRefreshDetail(event: AppSyncEvent): boolean {
