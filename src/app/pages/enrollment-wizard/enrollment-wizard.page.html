@@ -530,7 +530,7 @@
             </div>
             <div class="member-info">
               <strong>{{ householdHead.first_name }} {{ householdHead.middle_name }} {{ householdHead.last_name }}</strong>
-              <span>Household Head · Age {{ getAge(householdHead.date_of_birth, householdHead.date_of_birth_bs) }}</span>
+              <span>{{ t('common.household_head') }} · {{ t('common.age') }} {{ formatNumber(getAge(householdHead.date_of_birth, householdHead.date_of_birth_bs)) }}</span>
             </div>
             <ion-badge color="primary">Head</ion-badge>
           </div>
@@ -546,7 +546,7 @@
             </div>
             <div class="member-info">
               <strong>{{ m.first_name }} {{ m.middle_name }} {{ m.last_name }}</strong>
-              <span>{{ m.relationship }} · Age {{ getAge(m.date_of_birth, m.date_of_birth_bs) }}</span>
+              <span>{{ formatRelationship(m.relationship) }} · {{ t('common.age') }} {{ formatNumber(getAge(m.date_of_birth, m.date_of_birth_bs)) }}</span>
             </div>
             <ion-button size="small" fill="clear" color="primary" (click)="editMember(m)">
               <ion-icon slot="icon-only" name="create-outline"></ion-icon>
@@ -676,7 +676,7 @@
                 <ion-select label="Relationship to Head *" labelPlacement="stacked" placeholder="Select Relationship"
                             [(ngModel)]="newMember.relationship">
                   <ion-select-option *ngFor="let option of availableMemberRelationshipOptions" [value]="option.value">
-                    {{ option.label }}
+                    {{ formatRelationship(option.value) }}
                   </ion-select-option>
                 </ion-select>
               </ion-item>
@@ -887,7 +887,7 @@
               </div>
               <div class="review-item">
                 <span class="review-label">Gender</span>
-                <span class="review-value">{{ headData.gender || '—' }}</span>
+                <span class="review-value">{{ label('gender', headData.gender, t('common.not_available')) }}</span>
               </div>
               <div class="review-item">
                 <span class="review-label">Date of Birth</span>
@@ -899,7 +899,7 @@
               </div>
               <div class="review-item">
                 <span class="review-label">Marital Status</span>
-                <span class="review-value">{{ headData.marital_status || '—' }}</span>
+                <span class="review-value">{{ label('marital', headData.marital_status, t('common.not_available')) }}</span>
               </div>
               <div class="review-item">
                 <span class="review-label">Mobile</span>
@@ -972,7 +972,7 @@
                 <div class="member-avatar">{{ (m.first_name || '?')[0].toUpperCase() }}</div>
                 <div class="member-info">
                   <strong>{{ m.first_name }} {{ m.last_name }}</strong>
-                  <span>{{ m.relationship }} · {{ displayDate(m.date_of_birth, m.date_of_birth_bs) }} · Age {{ getAge(m.date_of_birth, m.date_of_birth_bs) }}</span>
+                  <span>{{ formatRelationship(m.relationship) }} · {{ displayDate(m.date_of_birth, m.date_of_birth_bs) }} · {{ t('common.age') }} {{ formatNumber(getAge(m.date_of_birth, m.date_of_birth_bs)) }}</span>
                 </div>
               </div>
             </div>
@@ -996,15 +996,15 @@
               </div>
               <div class="review-item">
                 <span class="review-label">Base Premium</span>
-                <span class="review-value">NPR {{ premiumBreakdown.base | number }}</span>
+                <span class="review-value">{{ formatCurrency(premiumBreakdown.base) }}</span>
               </div>
               <div class="review-item" *ngIf="premiumBreakdown.extra > 0">
                 <span class="review-label">Extra Members Premium</span>
-                <span class="review-value">NPR {{ premiumBreakdown.extra | number }}</span>
+                <span class="review-value">{{ formatCurrency(premiumBreakdown.extra) }}</span>
               </div>
               <div class="review-item">
                 <span class="review-label" style="font-size:0.8rem;color:#003087;font-weight:700">TOTAL PREMIUM</span>
-                <span class="review-value" style="font-size:1.1rem;color:#003087;font-weight:700">NPR {{ premiumBreakdown.total | number }}</span>
+                <span class="review-value" style="font-size:1.1rem;color:#003087;font-weight:700">{{ formatCurrency(premiumBreakdown.total) }}</span>
               </div>
             </div>
 
@@ -1015,7 +1015,7 @@
                 Subsidy Eligibility ({{ subsidyResults.length }} rule(s) matched)
               </p>
               <div *ngFor="let sr of subsidyResults" style="padding:6px 0;border-bottom:1px solid #c8e6c9;font-size:0.82rem">
-                <strong>{{ sr.member_name }}</strong> ({{ sr.member_age }} yrs)
+                <strong>{{ sr.member_name }}</strong> ({{ formatNumber(sr.member_age) }} {{ t('common.years_short') }})
                 <br>
                 <span style="color:#555">{{ sr.rule_name }}</span>
                 — <ion-badge [color]="sr.benefit_type === 'full_premium_waiver' ? 'success' : 'warning'" style="font-size:0.72rem">
@@ -1025,11 +1025,11 @@
               <div *ngIf="subsidySummary" style="margin-top:10px;padding-top:8px;border-top:2px solid #66bb6a">
                 <div class="review-item">
                   <span class="review-label" style="color:#2e7d32;font-weight:600">Subsidy Discount</span>
-                  <span class="review-value" style="color:#2e7d32;font-weight:700">- NPR {{ subsidySummary.best_discount | number }}</span>
+                  <span class="review-value" style="color:#2e7d32;font-weight:700">- {{ formatCurrency(subsidySummary.best_discount) }}</span>
                 </div>
                 <div class="review-item">
                   <span class="review-label" style="font-size:0.85rem;color:#1b5e20;font-weight:700">PAYABLE AMOUNT</span>
-                  <span class="review-value" style="font-size:1.1rem;color:#1b5e20;font-weight:700">NPR {{ subsidySummary.final_premium | number }}</span>
+                  <span class="review-value" style="font-size:1.1rem;color:#1b5e20;font-weight:700">{{ formatCurrency(subsidySummary.final_premium) }}</span>
                 </div>
               </div>
             </div>
@@ -1060,13 +1060,13 @@
         <ion-button *ngIf="!subsidySummary || subsidySummary.final_premium > 0"
                     expand="block" color="success" [disabled]="!confirmed" (click)="payAndSubmit()">
           <ion-icon slot="start" name="card-outline"></ion-icon>
-          Pay NPR {{ (subsidySummary ? subsidySummary.final_premium : premiumBreakdown.total) | number }} &amp; Submit
+          {{ paySubmitLabel(subsidySummary ? subsidySummary.final_premium : premiumBreakdown.total) }}
         </ion-button>
         <ion-button *ngIf="subsidySummary && subsidySummary.final_premium === 0"
                     expand="block" color="success" [disabled]="!confirmed || submitting" (click)="submitEnrollment()">
           <ion-spinner *ngIf="submitting" name="crescent" style="margin-right:8px"></ion-spinner>
           <ion-icon *ngIf="!submitting" slot="start" name="checkmark-circle-outline"></ion-icon>
-          Submit Enrollment (Fully Subsidised)
+          {{ t('wizard.submit_fully_subsidized') }}
         </ion-button>
       </div>
     </div>

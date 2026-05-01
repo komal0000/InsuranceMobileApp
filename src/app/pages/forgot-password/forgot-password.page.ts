@@ -12,6 +12,7 @@ import {
   lockClosedOutline, mailOutline
 } from 'ionicons/icons';
 import { AuthService } from '../../services/auth.service';
+import { LanguageService } from '../../services/language.service';
 
 type RecoveryMethod = 'otp' | 'email';
 type OtpStep = 1 | 2 | 3;
@@ -38,7 +39,8 @@ export class ForgotPasswordPage {
   constructor(
     private authService: AuthService,
     private router: Router,
-    private toastCtrl: ToastController
+    private toastCtrl: ToastController,
+    private languageService: LanguageService
   ) {
     addIcons({
       arrowBackOutline, shieldCheckmarkOutline, callOutline, keyOutline,
@@ -61,7 +63,7 @@ export class ForgotPasswordPage {
       next: async () => {
         this.loadingAction = null;
         this.otpStep = 2;
-        await this.presentToast('Password reset OTP sent successfully.', 'success');
+        await this.presentToast(this.t('forgot.otp_sent'), 'success');
       },
       error: () => {
         this.loadingAction = null;
@@ -75,7 +77,7 @@ export class ForgotPasswordPage {
     }
 
     if (!/^\d{6}$/.test(this.normalizedOtp)) {
-      await this.presentToast('OTP must be exactly 6 digits.', 'warning');
+      await this.presentToast(this.t('login.otp_digits'), 'warning');
       return;
     }
 
@@ -87,7 +89,7 @@ export class ForgotPasswordPage {
       next: async () => {
         this.loadingAction = null;
         this.otpStep = 3;
-        await this.presentToast('OTP verified. Set your new password.', 'success');
+        await this.presentToast(this.t('forgot.otp_verified'), 'success');
       },
       error: () => {
         this.loadingAction = null;
@@ -101,12 +103,12 @@ export class ForgotPasswordPage {
     }
 
     if (this.password.length < 8) {
-      await this.presentToast('Password must be at least 8 characters long.', 'warning');
+      await this.presentToast(this.t('login.password_min_length'), 'warning');
       return;
     }
 
     if (this.password !== this.passwordConfirmation) {
-      await this.presentToast('Password confirmation does not match.', 'warning');
+      await this.presentToast(this.t('Password confirmation does not match.'), 'warning');
       return;
     }
 
@@ -119,7 +121,7 @@ export class ForgotPasswordPage {
     }).subscribe({
       next: async () => {
         this.loadingAction = null;
-        await this.presentToast('Password reset successful. Please sign in.', 'success');
+        await this.presentToast(this.t('forgot.reset_success'), 'success');
         void this.router.navigateByUrl('/login', { replaceUrl: true });
       },
       error: () => {
@@ -139,7 +141,7 @@ export class ForgotPasswordPage {
     }).subscribe({
       next: async () => {
         this.loadingAction = null;
-        await this.presentToast('Password reset email sent successfully.', 'success');
+        await this.presentToast(this.t('forgot.email_sent'), 'success');
       },
       error: () => {
         this.loadingAction = null;
@@ -153,9 +155,9 @@ export class ForgotPasswordPage {
 
   get stepLabel(): string {
     const labels: Record<OtpStep, string> = {
-      1: 'Step 1 of 3: Send OTP',
-      2: 'Step 2 of 3: Verify OTP',
-      3: 'Step 3 of 3: Reset Password',
+      1: this.t('forgot.step_send'),
+      2: this.t('forgot.step_verify'),
+      3: this.t('forgot.step_reset'),
     };
 
     return labels[this.otpStep];
@@ -172,7 +174,7 @@ export class ForgotPasswordPage {
     this.mobileNumber = this.mobileNumber.replace(/\D+/g, '').slice(0, 10);
 
     if (!/^\d{10}$/.test(this.mobileNumber)) {
-      void this.presentToast('Mobile number must be exactly 10 digits.', 'warning');
+      void this.presentToast(this.t('register.mobile_digits'), 'warning');
       return false;
     }
 
@@ -188,5 +190,9 @@ export class ForgotPasswordPage {
     });
 
     await toast.present();
+  }
+
+  t(key: string): string {
+    return this.languageService.t(key);
   }
 }

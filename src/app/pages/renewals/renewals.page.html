@@ -1,6 +1,6 @@
     <ion-header>
       <ion-toolbar color="primary">
-        <ion-title>{{ isBeneficiary ? 'My Insurance' : 'Renewals' }}</ion-title>
+        <ion-title>{{ isBeneficiary ? t('renewals.my_insurance') : t('renewals.title') }}</ion-title>
         <ion-buttons slot="end" *ngIf="canInitiateRenewal && !isBeneficiary">
           <ion-button (click)="goToSearch()">
             <ion-icon name="search-outline"></ion-icon>
@@ -9,7 +9,7 @@
       </ion-toolbar>
       <ion-toolbar color="primary" *ngIf="!isBeneficiary">
         <ion-searchbar
-          placeholder="Search renewals..."
+          [placeholder]="t('renewals.search_placeholder')"
           [(ngModel)]="search"
           (ionInput)="onSearch()"
           debounce="500"
@@ -18,11 +18,11 @@
       </ion-toolbar>
       <ion-toolbar color="primary" *ngIf="!isBeneficiary">
         <ion-segment [(ngModel)]="statusFilter" (ionChange)="onFilterChange()" class="header-segment" scrollable="true">
-          <ion-segment-button value="">All</ion-segment-button>
-          <ion-segment-button value="draft">Draft</ion-segment-button>
-          <ion-segment-button value="pending_payment">Payment</ion-segment-button>
-          <ion-segment-button value="pending">Pending</ion-segment-button>
-          <ion-segment-button value="completed">Completed</ion-segment-button>
+          <ion-segment-button value="">{{ t('status.all') }}</ion-segment-button>
+          <ion-segment-button value="draft">{{ t('status.draft') }}</ion-segment-button>
+          <ion-segment-button value="pending_payment">{{ t('status.pending_payment') }}</ion-segment-button>
+          <ion-segment-button value="pending">{{ t('status.pending') }}</ion-segment-button>
+          <ion-segment-button value="completed">{{ t('status.completed') }}</ion-segment-button>
         </ion-segment>
       </ion-toolbar>
     </ion-header>
@@ -43,7 +43,7 @@
           <!-- Enrollment Status Header -->
           <div class="enrollment-header">
             <div class="header-row">
-              <span class="enrollment-id">{{ enrollment.enrollment_number || 'Enrollment #' + enrollment.id }}</span>
+              <span class="enrollment-id">{{ enrollment.enrollment_number || t('enrollments.number_prefix') + enrollment.id }}</span>
               <ion-badge [color]="getStatusColor(enrollment.status)">{{ formatStatus(enrollment.status) }}</ion-badge>
             </div>
           </div>
@@ -55,7 +55,7 @@
                 <div class="section-icon" style="background: rgba(0,48,135,0.08);">
                   <ion-icon name="person-outline" style="color: #003087;"></ion-icon>
                 </div>
-                <h3>Household Head</h3>
+                <h3>{{ t('common.household_head') }}</h3>
               </div>
 
               <div class="head-profile" *ngIf="enrollment.household_head">
@@ -69,7 +69,7 @@
                   <h4 class="head-name">{{ enrollment.household_head.first_name || '' }} {{ enrollment.household_head.middle_name || '' }} {{ enrollment.household_head.last_name || enrollment.household_head.name || '' }}</h4>
                   <span class="nepali-name" *ngIf="enrollment.household_head.first_name_ne">{{ enrollment.household_head.first_name_ne }} {{ enrollment.household_head.middle_name_ne || '' }} {{ enrollment.household_head.last_name_ne || '' }}</span>
                   <div class="head-meta">
-                    <span *ngIf="enrollment.household_head.gender"><ion-icon name="male-female-outline"></ion-icon> {{ enrollment.household_head.gender | titlecase }}</span>
+                    <span *ngIf="enrollment.household_head.gender"><ion-icon name="male-female-outline"></ion-icon> {{ label('gender', enrollment.household_head.gender) }}</span>
                     <span *ngIf="enrollment.household_head.date_of_birth"><ion-icon name="calendar-outline"></ion-icon> {{ displayDate(enrollment.household_head.date_of_birth, enrollment.household_head.date_of_birth_bs) }}</span>
                   </div>
                   <div class="head-meta">
@@ -78,7 +78,7 @@
                   </div>
                   <div class="head-meta" *ngIf="enrollment.household_head.is_target_group">
                     <ion-badge color="warning" style="font-size:0.7rem;">
-                      <ion-icon name="ribbon-outline"></ion-icon> Targeted Group: {{ enrollment.household_head.target_group_type || 'Yes' }}
+                      <ion-icon name="ribbon-outline"></ion-icon> {{ t('wizard.target_group') }}: {{ enrollment.household_head.target_group_type || t('common.yes') }}
                     </ion-badge>
                   </div>
                 </div>
@@ -93,33 +93,33 @@
                 <div class="section-icon" style="background: rgba(253,126,20,0.1);">
                   <ion-icon name="location-outline" style="color: #fd7e14;"></ion-icon>
                 </div>
-                <h3>Household Details</h3>
+                <h3>{{ t('renewals.household_details') }}</h3>
               </div>
 
               <div class="info-grid">
                 <div class="info-item" *ngIf="enrollment.province">
-                  <span class="info-label">Province</span>
+                  <span class="info-label">{{ t('wizard.province') }}</span>
                   <span class="info-value">{{ enrollment.province }}</span>
                 </div>
                 <div class="info-item" *ngIf="enrollment.district">
-                  <span class="info-label">District</span>
+                  <span class="info-label">{{ t('wizard.district') }}</span>
                   <span class="info-value">{{ enrollment.district }}</span>
                 </div>
                 <div class="info-item" *ngIf="enrollment.municipality">
-                  <span class="info-label">Municipality</span>
+                  <span class="info-label">{{ t('wizard.municipality') }}</span>
                   <span class="info-value">{{ enrollment.municipality }}</span>
                 </div>
                 <div class="info-item" *ngIf="enrollment.ward_number">
-                  <span class="info-label">Ward No.</span>
+                  <span class="info-label">{{ t('wizard.ward_number') }}</span>
                   <span class="info-value">{{ enrollment.ward_number }}</span>
                 </div>
                 <div class="info-item" *ngIf="enrollment.tole_village">
-                  <span class="info-label">Tole/Village</span>
+                  <span class="info-label">{{ t('wizard.tole_village') }}</span>
                   <span class="info-value">{{ enrollment.tole_village }}</span>
                 </div>
                 <div class="info-item">
-                  <span class="info-label">Total Members</span>
-                  <span class="info-value">{{ (enrollment.family_members?.length || 0) + 1 }}</span>
+                  <span class="info-label">{{ t('renewals.total_members') }}</span>
+                  <span class="info-value">{{ formatNumber((enrollment.family_members?.length || 0) + 1) }}</span>
                 </div>
               </div>
             </ion-card-content>
@@ -132,53 +132,53 @@
                 <div class="section-icon" style="background: rgba(25,135,84,0.1);">
                   <ion-icon name="cash-outline" style="color: #198754;"></ion-icon>
                 </div>
-                <h3>Premium Details</h3>
+                <h3>{{ t('renewals.premium_details') }}</h3>
               </div>
 
               <div class="premium-details">
                 <div class="premium-row">
-                  <span>Total Members</span>
-                  <strong>{{ (enrollment.family_members?.length || 0) + 1 }}</strong>
+                  <span>{{ t('renewals.total_members') }}</span>
+                  <strong>{{ formatNumber((enrollment.family_members?.length || 0) + 1) }}</strong>
                 </div>
                 <div class="premium-row">
-                  <span>Base Premium (up to 5 members)</span>
-                  <strong>NPR 3,500</strong>
+                  <span>{{ t('renewals.base_premium') }}</span>
+                  <strong>{{ formatCurrency(3500) }}</strong>
                 </div>
                 <div class="premium-row" *ngIf="extraMemberCharge > 0">
-                  <span>Extra Members ({{ (enrollment.family_members?.length || 0) + 1 - 5 }} × NPR 700)</span>
-                  <strong>NPR {{ extraMemberCharge | number:'1.0-0' }}</strong>
+                  <span>{{ t('renewals.extra_members') }} ({{ formatNumber((enrollment.family_members?.length || 0) + 1 - 5) }} x {{ formatCurrency(700) }})</span>
+                  <strong>{{ formatCurrency(extraMemberCharge) }}</strong>
                 </div>
                 <div class="premium-row">
-                  <span>Total Premium</span>
-                  <strong>NPR {{ enrollment.premium_amount | number:'1.0-0' }}</strong>
+                  <span>{{ t('renewals.total_premium') }}</span>
+                  <strong>{{ formatCurrency(enrollment.premium_amount) }}</strong>
                 </div>
 
                 <!-- Subsidy info -->
                 <ng-container *ngIf="subsidySummary?.is_subsidized">
                   <div class="premium-row subsidy-row">
-                    <span>Subsidy Discount</span>
-                    <strong style="color: #28a745;">- NPR {{ subsidySummary.best_discount | number:'1.0-0' }}</strong>
+                    <span>{{ t('renewals.subsidy_discount') }}</span>
+                    <strong style="color: #28a745;">- {{ formatCurrency(subsidySummary.best_discount) }}</strong>
                   </div>
                   <div class="premium-row premium-total">
-                    <span>After Subsidy</span>
-                    <strong style="color: #198754;">NPR {{ subsidySummary.final_premium | number:'1.0-0' }}</strong>
+                    <span>{{ t('renewals.after_subsidy') }}</span>
+                    <strong style="color: #198754;">{{ formatCurrency(subsidySummary.final_premium) }}</strong>
                   </div>
                   <div class="premium-row" style="justify-content:center;">
                     <ion-badge color="success" style="font-size:0.75rem;">
-                      <ion-icon name="shield-checkmark-outline"></ion-icon> Subsidy Applied
+                      <ion-icon name="shield-checkmark-outline"></ion-icon> {{ t('renewals.subsidy_applied') }}
                     </ion-badge>
                   </div>
                 </ng-container>
 
                 <!-- Targeted group — FREE -->
                 <div class="premium-row premium-total" *ngIf="enrollment.household_head?.is_target_group">
-                  <span>Targeted Group</span>
-                  <ion-badge color="success">FREE</ion-badge>
+                  <span>{{ t('wizard.target_group') }}</span>
+                  <ion-badge color="success">{{ t('common.free') }}</ion-badge>
                 </div>
 
                 <!-- Policy dates -->
                 <div class="premium-row" *ngIf="enrollment.policy_start_date">
-                  <span>Policy Period</span>
+                  <span>{{ t('renewals.policy_period') }}</span>
                   <strong style="font-size:0.8rem;">{{ displayDate(enrollment.policy_start_date, enrollment.policy_start_date_bs) }} — {{ displayDate(enrollment.policy_end_date, enrollment.policy_end_date_bs) }}</strong>
                 </div>
               </div>
@@ -192,7 +192,7 @@
                 <div class="section-icon" style="background: rgba(13,202,240,0.1);">
                   <ion-icon name="people-outline" style="color: #0dcaf0;"></ion-icon>
                 </div>
-                <h3>Family Members ({{ enrollment.family_members?.length || 0 }})</h3>
+                <h3>{{ t('common.family_members') }} ({{ formatNumber(enrollment.family_members?.length || 0) }})</h3>
               </div>
 
               <div class="member-list" *ngIf="enrollment.family_members && enrollment.family_members.length > 0">
@@ -207,8 +207,8 @@
                     <strong class="member-name">{{ member.first_name || '' }} {{ member.middle_name || '' }} {{ member.last_name || '' }}</strong>
                     <span class="nepali-name" *ngIf="member.first_name_ne">{{ member.first_name_ne }} {{ member.middle_name_ne || '' }} {{ member.last_name_ne || '' }}</span>
                     <div class="member-meta">
-                      <span *ngIf="member.relationship">{{ member.relationship | titlecase }}</span>
-                      <span *ngIf="member.gender"> · {{ member.gender | titlecase }}</span>
+                      <span *ngIf="member.relationship">{{ formatRelationship(member.relationship) }}</span>
+                      <span *ngIf="member.gender"> · {{ label('gender', member.gender) }}</span>
                       <span *ngIf="member.date_of_birth"> · {{ displayDate(member.date_of_birth, member.date_of_birth_bs) }}</span>
                     </div>
                     <div class="member-meta" *ngIf="member.mobile_number || member.citizenship_number">
@@ -216,30 +216,30 @@
                       <span *ngIf="member.citizenship_number"><ion-icon name="card-outline"></ion-icon> {{ member.citizenship_number }}</span>
                     </div>
                     <ion-badge color="warning" *ngIf="member.is_target_group" style="font-size:0.65rem; margin-top:4px;">
-                      Targeted Group
+                      {{ t('wizard.target_group') }}
                     </ion-badge>
                     <ion-badge [color]="getMemberStatusColor(member.member_status)" *ngIf="member.member_status && member.member_status !== 'approved'" style="font-size:0.65rem; margin-top:4px;">
                       {{ formatMemberStatus(member.member_status) }}
                     </ion-badge>
                     <span class="rejection-reason" *ngIf="member.member_status === 'rejected' && member.rejection_reason">
-                      Reason: {{ member.rejection_reason }}
+                      {{ t('common.reason') }}: {{ member.rejection_reason }}
                     </span>
                   </div>
                 </div>
               </div>
 
               <div *ngIf="!enrollment.family_members || enrollment.family_members.length === 0" class="no-members">
-                <p>No family members added yet.</p>
+                <p>{{ t('renewals.no_family_members') }}</p>
               </div>
 
               <!-- Add New Member Note -->
               <div class="member-pricing-note" *ngIf="enrollment.family_members">
                 <ion-icon name="information-circle-outline"></ion-icon>
                 <span *ngIf="(enrollment.family_members.length + 1) <= 5">
-                  You can add up to {{ 5 - enrollment.family_members.length - 1 }} more member{{ (5 - enrollment.family_members.length - 1) !== 1 ? 's' : '' }} for free.
+                  {{ freeMemberNote(enrollment.family_members.length) }}
                 </span>
                 <span *ngIf="(enrollment.family_members.length + 1) > 5">
-                  Additional members cost NPR 700 each (total members exceed 5).
+                  {{ t('renewals.additional_members_cost') }}
                 </span>
               </div>
             </ion-card-content>
@@ -253,14 +253,14 @@
                         *ngIf="canInitiateRenewal && ['approved', 'active', 'expired'].includes(enrollment.status)">
               <ion-spinner *ngIf="initiating" name="crescent" slot="start"></ion-spinner>
               <ion-icon name="refresh-outline" slot="start" *ngIf="!initiating"></ion-icon>
-              {{ initiating ? 'Initiating...' : 'Renew Enrollment' }}
+              {{ initiating ? t('renewals.initiating') : t('renewals.renew_enrollment') }}
             </ion-button>
 
             <!-- Add New Member Button -->
             <ion-button expand="block" fill="outline" color="secondary"
                         (click)="showAddMemberForm()" *ngIf="canInitiateRenewal && !showMemberForm && ['approved', 'active', 'expired'].includes(enrollment.status)">
               <ion-icon name="add-outline" slot="start"></ion-icon>
-              Add New Member
+              {{ t('renewals.add_member') }}
             </ion-button>
           </div>
 
@@ -271,38 +271,38 @@
                 <div class="section-icon" style="background: rgba(102,16,242,0.08);">
                   <ion-icon name="add-outline" style="color: #6610f2;"></ion-icon>
                 </div>
-                <h3>Add New Member</h3>
+                <h3>{{ t('renewals.add_member') }}</h3>
               </div>
 
               <!-- Pricing note -->
               <div class="member-pricing-note" style="margin-bottom:12px;" *ngIf="enrollment.family_members">
                 <ion-icon name="information-circle-outline"></ion-icon>
-                <span *ngIf="(enrollment.family_members.length + 1) < 5">This member will be added for free.</span>
-                <span *ngIf="(enrollment.family_members.length + 1) >= 5">This member will cost NPR 700 (total exceeds 5 members).</span>
+                <span *ngIf="(enrollment.family_members.length + 1) < 5">{{ t('renewals.add_free_note') }}</span>
+                <span *ngIf="(enrollment.family_members.length + 1) >= 5">{{ t('renewals.add_paid_note') }}</span>
               </div>
 
               <!-- Profile Photo -->
               <div class="capture-section">
                 <div class="capture-row">
-                  <span class="capture-label"><ion-icon name="camera-outline"></ion-icon> Profile Photo</span>
+                  <span class="capture-label"><ion-icon name="camera-outline"></ion-icon> {{ t('profile.photo') }}</span>
                   <ion-button size="small" fill="outline" (click)="captureRenewalMemberImage('photo')">
                     <ion-icon slot="start" name="camera-outline"></ion-icon>
-                    {{ memberPhotoPreview ? 'Change' : 'Capture' }}
+                    {{ memberPhotoPreview ? t('common.change') : t('common.capture') }}
                   </ion-button>
                 </div>
                 <img *ngIf="memberPhotoPreview" [src]="memberPhotoPreview" class="preview-img" alt="Photo" />
               </div>
 
               <!-- English Name -->
-              <p class="field-section-label">English Name</p>
+              <p class="field-section-label">{{ t('wizard.english_name') }}</p>
               <ion-item class="form-item">
-                <ion-input label="First Name *" labelPlacement="stacked" [(ngModel)]="newMember.first_name"></ion-input>
+                <ion-input [label]="t('wizard.first_name_required')" labelPlacement="stacked" [(ngModel)]="newMember.first_name"></ion-input>
               </ion-item>
               <ion-item class="form-item">
-                <ion-input label="Middle Name" labelPlacement="stacked" [(ngModel)]="newMember.middle_name"></ion-input>
+                <ion-input [label]="t('wizard.middle_name')" labelPlacement="stacked" [(ngModel)]="newMember.middle_name"></ion-input>
               </ion-item>
               <ion-item class="form-item">
-                <ion-input label="Last Name *" labelPlacement="stacked" [(ngModel)]="newMember.last_name"></ion-input>
+                <ion-input [label]="t('wizard.last_name_required')" labelPlacement="stacked" [(ngModel)]="newMember.last_name"></ion-input>
               </ion-item>
 
               <!-- Nepali Name -->
@@ -318,27 +318,27 @@
               </ion-item>
 
               <!-- Personal Details -->
-              <p class="field-section-label">Personal Details</p>
+              <p class="field-section-label">{{ t('wizard.personal_details') }}</p>
               <ion-item class="form-item">
-                <ion-select label="Gender *" labelPlacement="stacked" [(ngModel)]="newMember.gender">
-                  <ion-select-option value="male">Male</ion-select-option>
-                  <ion-select-option value="female">Female</ion-select-option>
-                  <ion-select-option value="other">Other</ion-select-option>
+                <ion-select [label]="t('wizard.gender_required')" labelPlacement="stacked" [(ngModel)]="newMember.gender">
+                  <ion-select-option value="male">{{ t('gender.male') }}</ion-select-option>
+                  <ion-select-option value="female">{{ t('gender.female') }}</ion-select-option>
+                  <ion-select-option value="other">{{ t('gender.other') }}</ion-select-option>
                 </ion-select>
               </ion-item>
-              <app-bs-date-picker [(ngModel)]="newMember.date_of_birth" label="Date of Birth *" placeholder="Select BS date"></app-bs-date-picker>
+              <app-bs-date-picker [(ngModel)]="newMember.date_of_birth" [label]="t('wizard.date_of_birth_required')" [placeholder]="t('common.select_bs_date')"></app-bs-date-picker>
               <ion-item class="form-item">
-                <ion-select label="Relationship to Head *" labelPlacement="stacked" [(ngModel)]="newMember.relationship">
+                <ion-select [label]="t('wizard.relationship_to_head_required')" labelPlacement="stacked" [(ngModel)]="newMember.relationship">
                   <ion-select-option *ngFor="let option of availableMemberRelationshipOptions" [value]="option.value">
-                    {{ option.label }}
+                    {{ formatRelationship(option.value) }}
                   </ion-select-option>
                 </ion-select>
               </ion-item>
               <p *ngIf="isHeadSingle" style="margin:2px 4px 8px;color:#6c757d;font-size:0.75rem;">
-                Spouse, son, and daughter options are hidden because household head marital status is single.
+                {{ t('wizard.relationship_single_notice') }}
               </p>
               <ion-item class="form-item">
-                <ion-select label="Blood Group" labelPlacement="stacked" [(ngModel)]="newMember.blood_group">
+                <ion-select [label]="t('wizard.blood_group')" labelPlacement="stacked" [(ngModel)]="newMember.blood_group">
                   <ion-select-option value="A+">A+</ion-select-option>
                   <ion-select-option value="A-">A-</ion-select-option>
                   <ion-select-option value="B+">B+</ion-select-option>
@@ -350,51 +350,51 @@
                 </ion-select>
               </ion-item>
               <ion-item class="form-item">
-                <ion-select label="Marital Status" labelPlacement="stacked" [(ngModel)]="newMember.marital_status">
-                  <ion-select-option value="single">Single</ion-select-option>
-                  <ion-select-option value="married">Married</ion-select-option>
-                  <ion-select-option value="divorced">Divorced</ion-select-option>
-                  <ion-select-option value="widowed">Widowed</ion-select-option>
+                <ion-select [label]="t('wizard.marital_status')" labelPlacement="stacked" [(ngModel)]="newMember.marital_status">
+                  <ion-select-option value="single">{{ t('marital.single') }}</ion-select-option>
+                  <ion-select-option value="married">{{ t('marital.married') }}</ion-select-option>
+                  <ion-select-option value="divorced">{{ t('marital.divorced') }}</ion-select-option>
+                  <ion-select-option value="widowed">{{ t('marital.widowed') }}</ion-select-option>
                 </ion-select>
               </ion-item>
               <ion-item class="form-item">
-                <ion-input label="Mobile Number" labelPlacement="stacked" type="tel" maxlength="10" [(ngModel)]="newMember.mobile_number"></ion-input>
+                <ion-input [label]="t('profile.mobile_number')" labelPlacement="stacked" type="tel" maxlength="10" [(ngModel)]="newMember.mobile_number"></ion-input>
               </ion-item>
 
               <!-- Identity Document -->
-              <p class="field-section-label"><ion-icon name="document-text-outline"></ion-icon> Identity Document</p>
+              <p class="field-section-label"><ion-icon name="document-text-outline"></ion-icon> {{ t('wizard.identity_document') }}</p>
               <ion-item class="form-item">
-                <ion-select label="Document Type" labelPlacement="stacked" [(ngModel)]="newMember.document_type">
-                  <ion-select-option value="citizenship">Citizenship Certificate</ion-select-option>
-                  <ion-select-option value="birth_certificate">Birth Certificate</ion-select-option>
+                <ion-select [label]="t('wizard.document_type')" labelPlacement="stacked" [(ngModel)]="newMember.document_type">
+                  <ion-select-option value="citizenship">{{ t('wizard.citizenship_certificate') }}</ion-select-option>
+                  <ion-select-option value="birth_certificate">{{ t('wizard.birth_certificate') }}</ion-select-option>
                 </ion-select>
               </ion-item>
 
               <!-- Citizenship Fields -->
               <div *ngIf="newMember.document_type === 'citizenship'">
                 <ion-item class="form-item">
-                  <ion-input label="Citizenship Number" labelPlacement="stacked" [(ngModel)]="newMember.citizenship_number"></ion-input>
+                  <ion-input [label]="t('wizard.citizenship_number')" labelPlacement="stacked" [(ngModel)]="newMember.citizenship_number"></ion-input>
                 </ion-item>
-                <app-bs-date-picker [(ngModel)]="newMember.citizenship_issue_date" label="Issue Date" placeholder="Select BS date"></app-bs-date-picker>
+                <app-bs-date-picker [(ngModel)]="newMember.citizenship_issue_date" [label]="t('wizard.issue_date')" [placeholder]="t('common.select_bs_date')"></app-bs-date-picker>
                 <ion-item class="form-item">
-                  <ion-input label="Issue District" labelPlacement="stacked" [(ngModel)]="newMember.citizenship_issue_district"></ion-input>
+                  <ion-input [label]="t('wizard.issue_district')" labelPlacement="stacked" [(ngModel)]="newMember.citizenship_issue_district"></ion-input>
                 </ion-item>
                 <div class="capture-section">
                   <div class="capture-row">
-                    <span class="capture-label">Citizenship Front</span>
+                    <span class="capture-label">{{ t('wizard.citizenship_front') }}</span>
                     <ion-button size="small" fill="outline" (click)="captureRenewalMemberImage('citizenship_front_image')">
                       <ion-icon slot="start" name="camera-outline"></ion-icon>
-                      {{ memberCitizenshipFrontPreview ? 'Change' : 'Capture' }}
+                      {{ memberCitizenshipFrontPreview ? t('common.change') : t('common.capture') }}
                     </ion-button>
                   </div>
                   <img *ngIf="memberCitizenshipFrontPreview" [src]="memberCitizenshipFrontPreview" class="preview-img" alt="Citizenship Front" />
                 </div>
                 <div class="capture-section">
                   <div class="capture-row">
-                    <span class="capture-label">Citizenship Back</span>
+                    <span class="capture-label">{{ t('wizard.citizenship_back') }}</span>
                     <ion-button size="small" fill="outline" (click)="captureRenewalMemberImage('citizenship_back_image')">
                       <ion-icon slot="start" name="camera-outline"></ion-icon>
-                      {{ memberCitizenshipBackPreview ? 'Change' : 'Capture' }}
+                      {{ memberCitizenshipBackPreview ? t('common.change') : t('common.capture') }}
                     </ion-button>
                   </div>
                   <img *ngIf="memberCitizenshipBackPreview" [src]="memberCitizenshipBackPreview" class="preview-img" alt="Citizenship Back" />
@@ -404,25 +404,25 @@
               <!-- Birth Certificate Fields -->
               <div *ngIf="newMember.document_type === 'birth_certificate'">
                 <ion-item class="form-item">
-                  <ion-input label="Birth Certificate Number" labelPlacement="stacked" [(ngModel)]="newMember.birth_certificate_number"></ion-input>
+                  <ion-input [label]="t('wizard.birth_certificate_number')" labelPlacement="stacked" [(ngModel)]="newMember.birth_certificate_number"></ion-input>
                 </ion-item>
-                <app-bs-date-picker [(ngModel)]="newMember.birth_certificate_issue_date" label="Issue Date" placeholder="Select BS date"></app-bs-date-picker>
+                <app-bs-date-picker [(ngModel)]="newMember.birth_certificate_issue_date" [label]="t('wizard.issue_date')" [placeholder]="t('common.select_bs_date')"></app-bs-date-picker>
                 <div class="capture-section">
                   <div class="capture-row">
-                    <span class="capture-label">Birth Certificate Front</span>
+                    <span class="capture-label">{{ t('wizard.birth_certificate_front') }}</span>
                     <ion-button size="small" fill="outline" (click)="captureRenewalMemberImage('birth_certificate_front_image')">
                       <ion-icon slot="start" name="camera-outline"></ion-icon>
-                      {{ memberBirthCertFrontPreview ? 'Change' : 'Capture' }}
+                      {{ memberBirthCertFrontPreview ? t('common.change') : t('common.capture') }}
                     </ion-button>
                   </div>
                   <img *ngIf="memberBirthCertFrontPreview" [src]="memberBirthCertFrontPreview" class="preview-img" alt="Birth Certificate Front" />
                 </div>
                 <div class="capture-section">
                   <div class="capture-row">
-                    <span class="capture-label">Birth Certificate Back</span>
+                    <span class="capture-label">{{ t('wizard.birth_certificate_back') }}</span>
                     <ion-button size="small" fill="outline" (click)="captureRenewalMemberImage('birth_certificate_back_image')">
                       <ion-icon slot="start" name="camera-outline"></ion-icon>
-                      {{ memberBirthCertBackPreview ? 'Change' : 'Capture' }}
+                      {{ memberBirthCertBackPreview ? t('common.change') : t('common.capture') }}
                     </ion-button>
                   </div>
                   <img *ngIf="memberBirthCertBackPreview" [src]="memberBirthCertBackPreview" class="preview-img" alt="Birth Certificate Back" />
@@ -432,16 +432,16 @@
               <div class="btn-row" style="margin-top:16px;">
                 <ion-button expand="block" (click)="addNewMember()" [disabled]="savingMember || !newMember.first_name || !newMember.last_name || !newMember.gender || !newMember.date_of_birth || !newMember.relationship">
                   <ion-spinner *ngIf="savingMember" name="crescent" slot="start"></ion-spinner>
-                  {{ savingMember ? 'Saving...' : 'Save Member' }}
+                  {{ savingMember ? t('common.saving') : t('renewals.save_member') }}
                 </ion-button>
-                <ion-button expand="block" fill="outline" color="medium" (click)="showMemberForm = false" [disabled]="savingMember">Cancel</ion-button>
+                <ion-button expand="block" fill="outline" color="medium" (click)="showMemberForm = false" [disabled]="savingMember">{{ t('common.cancel') }}</ion-button>
               </div>
             </ion-card-content>
           </ion-card>
 
           <!-- ─── Existing Renewals ─── -->
           <div *ngIf="renewals.length > 0" class="list-content">
-            <h3 class="section-heading">Renewal History</h3>
+            <h3 class="section-heading">{{ t('renewals.history') }}</h3>
             <ion-card *ngFor="let r of renewals" button (click)="viewDetail(r)" class="renewal-card">
               <ion-card-content>
                 <div class="card-top-row">
@@ -450,7 +450,7 @@
                 </div>
                 <div class="renewal-card-meta">
                   <span class="date-text">{{ displayDate(r.created_at) }}</span>
-                  <span class="amount-text" *ngIf="r.final_amount">NPR {{ r.final_amount | number:'1.0-0' }}</span>
+                  <span class="amount-text" *ngIf="r.final_amount">{{ formatCurrency(r.final_amount) }}</span>
                 </div>
               </ion-card-content>
             </ion-card>
@@ -459,8 +459,8 @@
 
         <div *ngIf="!enrollmentLoading && !enrollment" class="empty-state ion-text-center ion-padding">
           <ion-icon name="refresh-outline" class="empty-icon"></ion-icon>
-          <h3>No enrollment found</h3>
-          <p>You don't have an enrollment yet. Contact an enrollment assistant.</p>
+          <h3>{{ t('renewals.no_enrollment') }}</h3>
+          <p>{{ t('renewals.no_enrollment_message') }}</p>
         </div>
       </ng-container>
 
@@ -484,9 +484,9 @@
 
         <div *ngIf="!loading && renewals.length === 0" class="empty-state ion-text-center ion-padding">
           <ion-icon name="refresh-outline" class="empty-icon"></ion-icon>
-          <h3>No renewals found</h3>
-          <p *ngIf="canInitiateRenewal">Search for a policy to initiate a renewal</p>
-          <ion-button *ngIf="canInitiateRenewal" (click)="goToSearch()">Search Policy</ion-button>
+          <h3>{{ t('renewals.no_records') }}</h3>
+          <p *ngIf="canInitiateRenewal">{{ t('renewals.search_policy_prompt') }}</p>
+          <ion-button *ngIf="canInitiateRenewal" (click)="goToSearch()">{{ t('renewal_search.title') }}</ion-button>
         </div>
 
         <ion-infinite-scroll (ionInfinite)="loadMore($event)" [disabled]="page >= lastPage">

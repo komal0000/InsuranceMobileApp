@@ -113,7 +113,7 @@ export class EnrollmentDetailPage implements OnInit, OnDestroy {
     this.api.post<ApiResponse>(`/enrollments/${this.enrollmentId}/submit`, {}).subscribe({
       next: async (res) => {
         const toast = await this.toastCtrl.create({
-          message: res.message || this.t('enrollment_detail.submitted'),
+          message: this.languageService.translateText(res.message) || this.t('enrollment_detail.submitted'),
           duration: 2000, color: 'success', position: 'top',
         });
         await toast.present();
@@ -126,7 +126,7 @@ export class EnrollmentDetailPage implements OnInit, OnDestroy {
     this.api.patch<ApiResponse>(`/enrollments/${this.enrollmentId}/verify`).subscribe({
       next: async (res) => {
         const toast = await this.toastCtrl.create({
-          message: res.message || this.t('enrollment_detail.verified'),
+          message: this.languageService.translateText(res.message) || this.t('enrollment_detail.verified'),
           duration: 2000, color: 'success', position: 'top',
         });
         await toast.present();
@@ -139,7 +139,7 @@ export class EnrollmentDetailPage implements OnInit, OnDestroy {
     this.api.patch<ApiResponse>(`/enrollments/${this.enrollmentId}/approve`).subscribe({
       next: async (res) => {
         const toast = await this.toastCtrl.create({
-          message: res.message || this.t('enrollment_detail.approved'),
+          message: this.languageService.translateText(res.message) || this.t('enrollment_detail.approved'),
           duration: 2000, color: 'success', position: 'top',
         });
         await toast.present();
@@ -162,7 +162,7 @@ export class EnrollmentDetailPage implements OnInit, OnDestroy {
             }).subscribe({
               next: async (res) => {
                 const toast = await this.toastCtrl.create({
-                  message: res.message || this.t('enrollment_detail.rejected'),
+                  message: this.languageService.translateText(res.message) || this.t('enrollment_detail.rejected'),
                   duration: 2000, color: 'warning', position: 'top',
                 });
                 await toast.present();
@@ -212,7 +212,7 @@ export class EnrollmentDetailPage implements OnInit, OnDestroy {
   }
 
   formatStatus(status: string): string {
-    return (status || '').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    return this.languageService.label('status', status);
   }
 
   /**
@@ -233,6 +233,10 @@ export class EnrollmentDetailPage implements OnInit, OnDestroy {
 
   formatNumber(value: string | number | null | undefined, decimals = 0): string {
     return this.languageService.formatNumber(value, decimals);
+  }
+
+  label(namespace: string, value: string | null | undefined): string {
+    return this.languageService.label(namespace, value);
   }
 
   private shouldRefreshDetail(event: AppSyncEvent): boolean {

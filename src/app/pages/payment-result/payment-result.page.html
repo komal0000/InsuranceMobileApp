@@ -1,6 +1,6 @@
 <ion-header>
   <ion-toolbar>
-    <ion-title>Payment Result</ion-title>
+    <ion-title>{{ t('payment_result.title') }}</ion-title>
   </ion-toolbar>
 </ion-header>
 
@@ -9,68 +9,66 @@
   <!-- Processing / submitting enrollment -->
   <div class="result-card" *ngIf="status === 'processing'">
     <ion-spinner name="crescent" class="big-spinner"></ion-spinner>
-    <h2>Processing…</h2>
-    <p>Please wait while we submit your enrollment.</p>
+    <h2>{{ t('payment_result.processing') }}</h2>
+    <p>{{ t('payment_result.processing_message') }}</p>
   </div>
 
   <!-- Success -->
   <div class="result-card" *ngIf="status === 'success'">
     <ion-icon name="checkmark-circle-outline" class="icon success-icon"></ion-icon>
-    <h2>Payment Successful!</h2>
+    <h2>{{ t('payment_result.success') }}</h2>
 
     <ng-container *ngIf="paymentType === 'new'">
-      <p>Your enrollment has been submitted for verification.<br>
-         You will be notified once it is reviewed.</p>
+      <p>{{ t('payment_result.new_success') }}</p>
     </ng-container>
 
     <ng-container *ngIf="paymentType === 'renewal'">
-      <p>Your renewal has been completed successfully.<br>
-         Your policy is now active.</p>
+      <p>{{ t('payment_result.renewal_success') }}</p>
     </ng-container>
 
     <ng-container *ngIf="!paymentType">
-      <p>Your payment has been received and your policy is now active.</p>
+      <p>{{ t('payment_result.generic_success') }}</p>
     </ng-container>
 
-    <p class="ref-id" *ngIf="referenceId">Ref: {{ referenceId }}</p>
+    <p class="ref-id" *ngIf="referenceId">{{ t('payment_result.ref') }}: {{ referenceId }}</p>
 
     <ion-button expand="block" color="primary" (click)="continue()">
-      Continue
+      {{ t('payment_result.continue') }}
     </ion-button>
   </div>
 
   <!-- Failed -->
   <div class="result-card" *ngIf="status === 'failed'">
     <ion-icon name="close-circle-outline" class="icon failed-icon"></ion-icon>
-    <h2>Payment Failed</h2>
+    <h2>{{ t('payment_result.failed') }}</h2>
     <p>
       <ng-container *ngIf="errorCode === 'verification_failed'">
-        The payment could not be verified by the gateway.
+        {{ t('payment_result.verification_failed') }}
       </ng-container>
       <ng-container *ngIf="errorCode === 'amount_mismatch'">
-        The payment amount did not match the expected premium.
+        {{ t('payment_result.amount_mismatch') }}
       </ng-container>
       <ng-container *ngIf="errorCode === 'gateway_mismatch'">
-        The callback gateway did not match the payment gateway you selected.
+        {{ t('payment_result.gateway_mismatch') }}
       </ng-container>
       <ng-container *ngIf="errorCode === 'superseded_by_paid_attempt'">
-        This attempt was replaced by another successful payment.
+        {{ t('payment_result.superseded') }}
       </ng-container>
       <ng-container *ngIf="errorCode === 'stale_or_failed_attempt'">
-        This payment attempt is no longer active.
+        {{ t('payment_result.stale_failed') }}
       </ng-container>
       <ng-container *ngIf="!errorCode || errorCode === 'invalid_callback' || errorCode === 'not_found'">
-        Something went wrong with your payment.
+        {{ t('payment_result.generic_failed') }}
       </ng-container>
-      Please try again or contact support.
+      {{ t('payment_result.support') }}
     </p>
-    <p class="ref-id" *ngIf="referenceId">Ref: {{ referenceId }}</p>
+    <p class="ref-id" *ngIf="referenceId">{{ t('payment_result.ref') }}: {{ referenceId }}</p>
 
     <ion-button expand="block" color="danger" (click)="retryPayment()">
-      Try Again
+      {{ t('payment_result.try_again') }}
     </ion-button>
     <ion-button expand="block" fill="outline" color="medium" (click)="goToDashboard()">
-      Back to Dashboard
+      {{ t('payment_result.back_dashboard') }}
     </ion-button>
   </div>
 

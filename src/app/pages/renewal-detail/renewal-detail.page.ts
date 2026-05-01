@@ -22,6 +22,7 @@ import { DateService } from '../../services/date.service';
 import { ApiResponse } from '../../interfaces/api-response.interface';
 import { Renewal } from '../../interfaces/renewal.interface';
 import { BsDatePickerComponent } from '../../components/bs-date-picker/bs-date-picker.component';
+import { LanguageService } from '../../services/language.service';
 
 const DEFAULT_MEMBER_RELATIONSHIPS: Array<{ value: string; label: string }> = [
   { value: 'spouse', label: 'Spouse' },
@@ -99,7 +100,8 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
     private syncService: AppSyncService,
     private dateService: DateService,
     private toastCtrl: ToastController,
-    private alertCtrl: AlertController
+    private alertCtrl: AlertController,
+    private languageService: LanguageService
   ) {
     addIcons({
       personOutline,
@@ -232,7 +234,7 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
     if (!this.newMember.first_name || !this.newMember.last_name ||
         !this.newMember.gender || !this.newMember.date_of_birth || !this.newMember.relationship) {
       this.toastCtrl.create({
-        message: 'Please fill all required member fields.',
+        message: this.t('wizard.member_required'),
         duration: 2200,
         color: 'warning',
         position: 'top',
@@ -242,11 +244,11 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
 
     const relationship = this.normalizeKey(this.newMember.relationship);
     if (!relationship || !this.availableMemberRelationshipOptions.some(option => option.value === relationship)) {
-      this.toastCtrl.create({ message: 'Please select a valid relationship.', duration: 2000, color: 'warning', position: 'top' }).then(t => t.present());
+      this.toastCtrl.create({ message: this.t('wizard.relationship_invalid'), duration: 2000, color: 'warning', position: 'top' }).then(t => t.present());
       return;
     }
     if (this.isHeadSingle && SINGLE_HEAD_BLOCKED_RELATIONSHIPS.includes(relationship)) {
-      this.toastCtrl.create({ message: 'Spouse, son, and daughter relationships are not allowed when household head marital status is single.', duration: 2500, color: 'warning', position: 'top' }).then(t => t.present());
+      this.toastCtrl.create({ message: this.t('wizard.relationship_single_block'), duration: 2500, color: 'warning', position: 'top' }).then(t => t.present());
       return;
     }
     this.newMember.relationship = relationship;
@@ -255,13 +257,13 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
     }
 
     if (this.newMember.mobile_number && !/^\d{10}$/.test(this.newMember.mobile_number)) {
-      this.toastCtrl.create({ message: 'Mobile number must be exactly 10 digits.', duration: 2000, color: 'warning', position: 'top' }).then(t => t.present());
+      this.toastCtrl.create({ message: this.t('wizard.mobile_digits'), duration: 2000, color: 'warning', position: 'top' }).then(t => t.present());
       return;
     }
 
     const docType = this.newMember.document_type || null;
     if (docType === 'citizenship' && this.newMember.date_of_birth && this.dateService.calculateAge(this.newMember.date_of_birth, 'bs') < 16) {
-      this.toastCtrl.create({ message: 'Member with citizenship document must be at least 16 years old.', duration: 2200, color: 'warning', position: 'top' }).then(t => t.present());
+      this.toastCtrl.create({ message: this.t('wizard.member_age_citizenship'), duration: 2200, color: 'warning', position: 'top' }).then(t => t.present());
       return;
     }
 
@@ -300,7 +302,7 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
           this.cancelMemberForm();
           this.loadDetail();
           const toast = await this.toastCtrl.create({
-            message: wasEditing ? 'Member updated' : 'Member added',
+            message: wasEditing ? this.t('wizard.member_updated') : this.t('wizard.member_added'),
             duration: 1500,
             color: 'success',
             position: 'top',
@@ -311,7 +313,7 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
       error: async (err) => {
         this.savingMember = false;
         const toast = await this.toastCtrl.create({
-          message: err?.error?.message || 'Failed to save member',
+          message: this.languageService.translateText(err?.error?.message) || this.t('renewal_detail.member_save_failed'),
           duration: 2200,
           color: 'danger',
           position: 'top',
@@ -355,7 +357,7 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
       const file = target?.files?.[0];
       if (!file) return;
       if (file.size > 2 * 1024 * 1024) {
-        this.toastCtrl.create({ message: 'Image must be less than 2MB.', duration: 2000, color: 'danger', position: 'top' }).then(t => t.present());
+        this.toastCtrl.create({ message: this.t('wizard.image_size'), duration: 2000, color: 'danger', position: 'top' }).then(t => t.present());
         return;
       }
 
@@ -385,12 +387,12 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
 
   async removeMember(member: any) {
     const alert = await this.alertCtrl.create({
-      header: 'Remove Member',
-      message: `Remove ${member.first_name} ${member.last_name}?`,
+      header: this.t('wizard.remove_member_header'),
+      message: this.t('renewal_detail.remove_member_message').replace(':name', `${member.first_name || ''} ${member.last_name || ''}`.trim()),
       buttons: [
-        { text: 'Cancel', role: 'cancel' },
+        { text: this.t('common.cancel'), role: 'cancel' },
         {
-          text: 'Remove',
+          text: this.t('common.remove'),
           handler: () => {
             this.api.delete<ApiResponse>(`/renewals/${this.renewalId}/members/${member.id}`).subscribe({
               next: () => this.loadDetail(),
@@ -421,7 +423,7 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
         } else {
           // Free renewal — completed
           const toast = await this.toastCtrl.create({
-            message: res.message || 'Renewal completed!', duration: 2000, color: 'success', position: 'top',
+            message: this.languageService.translateText(res.message) || this.t('renewal_detail.completed_message'), duration: 2000, color: 'success', position: 'top',
           });
           await toast.present();
           this.loadDetail();
@@ -430,7 +432,7 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
       error: async (err) => {
         this.submitting = false;
         const toast = await this.toastCtrl.create({
-          message: err?.error?.message || 'Submission failed', duration: 2000, color: 'danger', position: 'top',
+          message: this.languageService.translateText(err?.error?.message) || this.t('renewal_detail.submission_failed'), duration: 2000, color: 'danger', position: 'top',
         });
         await toast.present();
       },
@@ -457,7 +459,7 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
   }
 
   formatStatus(s: string): string {
-    return (s || '').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    return this.languageService.label('status', s);
   }
 
   get isHeadSingle(): boolean {
@@ -544,7 +546,7 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
       const options = raw
         .map(item => this.normalizeKey(item))
         .filter((value): value is string => value.length > 0 && value !== 'self')
-        .map(value => ({ value, label: this.formatStatus(value) }));
+        .map(value => ({ value, label: this.formatRelationship(value) }));
       return this.dedupeRelationshipOptions(options);
     }
 
@@ -555,7 +557,7 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
           if (!value || value === 'self') return null;
           const labelText = typeof label === 'string' && label.trim().length > 0
             ? label.trim()
-            : this.formatStatus(value);
+            : this.formatRelationship(value);
           return { value, label: labelText };
         })
         .filter((option): option is { value: string; label: string } => option !== null);
@@ -637,6 +639,34 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
 
   displayDate(adDate?: string | null, bsDate?: string | null): string {
     return this.dateService.formatForDisplay(adDate, bsDate) || '';
+  }
+
+  t(key: string): string {
+    return this.languageService.t(key);
+  }
+
+  label(namespace: string, value: string | null | undefined, fallback?: string): string {
+    return this.languageService.label(namespace, value, fallback);
+  }
+
+  formatNumber(value: string | number | null | undefined, decimals = 0): string {
+    return this.languageService.formatNumber(value, decimals);
+  }
+
+  formatCurrency(value: string | number | null | undefined, decimals = 2): string {
+    return `${this.t('common.currency')} ${this.languageService.formatNumber(value ?? 0, decimals)}`;
+  }
+
+  formatRelationship(value: string | null | undefined): string {
+    return this.languageService.label('relation', value);
+  }
+
+  paySubmitLabel(amount: string | number | null | undefined): string {
+    return this.t('renewal_detail.pay_amount_submit').replace(':amount', this.formatCurrency(amount ?? 0, 0));
+  }
+
+  payCompleteLabel(amount: string | number | null | undefined): string {
+    return this.t('renewal_detail.pay_amount_complete').replace(':amount', this.formatCurrency(amount ?? 0, 0));
   }
 
   private shouldRefreshRenewalDetail(event: AppSyncEvent): boolean {

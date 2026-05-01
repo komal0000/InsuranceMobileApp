@@ -15,6 +15,7 @@ export class TransliterateService {
 
   private readonly exactWords: Record<string, string> = {
     ram: '\u0930\u093e\u092e',
+    shrestha: '\u0936\u094d\u0930\u0947\u0937\u094d\u0920',
   };
 
   private readonly consonants: Array<[string, string]> = [

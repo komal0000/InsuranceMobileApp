@@ -13,6 +13,7 @@ import {
 import { ApiService } from '../../services/api.service';
 import { DateService } from '../../services/date.service';
 import { ApiResponse } from '../../interfaces/api-response.interface';
+import { LanguageService } from '../../services/language.service';
 
 @Component({
   selector: 'app-my-policy',
@@ -32,7 +33,8 @@ export class MyPolicyPage implements OnInit {
 
   constructor(
     private api: ApiService,
-    private dateService: DateService
+    private dateService: DateService,
+    private languageService: LanguageService
   ) {
     addIcons({
       shieldCheckmarkOutline, documentTextOutline, calendarOutline,
@@ -81,7 +83,7 @@ export class MyPolicyPage implements OnInit {
   }
 
   formatStatus(status: string): string {
-    return (status || '').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    return this.languageService.label('status', status);
   }
 
   get daysRemaining(): number | null {
@@ -95,5 +97,25 @@ export class MyPolicyPage implements OnInit {
 
   displayDate(adDate?: string | null, bsDate?: string | null): string {
     return this.dateService.formatForDisplay(adDate, bsDate) || '';
+  }
+
+  t(key: string): string {
+    return this.languageService.t(key);
+  }
+
+  label(namespace: string, value: string | null | undefined, fallback?: string): string {
+    return this.languageService.label(namespace, value, fallback);
+  }
+
+  formatNumber(value: string | number | null | undefined, decimals = 0): string {
+    return this.languageService.formatNumber(value, decimals);
+  }
+
+  formatCurrency(value: string | number | null | undefined, decimals = 2): string {
+    return `${this.t('common.currency')} ${this.languageService.formatNumber(value ?? 0, decimals)}`;
+  }
+
+  languageText(value: string | null | undefined): string {
+    return this.languageService.translateText(value);
   }
 }

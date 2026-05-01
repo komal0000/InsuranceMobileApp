@@ -3,7 +3,7 @@
     <ion-buttons slot="start">
       <ion-back-button defaultHref="/tabs/enrollments"></ion-back-button>
     </ion-buttons>
-    <ion-title>Pay Premium</ion-title>
+    <ion-title>{{ t('payment.title') }}</ion-title>
   </ion-toolbar>
 </ion-header>
 
@@ -15,16 +15,16 @@
       <div class="premium-header">
         <ion-icon name="wallet-outline" style="font-size:2rem;color:#003087"></ion-icon>
         <div>
-          <div class="premium-label">Premium Amount</div>
-          <div class="premium-amount">NPR {{ premiumAmount | number }}</div>
+          <div class="premium-label">{{ t('payment.premium_amount') }}</div>
+          <div class="premium-amount">{{ formatCurrency(premiumAmount) }}</div>
         </div>
       </div>
       <div class="premium-meta" *ngIf="policyNumber">
-        <span>Policy: {{ policyNumber }}</span>
+        <span>{{ t('policy.title') }}: {{ policyNumber }}</span>
       </div>
       <div class="premium-meta">
         <ion-badge [color]="paymentType === 'new' ? 'primary' : 'warning'">
-          {{ paymentType === 'new' ? 'New Policy' : 'Renewal' }}
+          {{ paymentType === 'new' ? t('payment.new_policy') : t('payment.renewal') }}
         </ion-badge>
       </div>
     </ion-card-content>
@@ -37,8 +37,8 @@
     <div *ngIf="paymentStatus === 'checking'" class="status-box status-checking">
       <ion-spinner name="crescent" color="primary"></ion-spinner>
       <div class="status-text">
-        <strong>Verifying payment...</strong>
-        <span>Checking with gateway ({{ pollCount }}/{{ maxPolls }})</span>
+        <strong>{{ t('payment.verifying') }}</strong>
+        <span>{{ t('payment.checking_gateway') }} ({{ formatNumber(pollCount) }}/{{ formatNumber(maxPolls) }})</span>
       </div>
     </div>
 
@@ -46,8 +46,8 @@
     <div *ngIf="paymentStatus === 'paid'" class="status-box status-paid">
       <ion-icon name="checkmark-circle-outline" style="font-size:3rem;color:#10B981"></ion-icon>
       <div class="status-text">
-        <strong>Payment Successful!</strong>
-        <span>Your policy is now active. Redirecting...</span>
+        <strong>{{ t('payment.success') }}</strong>
+        <span>{{ t('payment.success_message') }}</span>
       </div>
     </div>
 
@@ -55,8 +55,8 @@
     <div *ngIf="paymentStatus === 'failed'" class="status-box status-failed">
       <ion-icon name="close-circle-outline" style="font-size:3rem;color:#EF4444"></ion-icon>
       <div class="status-text">
-        <strong>Payment Failed</strong>
-        <span>The gateway could not verify your payment.</span>
+        <strong>{{ t('payment.failed') }}</strong>
+        <span>{{ t('payment.failed_message') }}</span>
       </div>
     </div>
 
@@ -64,8 +64,8 @@
     <div *ngIf="paymentStatus === 'timeout'" class="status-box status-timeout">
       <ion-icon name="time-outline" style="font-size:3rem;color:#F59E0B"></ion-icon>
       <div class="status-text">
-        <strong>Status Pending</strong>
-        <span>Could not confirm payment yet. Please check again later.</span>
+        <strong>{{ t('payment.timeout') }}</strong>
+        <span>{{ t('payment.timeout_message') }}</span>
       </div>
     </div>
 
@@ -74,7 +74,7 @@
   <!-- Gateway Selection (hidden during polling / after result) -->
   <div *ngIf="!paymentStatus">
 
-    <h3 style="margin:20px 0 12px;font-weight:600;color:#333">Select Payment Gateway</h3>
+    <h3 style="margin:20px 0 12px;font-weight:600;color:#333">{{ t('payment.select_gateway') }}</h3>
 
     <div class="gateway-grid">
       <div
@@ -105,9 +105,9 @@
       <ion-spinner *ngIf="loading" name="crescent" style="margin-right:8px"></ion-spinner>
       <span *ngIf="!loading">
         <ion-icon name="arrow-forward-outline" slot="start"></ion-icon>
-        Proceed to Pay
+        {{ t('payment.proceed') }}
       </span>
-      <span *ngIf="loading">Processing...</span>
+      <span *ngIf="loading">{{ t('payment.processing') }}</span>
     </ion-button>
 
   </div>

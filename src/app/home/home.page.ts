@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { IonHeader, IonToolbar, IonTitle, IonContent } from '@ionic/angular/standalone';
+import { LanguageService } from '../services/language.service';
 
 @Component({
   selector: 'app-home',
@@ -8,5 +9,9 @@ import { IonHeader, IonToolbar, IonTitle, IonContent } from '@ionic/angular/stan
   imports: [IonHeader, IonToolbar, IonTitle, IonContent],
 })
 export class HomePage {
-  constructor() {}
+  constructor(private languageService: LanguageService) {}
+
+  t(key: string): string {
+    return this.languageService.t(key);
+  }
 }

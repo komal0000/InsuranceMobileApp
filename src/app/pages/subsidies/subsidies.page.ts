@@ -19,6 +19,7 @@ import { AuthService } from '../../services/auth.service';
 import { DateService } from '../../services/date.service';
 import { ApiResponse, PaginatedData } from '../../interfaces/api-response.interface';
 import { Subsidy } from '../../interfaces/subsidy.interface';
+import { LanguageService } from '../../services/language.service';
 
 @Component({
   selector: 'app-subsidies',
@@ -49,7 +50,8 @@ export class SubsidiesPage implements OnInit {
     private dateService: DateService,
     private router: Router,
     private toastCtrl: ToastController,
-    private alertCtrl: AlertController
+    private alertCtrl: AlertController,
+    private languageService: LanguageService
   ) {
     addIcons({
       cashOutline, checkmarkCircleOutline, closeCircleOutline, banOutline,
@@ -106,7 +108,7 @@ export class SubsidiesPage implements OnInit {
   async approveSubsidy(s: Subsidy) {
     this.api.patch<ApiResponse>(`/subsidies/${s.id}/approve`).subscribe({
       next: async (res) => {
-        const toast = await this.toastCtrl.create({ message: 'Subsidy approved', duration: 2000, color: 'success', position: 'top' });
+        const toast = await this.toastCtrl.create({ message: this.t('subsidies.approved_message'), duration: 2000, color: 'success', position: 'top' });
         await toast.present();
         this.selectedSubsidy = null;
         this.page = 1;
@@ -117,16 +119,16 @@ export class SubsidiesPage implements OnInit {
 
   async rejectSubsidy(s: Subsidy) {
     const alert = await this.alertCtrl.create({
-      header: 'Reject Subsidy',
-      inputs: [{ name: 'reason', type: 'textarea', placeholder: 'Rejection reason' }],
+      header: this.t('subsidies.reject_header'),
+      inputs: [{ name: 'reason', type: 'textarea', placeholder: this.t('subsidies.rejection_reason') }],
       buttons: [
-        { text: 'Cancel', role: 'cancel' },
+        { text: this.t('common.cancel'), role: 'cancel' },
         {
-          text: 'Reject',
+          text: this.t('subsidies.reject'),
           handler: (data) => {
             this.api.patch<ApiResponse>(`/subsidies/${s.id}/reject`, { reason: data.reason }).subscribe({
               next: async () => {
-                const toast = await this.toastCtrl.create({ message: 'Subsidy rejected', duration: 2000, color: 'warning', position: 'top' });
+                const toast = await this.toastCtrl.create({ message: this.t('subsidies.rejected_message'), duration: 2000, color: 'warning', position: 'top' });
                 await toast.present();
                 this.selectedSubsidy = null;
                 this.page = 1;
@@ -142,16 +144,16 @@ export class SubsidiesPage implements OnInit {
 
   async revokeSubsidy(s: Subsidy) {
     const alert = await this.alertCtrl.create({
-      header: 'Revoke Subsidy',
-      inputs: [{ name: 'reason', type: 'textarea', placeholder: 'Revocation reason' }],
+      header: this.t('subsidies.revoke_header'),
+      inputs: [{ name: 'reason', type: 'textarea', placeholder: this.t('subsidies.revocation_reason') }],
       buttons: [
-        { text: 'Cancel', role: 'cancel' },
+        { text: this.t('common.cancel'), role: 'cancel' },
         {
-          text: 'Revoke',
+          text: this.t('subsidies.revoke'),
           handler: (data) => {
             this.api.patch<ApiResponse>(`/subsidies/${s.id}/revoke`, { reason: data.reason }).subscribe({
               next: async () => {
-                const toast = await this.toastCtrl.create({ message: 'Subsidy revoked', duration: 2000, color: 'danger', position: 'top' });
+                const toast = await this.toastCtrl.create({ message: this.t('subsidies.revoked_message'), duration: 2000, color: 'danger', position: 'top' });
                 await toast.present();
                 this.selectedSubsidy = null;
                 this.page = 1;
@@ -173,16 +175,11 @@ export class SubsidiesPage implements OnInit {
   }
 
   formatStatus(s: string): string {
-    return (s || '').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    return this.languageService.label('status', s);
   }
 
   formatBenefitType(type: string): string {
-    const labels: Record<string, string> = {
-      full_premium_waiver: '100% Free',
-      percentage_discount: 'Percentage Discount',
-      fixed_discount: 'Fixed Discount',
-    };
-    return labels[type] || type;
+    return this.languageService.label('benefit', type);
   }
 
   displayDate(adDate?: string | null, bsDate?: string | null): string {
@@ -191,5 +188,17 @@ export class SubsidiesPage implements OnInit {
 
   displayDateTime(adDate?: string | null, bsDate?: string | null): string {
     return this.dateService.formatDateTimeForDisplay(adDate, bsDate) || '';
+  }
+
+  t(key: string): string {
+    return this.languageService.t(key);
+  }
+
+  formatNumber(value: string | number | null | undefined, decimals = 0): string {
+    return this.languageService.formatNumber(value, decimals);
+  }
+
+  formatCurrency(value: string | number | null | undefined, decimals = 2): string {
+    return `${this.t('common.currency')} ${this.languageService.formatNumber(value ?? 0, decimals)}`;
   }
 }

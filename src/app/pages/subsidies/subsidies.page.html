@@ -1,10 +1,10 @@
     <ion-header>
       <ion-toolbar color="primary">
-        <ion-title>Subsidies</ion-title>
+        <ion-title>{{ t('subsidies.title') }}</ion-title>
       </ion-toolbar>
       <ion-toolbar color="primary">
         <ion-searchbar
-          placeholder="Search subsidies..."
+          [placeholder]="t('subsidies.search_placeholder')"
           [(ngModel)]="search"
           (ionInput)="onSearch()"
           debounce="500"
@@ -13,10 +13,10 @@
       </ion-toolbar>
       <ion-toolbar color="primary">
         <ion-segment [(ngModel)]="statusFilter" (ionChange)="onFilterChange()" class="header-segment">
-          <ion-segment-button value="">All</ion-segment-button>
-          <ion-segment-button value="pending">Pending</ion-segment-button>
-          <ion-segment-button value="approved">Approved</ion-segment-button>
-          <ion-segment-button value="rejected">Rejected</ion-segment-button>
+          <ion-segment-button value="">{{ t('status.all') }}</ion-segment-button>
+          <ion-segment-button value="pending">{{ t('status.pending') }}</ion-segment-button>
+          <ion-segment-button value="approved">{{ t('status.approved') }}</ion-segment-button>
+          <ion-segment-button value="rejected">{{ t('status.rejected') }}</ion-segment-button>
         </ion-segment>
       </ion-toolbar>
     </ion-header>
@@ -37,14 +37,14 @@
           </div>
           <div class="subsidy-body">
             <div class="subsidy-top">
-              <strong class="subsidy-number">{{ s.enrollment_number || 'Subsidy #' + s.id }}</strong>
+              <strong class="subsidy-number">{{ s.enrollment_number || t('subsidies.number_prefix') + s.id }}</strong>
               <ion-badge [color]="getStatusColor(s.status)">{{ formatStatus(s.status) }}</ion-badge>
             </div>
             <p *ngIf="s.policy_rule" class="benefit-type">{{ s.policy_rule.name }}</p>
             <p *ngIf="!s.policy_rule && s.benefit_type" class="benefit-type">{{ formatBenefitType(s.benefit_type) }}</p>
             <div class="subsidy-bottom">
-              <span *ngIf="s.discount_amount" class="subsidy-amount">Discount: Rs. {{ s.discount_amount }}</span>
-              <span *ngIf="!s.discount_amount && s.amount" class="subsidy-amount">Rs. {{ s.amount }}</span>
+              <span *ngIf="s.discount_amount" class="subsidy-amount">{{ t('subsidies.discount') }}: {{ formatCurrency(s.discount_amount) }}</span>
+              <span *ngIf="!s.discount_amount && s.amount" class="subsidy-amount">{{ formatCurrency(s.amount) }}</span>
               <span class="subsidy-date">{{ displayDate(s.created_at) }}</span>
             </div>
           </div>
@@ -54,7 +54,7 @@
 
       <div *ngIf="!loading && subsidies.length === 0" class="empty-state ion-text-center ion-padding">
         <ion-icon name="cash-outline" class="empty-icon"></ion-icon>
-        <h3>No subsidies found</h3>
+        <h3>{{ t('subsidies.no_records') }}</h3>
       </div>
 
       <ion-infinite-scroll (ionInfinite)="loadMore($event)" [disabled]="page >= lastPage">
@@ -66,7 +66,7 @@
     <div *ngIf="selectedSubsidy" class="detail-overlay" (click)="selectedSubsidy = null">
       <div class="detail-card" (click)="$event.stopPropagation()">
         <div class="detail-header">
-          <h2>Subsidy #{{ selectedSubsidy.id }}</h2>
+          <h2>{{ t('subsidies.number_prefix') }}{{ formatNumber(selectedSubsidy.id) }}</h2>
           <ion-badge [color]="getStatusColor(selectedSubsidy.status)">{{ formatStatus(selectedSubsidy.status) }}</ion-badge>
         </div>
 
@@ -75,36 +75,36 @@
             <div class="section-icon blue">
               <ion-icon name="shield-checkmark-outline"></ion-icon>
             </div>
-            <span>Details</span>
+            <span>{{ t('subsidies.details') }}</span>
           </div>
 
           <div class="detail-grid">
             <div class="detail-cell" *ngIf="selectedSubsidy.enrollment_number">
-              <span class="detail-label">Enrollment</span>
+              <span class="detail-label">{{ t('subsidies.enrollment') }}</span>
               <span class="detail-value">{{ selectedSubsidy.enrollment_number }}</span>
             </div>
             <div class="detail-cell" *ngIf="selectedSubsidy.policy_rule">
-              <span class="detail-label">Rule</span>
+              <span class="detail-label">{{ t('subsidies.rule') }}</span>
               <span class="detail-value">{{ selectedSubsidy.policy_rule.name }}</span>
             </div>
             <div class="detail-cell" *ngIf="selectedSubsidy.benefit_type">
-              <span class="detail-label">Benefit Type</span>
+              <span class="detail-label">{{ t('subsidies.benefit_type') }}</span>
               <span class="detail-value">{{ formatBenefitType(selectedSubsidy.benefit_type) }}</span>
             </div>
             <div class="detail-cell" *ngIf="selectedSubsidy.original_premium">
-              <span class="detail-label">Original Premium</span>
-              <span class="detail-value">Rs. {{ selectedSubsidy.original_premium }}</span>
+              <span class="detail-label">{{ t('subsidies.original_premium') }}</span>
+              <span class="detail-value">{{ formatCurrency(selectedSubsidy.original_premium) }}</span>
             </div>
             <div class="detail-cell" *ngIf="selectedSubsidy.discount_amount">
-              <span class="detail-label">Discount</span>
-              <span class="detail-value amount">Rs. {{ selectedSubsidy.discount_amount }}</span>
+              <span class="detail-label">{{ t('subsidies.discount') }}</span>
+              <span class="detail-value amount">{{ formatCurrency(selectedSubsidy.discount_amount) }}</span>
             </div>
             <div class="detail-cell" *ngIf="selectedSubsidy.final_premium !== undefined">
-              <span class="detail-label">Final Premium</span>
-              <span class="detail-value amount">Rs. {{ selectedSubsidy.final_premium }}</span>
+              <span class="detail-label">{{ t('subsidies.final_premium') }}</span>
+              <span class="detail-value amount">{{ formatCurrency(selectedSubsidy.final_premium) }}</span>
             </div>
             <div class="detail-cell" *ngIf="selectedSubsidy.fiscal_year">
-              <span class="detail-label">Fiscal Year</span>
+              <span class="detail-label">{{ t('subsidies.fiscal_year') }}</span>
               <span class="detail-value">{{ selectedSubsidy.fiscal_year }}</span>
             </div>
           </div>
@@ -116,14 +116,14 @@
             <div class="section-icon orange">
               <ion-icon name="document-text-outline"></ion-icon>
             </div>
-            <span>Audit Log</span>
+            <span>{{ t('subsidies.audit_log') }}</span>
           </div>
 
           <div class="audit-list">
             <div class="audit-item" *ngFor="let log of selectedSubsidy.audit_log">
               <strong>{{ log.action }}</strong>
               <p>{{ log.performed_by }} — {{ displayDateTime(log.created_at) }}</p>
-              <p *ngIf="log.reason" class="audit-reason">Reason: {{ log.reason }}</p>
+              <p *ngIf="log.reason" class="audit-reason">{{ t('common.reason') }}: {{ log.reason }}</p>
             </div>
           </div>
         </div>
@@ -132,22 +132,22 @@
         <div *ngIf="canManage && selectedSubsidy.status === 'pending'" class="action-section">
           <ion-button expand="block" color="success" (click)="approveSubsidy(selectedSubsidy)">
             <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
-            Approve
+            {{ t('subsidies.approve') }}
           </ion-button>
           <ion-button expand="block" color="danger" (click)="rejectSubsidy(selectedSubsidy)">
             <ion-icon name="close-circle-outline" slot="start"></ion-icon>
-            Reject
+            {{ t('subsidies.reject') }}
           </ion-button>
         </div>
         <div *ngIf="canManage && selectedSubsidy.status === 'approved'" class="action-section">
           <ion-button expand="block" color="warning" (click)="revokeSubsidy(selectedSubsidy)">
             <ion-icon name="ban-outline" slot="start"></ion-icon>
-            Revoke
+            {{ t('subsidies.revoke') }}
           </ion-button>
         </div>
 
         <ion-button expand="block" fill="outline" color="medium" (click)="selectedSubsidy = null" class="close-btn">
-          Close
+          {{ t('common.close') }}
         </ion-button>
       </div>
     </div>

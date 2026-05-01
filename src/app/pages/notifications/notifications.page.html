@@ -1,10 +1,10 @@
     <ion-header>
       <ion-toolbar color="primary">
-        <ion-title>Notifications</ion-title>
+        <ion-title>{{ t('notifications.title') }}</ion-title>
         <ion-buttons slot="end">
           <ion-button (click)="markAllRead()" *ngIf="hasUnread" fill="clear" color="light">
             <ion-icon name="checkmark-done-outline" slot="start"></ion-icon>
-            Read All
+            {{ t('notifications.read_all') }}
           </ion-button>
         </ion-buttons>
       </ion-toolbar>
@@ -27,8 +27,8 @@
           </div>
           <div class="notif-body">
             <div class="notif-top-row">
-              <strong>{{ n.title || 'Notification' }}</strong>
-              <ion-badge color="primary" *ngIf="!n.is_read" class="new-badge">New</ion-badge>
+              <strong>{{ n.title || t('notifications.fallback_title') }}</strong>
+              <ion-badge color="primary" *ngIf="!n.is_read" class="new-badge">{{ t('notifications.new') }}</ion-badge>
             </div>
             <p class="notif-message">{{ n.message }}</p>
             <span class="notif-date">{{ displayDateTime(n.created_at) }}</span>
@@ -38,8 +38,8 @@
 
       <div *ngIf="!loading && notifications.length === 0" class="empty-state ion-text-center ion-padding">
         <ion-icon name="notifications-outline" class="empty-icon"></ion-icon>
-        <h3>No notifications</h3>
-        <p>You're all caught up!</p>
+        <h3>{{ t('notifications.empty_title') }}</h3>
+        <p>{{ t('notifications.empty_message') }}</p>
       </div>
 
       <ion-infinite-scroll (ionInfinite)="loadMore($event)" [disabled]="page >= lastPage">

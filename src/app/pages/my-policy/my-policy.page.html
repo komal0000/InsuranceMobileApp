@@ -1,6 +1,6 @@
     <ion-header>
       <ion-toolbar color="primary">
-        <ion-title>My Policy</ion-title>
+        <ion-title>{{ t('policy.title') }}</ion-title>
       </ion-toolbar>
     </ion-header>
 
@@ -30,18 +30,18 @@
           <div class="summary-row">
             <div class="summary-card">
               <ion-icon name="people-outline" class="summary-icon blue"></ion-icon>
-              <div class="summary-value">{{ policy.total_members || '—' }}</div>
-              <div class="summary-label">Members</div>
+              <div class="summary-value">{{ policy.total_members ? formatNumber(policy.total_members) : t('common.not_available') }}</div>
+              <div class="summary-label">{{ t('policy.members') }}</div>
             </div>
             <div class="summary-card">
               <ion-icon name="cash-outline" class="summary-icon green"></ion-icon>
-              <div class="summary-value">Rs. {{ policy.premium_amount || '0' }}</div>
-              <div class="summary-label">Premium</div>
+              <div class="summary-value">{{ formatCurrency(policy.premium_amount || 0) }}</div>
+              <div class="summary-label">{{ t('policy.premium') }}</div>
             </div>
             <div class="summary-card" *ngIf="daysRemaining !== null">
               <ion-icon name="calendar-outline" [class]="'summary-icon ' + (daysRemaining > 30 ? 'blue' : daysRemaining > 0 ? 'orange' : 'red')"></ion-icon>
-              <div class="summary-value">{{ daysRemaining > 0 ? daysRemaining : 'Expired' }}</div>
-              <div class="summary-label">{{ daysRemaining > 0 ? 'Days Left' : '' }}</div>
+              <div class="summary-value">{{ daysRemaining > 0 ? formatNumber(daysRemaining) : t('status.expired') }}</div>
+              <div class="summary-label">{{ daysRemaining > 0 ? t('policy.days_left') : '' }}</div>
             </div>
           </div>
 
@@ -52,31 +52,31 @@
                 <div class="section-icon blue">
                   <ion-icon name="document-text-outline"></ion-icon>
                 </div>
-                <span>Policy Details</span>
+                <span>{{ t('policy.details') }}</span>
               </div>
 
               <div class="info-grid">
                 <div class="info-cell" *ngIf="policy.start_date">
-                  <span class="info-label">Valid From</span>
+                  <span class="info-label">{{ t('policy.valid_from') }}</span>
                   <span class="info-value">{{ displayDate(policy.start_date, policy.start_date_bs) }}</span>
                 </div>
                 <div class="info-cell" *ngIf="policy.end_date">
-                  <span class="info-label">Valid Until</span>
+                  <span class="info-label">{{ t('policy.valid_until') }}</span>
                   <span class="info-value">{{ displayDate(policy.end_date, policy.end_date_bs) }}</span>
                 </div>
                 <div class="info-cell" *ngIf="policy.enrollment_date">
-                  <span class="info-label">Enrolled On</span>
+                  <span class="info-label">{{ t('policy.enrolled_on') }}</span>
                   <span class="info-value">{{ displayDate(policy.enrollment_date, policy.enrollment_date_bs) }}</span>
                 </div>
                 <div class="info-cell" *ngIf="policy.payment_method">
-                  <span class="info-label">Payment Via</span>
-                  <span class="info-value">{{ policy.payment_method | titlecase }}</span>
+                  <span class="info-label">{{ t('policy.payment_via') }}</span>
+                  <span class="info-value">{{ languageText(policy.payment_method | titlecase) }}</span>
                 </div>
               </div>
 
               <div *ngIf="policy.subsidy_amount" class="subsidy-box">
-                <span class="subsidy-label">Subsidy Applied</span>
-                <span class="subsidy-value">Rs. {{ policy.subsidy_amount }}</span>
+                <span class="subsidy-label">{{ t('renewals.subsidy_applied') }}</span>
+                <span class="subsidy-value">{{ formatCurrency(policy.subsidy_amount) }}</span>
               </div>
             </ion-card-content>
           </ion-card>
@@ -88,24 +88,24 @@
                 <div class="section-icon purple">
                   <ion-icon name="location-outline"></ion-icon>
                 </div>
-                <span>Location</span>
+                <span>{{ t('policy.location') }}</span>
               </div>
 
               <div class="info-grid">
                 <div class="info-cell" *ngIf="policy.province">
-                  <span class="info-label">Province</span>
+                  <span class="info-label">{{ t('wizard.province') }}</span>
                   <span class="info-value">{{ policy.province }}</span>
                 </div>
                 <div class="info-cell" *ngIf="policy.district">
-                  <span class="info-label">District</span>
+                  <span class="info-label">{{ t('wizard.district') }}</span>
                   <span class="info-value">{{ policy.district }}</span>
                 </div>
                 <div class="info-cell" *ngIf="policy.municipality">
-                  <span class="info-label">Municipality</span>
+                  <span class="info-label">{{ t('wizard.municipality') }}</span>
                   <span class="info-value">{{ policy.municipality }}</span>
                 </div>
                 <div class="info-cell" *ngIf="policy.ward_number">
-                  <span class="info-label">Ward No.</span>
+                  <span class="info-label">{{ t('wizard.ward_number') }}</span>
                   <span class="info-value">{{ policy.ward_number }}</span>
                 </div>
               </div>
@@ -119,7 +119,7 @@
                 <div class="section-icon cyan">
                   <ion-icon name="person-outline"></ion-icon>
                 </div>
-                <span>Household Head</span>
+                <span>{{ t('common.household_head') }}</span>
               </div>
 
               <div class="head-card">
@@ -132,19 +132,19 @@
 
               <div class="info-grid mt-8">
                 <div class="info-cell" *ngIf="policy.household_head.gender">
-                  <span class="info-label">Gender</span>
-                  <span class="info-value">{{ policy.household_head.gender | titlecase }}</span>
+                  <span class="info-label">{{ t('policy.gender') }}</span>
+                  <span class="info-value">{{ label('gender', policy.household_head.gender) }}</span>
                 </div>
                 <div class="info-cell" *ngIf="policy.household_head.date_of_birth">
-                  <span class="info-label">Date of Birth</span>
+                  <span class="info-label">{{ t('profile.date_of_birth') }}</span>
                   <span class="info-value">{{ displayDate(policy.household_head.date_of_birth, policy.household_head.date_of_birth_bs) }}</span>
                 </div>
                 <div class="info-cell" *ngIf="policy.household_head.citizenship_number">
-                  <span class="info-label">Citizenship No.</span>
+                  <span class="info-label">{{ t('policy.citizenship_no') }}</span>
                   <span class="info-value">{{ policy.household_head.citizenship_number }}</span>
                 </div>
                 <div class="info-cell" *ngIf="policy.household_head.mobile_number">
-                  <span class="info-label">Mobile</span>
+                  <span class="info-label">{{ t('profile.mobile_number') }}</span>
                   <span class="info-value">{{ policy.household_head.mobile_number }}</span>
                 </div>
               </div>
@@ -162,7 +162,7 @@
                 <div class="section-icon cyan">
                   <ion-icon name="people-outline"></ion-icon>
                 </div>
-                <span>Family Members ({{ policy.members.length }})</span>
+                <span>{{ t('policy.covered_members') }} ({{ formatNumber(policy.members.length) }})</span>
               </div>
 
               <div class="member-list">
@@ -171,10 +171,10 @@
                   <div class="member-info">
                     <strong>{{ m.full_name }}</strong>
                     <span class="member-meta">
-                      {{ m.relationship || 'Member' }} &bull; {{ m.gender | titlecase }}
+                      {{ label('relation', m.relationship, t('common.member')) }} &bull; {{ label('gender', m.gender) }}
                       <span *ngIf="m.date_of_birth"> &bull; {{ displayDate(m.date_of_birth, m.date_of_birth_bs) }}</span>
                     </span>
-                    <span class="member-id" *ngIf="m.citizenship_number">ID: {{ m.citizenship_number }}</span>
+                    <span class="member-id" *ngIf="m.citizenship_number">{{ t('common.id') }}: {{ m.citizenship_number }}</span>
                   </div>
                   <ion-badge color="warning" *ngIf="m.is_target_group" class="target-sm">{{ m.target_group_type }}</ion-badge>
                 </div>
@@ -189,26 +189,26 @@
                 <div class="section-icon green">
                   <ion-icon name="refresh-outline"></ion-icon>
                 </div>
-                <span>Latest Renewal</span>
+                <span>{{ t('policy.latest_renewal') }}</span>
               </div>
 
               <div class="info-grid">
                 <div class="info-cell">
-                  <span class="info-label">Renewal No.</span>
+                  <span class="info-label">{{ t('policy.renewal_no') }}</span>
                   <span class="info-value">{{ policy.renewal.renewal_number }}</span>
                 </div>
                 <div class="info-cell">
-                  <span class="info-label">Status</span>
+                  <span class="info-label">{{ t('common.status') }}</span>
                   <ion-badge [color]="getStatusColor(policy.renewal.status)" class="inline-badge">
                     {{ formatStatus(policy.renewal.status) }}
                   </ion-badge>
                 </div>
                 <div class="info-cell" *ngIf="policy.renewal.renewal_start">
-                  <span class="info-label">Period Start</span>
+                  <span class="info-label">{{ t('policy.period_start') }}</span>
                   <span class="info-value">{{ displayDate(policy.renewal.renewal_start, policy.renewal.renewal_start_bs) }}</span>
                 </div>
                 <div class="info-cell" *ngIf="policy.renewal.renewal_end">
-                  <span class="info-label">Period End</span>
+                  <span class="info-label">{{ t('policy.period_end') }}</span>
                   <span class="info-value">{{ displayDate(policy.renewal.renewal_end, policy.renewal.renewal_end_bs) }}</span>
                 </div>
               </div>
@@ -222,7 +222,7 @@
                 <div class="section-icon green">
                   <ion-icon name="document-text-outline"></ion-icon>
                 </div>
-                <span>Enrollment History</span>
+                <span>{{ t('policy.enrollment_history') }}</span>
               </div>
 
               <div class="history-list">
@@ -243,8 +243,8 @@
         <ng-template #noPolicy>
           <div class="empty-state ion-text-center">
             <ion-icon name="shield-checkmark-outline" class="empty-icon"></ion-icon>
-            <h3>No Active Policy</h3>
-            <p>You don't have an active policy yet.</p>
+            <h3>{{ t('policy.no_active') }}</h3>
+            <p>{{ t('policy.no_active_message') }}</p>
           </div>
         </ng-template>
       </div>

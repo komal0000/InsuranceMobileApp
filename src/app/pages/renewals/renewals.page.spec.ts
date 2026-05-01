@@ -6,6 +6,12 @@ describe('RenewalsPage', () => {
     const api = jasmine.createSpyObj('ApiService', ['get', 'post', 'postFormData']);
     api.get.and.returnValue(of({ success: true, data: { data: [], last_page: 1 } }));
     const router = jasmine.createSpyObj('Router', ['navigateByUrl']);
+    const languageService = {
+      t: (key: string) => key,
+      label: (_namespace: string, value: string) => value,
+      formatNumber: (value: unknown) => String(value ?? 0),
+      translateText: (value?: string) => value || '',
+    };
 
     const page = new RenewalsPage(
       api,
@@ -13,7 +19,8 @@ describe('RenewalsPage', () => {
       { getCurrentUser: () => ({ role }) } as any,
       {} as any,
       router,
-      {} as any
+      {} as any,
+      languageService as any
     );
 
     return { page, router };

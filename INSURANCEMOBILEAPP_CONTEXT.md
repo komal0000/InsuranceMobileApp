@@ -1,6 +1,6 @@
 # InsuranceMobileApp Current Context
 
-Last updated: 2026-04-30
+Last updated: 2026-05-01
 
 This file captures the current Ionic/Angular state so future conversations do not need to rediscover the mobile app.
 
@@ -155,10 +155,12 @@ Family members:
 - The lightweight translation system uses `LanguageService`, `TranslatePipe`, and the dictionaries under `src\app\i18n`.
 - Login, register, dashboard, enrollments, enrollment detail, and enrollment wizard step titles/messages now resolve through `LanguageService`/`TranslatePipe` instead of relying only on DOM phrase replacement.
 - DOM phrase translation is still started at app root for residual standalone text and Ionic-rendered content that is not yet wired directly to keys.
-- `LanguageService` now also provides locale-aware number formatting and digit localization used by mobile summaries and date displays.
+- `LanguageService` now also provides locale-aware number formatting, digit localization, `translateText()` for backend/display messages, `label()` for enum-like values, and residual DOM attribute translation for `placeholder`, `title`, `aria-label`, `label`, and `alt`.
 - `DateService` display helpers now localize BS dates and time digits in Nepali mode.
 - `BsDatePickerComponent` now renders Nepali labels and Devanagari digits in Nepali mode.
 - Nepali text-entry fields using `appNepaliInput` now use the phonetic `TransliterateService` on committed Ionic input values instead of the `nepalify` keyboard-layout formatter; examples covered include `Komal Shrestha`, `Ram`, and `Shrestha`.
+- As of 2026-05-01, the remaining high-traffic mobile UI was moved to keyed translations or locale helpers: home, tabs, login/register/forgot password, profile, dashboard labels, enrollment list/detail/wizard, policy, payments, payment result, notifications, subsidies, renewal search, renewals, and renewal detail.
+- A static scan of mobile HTML templates on 2026-05-01 found no unmatched static user-facing English text/placeholder/title/aria-label/alt strings outside keyed translation bindings or dictionary-backed residual translations.
 
 ## Geo Loading Cache
 - `src\app\services\geo.service.ts` has in-session caching using shared observable behavior for repeated geo calls.
@@ -230,6 +232,21 @@ Result:
   - updated login/register/dashboard specs
 - Existing SCSS budget warning remains for `src/app/pages/renewals/renewals.page.scss`.
 - `npm test` is still blocked locally because Karma cannot spawn ChromeHeadless (`spawn EPERM`) before executing browser tests.
+
+Additional full mobile Nepali localization verification on 2026-05-01:
+```powershell
+cd C:\Insurance\InsuranceMobileApp
+npx tsc -p tsconfig.spec.json --noEmit
+npm test -- --watch=false --browsers=ChromeHeadless
+npm run build
+```
+
+Result:
+- `npx tsc -p tsconfig.spec.json --noEmit` passes.
+- `npm test -- --watch=false --browsers=ChromeHeadless` passes: `35 SUCCESS`.
+- `npm run build` passes.
+- Existing SCSS budget warning remains for `src/app/pages/renewals/renewals.page.scss`.
+- Static HTML localization scan reports: `No unmatched static HTML user-facing English strings found.`
 
 ## Deployment Notes
 - Environment API URL is configured in:

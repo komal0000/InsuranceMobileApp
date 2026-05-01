@@ -16,6 +16,7 @@ import { timer, switchMap, takeWhile, tap } from 'rxjs';
 import { PaymentService } from '../../services/payment.service';
 import { ApiResponse } from '../../interfaces/api-response.interface';
 import { PaymentStatusResponse } from '../../interfaces/payment.interface';
+import { LanguageService } from '../../services/language.service';
 
 interface GatewayOption {
   key: 'khalti' | 'esewa' | 'ips';
@@ -68,6 +69,7 @@ export class PaymentPage implements OnInit {
     private paymentSvc: PaymentService,
     private toastCtrl: ToastController,
     private alertCtrl: AlertController,
+    private languageService: LanguageService,
   ) {
     addIcons({
       walletOutline, cardOutline, cashOutline, checkmarkCircleOutline,
@@ -119,10 +121,10 @@ export class PaymentPage implements OnInit {
           if (url && url.trim() !== '' && referenceId.length > 0) {
             await this.openGatewayUrl(url, referenceId);
           } else {
-            this.showToast('Invalid gateway response.', 'danger');
+            this.showToast(this.t('payment.invalid_gateway'), 'danger');
           }
         } else {
-          this.showToast(res.message || 'Failed to initiate payment.', 'danger');
+          this.showToast(res.message || this.t('payment.initiate_failed'), 'danger');
         }
       },
       error: (err) => {
@@ -131,7 +133,7 @@ export class PaymentPage implements OnInit {
         const detail = gatewayErr
           ? ' (' + (gatewayErr.detail || gatewayErr.return_url?.[0] || gatewayErr.website_url?.[0] || gatewayErr.amount?.[0] || JSON.stringify(gatewayErr)) + ')'
           : '';
-        this.showToast((err?.error?.message || 'Payment initiation failed.') + detail, 'danger');
+        this.showToast((err?.error?.message || this.t('payment.initiation_failed')) + detail, 'danger');
       },
     });
   }
@@ -231,11 +233,11 @@ export class PaymentPage implements OnInit {
 
   private async showFailedAlert() {
     const alert = await this.alertCtrl.create({
-      header: 'Payment Failed',
-      message: 'The payment was not verified by the gateway. You can try again.',
+      header: this.t('payment.failed'),
+      message: this.t('payment.failed_alert'),
       buttons: [
-        { text: 'Go Back', role: 'cancel', handler: () => this.router.navigateByUrl('/tabs/dashboard') },
-        { text: 'Retry', handler: () => { this.paymentStatus = null; this.selectedGateway = null; } },
+        { text: this.t('common.go_back'), role: 'cancel', handler: () => this.router.navigateByUrl('/tabs/dashboard') },
+        { text: this.t('common.retry'), handler: () => { this.paymentStatus = null; this.selectedGateway = null; } },
       ],
     });
     await alert.present();
@@ -243,18 +245,30 @@ export class PaymentPage implements OnInit {
 
   private async showTimeoutAlert(referenceId: string) {
     const alert = await this.alertCtrl.create({
-      header: 'Payment Status Pending',
-      message: 'We could not confirm your payment yet. It may take a moment. You can check again later.',
+      header: this.t('payment.status_pending'),
+      message: this.t('payment.pending_alert'),
       buttons: [
-        { text: 'OK', handler: () => this.router.navigateByUrl('/tabs/dashboard') },
-        { text: 'Check Again', handler: () => this.startPolling(referenceId) },
+        { text: this.t('common.ok'), handler: () => this.router.navigateByUrl('/tabs/dashboard') },
+        { text: this.t('common.check_again'), handler: () => this.startPolling(referenceId) },
       ],
     });
     await alert.present();
   }
 
   private async showToast(message: string, color: string) {
-    const toast = await this.toastCtrl.create({ message, color, duration: 3000, position: 'top' });
+    const toast = await this.toastCtrl.create({ message: this.languageService.translateText(message), color, duration: 3000, position: 'top' });
     await toast.present();
+  }
+
+  t(key: string): string {
+    return this.languageService.t(key);
+  }
+
+  formatNumber(value: string | number | null | undefined, decimals = 0): string {
+    return this.languageService.formatNumber(value, decimals);
+  }
+
+  formatCurrency(value: string | number | null | undefined, decimals = 0): string {
+    return `${this.t('common.currency')} ${this.languageService.formatNumber(value ?? 0, decimals)}`;
   }
 }

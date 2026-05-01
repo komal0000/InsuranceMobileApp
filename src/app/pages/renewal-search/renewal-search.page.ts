@@ -13,6 +13,7 @@ import { searchOutline, arrowForwardOutline } from 'ionicons/icons';
 import { ApiService } from '../../services/api.service';
 import { AuthService } from '../../services/auth.service';
 import { ApiResponse } from '../../interfaces/api-response.interface';
+import { LanguageService } from '../../services/language.service';
 
 @Component({
   selector: 'app-renewal-search',
@@ -37,7 +38,8 @@ export class RenewalSearchPage {
     private api: ApiService,
     private router: Router,
     private toastCtrl: ToastController,
-    private authService: AuthService
+    private authService: AuthService,
+    private languageService: LanguageService
   ) {
     addIcons({ searchOutline, arrowForwardOutline });
     const role = this.authService.getCurrentUser()?.role || '';
@@ -66,12 +68,16 @@ export class RenewalSearchPage {
       next: async (res) => {
         if (res.success) {
           const toast = await this.toastCtrl.create({
-            message: 'Renewal initiated', duration: 1500, color: 'success', position: 'top',
+            message: this.t('renewals.initiated'), duration: 1500, color: 'success', position: 'top',
           });
           await toast.present();
           this.router.navigateByUrl(`/renewal-detail/${res.data.id}`);
         }
       },
     });
+  }
+
+  t(key: string): string {
+    return this.languageService.t(key);
   }
 }

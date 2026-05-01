@@ -179,7 +179,7 @@ export class DashboardPage implements OnInit, OnDestroy {
   }
 
   formatRole(role?: string): string {
-    return (role || '').replace(/_/g, ' ');
+    return this.languageService.label('roles', role);
   }
 
   t(key: string): string {

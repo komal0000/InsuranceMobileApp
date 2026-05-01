@@ -13,6 +13,7 @@ import { ApiService } from '../../services/api.service';
 import { AppSyncEvent, AppSyncService } from '../../services/app-sync.service';
 import { PushNotificationService } from '../../services/push-notification.service';
 import { DateService } from '../../services/date.service';
+import { LanguageService } from '../../services/language.service';
 import { ApiResponse, PaginatedData } from '../../interfaces/api-response.interface';
 import { AppNotification } from '../../interfaces/notification.interface';
 
@@ -40,7 +41,8 @@ export class NotificationsPage implements OnInit, OnDestroy, ViewDidEnter {
     private api: ApiService,
     private syncService: AppSyncService,
     private pushService: PushNotificationService,
-    private dateService: DateService
+    private dateService: DateService,
+    private languageService: LanguageService
   ) {
     addIcons({ notificationsOutline, mailOpenOutline, mailOutline, checkmarkDoneOutline });
   }
@@ -134,6 +136,10 @@ export class NotificationsPage implements OnInit, OnDestroy, ViewDidEnter {
 
   displayDateTime(adDate?: string | null, bsDate?: string | null): string {
     return this.dateService.formatDateTimeForDisplay(adDate, bsDate) || '';
+  }
+
+  t(key: string): string {
+    return this.languageService.t(key);
   }
 
   private reloadFirstPage(): void {

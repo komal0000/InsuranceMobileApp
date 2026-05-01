@@ -3,7 +3,7 @@
         <ion-buttons slot="start">
           <ion-back-button defaultHref="/tabs/renewals"></ion-back-button>
         </ion-buttons>
-        <ion-title>Renewal Detail</ion-title>
+        <ion-title>{{ t('renewal_detail.title') }}</ion-title>
       </ion-toolbar>
     </ion-header>
 
@@ -16,8 +16,8 @@
         <!-- Status Banner -->
         <div class="status-banner">
           <div class="banner-left">
-            <span class="renewal-number">{{ renewal.renewal_number || 'Renewal #' + renewal.id }}</span>
-            <span class="renewal-date">Created {{ displayDate(renewal.created_at) }}</span>
+            <span class="renewal-number">{{ renewal.renewal_number || t('renewal_detail.number_prefix') + renewal.id }}</span>
+            <span class="renewal-date">{{ t('renewal_detail.created') }} {{ displayDate(renewal.created_at) }}</span>
           </div>
           <ion-badge [color]="getStatusColor(renewal.status)">{{ formatStatus(renewal.status) }}</ion-badge>
         </div>
@@ -29,32 +29,32 @@
               <div class="section-icon" style="background: rgba(40,167,69,0.1);">
                 <ion-icon name="wallet-outline" style="color: #28a745;"></ion-icon>
               </div>
-              <h3>Premium Summary</h3>
+              <h3>{{ t('renewal_detail.premium_summary') }}</h3>
             </div>
 
             <div class="premium-details">
               <div class="premium-row">
-                <span>Total Members</span>
-                <strong>{{ renewal.total_members || 0 }}</strong>
+                <span>{{ t('renewals.total_members') }}</span>
+                <strong>{{ formatNumber(renewal.total_members || 0) }}</strong>
               </div>
               <div class="premium-row">
-                <span>Base Premium</span>
-                <strong>NPR {{ (renewal.premium_amount || 0) | number:'1.2-2' }}</strong>
+                <span>{{ t('renewal_detail.base_premium') }}</span>
+                <strong>{{ formatCurrency(renewal.premium_amount || 0) }}</strong>
               </div>
               <div class="premium-row" *ngIf="(renewal.penalty_amount ?? 0) > 0">
-                <span>Late Penalty</span>
-                <strong style="color: #dc3545;">+ NPR {{ renewal.penalty_amount | number:'1.2-2' }}</strong>
+                <span>{{ t('renewal_detail.late_penalty') }}</span>
+                <strong style="color: #dc3545;">+ {{ formatCurrency(renewal.penalty_amount) }}</strong>
               </div>
               <div class="premium-row premium-total">
-                <span>Amount to Pay</span>
-                <strong *ngIf="!isFreeRenewal">NPR {{ (renewal.final_amount || 0) | number:'1.2-2' }}</strong>
-                <ion-badge color="success" *ngIf="isFreeRenewal">FREE (Targeted Group)</ion-badge>
+                <span>{{ t('renewal_detail.amount_to_pay') }}</span>
+                <strong *ngIf="!isFreeRenewal">{{ formatCurrency(renewal.final_amount || 0) }}</strong>
+                <ion-badge color="success" *ngIf="isFreeRenewal">{{ t('renewal_detail.free_target_group') }}</ion-badge>
               </div>
             </div>
 
             <div class="renewal-dates" *ngIf="renewal.renewal_start_date">
               <div class="premium-row">
-                <span>New Policy Period</span>
+                <span>{{ t('renewal_detail.new_policy_period') }}</span>
                 <strong>{{ displayDate(renewal.renewal_start_date, renewal.renewal_start_date_bs) }} — {{ displayDate(renewal.renewal_end_date, renewal.renewal_end_date_bs) }}</strong>
               </div>
             </div>
@@ -68,7 +68,7 @@
               <div class="section-icon" style="background: rgba(13,202,240,0.1);">
                 <ion-icon name="people-outline" style="color: #0dcaf0;"></ion-icon>
               </div>
-              <h3>Members ({{ renewal.total_members || renewalMembers.length || 0 }})</h3>
+              <h3>{{ t('renewal_detail.members') }} ({{ formatNumber(renewal.total_members || renewalMembers.length || 0) }})</h3>
             </div>
 
             <div class="member-row" *ngIf="householdHead" style="margin-bottom: 12px; border-bottom: 1px solid #eef2f7; padding-bottom: 12px;">
@@ -79,7 +79,7 @@
               <div class="member-info">
                 <strong>{{ householdHead.first_name || householdHead.name || '' }} {{ householdHead.middle_name || '' }} {{ householdHead.last_name || '' }}</strong>
                 <span class="nepali-name" *ngIf="householdHead.first_name_ne">{{ householdHead.first_name_ne }} {{ householdHead.middle_name_ne || '' }} {{ householdHead.last_name_ne || '' }}</span>
-                <span>Household Head | {{ householdHead.gender || '' }}</span>
+                <span>{{ t('common.household_head') }} | {{ label('gender', householdHead.gender) }}</span>
               </div>
             </div>
 
@@ -92,7 +92,7 @@
                 <div class="member-info">
                   <strong>{{ member.first_name || '' }} {{ member.last_name || member.full_name || '' }}</strong>
                   <span class="nepali-name" *ngIf="member.first_name_ne">{{ member.first_name_ne }} {{ member.middle_name_ne || '' }} {{ member.last_name_ne || '' }}</span>
-                  <span>{{ member.relationship_type || member.relationship || '' }} | {{ member.gender || '' }}</span>
+                  <span>{{ formatRelationship(member.relationship_type || member.relationship) }} | {{ label('gender', member.gender) }}</span>
                 </div>
                 <div class="member-actions" *ngIf="canSubmit">
                   <ion-button fill="clear" size="small" (click)="editMember(member)">
@@ -107,35 +107,35 @@
 
             <ion-button expand="block" fill="outline" (click)="showAddMember()" *ngIf="canSubmit" class="ion-margin-top">
               <ion-icon name="add-outline" slot="start"></ion-icon>
-              Add Family Member
+              {{ t('renewal_detail.add_family_member') }}
             </ion-button>
 
             <!-- Add Family Member Form -->
             <div *ngIf="showMemberForm" class="add-member-form">
               <h4 style="margin: 0 0 10px; font-weight: 700; color: #212529;">
-                {{ isEditingMember ? 'Edit Family Member' : 'Add Family Member' }}
+                {{ isEditingMember ? t('renewal_detail.edit_family_member') : t('renewal_detail.add_family_member') }}
               </h4>
 
               <div class="capture-section" style="margin-top: 0; padding-top: 0; border-top: none;">
                 <div class="capture-row">
-                  <span class="capture-label">Photo</span>
+                  <span class="capture-label">{{ t('profile.photo') }}</span>
                   <ion-button size="small" fill="outline" (click)="captureImage('photo')">
                     <ion-icon slot="start" name="camera-outline"></ion-icon>
-                    {{ memberPhotoPreview ? 'Change' : 'Capture' }}
+                    {{ memberPhotoPreview ? t('common.change') : t('common.capture') }}
                   </ion-button>
                 </div>
                 <img *ngIf="memberPhotoPreview" [src]="memberPhotoPreview" class="preview-img" />
               </div>
 
-              <h5 style="margin: 10px 0 4px; font-weight: 600; color: #495057; font-size: 0.82rem; text-transform: uppercase;">English Name</h5>
+              <h5 style="margin: 10px 0 4px; font-weight: 600; color: #495057; font-size: 0.82rem; text-transform: uppercase;">{{ t('wizard.english_name') }}</h5>
               <ion-item class="form-item">
-                <ion-input label="First Name *" labelPlacement="stacked" [(ngModel)]="newMember.first_name"></ion-input>
+                <ion-input [label]="t('wizard.first_name_required')" labelPlacement="stacked" [(ngModel)]="newMember.first_name"></ion-input>
               </ion-item>
               <ion-item class="form-item">
-                <ion-input label="Middle Name" labelPlacement="stacked" [(ngModel)]="newMember.middle_name"></ion-input>
+                <ion-input [label]="t('wizard.middle_name')" labelPlacement="stacked" [(ngModel)]="newMember.middle_name"></ion-input>
               </ion-item>
               <ion-item class="form-item">
-                <ion-input label="Last Name *" labelPlacement="stacked" [(ngModel)]="newMember.last_name"></ion-input>
+                <ion-input [label]="t('wizard.last_name_required')" labelPlacement="stacked" [(ngModel)]="newMember.last_name"></ion-input>
               </ion-item>
 
               <h5 style="margin: 10px 0 4px; font-weight: 600; color: #495057; font-size: 0.9rem;">नेपाली नाम</h5>
@@ -149,27 +149,27 @@
                 <ion-input label="थर" labelPlacement="stacked" [(ngModel)]="newMember.last_name_ne"></ion-input>
               </ion-item>
 
-              <h5 style="margin: 10px 0 4px; font-weight: 600; color: #495057; font-size: 0.82rem; text-transform: uppercase;">Personal Details</h5>
+              <h5 style="margin: 10px 0 4px; font-weight: 600; color: #495057; font-size: 0.82rem; text-transform: uppercase;">{{ t('wizard.personal_details') }}</h5>
               <ion-item class="form-item">
-                <ion-select label="Gender *" labelPlacement="stacked" [(ngModel)]="newMember.gender">
-                  <ion-select-option value="male">Male</ion-select-option>
-                  <ion-select-option value="female">Female</ion-select-option>
-                  <ion-select-option value="other">Other</ion-select-option>
+                <ion-select [label]="t('wizard.gender_required')" labelPlacement="stacked" [(ngModel)]="newMember.gender">
+                  <ion-select-option value="male">{{ t('gender.male') }}</ion-select-option>
+                  <ion-select-option value="female">{{ t('gender.female') }}</ion-select-option>
+                  <ion-select-option value="other">{{ t('gender.other') }}</ion-select-option>
                 </ion-select>
               </ion-item>
-              <app-bs-date-picker [(ngModel)]="newMember.date_of_birth" label="Date of Birth *" placeholder="Select BS date"></app-bs-date-picker>
+              <app-bs-date-picker [(ngModel)]="newMember.date_of_birth" [label]="t('wizard.date_of_birth_required')" [placeholder]="t('common.select_bs_date')"></app-bs-date-picker>
               <ion-item class="form-item">
-                <ion-select label="Relationship *" labelPlacement="stacked" [(ngModel)]="newMember.relationship">
+                <ion-select [label]="t('wizard.relationship_required')" labelPlacement="stacked" [(ngModel)]="newMember.relationship">
                   <ion-select-option *ngFor="let option of availableMemberRelationshipOptions" [value]="option.value">
-                    {{ option.label }}
+                    {{ formatRelationship(option.value) }}
                   </ion-select-option>
                 </ion-select>
               </ion-item>
               <p *ngIf="isHeadSingle" style="margin:2px 4px 8px;color:#6c757d;font-size:0.75rem;">
-                Spouse, son, and daughter options are hidden because household head marital status is single.
+                {{ t('wizard.relationship_single_notice') }}
               </p>
               <ion-item class="form-item">
-                <ion-select label="Blood Group" labelPlacement="stacked" [(ngModel)]="newMember.blood_group">
+                <ion-select [label]="t('wizard.blood_group')" labelPlacement="stacked" [(ngModel)]="newMember.blood_group">
                   <ion-select-option value="A+">A+</ion-select-option>
                   <ion-select-option value="A-">A-</ion-select-option>
                   <ion-select-option value="B+">B+</ion-select-option>
@@ -181,43 +181,43 @@
                 </ion-select>
               </ion-item>
               <ion-item class="form-item">
-                <ion-select label="Marital Status" labelPlacement="stacked" [(ngModel)]="newMember.marital_status">
-                  <ion-select-option value="single">Single</ion-select-option>
-                  <ion-select-option value="married">Married</ion-select-option>
-                  <ion-select-option value="divorced">Divorced</ion-select-option>
-                  <ion-select-option value="widowed">Widowed</ion-select-option>
+                <ion-select [label]="t('wizard.marital_status')" labelPlacement="stacked" [(ngModel)]="newMember.marital_status">
+                  <ion-select-option value="single">{{ t('marital.single') }}</ion-select-option>
+                  <ion-select-option value="married">{{ t('marital.married') }}</ion-select-option>
+                  <ion-select-option value="divorced">{{ t('marital.divorced') }}</ion-select-option>
+                  <ion-select-option value="widowed">{{ t('marital.widowed') }}</ion-select-option>
                 </ion-select>
               </ion-item>
               <ion-item class="form-item">
-                <ion-input label="Mobile Number" labelPlacement="stacked" type="tel" maxlength="10" minlength="10" [(ngModel)]="newMember.mobile_number"></ion-input>
+                <ion-input [label]="t('profile.mobile_number')" labelPlacement="stacked" type="tel" maxlength="10" minlength="10" [(ngModel)]="newMember.mobile_number"></ion-input>
               </ion-item>
               <ion-item class="form-item">
-                <ion-input label="Email" labelPlacement="stacked" type="email" [(ngModel)]="newMember.email"></ion-input>
+                <ion-input [label]="t('profile.email')" labelPlacement="stacked" type="email" [(ngModel)]="newMember.email"></ion-input>
               </ion-item>
 
-              <h5 style="margin: 10px 0 4px; font-weight: 600; color: #495057; font-size: 0.82rem; text-transform: uppercase;">Identity Document</h5>
+              <h5 style="margin: 10px 0 4px; font-weight: 600; color: #495057; font-size: 0.82rem; text-transform: uppercase;">{{ t('wizard.identity_document') }}</h5>
               <ion-item class="form-item">
-                <ion-select label="Document Type" labelPlacement="stacked" [(ngModel)]="newMember.document_type">
-                  <ion-select-option value="citizenship">Citizenship Certificate</ion-select-option>
-                  <ion-select-option value="birth_certificate">Birth Certificate</ion-select-option>
+                <ion-select [label]="t('wizard.document_type')" labelPlacement="stacked" [(ngModel)]="newMember.document_type">
+                  <ion-select-option value="citizenship">{{ t('wizard.citizenship_certificate') }}</ion-select-option>
+                  <ion-select-option value="birth_certificate">{{ t('wizard.birth_certificate') }}</ion-select-option>
                 </ion-select>
               </ion-item>
 
               <div *ngIf="newMember.document_type === 'citizenship'">
                 <ion-item class="form-item">
-                  <ion-input label="Citizenship Number" labelPlacement="stacked" [(ngModel)]="newMember.citizenship_number"></ion-input>
+                  <ion-input [label]="t('wizard.citizenship_number')" labelPlacement="stacked" [(ngModel)]="newMember.citizenship_number"></ion-input>
                 </ion-item>
-                <app-bs-date-picker [(ngModel)]="newMember.citizenship_issue_date" label="Citizenship Issue Date" placeholder="Select BS date"></app-bs-date-picker>
+                <app-bs-date-picker [(ngModel)]="newMember.citizenship_issue_date" [label]="t('wizard.citizenship_issue_date')" [placeholder]="t('common.select_bs_date')"></app-bs-date-picker>
                 <ion-item class="form-item">
-                  <ion-input label="Citizenship Issue District" labelPlacement="stacked" [(ngModel)]="newMember.citizenship_issue_district"></ion-input>
+                  <ion-input [label]="t('wizard.citizenship_issue_district')" labelPlacement="stacked" [(ngModel)]="newMember.citizenship_issue_district"></ion-input>
                 </ion-item>
 
                 <div class="capture-section">
                   <div class="capture-row">
-                    <span class="capture-label">Citizenship Front</span>
+                    <span class="capture-label">{{ t('wizard.citizenship_front') }}</span>
                     <ion-button size="small" fill="outline" (click)="captureImage('citizenship_front_image')">
                       <ion-icon slot="start" name="camera-outline"></ion-icon>
-                      {{ memberCitizenshipFrontPreview ? 'Change' : 'Capture' }}
+                      {{ memberCitizenshipFrontPreview ? t('common.change') : t('common.capture') }}
                     </ion-button>
                   </div>
                   <img *ngIf="memberCitizenshipFrontPreview" [src]="memberCitizenshipFrontPreview" class="preview-img" />
@@ -225,10 +225,10 @@
 
                 <div class="capture-section">
                   <div class="capture-row">
-                    <span class="capture-label">Citizenship Back</span>
+                    <span class="capture-label">{{ t('wizard.citizenship_back') }}</span>
                     <ion-button size="small" fill="outline" (click)="captureImage('citizenship_back_image')">
                       <ion-icon slot="start" name="camera-outline"></ion-icon>
-                      {{ memberCitizenshipBackPreview ? 'Change' : 'Capture' }}
+                      {{ memberCitizenshipBackPreview ? t('common.change') : t('common.capture') }}
                     </ion-button>
                   </div>
                   <img *ngIf="memberCitizenshipBackPreview" [src]="memberCitizenshipBackPreview" class="preview-img" />
@@ -237,16 +237,16 @@
 
               <div *ngIf="newMember.document_type === 'birth_certificate'">
                 <ion-item class="form-item">
-                  <ion-input label="Birth Certificate Number" labelPlacement="stacked" [(ngModel)]="newMember.birth_certificate_number"></ion-input>
+                  <ion-input [label]="t('wizard.birth_certificate_number')" labelPlacement="stacked" [(ngModel)]="newMember.birth_certificate_number"></ion-input>
                 </ion-item>
-                <app-bs-date-picker [(ngModel)]="newMember.birth_certificate_issue_date" label="Birth Certificate Issue Date" placeholder="Select BS date"></app-bs-date-picker>
+                <app-bs-date-picker [(ngModel)]="newMember.birth_certificate_issue_date" [label]="t('wizard.birth_certificate_issue_date')" [placeholder]="t('common.select_bs_date')"></app-bs-date-picker>
 
                 <div class="capture-section">
                   <div class="capture-row">
-                    <span class="capture-label">Birth Certificate Front</span>
+                    <span class="capture-label">{{ t('wizard.birth_certificate_front') }}</span>
                     <ion-button size="small" fill="outline" (click)="captureImage('birth_certificate_front_image')">
                       <ion-icon slot="start" name="camera-outline"></ion-icon>
-                      {{ memberBirthCertFrontPreview ? 'Change' : 'Capture' }}
+                      {{ memberBirthCertFrontPreview ? t('common.change') : t('common.capture') }}
                     </ion-button>
                   </div>
                   <img *ngIf="memberBirthCertFrontPreview" [src]="memberBirthCertFrontPreview" class="preview-img" />
@@ -254,10 +254,10 @@
 
                 <div class="capture-section">
                   <div class="capture-row">
-                    <span class="capture-label">Birth Certificate Back</span>
+                    <span class="capture-label">{{ t('wizard.birth_certificate_back') }}</span>
                     <ion-button size="small" fill="outline" (click)="captureImage('birth_certificate_back_image')">
                       <ion-icon slot="start" name="camera-outline"></ion-icon>
-                      {{ memberBirthCertBackPreview ? 'Change' : 'Capture' }}
+                      {{ memberBirthCertBackPreview ? t('common.change') : t('common.capture') }}
                     </ion-button>
                   </div>
                   <img *ngIf="memberBirthCertBackPreview" [src]="memberBirthCertBackPreview" class="preview-img" />
@@ -267,9 +267,9 @@
               <div class="btn-row">
                 <ion-button expand="block" (click)="saveMember()" [disabled]="savingMember || !newMember.first_name || !newMember.last_name || !newMember.gender || !newMember.date_of_birth || !newMember.relationship">
                   <ion-spinner *ngIf="savingMember" name="crescent" slot="start"></ion-spinner>
-                  {{ isEditingMember ? 'Update Member' : 'Save Member' }}
+                  {{ isEditingMember ? t('renewal_detail.update_member') : t('renewals.save_member') }}
                 </ion-button>
-                <ion-button expand="block" fill="outline" color="medium" (click)="cancelMemberForm()">Cancel</ion-button>
+                <ion-button expand="block" fill="outline" color="medium" (click)="cancelMemberForm()">{{ t('common.cancel') }}</ion-button>
               </div>
             </div>
           </ion-card-content>
@@ -281,14 +281,14 @@
           <ion-button expand="block" color="success" (click)="submitRenewal()" *ngIf="isFreeRenewal" [disabled]="submitting">
             <ion-spinner *ngIf="submitting" name="crescent" slot="start"></ion-spinner>
             <ion-icon name="shield-checkmark-outline" slot="start" *ngIf="!submitting"></ion-icon>
-            {{ submitting ? 'Processing...' : 'Complete Free Renewal' }}
+            {{ submitting ? t('payment.processing') : t('renewal_detail.complete_free') }}
           </ion-button>
 
           <!-- Paid Renewal -->
           <ion-button expand="block" color="success" (click)="submitRenewal()" *ngIf="!isFreeRenewal" [disabled]="submitting">
             <ion-spinner *ngIf="submitting" name="crescent" slot="start"></ion-spinner>
             <ion-icon name="wallet-outline" slot="start" *ngIf="!submitting"></ion-icon>
-            {{ submitting ? 'Processing...' : 'Pay NPR ' + ((renewal.final_amount || 0) | number:'1.0-0') + ' & Submit' }}
+            {{ submitting ? t('payment.processing') : paySubmitLabel(renewal.final_amount || 0) }}
           </ion-button>
         </div>
 
@@ -296,14 +296,14 @@
         <div class="action-section" *ngIf="canPay">
           <ion-button expand="block" color="warning" (click)="goToPay()">
             <ion-icon name="wallet-outline" slot="start"></ion-icon>
-            Pay NPR {{ (renewal.final_amount || 0) | number:'1.0-0' }} to Complete Renewal
+            {{ payCompleteLabel(renewal.final_amount || 0) }}
           </ion-button>
         </div>
 
         <!-- Completed Banner -->
         <div class="completed-banner" *ngIf="renewal.status === 'completed'">
           <ion-icon name="checkmark-circle-outline" color="success"></ion-icon>
-          <span>Renewal Completed</span>
+          <span>{{ t('renewal_detail.completed') }}</span>
         </div>
       </div>
     </ion-content>

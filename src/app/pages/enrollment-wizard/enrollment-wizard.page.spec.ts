@@ -8,6 +8,10 @@ describe('EnrollmentWizardPage', () => {
       currentLanguage: language,
       language$: of(language),
       t: (key: string) => key,
+      translateText: (value?: string) => value || '',
+      label: (_namespace: string, _value?: string, fallback?: string) => fallback || '',
+      formatNumber: (value?: string | number) => String(value ?? ''),
+      localizeDigits: (value?: string | number) => String(value ?? ''),
     };
   }
 
@@ -195,6 +199,10 @@ describe('EnrollmentWizardPage', () => {
       currentLanguage: 'ne',
       language$: of('ne'),
       t: (key: string) => `translated:${key}`,
+      translateText: (value?: string) => value || '',
+      label: (_namespace: string, _value?: string, fallback?: string) => fallback || '',
+      formatNumber: (value?: string | number) => String(value ?? ''),
+      localizeDigits: (value?: string | number) => String(value ?? ''),
     };
 
     const page = createPage({ languageService: localizedLanguageService });

@@ -11,6 +11,55 @@ import { NE_TRANSLATIONS } from '../i18n/ne';
 export type AppLanguage = 'en' | 'ne';
 
 const LANGUAGE_KEY = 'preferred_language';
+const NEPALI_DIGITS = '०१२३४५६७८९';
+
+const DYNAMIC_PHRASE_REPLACEMENTS: Array<[string, string]> = [
+  ['Health Insurance Board, Nepal', 'स्वास्थ्य बीमा बोर्ड, नेपाल'],
+  ['All rights reserved.', 'सर्वाधिकार सुरक्षित।'],
+  ['Password confirmation does not match.', 'पासवर्ड पुष्टि मेल खाएन।'],
+  ['Please sign in.', 'कृपया लगइन गर्नुहोस्।'],
+  ['Payment Result', 'भुक्तानी परिणाम'],
+  ['Payment Successful!', 'भुक्तानी सफल भयो!'],
+  ['Payment Failed', 'भुक्तानी असफल भयो'],
+  ['Payment Status Pending', 'भुक्तानी स्थिति बाँकी छ'],
+  ['Status Pending', 'स्थिति बाँकी छ'],
+  ['Processing...', 'प्रक्रिया हुँदैछ...'],
+  ['Redirecting...', 'अगाडि बढाइँदैछ...'],
+  ['Checking with gateway', 'भुक्तानी माध्यमसँग जाँच हुँदैछ'],
+  ['Verifying payment...', 'भुक्तानी प्रमाणीकरण हुँदैछ...'],
+  ['Proceed to Pay', 'भुक्तानी गर्न अगाडि बढ्नुहोस्'],
+  ['Select Payment Gateway', 'भुक्तानी माध्यम छान्नुहोस्'],
+  ['Premium Amount', 'प्रिमियम रकम'],
+  ['Policy:', 'पोलिसी:'],
+  ['Policy Renewal', 'पोलिसी नवीकरण'],
+  ['New Policy', 'नयाँ पोलिसी'],
+  ['New Enrollment', 'नयाँ नामांकन'],
+  ['Renewal #', 'नवीकरण #'],
+  ['Enrollment #', 'नामांकन #'],
+  ['Subsidy #', 'अनुदान #'],
+  ['Draft #', 'मस्यौदा #'],
+  ['HIB #', 'HIB #'],
+  ['Txn:', 'कारोबार:'],
+  ['Ref:', 'सन्दर्भ:'],
+  ['DOB:', 'जन्म मिति:'],
+  ['ID:', 'आईडी:'],
+  ['Age', 'उमेर'],
+  ['yrs', 'वर्ष'],
+  ['years', 'वर्ष'],
+  ['Days Left', 'दिन बाँकी'],
+  ['Expired', 'म्याद सकिएको'],
+  ['Members', 'सदस्यहरू'],
+  ['Member', 'सदस्य'],
+  ['Head', 'घरमूली'],
+  ['FREE (Targeted Group)', 'निःशुल्क (लक्षित समूह)'],
+  ['FREE', 'निःशुल्क'],
+  ['Targeted Group', 'लक्षित समूह'],
+  ['Reason:', 'कारण:'],
+  ['Discount:', 'छुट:'],
+  ['rule(s) matched', 'नियम मिल्यो'],
+  ['Pending Verification', 'प्रमाणीकरण बाँकी'],
+  ['Verified - Awaiting Approval', 'प्रमाणित - स्वीकृति बाँकी'],
+];
 
 @Injectable({ providedIn: 'root' })
 export class LanguageService {
@@ -97,7 +146,7 @@ export class LanguageService {
       return source;
     }
 
-    return source.replace(/\d/g, (digit) => '०१२३४५६७८९'[Number(digit)] ?? digit);
+    return source.replace(/\d/g, (digit) => NEPALI_DIGITS[Number(digit)] ?? digit);
   }
 
   formatNumber(value: string | number | null | undefined, decimals = 0): string {
@@ -111,10 +160,35 @@ export class LanguageService {
     }
 
     const locale = this.currentLanguage === 'ne' ? 'ne-NP-u-nu-deva' : 'en-US';
-    return new Intl.NumberFormat(locale, {
+    const formatted = new Intl.NumberFormat(locale, {
       minimumFractionDigits: decimals,
       maximumFractionDigits: decimals,
     }).format(numeric);
+
+    return this.currentLanguage === 'ne' ? this.localizeDigits(formatted) : formatted;
+  }
+
+  translateText(value: string | null | undefined): string {
+    if (!value) {
+      return '';
+    }
+
+    return this.translateString(value);
+  }
+
+  label(namespace: string, value: string | null | undefined, fallback?: string): string {
+    const normalized = this.normalizeKey(value);
+    if (!normalized) {
+      return fallback ? this.translateText(fallback) : '';
+    }
+
+    const key = `${namespace}.${normalized}`;
+    const currentMap = this.getTranslationMap(this.currentLanguage);
+    if (currentMap[key] || EN_TRANSLATIONS[key]) {
+      return this.t(key);
+    }
+
+    return this.translateText(fallback ?? this.humanize(normalized));
   }
 
   startDomTranslator(): void {
@@ -130,7 +204,7 @@ export class LanguageService {
       subtree: true,
       characterData: true,
       attributes: true,
-      attributeFilter: ['placeholder', 'title', 'aria-label', 'label'],
+      attributeFilter: ['placeholder', 'title', 'aria-label', 'label', 'alt'],
     });
   }
 
@@ -175,7 +249,7 @@ export class LanguageService {
   }
 
   private translateAttributes(element: Element): void {
-    const tracked = ['placeholder', 'title', 'aria-label', 'label'];
+    const tracked = ['placeholder', 'title', 'aria-label', 'label', 'alt'];
     const originals = this.attributeOriginals.get(element) ?? {};
 
     tracked.forEach(attribute => {
@@ -205,13 +279,40 @@ export class LanguageService {
     const leading = value.match(/^\s*/)?.[0] ?? '';
     const trailing = value.match(/\s*$/)?.[0] ?? '';
     const normalized = this.normalizePhrase(value);
-    const translated = NE_TRANSLATIONS[normalized];
+    const translated = NE_TRANSLATIONS[normalized] ?? this.translateDynamicPhrase(normalized);
 
-    return translated ? `${leading}${translated}${trailing}` : value;
+    return translated ? `${leading}${this.localizeDigits(translated)}${trailing}` : this.localizeDigits(value);
+  }
+
+  private translateDynamicPhrase(value: string): string | null {
+    let translated = value;
+
+    for (const [english, nepali] of DYNAMIC_PHRASE_REPLACEMENTS) {
+      translated = translated.replace(new RegExp(this.escapeRegExp(english), 'g'), nepali);
+    }
+
+    translated = translated
+      .replace(/\bNPR\b/g, 'रु.')
+      .replace(/\bRs\./g, 'रु.')
+      .replace(/\bOK\b/g, 'ठिक छ');
+
+    return translated !== value ? translated : null;
   }
 
   private normalizePhrase(value: string): string {
     return value.trim().replace(/\s+/g, ' ');
+  }
+
+  private normalizeKey(value?: string | null): string {
+    return (value || '').trim().toLowerCase().replace(/[\s-]+/g, '_');
+  }
+
+  private humanize(value: string): string {
+    return value.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  }
+
+  private escapeRegExp(value: string): string {
+    return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   }
 
   private getTranslationMap(language: AppLanguage): Record<string, string> {

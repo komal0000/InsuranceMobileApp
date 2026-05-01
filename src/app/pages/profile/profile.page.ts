@@ -19,6 +19,7 @@ import { DateService } from '../../services/date.service';
 import { ApiResponse } from '../../interfaces/api-response.interface';
 import { User, ProfileUpdateRequest, ChangePasswordRequest } from '../../interfaces/user.interface';
 import { BsDatePickerComponent } from '../../components/bs-date-picker/bs-date-picker.component';
+import { LanguageService } from '../../services/language.service';
 
 @Component({
   selector: 'app-profile',
@@ -50,7 +51,8 @@ export class ProfilePage implements OnInit {
     private router: Router,
     private toastCtrl: ToastController,
     private alertCtrl: AlertController,
-    private actionSheetCtrl: ActionSheetController
+    private actionSheetCtrl: ActionSheetController,
+    private languageService: LanguageService
   ) {
     addIcons({
       personCircleOutline, logOutOutline, keyOutline, createOutline,
@@ -98,7 +100,7 @@ export class ProfilePage implements OnInit {
       if (file) {
         if (file.size > 2 * 1024 * 1024) {
           this.toastCtrl.create({
-            message: 'Image must be less than 2MB', duration: 2000, color: 'warning', position: 'top',
+            message: this.t('Image must be less than 2MB'), duration: 2000, color: 'warning', position: 'top',
           }).then(t => t.present());
           return;
         }
@@ -119,7 +121,7 @@ export class ProfilePage implements OnInit {
           this.user.profile_image = res.data.profile_image;
           this.authService.fetchProfile().subscribe();
           const toast = await this.toastCtrl.create({
-            message: 'Profile image updated', duration: 1500, color: 'success', position: 'top',
+            message: this.t('profile.image_updated'), duration: 1500, color: 'success', position: 'top',
           });
           await toast.present();
         }
@@ -127,7 +129,7 @@ export class ProfilePage implements OnInit {
       error: async () => {
         this.uploadingImage = false;
         const toast = await this.toastCtrl.create({
-          message: 'Failed to upload image', duration: 2000, color: 'danger', position: 'top',
+          message: this.t('profile.image_failed'), duration: 2000, color: 'danger', position: 'top',
         });
         await toast.present();
       },
@@ -137,7 +139,7 @@ export class ProfilePage implements OnInit {
   async saveProfile() {
     if (this.profileData.mobile_number && !/^\d{10}$/.test(this.profileData.mobile_number)) {
       const toast = await this.toastCtrl.create({
-        message: 'Mobile number must be exactly 10 digits', duration: 2000, color: 'warning', position: 'top',
+        message: this.t('register.mobile_digits'), duration: 2000, color: 'warning', position: 'top',
       });
       await toast.present();
       return;
@@ -156,7 +158,7 @@ export class ProfilePage implements OnInit {
             next: (u) => { this.user = u; this.resetProfileData(); },
           });
           const toast = await this.toastCtrl.create({
-            message: 'Profile updated', duration: 1500, color: 'success', position: 'top',
+            message: this.t('profile.updated'), duration: 1500, color: 'success', position: 'top',
           });
           await toast.present();
         }
@@ -168,14 +170,14 @@ export class ProfilePage implements OnInit {
   async changePassword() {
     if (!this.passwordData.current_password || !this.passwordData.password) {
       const toast = await this.toastCtrl.create({
-        message: 'Please fill in all password fields', duration: 2000, color: 'warning', position: 'top',
+        message: this.t('profile.password_fields'), duration: 2000, color: 'warning', position: 'top',
       });
       await toast.present();
       return;
     }
     if (this.passwordData.password !== this.passwordData.password_confirmation) {
       const toast = await this.toastCtrl.create({
-        message: 'Passwords do not match', duration: 2000, color: 'danger', position: 'top',
+        message: this.t('login.password_mismatch'), duration: 2000, color: 'danger', position: 'top',
       });
       await toast.present();
       return;
@@ -186,7 +188,7 @@ export class ProfilePage implements OnInit {
         this.changingPassword = false;
         this.passwordData = { current_password: '', password: '', password_confirmation: '' };
         const toast = await this.toastCtrl.create({
-          message: res.message || 'Password changed', duration: 2000, color: 'success', position: 'top',
+          message: this.languageService.translateText(res.message) || this.t('profile.password_changed'), duration: 2000, color: 'success', position: 'top',
         });
         await toast.present();
       },
@@ -196,12 +198,12 @@ export class ProfilePage implements OnInit {
 
   async logout() {
     const alert = await this.alertCtrl.create({
-      header: 'Logout',
-      message: 'Are you sure you want to logout?',
+      header: this.t('profile.logout'),
+      message: this.t('profile.logout_message'),
       buttons: [
-        { text: 'Cancel', role: 'cancel' },
+        { text: this.t('common.cancel'), role: 'cancel' },
         {
-          text: 'Logout',
+          text: this.t('profile.logout'),
           cssClass: 'danger',
           handler: () => {
             this.authService.logout().subscribe({
@@ -218,10 +220,14 @@ export class ProfilePage implements OnInit {
   }
 
   formatRole(role?: string): string {
-    return (role || '').replace(/_/g, ' ');
+    return this.languageService.label('roles', role);
   }
 
   displayDate(adDate?: string | null, bsDate?: string | null): string {
     return this.dateService.formatForDisplay(adDate, bsDate) || '';
+  }
+
+  t(key: string): string {
+    return this.languageService.t(key);
   }
 }

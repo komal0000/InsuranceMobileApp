@@ -172,7 +172,7 @@ export class EnrollmentsPage implements OnInit, OnDestroy {
         }
       },
       error: async (err) => {
-        const msg = err?.error?.message || this.t('enrollments.create_failed');
+        const msg = this.languageService.translateText(err?.error?.message) || this.t('enrollments.create_failed');
         const t = await this.toastCtrl.create({ message: msg, duration: 3000, color: 'danger', position: 'top' });
         await t.present();
       },
@@ -193,7 +193,7 @@ export class EnrollmentsPage implements OnInit, OnDestroy {
   }
 
   formatStatus(status: string): string {
-    return (status || '').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    return this.languageService.label('status', status);
   }
 
   t(key: string): string {
@@ -213,7 +213,7 @@ export class EnrollmentsPage implements OnInit, OnDestroy {
       return '';
     }
 
-    return `Rs. ${this.languageService.formatNumber(amount, 2)}`;
+    return `${this.t('common.currency')} ${this.languageService.formatNumber(amount, 2)}`;
   }
 
   displayDate(adDate?: string | null, bsDate?: string | null): string {

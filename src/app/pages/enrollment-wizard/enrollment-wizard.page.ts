@@ -477,7 +477,7 @@ export class EnrollmentWizardPage implements OnInit {
     const nin = this.nidNumber2.trim();
     if (!nin) return;
     if (nin.length < 8) {
-      this.nidMessage2 = 'Please enter a valid NID number (at least 8 characters).';
+      this.nidMessage2 = this.t('wizard.nid_invalid_length');
       return;
     }
     if (this.nidLooking2) return;
@@ -517,17 +517,17 @@ export class EnrollmentWizardPage implements OnInit {
           this.showNidGate2    = false;
         this.showToast(this.t('wizard.nid_verified'), 'success');
         } else {
-          this.nidMessage2 = res.message || 'No matching record found. Please fill the form manually.';
+          this.nidMessage2 = this.languageService.translateText(res.message) || this.t('wizard.nid_no_record');
         }
       },
       error: (err) => {
         this.nidLooking2 = false;
         if (err?.status === 404) {
-          this.nidMessage2 = 'No matching record found. Please fill the form manually.';
+          this.nidMessage2 = this.t('wizard.nid_no_record');
         } else if (err?.status === 422) {
-          this.nidMessage2 = 'Invalid NID format. Please check and try again.';
+          this.nidMessage2 = this.t('wizard.nid_invalid_format');
         } else {
-          this.nidMessage2 = 'Verification failed. Please try again or fill manually.';
+          this.nidMessage2 = this.t('wizard.nid_failed');
         }
       },
     });
@@ -586,7 +586,7 @@ export class EnrollmentWizardPage implements OnInit {
     const nin = this.nidNumberMember.trim();
     if (!nin) return;
     if (nin.length < 8) {
-      this.nidMessageMember = 'Please enter a valid NID number (at least 8 characters).';
+      this.nidMessageMember = this.t('wizard.nid_invalid_length');
       return;
     }
     if (this.nidLookingMember) return;
@@ -615,17 +615,17 @@ export class EnrollmentWizardPage implements OnInit {
           this.showNidGateMember = false;
         this.showToast(this.t('wizard.nid_verified'), 'success');
         } else {
-          this.nidMessageMember = res.message || 'No matching record found. Please fill the form manually.';
+          this.nidMessageMember = this.languageService.translateText(res.message) || this.t('wizard.nid_no_record');
         }
       },
       error: (err) => {
         this.nidLookingMember = false;
         if (err?.status === 404) {
-          this.nidMessageMember = 'No matching record found. Please fill the form manually.';
+          this.nidMessageMember = this.t('wizard.nid_no_record');
         } else if (err?.status === 422) {
-          this.nidMessageMember = 'Invalid NID format. Please check and try again.';
+          this.nidMessageMember = this.t('wizard.nid_invalid_format');
         } else {
-          this.nidMessageMember = 'Verification failed. Please try again or fill manually.';
+          this.nidMessageMember = this.t('wizard.nid_failed');
         }
       },
     });
@@ -1079,7 +1079,7 @@ export class EnrollmentWizardPage implements OnInit {
   }
 
   formatStatus(s: string): string {
-    return (s || '').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    return this.languageService.label('status', s);
   }
 
   get isHeadSingle(): boolean {
@@ -1099,7 +1099,7 @@ export class EnrollmentWizardPage implements OnInit {
       const options = raw
         .map(item => this.normalizeKey(item))
         .filter((value): value is string => value.length > 0 && value !== 'self')
-        .map(value => ({ value, label: this.formatStatus(value) }));
+        .map(value => ({ value, label: this.formatRelationship(value) }));
       return this.dedupeRelationshipOptions(options);
     }
 
@@ -1110,7 +1110,7 @@ export class EnrollmentWizardPage implements OnInit {
           if (!value || value === 'self') return null;
           const labelText = typeof label === 'string' && label.trim().length > 0
             ? label.trim()
-            : this.formatStatus(value);
+            : this.formatRelationship(value);
           return { value, label: labelText };
         })
         .filter((option): option is { value: string; label: string } => option !== null);
@@ -1157,8 +1157,28 @@ export class EnrollmentWizardPage implements OnInit {
     return value.trim().toLowerCase().replace(/[\s-]+/g, '_');
   }
 
-  private t(key: string): string {
+  t(key: string): string {
     return this.languageService.t(key);
+  }
+
+  label(namespace: string, value: string | null | undefined, fallback?: string): string {
+    return this.languageService.label(namespace, value, fallback);
+  }
+
+  formatNumber(value: string | number | null | undefined, decimals = 0): string {
+    return this.languageService.formatNumber(value, decimals);
+  }
+
+  formatCurrency(value: string | number | null | undefined, decimals = 0): string {
+    return `${this.t('common.currency')} ${this.languageService.formatNumber(value ?? 0, decimals)}`;
+  }
+
+  formatRelationship(value: string | null | undefined): string {
+    return this.languageService.label('relation', value);
+  }
+
+  paySubmitLabel(amount: string | number | null | undefined): string {
+    return this.t('renewal_detail.pay_amount_submit').replace(':amount', this.formatCurrency(amount ?? 0, 0));
   }
 
   private refreshStepTitles(): void {
@@ -1188,7 +1208,7 @@ export class EnrollmentWizardPage implements OnInit {
   }
 
   private async showToast(message: string, color: string) {
-    const t = await this.toastCtrl.create({ message, duration: 2500, color, position: 'top' });
+    const t = await this.toastCtrl.create({ message: this.languageService.translateText(message), duration: 2500, color, position: 'top' });
     await t.present();
   }
 

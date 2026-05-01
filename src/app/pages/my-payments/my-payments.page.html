@@ -1,6 +1,6 @@
     <ion-header>
       <ion-toolbar color="primary">
-        <ion-title>My Payments</ion-title>
+        <ion-title>{{ t('payments.title') }}</ion-title>
       </ion-toolbar>
     </ion-header>
 
@@ -21,10 +21,10 @@
             </div>
             <div class="payment-body">
               <div class="payment-top">
-                <strong class="payment-amount">Rs. {{ p.amount | number:'1.2-2' }}</strong>
-                <ion-badge [color]="statusColor(p.status)">{{ p.status | titlecase }}</ion-badge>
+                <strong class="payment-amount">{{ formatCurrency(p.amount) }}</strong>
+                <ion-badge [color]="statusColor(p.status)">{{ label('status', p.status) }}</ion-badge>
               </div>
-              <p class="payment-type">{{ p.type === 'renewal' ? 'Policy Renewal' : 'New Enrollment' }} &bull; {{ p.gateway | uppercase }}</p>
+              <p class="payment-type">{{ p.type === 'renewal' ? t('payment.renewal') : t('dashboard.new_enrollment') }} &bull; {{ p.gateway | uppercase }}</p>
               <div *ngIf="p.enrollment_number" class="payment-ref">
                 <ion-icon name="document-text-outline"></ion-icon>
                 <span>{{ p.enrollment_number }}</span>
@@ -35,7 +35,7 @@
               </div>
               <div *ngIf="p.gateway_transaction_id" class="payment-receipt">
                 <ion-icon name="wallet-outline"></ion-icon>
-                <span>Txn: {{ p.gateway_transaction_id }}</span>
+                <span>{{ t('payments.transaction') }}: {{ p.gateway_transaction_id }}</span>
               </div>
             </div>
           </div>
@@ -43,8 +43,8 @@
 
         <div *ngIf="payments.length === 0" class="empty-state ion-text-center">
           <ion-icon name="wallet-outline" class="empty-icon"></ion-icon>
-          <h3>No Payments</h3>
-          <p>No payment records found.</p>
+          <h3>{{ t('payments.no_payments') }}</h3>
+          <p>{{ t('payments.no_records') }}</p>
         </div>
       </div>
 

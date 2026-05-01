@@ -10,6 +10,7 @@ import { addIcons } from 'ionicons';
 import {
   checkmarkCircleOutline, closeCircleOutline, timeOutline,
 } from 'ionicons/icons';
+import { LanguageService } from '../../services/language.service';
 
 @Component({
   selector: 'app-payment-result',
@@ -36,6 +37,7 @@ export class PaymentResultPage implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private toastCtrl: ToastController,
+    private languageService: LanguageService,
   ) {
     addIcons({ checkmarkCircleOutline, closeCircleOutline, timeOutline });
   }
@@ -110,7 +112,11 @@ export class PaymentResultPage implements OnInit {
   }
 
   private async showToast(message: string, color: string) {
-    const toast = await this.toastCtrl.create({ message, color, duration: 3000, position: 'top' });
+    const toast = await this.toastCtrl.create({ message: this.languageService.translateText(message), color, duration: 3000, position: 'top' });
     await toast.present();
+  }
+
+  t(key: string): string {
+    return this.languageService.t(key);
   }
 }

@@ -15,6 +15,7 @@ import { AuthService } from '../services/auth.service';
 import { PushNotificationService } from '../services/push-notification.service';
 import { AppSyncEvent, AppSyncService } from '../services/app-sync.service';
 import { DashboardDataService } from '../services/dashboard-data.service';
+import { LanguageService } from '../services/language.service';
 
 @Component({
   selector: 'app-tabs',
@@ -33,7 +34,8 @@ export class TabsPage implements OnInit, OnDestroy {
     private authService: AuthService,
     private pushService: PushNotificationService,
     private dashboardData: DashboardDataService,
-    private syncService: AppSyncService
+    private syncService: AppSyncService,
+    private languageService: LanguageService
   ) {
     addIcons({
       homeOutline, home, documentTextOutline, documentText,
@@ -78,6 +80,10 @@ export class TabsPage implements OnInit, OnDestroy {
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  t(key: string): string {
+    return this.languageService.t(key);
   }
 
   private shouldRefreshEnrollmentTab(event: AppSyncEvent): boolean {

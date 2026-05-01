@@ -7,6 +7,10 @@ describe('ForgotPasswordPage', () => {
       present: jasmine.createSpy().and.resolveTo(),
     })),
   });
+  const languageService = {
+    t: (key: string) => key,
+    translateText: (value?: string) => value || '',
+  };
 
   it('moves to OTP verification after sending a password reset OTP', async () => {
     const authService = jasmine.createSpyObj('AuthService', [
@@ -26,7 +30,7 @@ describe('ForgotPasswordPage', () => {
       },
     }));
 
-    const page = new ForgotPasswordPage(authService as any, router as any, toastCtrl as any);
+    const page = new ForgotPasswordPage(authService as any, router as any, toastCtrl as any, languageService as any);
     page.mobileNumber = '9812345678';
 
     await page.sendOtp();
@@ -51,7 +55,7 @@ describe('ForgotPasswordPage', () => {
       data: undefined,
     }));
 
-    const page = new ForgotPasswordPage(authService as any, router as any, toastCtrl as any);
+    const page = new ForgotPasswordPage(authService as any, router as any, toastCtrl as any, languageService as any);
     page.setRecoveryMethod('email');
     page.mobileNumber = '9812345678';
 

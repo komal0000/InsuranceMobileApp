@@ -10,6 +10,7 @@ import { walletOutline, cashOutline, calendarOutline, documentTextOutline } from
 import { ApiService } from '../../services/api.service';
 import { DateService } from '../../services/date.service';
 import { ApiResponse } from '../../interfaces/api-response.interface';
+import { LanguageService } from '../../services/language.service';
 
 @Component({
   selector: 'app-my-payments',
@@ -31,7 +32,8 @@ export class MyPaymentsPage implements OnInit {
 
   constructor(
     private api: ApiService,
-    private dateService: DateService
+    private dateService: DateService,
+    private languageService: LanguageService
   ) {
     addIcons({ walletOutline, cashOutline, calendarOutline, documentTextOutline });
   }
@@ -80,5 +82,17 @@ export class MyPaymentsPage implements OnInit {
 
   displayDateTime(adDate?: string | null, bsDate?: string | null): string {
     return this.dateService.formatDateTimeForDisplay(adDate, bsDate) || '';
+  }
+
+  t(key: string): string {
+    return this.languageService.t(key);
+  }
+
+  label(namespace: string, value: string | null | undefined, fallback?: string): string {
+    return this.languageService.label(namespace, value, fallback);
+  }
+
+  formatCurrency(value: string | number | null | undefined, decimals = 2): string {
+    return `${this.t('common.currency')} ${this.languageService.formatNumber(value ?? 0, decimals)}`;
   }
 }

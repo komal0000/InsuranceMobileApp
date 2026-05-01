@@ -13,7 +13,7 @@ import { AppLanguage, LanguageService } from '../../services/language.service';
       class="language-toggle"
       [class.language-toggle-ne]="(language$ | async) === 'ne'"
       (click)="toggle()"
-      aria-label="Switch language">
+      [attr.aria-label]="languageService.t('common.switch_language')">
       <span>{{ (language$ | async) === 'ne' ? 'EN' : 'ने' }}</span>
     </button>
   `,
@@ -56,7 +56,7 @@ export class LanguageToggleComponent {
 
   constructor(
     private authService: AuthService,
-    private languageService: LanguageService
+    public languageService: LanguageService
   ) {}
 
   toggle(): void {
