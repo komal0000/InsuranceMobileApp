@@ -1,13 +1,12 @@
-﻿import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
   IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton,
-  IonButton, IonItem, IonInput, IonSelect, IonSelectOption,
+  IonButton,
   IonCard, IonCardContent, IonIcon, IonSpinner,
-  IonToggle, IonLabel, IonAccordion, IonAccordionGroup,
-  IonBadge, IonCheckbox
+  IonBadge
 } from '@ionic/angular/standalone';
 import { ToastController, AlertController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -21,13 +20,20 @@ import { EnrollmentService } from '../../services/enrollment.service';
 import { GeoService } from '../../services/geo.service';
 import { DateService } from '../../services/date.service';
 import { LanguageService } from '../../services/language.service';
+import { AuthService } from '../../services/auth.service';
 import { ApiResponse } from '../../interfaces/api-response.interface';
-import { NepaliInputDirective } from '../../directives/nepali-input.directive';
-import { BsDatePickerComponent } from '../../components/bs-date-picker/bs-date-picker.component';
+import { LanguageToggleComponent } from '../../components/language-toggle/language-toggle.component';
+import { MemberFormComponent } from '../../components/member-form/member-form.component';
+import { AddressFormComponent } from './components/address-form.component';
+import { HouseholdHeadFormComponent } from './components/household-head-form.component';
+import { NidGateComponent } from './components/nid-gate.component';
+import { ReviewSubmitComponent } from './components/review-submit.component';
 import {
   Enrollment, EnrollmentConfig, FamilyMember, HouseholdHead, NidLookupData, Step1Data,
   SubsidyResult, SubsidySummary
 } from '../../interfaces/enrollment.interface';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 const STEP_TITLE_KEYS = ['wizard.step1', 'wizard.step2', 'wizard.step3'];
 
@@ -56,17 +62,19 @@ const SINGLE_HEAD_BLOCKED_RELATIONSHIPS = ['spouse', 'son', 'daughter'];
   selector: 'app-enrollment-wizard',
   standalone: true,
   imports: [
-    CommonModule, FormsModule, NepaliInputDirective, BsDatePickerComponent,
+    CommonModule, FormsModule,
+    AddressFormComponent, HouseholdHeadFormComponent, MemberFormComponent, NidGateComponent, ReviewSubmitComponent,
+    LanguageToggleComponent,
     IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton,
-    IonButton, IonItem, IonInput, IonSelect, IonSelectOption,
+    IonButton,
     IonCard, IonCardContent, IonIcon, IonSpinner,
-    IonToggle, IonLabel, IonAccordion, IonAccordionGroup,
-    IonBadge, IonCheckbox
+    IonBadge
   ],
   templateUrl: './enrollment-wizard.page.html',
   styleUrls: ['./enrollment-wizard.page.scss'],
 })
-export class EnrollmentWizardPage implements OnInit {
+export class EnrollmentWizardPage implements OnInit, OnDestroy {
+  private readonly destroy$ = new Subject<void>();
 
   enrollmentId!: number;
   enrollment: Enrollment | null = null;
@@ -130,8 +138,8 @@ export class EnrollmentWizardPage implements OnInit {
 
   headData: any = {
     national_id: '',
-    first_name: '', middle_name: '', last_name: '',
-    first_name_ne: '', middle_name_ne: '', last_name_ne: '',
+    first_name: '', last_name: '',
+    first_name_ne: '', last_name_ne: '',
     father_name: '', father_name_ne: '',
     mother_name: '', mother_name_ne: '',
     grandfather_name: '', grandfather_name_ne: '',
@@ -169,8 +177,8 @@ export class EnrollmentWizardPage implements OnInit {
   nidVerifiedMember = false;
 
   newMember: any = {
-    first_name: '', middle_name: '', last_name: '',
-    first_name_ne: '', middle_name_ne: '', last_name_ne: '',
+    first_name: '', last_name: '',
+    first_name_ne: '', last_name_ne: '',
     gender: '', date_of_birth: '', relationship: '',
     blood_group: '', marital_status: '', mobile_number: '',
     document_type: '',
@@ -200,6 +208,7 @@ export class EnrollmentWizardPage implements OnInit {
     private geoSvc: GeoService,
     private dateService: DateService,
     private languageService: LanguageService,
+    private authService: AuthService,
     private toastCtrl: ToastController,
     private alertCtrl: AlertController
   ) {
@@ -213,11 +222,14 @@ export class EnrollmentWizardPage implements OnInit {
   }
 
   ngOnInit() {
-    this.languageService.language$.subscribe(() => this.refreshStepTitles());
+    this.languageService.language$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => this.refreshStepTitles());
     this.enrollmentId = Number(this.route.snapshot.paramMap.get('id'));
     const currentBs = this.dateService.getCurrentBs();
     if (!this.headData.date_of_birth) this.headData.date_of_birth = currentBs;
     if (!this.headData.citizenship_issue_date) this.headData.citizenship_issue_date = currentBs;
+    this.applyRegisteredMobileNumber();
     this.resetMemberForm();
     this.geoSvc.provinces().subscribe({ next: r => this.provinces = r.data || [] });
     this.enrollmentSvc.getConfig().subscribe({
@@ -229,6 +241,11 @@ export class EnrollmentWizardPage implements OnInit {
       },
     });
     this.loadEnrollment();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   loadEnrollment() {
@@ -293,9 +310,9 @@ export class EnrollmentWizardPage implements OnInit {
       this.showNidGate2 = false;
       this.headData = {
         national_id: head.national_id || '',
-        first_name: head.first_name || '', middle_name: head.middle_name || '',
+        first_name: head.first_name || '',
         last_name: head.last_name || '',
-        first_name_ne: head.first_name_ne || '', middle_name_ne: head.middle_name_ne || '',
+        first_name_ne: head.first_name_ne || '',
         last_name_ne: head.last_name_ne || '',
         father_name: head.father_name || '',
         father_name_ne: head.father_name_ne || '',
@@ -306,7 +323,7 @@ export class EnrollmentWizardPage implements OnInit {
         gender: head.gender || '',
         date_of_birth: this.dateService.formatForDisplay(head.date_of_birth, head.date_of_birth_bs) || '',
         blood_group: head.blood_group || '', marital_status: head.marital_status || '',
-        mobile_number: head.mobile_number || '', email: head.email || '',
+        mobile_number: head.mobile_number || this.registeredMobileNumber || '', email: head.email || '',
         citizenship_number: head.citizenship_number || '',
         citizenship_issue_date: this.dateService.formatForDisplay(
           head.citizenship_issue_date,
@@ -328,6 +345,8 @@ export class EnrollmentWizardPage implements OnInit {
       this.citizenshipBackPreview = this.getDocUrl(head, 'citizenship_back') || '';
       this.targetGroupFrontPreview = this.getDocUrl(head, 'target_group_front') || '';
       this.targetGroupBackPreview = this.getDocUrl(head, 'target_group_back') || '';
+    } else {
+      this.applyRegisteredMobileNumber();
     }
 
     // ── Step 3: Family members ────────────────────────────────────────────────
@@ -505,7 +524,7 @@ export class EnrollmentWizardPage implements OnInit {
           this.headData.grandfather_name_ne        = d.grandfather_name_ne || '';
           this.headData.gender                     = d.gender        || '';
           this.headData.date_of_birth              = this.dateService.formatForDisplay(d.date_of_birth, d.date_of_birth_bs) || '';
-          this.headData.mobile_number              = d.mobile_number || '';
+          this.headData.mobile_number              = d.mobile_number || this.registeredMobileNumber || this.headData.mobile_number || '';
           this.headData.email                      = d.email         || '';
           if (d.citizenship_number)          this.headData.citizenship_number          = d.citizenship_number;
           if (d.citizenship_issue_date_bs)   this.headData.citizenship_issue_date      = d.citizenship_issue_date_bs;
@@ -742,6 +761,7 @@ export class EnrollmentWizardPage implements OnInit {
     });
 
     Object.keys(this.headData).forEach(key => {
+      if (key === 'middle_name' || key === 'middle_name_ne') return;
       const val = this.headData[key];
       if (val === null || val === undefined) return;
       if (typeof val === 'boolean') { fd.append(key, val ? '1' : '0'); return; }
@@ -792,8 +812,8 @@ export class EnrollmentWizardPage implements OnInit {
     const currentBs = this.dateService.getCurrentBs();
     this.editingMemberId = null;
     this.newMember = {
-      first_name: '', middle_name: '', last_name: '',
-      first_name_ne: '', middle_name_ne: '', last_name_ne: '',
+      first_name: '', last_name: '',
+      first_name_ne: '', last_name_ne: '',
       gender: '', date_of_birth: currentBs, relationship: '',
       blood_group: '', marital_status: '', mobile_number: '',
       document_type: '',
@@ -827,10 +847,8 @@ export class EnrollmentWizardPage implements OnInit {
 
     this.newMember = {
       first_name: member.first_name || '',
-      middle_name: member.middle_name || '',
       last_name: member.last_name || '',
       first_name_ne: member.first_name_ne || '',
-      middle_name_ne: member.middle_name_ne || '',
       last_name_ne: member.last_name_ne || '',
       gender: member.gender || '',
       date_of_birth: this.dateService.formatForDisplay(member.date_of_birth, member.date_of_birth_bs) || '',
@@ -908,6 +926,8 @@ export class EnrollmentWizardPage implements OnInit {
     this.savingMember = true;
     const fd = new FormData();
     const skippedMemberFields = new Set([
+      'middle_name',
+      'middle_name_ne',
       'is_target_group',
       'target_group_type',
       'target_group_id_number',
@@ -932,8 +952,13 @@ export class EnrollmentWizardPage implements OnInit {
       next: async (res) => {
         this.savingMember = false;
         if (res.success) {
+          const savedMember = res.data;
           this.resetMemberForm();
-          this.loadEnrollment();
+          if (savedMember) {
+            this.upsertLocalMember(savedMember as FamilyMember, wasEditing);
+          } else {
+            this.loadEnrollment();
+          }
           this.showToast(this.t(wasEditing ? 'wizard.member_updated' : 'wizard.member_added'), 'success');
         }
       },
@@ -951,7 +976,7 @@ export class EnrollmentWizardPage implements OnInit {
           text: this.t('common.delete'), cssClass: 'danger',
           handler: () => {
             this.enrollmentSvc.removeMember(this.enrollmentId, member.id).subscribe({
-              next: () => { this.members = this.members.filter(m => m.id !== member.id); this.loadEnrollment(); },
+              next: () => { this.members = this.members.filter(m => m.id !== member.id); },
             });
           },
         },
@@ -1157,6 +1182,16 @@ export class EnrollmentWizardPage implements OnInit {
     return value.trim().toLowerCase().replace(/[\s-]+/g, '_');
   }
 
+  private get registeredMobileNumber(): string {
+    return this.authService.getCurrentUser()?.mobile_number?.trim() || '';
+  }
+
+  private applyRegisteredMobileNumber(): void {
+    if (!this.headData.mobile_number && this.registeredMobileNumber) {
+      this.headData.mobile_number = this.registeredMobileNumber;
+    }
+  }
+
   t(key: string): string {
     return this.languageService.t(key);
   }
@@ -1175,6 +1210,21 @@ export class EnrollmentWizardPage implements OnInit {
 
   formatRelationship(value: string | null | undefined): string {
     return this.languageService.label('relation', value);
+  }
+
+  private upsertLocalMember(member: FamilyMember, wasEditing: boolean): void {
+    if (!member?.id) {
+      return;
+    }
+
+    if (wasEditing) {
+      this.members = this.members.map(existing => existing.id === member.id ? member : existing);
+      return;
+    }
+
+    if (!this.members.some(existing => existing.id === member.id)) {
+      this.members = [...this.members, member];
+    }
   }
 
   paySubmitLabel(amount: string | number | null | undefined): string {

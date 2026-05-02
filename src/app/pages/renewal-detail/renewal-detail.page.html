@@ -4,6 +4,7 @@
           <ion-back-button defaultHref="/tabs/renewals"></ion-back-button>
         </ion-buttons>
         <ion-title>{{ t('renewal_detail.title') }}</ion-title>
+        <app-language-toggle slot="end" placement="toolbar"></app-language-toggle>
       </ion-toolbar>
     </ion-header>
 
@@ -116,161 +117,22 @@
                 {{ isEditingMember ? t('renewal_detail.edit_family_member') : t('renewal_detail.add_family_member') }}
               </h4>
 
-              <div class="capture-section" style="margin-top: 0; padding-top: 0; border-top: none;">
-                <div class="capture-row">
-                  <span class="capture-label">{{ t('profile.photo') }}</span>
-                  <ion-button size="small" fill="outline" (click)="captureImage('photo')">
-                    <ion-icon slot="start" name="camera-outline"></ion-icon>
-                    {{ memberPhotoPreview ? t('common.change') : t('common.capture') }}
-                  </ion-button>
-                </div>
-                <img *ngIf="memberPhotoPreview" [src]="memberPhotoPreview" class="preview-img" />
-              </div>
-
-              <h5 style="margin: 10px 0 4px; font-weight: 600; color: #495057; font-size: 0.82rem; text-transform: uppercase;">{{ t('wizard.english_name') }}</h5>
-              <ion-item class="form-item">
-                <ion-input [label]="t('wizard.first_name_required')" labelPlacement="stacked" [(ngModel)]="newMember.first_name"></ion-input>
-              </ion-item>
-              <ion-item class="form-item">
-                <ion-input [label]="t('wizard.middle_name')" labelPlacement="stacked" [(ngModel)]="newMember.middle_name"></ion-input>
-              </ion-item>
-              <ion-item class="form-item">
-                <ion-input [label]="t('wizard.last_name_required')" labelPlacement="stacked" [(ngModel)]="newMember.last_name"></ion-input>
-              </ion-item>
-
-              <h5 style="margin: 10px 0 4px; font-weight: 600; color: #495057; font-size: 0.9rem;">नेपाली नाम</h5>
-              <ion-item class="form-item">
-                <ion-input label="पहिलो नाम" labelPlacement="stacked" [(ngModel)]="newMember.first_name_ne"></ion-input>
-              </ion-item>
-              <ion-item class="form-item">
-                <ion-input label="बीचको नाम" labelPlacement="stacked" [(ngModel)]="newMember.middle_name_ne"></ion-input>
-              </ion-item>
-              <ion-item class="form-item">
-                <ion-input label="थर" labelPlacement="stacked" [(ngModel)]="newMember.last_name_ne"></ion-input>
-              </ion-item>
-
-              <h5 style="margin: 10px 0 4px; font-weight: 600; color: #495057; font-size: 0.82rem; text-transform: uppercase;">{{ t('wizard.personal_details') }}</h5>
-              <ion-item class="form-item">
-                <ion-select [label]="t('wizard.gender_required')" labelPlacement="stacked" [(ngModel)]="newMember.gender">
-                  <ion-select-option value="male">{{ t('gender.male') }}</ion-select-option>
-                  <ion-select-option value="female">{{ t('gender.female') }}</ion-select-option>
-                  <ion-select-option value="other">{{ t('gender.other') }}</ion-select-option>
-                </ion-select>
-              </ion-item>
-              <app-bs-date-picker [(ngModel)]="newMember.date_of_birth" [label]="t('wizard.date_of_birth_required')" [placeholder]="t('common.select_bs_date')"></app-bs-date-picker>
-              <ion-item class="form-item">
-                <ion-select [label]="t('wizard.relationship_required')" labelPlacement="stacked" [(ngModel)]="newMember.relationship">
-                  <ion-select-option *ngFor="let option of availableMemberRelationshipOptions" [value]="option.value">
-                    {{ formatRelationship(option.value) }}
-                  </ion-select-option>
-                </ion-select>
-              </ion-item>
-              <p *ngIf="isHeadSingle" style="margin:2px 4px 8px;color:#6c757d;font-size:0.75rem;">
-                {{ t('wizard.relationship_single_notice') }}
-              </p>
-              <ion-item class="form-item">
-                <ion-select [label]="t('wizard.blood_group')" labelPlacement="stacked" [(ngModel)]="newMember.blood_group">
-                  <ion-select-option value="A+">A+</ion-select-option>
-                  <ion-select-option value="A-">A-</ion-select-option>
-                  <ion-select-option value="B+">B+</ion-select-option>
-                  <ion-select-option value="B-">B-</ion-select-option>
-                  <ion-select-option value="AB+">AB+</ion-select-option>
-                  <ion-select-option value="AB-">AB-</ion-select-option>
-                  <ion-select-option value="O+">O+</ion-select-option>
-                  <ion-select-option value="O-">O-</ion-select-option>
-                </ion-select>
-              </ion-item>
-              <ion-item class="form-item">
-                <ion-select [label]="t('wizard.marital_status')" labelPlacement="stacked" [(ngModel)]="newMember.marital_status">
-                  <ion-select-option value="single">{{ t('marital.single') }}</ion-select-option>
-                  <ion-select-option value="married">{{ t('marital.married') }}</ion-select-option>
-                  <ion-select-option value="divorced">{{ t('marital.divorced') }}</ion-select-option>
-                  <ion-select-option value="widowed">{{ t('marital.widowed') }}</ion-select-option>
-                </ion-select>
-              </ion-item>
-              <ion-item class="form-item">
-                <ion-input [label]="t('profile.mobile_number')" labelPlacement="stacked" type="tel" maxlength="10" minlength="10" [(ngModel)]="newMember.mobile_number"></ion-input>
-              </ion-item>
-              <ion-item class="form-item">
-                <ion-input [label]="t('profile.email')" labelPlacement="stacked" type="email" [(ngModel)]="newMember.email"></ion-input>
-              </ion-item>
-
-              <h5 style="margin: 10px 0 4px; font-weight: 600; color: #495057; font-size: 0.82rem; text-transform: uppercase;">{{ t('wizard.identity_document') }}</h5>
-              <ion-item class="form-item">
-                <ion-select [label]="t('wizard.document_type')" labelPlacement="stacked" [(ngModel)]="newMember.document_type">
-                  <ion-select-option value="citizenship">{{ t('wizard.citizenship_certificate') }}</ion-select-option>
-                  <ion-select-option value="birth_certificate">{{ t('wizard.birth_certificate') }}</ion-select-option>
-                </ion-select>
-              </ion-item>
-
-              <div *ngIf="newMember.document_type === 'citizenship'">
-                <ion-item class="form-item">
-                  <ion-input [label]="t('wizard.citizenship_number')" labelPlacement="stacked" [(ngModel)]="newMember.citizenship_number"></ion-input>
-                </ion-item>
-                <app-bs-date-picker [(ngModel)]="newMember.citizenship_issue_date" [label]="t('wizard.citizenship_issue_date')" [placeholder]="t('common.select_bs_date')"></app-bs-date-picker>
-                <ion-item class="form-item">
-                  <ion-input [label]="t('wizard.citizenship_issue_district')" labelPlacement="stacked" [(ngModel)]="newMember.citizenship_issue_district"></ion-input>
-                </ion-item>
-
-                <div class="capture-section">
-                  <div class="capture-row">
-                    <span class="capture-label">{{ t('wizard.citizenship_front') }}</span>
-                    <ion-button size="small" fill="outline" (click)="captureImage('citizenship_front_image')">
-                      <ion-icon slot="start" name="camera-outline"></ion-icon>
-                      {{ memberCitizenshipFrontPreview ? t('common.change') : t('common.capture') }}
-                    </ion-button>
-                  </div>
-                  <img *ngIf="memberCitizenshipFrontPreview" [src]="memberCitizenshipFrontPreview" class="preview-img" />
-                </div>
-
-                <div class="capture-section">
-                  <div class="capture-row">
-                    <span class="capture-label">{{ t('wizard.citizenship_back') }}</span>
-                    <ion-button size="small" fill="outline" (click)="captureImage('citizenship_back_image')">
-                      <ion-icon slot="start" name="camera-outline"></ion-icon>
-                      {{ memberCitizenshipBackPreview ? t('common.change') : t('common.capture') }}
-                    </ion-button>
-                  </div>
-                  <img *ngIf="memberCitizenshipBackPreview" [src]="memberCitizenshipBackPreview" class="preview-img" />
-                </div>
-              </div>
-
-              <div *ngIf="newMember.document_type === 'birth_certificate'">
-                <ion-item class="form-item">
-                  <ion-input [label]="t('wizard.birth_certificate_number')" labelPlacement="stacked" [(ngModel)]="newMember.birth_certificate_number"></ion-input>
-                </ion-item>
-                <app-bs-date-picker [(ngModel)]="newMember.birth_certificate_issue_date" [label]="t('wizard.birth_certificate_issue_date')" [placeholder]="t('common.select_bs_date')"></app-bs-date-picker>
-
-                <div class="capture-section">
-                  <div class="capture-row">
-                    <span class="capture-label">{{ t('wizard.birth_certificate_front') }}</span>
-                    <ion-button size="small" fill="outline" (click)="captureImage('birth_certificate_front_image')">
-                      <ion-icon slot="start" name="camera-outline"></ion-icon>
-                      {{ memberBirthCertFrontPreview ? t('common.change') : t('common.capture') }}
-                    </ion-button>
-                  </div>
-                  <img *ngIf="memberBirthCertFrontPreview" [src]="memberBirthCertFrontPreview" class="preview-img" />
-                </div>
-
-                <div class="capture-section">
-                  <div class="capture-row">
-                    <span class="capture-label">{{ t('wizard.birth_certificate_back') }}</span>
-                    <ion-button size="small" fill="outline" (click)="captureImage('birth_certificate_back_image')">
-                      <ion-icon slot="start" name="camera-outline"></ion-icon>
-                      {{ memberBirthCertBackPreview ? t('common.change') : t('common.capture') }}
-                    </ion-button>
-                  </div>
-                  <img *ngIf="memberBirthCertBackPreview" [src]="memberBirthCertBackPreview" class="preview-img" />
-                </div>
-              </div>
-
-              <div class="btn-row">
-                <ion-button expand="block" (click)="saveMember()" [disabled]="savingMember || !newMember.first_name || !newMember.last_name || !newMember.gender || !newMember.date_of_birth || !newMember.relationship">
-                  <ion-spinner *ngIf="savingMember" name="crescent" slot="start"></ion-spinner>
-                  {{ isEditingMember ? t('renewal_detail.update_member') : t('renewals.save_member') }}
-                </ion-button>
-                <ion-button expand="block" fill="outline" color="medium" (click)="cancelMemberForm()">{{ t('common.cancel') }}</ion-button>
-              </div>
+              <app-member-form [member]="newMember"
+                               [relationshipOptions]="availableMemberRelationshipOptions"
+                               [isHeadSingle]="isHeadSingle"
+                               [isEditing]="isEditingMember"
+                               [saving]="savingMember"
+                               [showEmail]="true"
+                               [disableSaveWhenInvalid]="true"
+                               [photoPreview]="memberPhotoPreview"
+                               [citizenshipFrontPreview]="memberCitizenshipFrontPreview"
+                               [citizenshipBackPreview]="memberCitizenshipBackPreview"
+                               [birthCertificateFrontPreview]="memberBirthCertFrontPreview"
+                               [birthCertificateBackPreview]="memberBirthCertBackPreview"
+                               (capture)="captureImage($event)"
+                               (save)="saveMember()"
+                               (cancel)="cancelMemberForm()">
+              </app-member-form>
             </div>
           </ion-card-content>
         </ion-card>

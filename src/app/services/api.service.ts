@@ -7,7 +7,8 @@ import { environment } from '../../environments/environment';
 @Injectable({ providedIn: 'root' })
 export class ApiService {
   private readonly baseUrls = this.resolveBaseUrls();
-  private preferredBaseUrlIndex = 0;
+  private readonly preferredBaseUrlStorageKey = 'hib_api_preferred_base_url';
+  private preferredBaseUrlIndex = this.resolvePreferredBaseUrlIndex();
 
   constructor(private http: HttpClient) {}
 
@@ -102,6 +103,7 @@ export class ApiService {
     return requestFactory(baseUrl).pipe(
       tap(() => {
         this.preferredBaseUrlIndex = baseUrlIndex;
+        this.persistPreferredBaseUrl(baseUrl);
       }),
       catchError((error: unknown) => {
         if (this.shouldRetryWithNextBaseUrl(error, attemptOrder, attemptIndex)) {
@@ -122,5 +124,24 @@ export class ApiService {
   private shouldRetryWithNextBaseUrl(error: unknown, attemptOrder: number[], attemptIndex: number): boolean {
     const hasNextBaseUrl = attemptIndex < attemptOrder.length - 1;
     return hasNextBaseUrl && error instanceof HttpErrorResponse && error.status === 0;
+  }
+
+  private resolvePreferredBaseUrlIndex(): number {
+    if (environment.production || typeof sessionStorage === 'undefined') {
+      return 0;
+    }
+
+    const stored = sessionStorage.getItem(this.preferredBaseUrlStorageKey);
+    const index = stored ? this.baseUrls.indexOf(stored) : -1;
+
+    return index >= 0 ? index : 0;
+  }
+
+  private persistPreferredBaseUrl(baseUrl: string): void {
+    if (environment.production || typeof sessionStorage === 'undefined') {
+      return;
+    }
+
+    sessionStorage.setItem(this.preferredBaseUrlStorageKey, baseUrl);
   }
 }

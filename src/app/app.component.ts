@@ -1,7 +1,9 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { NavigationEnd, Router } from '@angular/router';
 import { App, URLOpenListenerEvent } from '@capacitor/app';
 import { IonApp, IonRouterOutlet } from '@ionic/angular/standalone';
+import { Subscription } from 'rxjs';
+import { filter } from 'rxjs/operators';
 import { LanguageToggleComponent } from './components/language-toggle/language-toggle.component';
 import { AppSyncService } from './services/app-sync.service';
 import { LanguageService } from './services/language.service';
@@ -17,6 +19,8 @@ interface RemovableListener {
 })
 export class AppComponent implements OnInit, OnDestroy {
   private readonly appListeners: RemovableListener[] = [];
+  private routerSubscription?: Subscription;
+  showFloatingLanguageToggle = false;
 
   constructor(
     private router: Router,
@@ -25,8 +29,12 @@ export class AppComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
-    this.languageService.startDomTranslator();
     void this.languageService.init();
+    this.updateFloatingLanguageToggle(this.router.url);
+
+    this.routerSubscription = this.router.events
+      .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
+      .subscribe(event => this.updateFloatingLanguageToggle(event.urlAfterRedirects));
 
     // Intercept deep links from payment gateways (io.ionic.starter://payment-result?...)
     void App.addListener('appUrlOpen', (event: URLOpenListenerEvent) => {
@@ -49,8 +57,15 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    this.routerSubscription?.unsubscribe();
     this.appListeners.forEach(listener => {
       void listener.remove();
     });
+  }
+
+  private updateFloatingLanguageToggle(url: string): void {
+    const path = url.split('?')[0].split('#')[0];
+    this.showFloatingLanguageToggle = ['/register', '/forgot-password']
+      .some(route => path === route || path.startsWith(`${route}/`));
   }
 }

@@ -7,7 +7,6 @@ import { takeUntil } from 'rxjs/operators';
 import {
   IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton,
   IonCard, IonCardContent, IonBadge, IonIcon, IonButton, IonSpinner,
-  IonInput, IonItem, IonSelect, IonSelectOption
 } from '@ionic/angular/standalone';
 import { ToastController, AlertController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -21,7 +20,8 @@ import { AppSyncEvent, AppSyncService } from '../../services/app-sync.service';
 import { DateService } from '../../services/date.service';
 import { ApiResponse } from '../../interfaces/api-response.interface';
 import { Renewal } from '../../interfaces/renewal.interface';
-import { BsDatePickerComponent } from '../../components/bs-date-picker/bs-date-picker.component';
+import { MemberFormComponent } from '../../components/member-form/member-form.component';
+import { LanguageToggleComponent } from '../../components/language-toggle/language-toggle.component';
 import { LanguageService } from '../../services/language.service';
 
 const DEFAULT_MEMBER_RELATIONSHIPS: Array<{ value: string; label: string }> = [
@@ -49,10 +49,9 @@ const SINGLE_HEAD_BLOCKED_RELATIONSHIPS = ['spouse', 'son', 'daughter'];
   selector: 'app-renewal-detail',
   standalone: true,
   imports: [
-    CommonModule, FormsModule, BsDatePickerComponent,
+    CommonModule, FormsModule, MemberFormComponent, LanguageToggleComponent,
     IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton,
     IonCard, IonCardContent, IonBadge, IonIcon, IonButton, IonSpinner,
-    IonInput, IonItem, IonSelect, IonSelectOption
   ],
   templateUrl: './renewal-detail.page.html',
   styleUrls: ['./renewal-detail.page.scss'],

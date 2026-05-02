@@ -1,4 +1,6 @@
 <ion-app>
   <ion-router-outlet></ion-router-outlet>
-  <app-language-toggle></app-language-toggle>
+  @if (showFloatingLanguageToggle) {
+    <app-language-toggle></app-language-toggle>
+  }
 </ion-app>

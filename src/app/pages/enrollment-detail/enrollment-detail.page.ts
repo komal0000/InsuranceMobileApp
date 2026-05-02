@@ -22,6 +22,7 @@ import { DateService } from '../../services/date.service';
 import { LanguageService } from '../../services/language.service';
 import { ApiResponse } from '../../interfaces/api-response.interface';
 import { Enrollment } from '../../interfaces/enrollment.interface';
+import { LanguageToggleComponent } from '../../components/language-toggle/language-toggle.component';
 
 @Component({
   selector: 'app-enrollment-detail',
@@ -30,7 +31,8 @@ import { Enrollment } from '../../interfaces/enrollment.interface';
     CommonModule,
     IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton,
     IonCard, IonCardContent, IonBadge, IonIcon, IonButton, IonSpinner,
-    IonImg
+    IonImg,
+    LanguageToggleComponent
   ],
   templateUrl: './enrollment-detail.page.html',
   styleUrls: ['./enrollment-detail.page.scss'],

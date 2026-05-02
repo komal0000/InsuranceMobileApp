@@ -26,6 +26,7 @@ import { DateService } from '../../services/date.service';
 import { ApiResponse, PaginatedData } from '../../interfaces/api-response.interface';
 import { Renewal } from '../../interfaces/renewal.interface';
 import { BsDatePickerComponent } from '../../components/bs-date-picker/bs-date-picker.component';
+import { LanguageToggleComponent } from '../../components/language-toggle/language-toggle.component';
 import { LanguageService } from '../../services/language.service';
 
 const DEFAULT_MEMBER_RELATIONSHIPS: Array<{ value: string; label: string }> = [
@@ -53,7 +54,7 @@ const SINGLE_HEAD_BLOCKED_RELATIONSHIPS = ['spouse', 'son', 'daughter'];
   selector: 'app-renewals',
   standalone: true,
   imports: [
-    CommonModule, FormsModule, BsDatePickerComponent,
+    CommonModule, FormsModule, BsDatePickerComponent, LanguageToggleComponent,
     IonContent, IonHeader, IonToolbar, IonTitle, IonBadge, IonSearchbar,
     IonSegment, IonSegmentButton, IonRefresher, IonRefresherContent,
     IonInfiniteScroll, IonInfiniteScrollContent, IonFab, IonFabButton,

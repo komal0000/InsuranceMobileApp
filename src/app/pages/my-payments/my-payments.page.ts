@@ -10,6 +10,7 @@ import { walletOutline, cashOutline, calendarOutline, documentTextOutline } from
 import { ApiService } from '../../services/api.service';
 import { DateService } from '../../services/date.service';
 import { ApiResponse } from '../../interfaces/api-response.interface';
+import { LanguageToggleComponent } from '../../components/language-toggle/language-toggle.component';
 import { LanguageService } from '../../services/language.service';
 
 @Component({
@@ -19,7 +20,8 @@ import { LanguageService } from '../../services/language.service';
     CommonModule,
     IonContent, IonHeader, IonToolbar, IonTitle, IonBadge, IonIcon,
     IonSpinner, IonRefresher, IonRefresherContent, IonInfiniteScroll,
-    IonInfiniteScrollContent
+    IonInfiniteScrollContent,
+    LanguageToggleComponent
   ],
   templateUrl: './my-payments.page.html',
   styleUrls: ['./my-payments.page.scss'],

@@ -16,6 +16,7 @@ import { timer, switchMap, takeWhile, tap } from 'rxjs';
 import { PaymentService } from '../../services/payment.service';
 import { ApiResponse } from '../../interfaces/api-response.interface';
 import { PaymentStatusResponse } from '../../interfaces/payment.interface';
+import { LanguageToggleComponent } from '../../components/language-toggle/language-toggle.component';
 import { LanguageService } from '../../services/language.service';
 
 interface GatewayOption {
@@ -33,7 +34,8 @@ interface GatewayOption {
     CommonModule,
     IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton,
     IonButton, IonCard, IonCardContent,
-    IonIcon, IonSpinner, IonBadge
+    IonIcon, IonSpinner, IonBadge,
+    LanguageToggleComponent
   ],
   templateUrl: './payment.page.html',
   styleUrls: ['./payment.page.scss'],
@@ -59,7 +61,7 @@ export class PaymentPage implements OnInit {
   loading = false;
   polling = false;
   pollCount = 0;
-  maxPolls = 5;
+  maxPolls = 10;
   paymentStatus: string | null = null;
   activeReferenceId: string | null = null;
 
@@ -196,7 +198,7 @@ export class PaymentPage implements OnInit {
           } else if (status === 'failed') {
             this.paymentStatus = 'failed';
             this.polling = false;
-            this.navigateToResult('failed', currentReference);
+            this.navigateToResult('failed', currentReference, res.data.payment.failure_reason || 'verification_failed');
           }
           // status is still 'pending' — continue polling
         }
@@ -209,7 +211,7 @@ export class PaymentPage implements OnInit {
         if (this.paymentStatus === 'checking') {
           // Polling exhausted without definitive result
           this.paymentStatus = 'timeout';
-            this.showTimeoutAlert(this.activeReferenceId || referenceId);
+          this.navigateToResult('pending', this.activeReferenceId || referenceId, 'verification_pending');
         }
       },
     });
@@ -218,12 +220,13 @@ export class PaymentPage implements OnInit {
   /**
    * Navigate to the payment-result page with all relevant context.
    */
-  private navigateToResult(status: 'success' | 'failed', referenceId: string) {
+  private navigateToResult(status: 'success' | 'failed' | 'pending', referenceId: string, errorCode = '') {
     const queryParams: Record<string, string> = {
       status,
       reference_id: referenceId,
       type: this.paymentType,
     };
+    if (errorCode) queryParams['error'] = errorCode;
     if (this.policyId) queryParams['policy_id'] = String(this.policyId);
     if (this.enrollmentId) queryParams['enrollment_id'] = String(this.enrollmentId);
     if (this.renewalId)    queryParams['renewal_id']    = String(this.renewalId);

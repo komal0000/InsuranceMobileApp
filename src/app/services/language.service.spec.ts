@@ -20,6 +20,17 @@ describe('LanguageService', () => {
     expect(service.t('Unmapped phrase')).toBe('Unmapped phrase');
   });
 
+  it('translates enrollment search and status filter labels in Nepali mode', async () => {
+    await service.setLocalLanguage('ne');
+
+    expect(service.t('enrollments.search_placeholder')).toBe('नाम वा नामांकन नं. बाट खोज्नुहोस्...');
+    expect(service.t('enrollments.all')).toBe('सबै');
+    expect(service.t('enrollments.draft')).toBe('मस्यौदा');
+    expect(service.t('enrollments.verified')).toBe('प्रमाणित');
+    expect(service.t('enrollments.approved')).toBe('स्वीकृत');
+    expect(service.t('enrollments.rejected')).toBe('अस्वीकृत');
+  });
+
   it('localizes digits and formatted numbers in Nepali mode', async () => {
     await service.setLocalLanguage('ne');
 
@@ -46,5 +57,23 @@ describe('LanguageService', () => {
       expect(user.preferred_language).toBe('ne');
       done();
     });
+  });
+
+  it('leaves DOM text alone until a legacy translation root is opted in', async () => {
+    const host = document.createElement('div');
+    host.textContent = 'Dashboard';
+    document.body.appendChild(host);
+
+    try {
+      await service.setLocalLanguage('ne');
+
+      expect(host.textContent).toBe('Dashboard');
+
+      service.startDomTranslator(host);
+
+      expect(host.textContent).toBe(service.t('Dashboard'));
+    } finally {
+      host.remove();
+    }
   });
 });

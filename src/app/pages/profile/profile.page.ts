@@ -19,6 +19,7 @@ import { DateService } from '../../services/date.service';
 import { ApiResponse } from '../../interfaces/api-response.interface';
 import { User, ProfileUpdateRequest, ChangePasswordRequest } from '../../interfaces/user.interface';
 import { BsDatePickerComponent } from '../../components/bs-date-picker/bs-date-picker.component';
+import { LanguageToggleComponent } from '../../components/language-toggle/language-toggle.component';
 import { LanguageService } from '../../services/language.service';
 
 @Component({
@@ -27,7 +28,8 @@ import { LanguageService } from '../../services/language.service';
   imports: [
     CommonModule, FormsModule, BsDatePickerComponent,
     IonContent, IonHeader, IonToolbar, IonTitle, IonCard, IonCardContent,
-    IonItem, IonInput, IonIcon, IonButton, IonSpinner
+    IonItem, IonInput, IonIcon, IonButton, IonSpinner,
+    LanguageToggleComponent
   ],
   templateUrl: './profile.page.html',
   styleUrls: ['./profile.page.scss'],

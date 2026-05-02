@@ -21,6 +21,7 @@ import { DateService } from '../../services/date.service';
 import { LanguageService } from '../../services/language.service';
 import { ApiResponse, PaginatedData } from '../../interfaces/api-response.interface';
 import { Enrollment, EnrollmentStatus } from '../../interfaces/enrollment.interface';
+import { LanguageToggleComponent } from '../../components/language-toggle/language-toggle.component';
 
 @Component({
   selector: 'app-enrollments',
@@ -31,7 +32,8 @@ import { Enrollment, EnrollmentStatus } from '../../interfaces/enrollment.interf
     IonBadge, IonSearchbar, IonSegment, IonSegmentButton,
     IonRefresher, IonRefresherContent, IonInfiniteScroll,
     IonInfiniteScrollContent, IonFab, IonFabButton, IonIcon,
-    IonSpinner, IonCard, IonCardContent, IonButton
+    IonSpinner, IonCard, IonCardContent, IonButton,
+    LanguageToggleComponent
   ],
   templateUrl: './enrollments.page.html',
   styleUrls: ['./enrollments.page.scss'],

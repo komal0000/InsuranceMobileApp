@@ -19,13 +19,14 @@ import { AuthService } from '../../services/auth.service';
 import { DateService } from '../../services/date.service';
 import { ApiResponse, PaginatedData } from '../../interfaces/api-response.interface';
 import { Subsidy } from '../../interfaces/subsidy.interface';
+import { LanguageToggleComponent } from '../../components/language-toggle/language-toggle.component';
 import { LanguageService } from '../../services/language.service';
 
 @Component({
   selector: 'app-subsidies',
   standalone: true,
   imports: [
-    CommonModule, FormsModule,
+    CommonModule, FormsModule, LanguageToggleComponent,
     IonContent, IonHeader, IonToolbar, IonTitle, IonBadge, IonSearchbar,
     IonSegment, IonSegmentButton, IonRefresher, IonRefresherContent,
     IonInfiniteScroll, IonInfiniteScrollContent, IonIcon, IonSpinner,

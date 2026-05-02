@@ -1,0 +1,157 @@
+      <ion-card>
+        <ion-card-content>
+          <div class="section-title">
+            <div class="section-icon" style="background:rgba(0,48,135,0.08)">
+              <ion-icon name="location-outline" style="color:#003087"></ion-icon>
+            </div>
+            <h3>{{ text('wizard.permanent_address', 'Permanent Address') }}</h3>
+          </div>
+
+          <div class="form-group">
+            <!-- Province -->
+            <ion-item class="form-item">
+              <ion-select label="Province *" labelPlacement="stacked"
+                          placeholder="Select Province"
+                          [(ngModel)]="step1.province"
+                          [disabled]="isHeadFieldReadonly('province')"
+                          (ionChange)="onProvinceChange()">
+                <ion-select-option *ngFor="let p of provinces" [value]="p">{{ p }}</ion-select-option>
+              </ion-select>
+            </ion-item>
+
+            <!-- District -->
+            <ion-item class="form-item">
+              <ion-select label="District *" labelPlacement="stacked"
+                          placeholder="Select District"
+                          [(ngModel)]="step1.district"
+                          [disabled]="!districts.length || isHeadFieldReadonly('district')"
+                          (ionChange)="onDistrictChange()">
+                <ion-select-option *ngFor="let d of districts" [value]="d">{{ d }}</ion-select-option>
+              </ion-select>
+            </ion-item>
+
+            <!-- Municipality -->
+            <ion-item class="form-item">
+              <ion-select label="Municipality *" labelPlacement="stacked"
+                          placeholder="Select Municipality"
+                          [(ngModel)]="step1.municipality"
+                          [disabled]="!municipalities.length || isHeadFieldReadonly('municipality')"
+                          (ionChange)="onMunicipalityChange()">
+                <ion-select-option *ngFor="let m of municipalities" [value]="m">{{ m }}</ion-select-option>
+              </ion-select>
+            </ion-item>
+
+            <!-- Ward -->
+            <ion-item class="form-item">
+              <ion-select label="Ward Number *" labelPlacement="stacked"
+                          placeholder="Select Ward"
+                          [(ngModel)]="step1.ward_number"
+                          [disabled]="!wards.length || isHeadFieldReadonly('ward_number')"
+                          (ionChange)="updateFullAddress()">
+                <ion-select-option *ngFor="let w of wards" [value]="w">{{ w }}</ion-select-option>
+              </ion-select>
+            </ion-item>
+
+            <!-- Tole -->
+            <ion-item class="form-item">
+              <ion-input label="Tole / Village" labelPlacement="stacked"
+                         placeholder="e.g. Baneshwor"
+                         [(ngModel)]="step1.tole_village"
+                         [readonly]="isHeadFieldReadonly('tole_village')"
+                         (ionInput)="updateFullAddress()">
+              </ion-input>
+            </ion-item>
+
+            <!-- Full address (auto) -->
+            <ion-item class="form-item" *ngIf="step1.full_address">
+              <ion-input label="Full Address" labelPlacement="stacked"
+                         [value]="step1.full_address" readonly>
+              </ion-input>
+            </ion-item>
+          </div>
+        </ion-card-content>
+      </ion-card>
+
+      <ion-card>
+        <ion-card-content>
+          <div class="section-title">
+            <div class="section-icon" style="background:rgba(0,48,135,0.08)">
+              <ion-icon name="location-outline" style="color:#003087"></ion-icon>
+            </div>
+            <h3>{{ text('wizard.temporary_address', 'Temporary Address') }}</h3>
+          </div>
+
+          <ion-item class="form-item">
+            <ion-label>Same as permanent address</ion-label>
+            <ion-toggle slot="end" [(ngModel)]="temporarySameAsPermanent" (ionChange)="copyPermanentToTemporary()"></ion-toggle>
+          </ion-item>
+
+          <div *ngIf="!temporarySameAsPermanent">
+            <ion-item class="form-item">
+              <ion-select label="Temporary Province" labelPlacement="stacked" placeholder="Select Province"
+                          [(ngModel)]="temporaryAddress.province" (ionChange)="onTemporaryProvinceChange()">
+                <ion-select-option *ngFor="let p of provinces" [value]="p">{{ p }}</ion-select-option>
+              </ion-select>
+            </ion-item>
+
+            <ion-item class="form-item">
+              <ion-select label="Temporary District" labelPlacement="stacked" placeholder="Select District"
+                          [(ngModel)]="temporaryAddress.district" [disabled]="!temporaryDistricts.length"
+                          (ionChange)="onTemporaryDistrictChange()">
+                <ion-select-option *ngFor="let d of temporaryDistricts" [value]="d">{{ d }}</ion-select-option>
+              </ion-select>
+            </ion-item>
+
+            <ion-item class="form-item">
+              <ion-select label="Temporary Municipality" labelPlacement="stacked" placeholder="Select Municipality"
+                          [(ngModel)]="temporaryAddress.municipality" [disabled]="!temporaryMunicipalities.length"
+                          (ionChange)="onTemporaryMunicipalityChange()">
+                <ion-select-option *ngFor="let m of temporaryMunicipalities" [value]="m">{{ m }}</ion-select-option>
+              </ion-select>
+            </ion-item>
+
+            <ion-item class="form-item">
+              <ion-select label="Temporary Ward" labelPlacement="stacked" placeholder="Select Ward"
+                          [(ngModel)]="temporaryAddress.ward_number" [disabled]="!temporaryWards.length"
+                          (ionChange)="updateTemporaryFullAddress()">
+                <ion-select-option *ngFor="let w of temporaryWards" [value]="w">{{ w }}</ion-select-option>
+              </ion-select>
+            </ion-item>
+
+            <ion-item class="form-item">
+              <ion-input label="Temporary Tole / Village" labelPlacement="stacked"
+                         [(ngModel)]="temporaryAddress.tole_village"
+                         (ionInput)="updateTemporaryFullAddress()">
+              </ion-input>
+            </ion-item>
+
+            <ion-item class="form-item" *ngIf="temporaryAddress.full_address">
+              <ion-input label="Temporary Full Address" labelPlacement="stacked"
+                         [value]="temporaryAddress.full_address" readonly>
+              </ion-input>
+            </ion-item>
+
+            <div class="capture-section">
+              <div class="capture-row">
+                <span class="capture-label">Basai Sarai Front (Optional)</span>
+                <ion-button size="small" fill="outline" (click)="captureImage('head','basai_sarai_front')">
+                  <ion-icon slot="start" name="camera-outline"></ion-icon>
+                  {{ basaiSaraiFrontPreview ? 'Change' : 'Capture' }}
+                </ion-button>
+              </div>
+              <img *ngIf="basaiSaraiFrontPreview" [src]="basaiSaraiFrontPreview" class="preview-img" />
+            </div>
+
+            <div class="capture-section">
+              <div class="capture-row">
+                <span class="capture-label">Basai Sarai Back (Optional)</span>
+                <ion-button size="small" fill="outline" (click)="captureImage('head','basai_sarai_back')">
+                  <ion-icon slot="start" name="camera-outline"></ion-icon>
+                  {{ basaiSaraiBackPreview ? 'Change' : 'Capture' }}
+                </ion-button>
+              </div>
+              <img *ngIf="basaiSaraiBackPreview" [src]="basaiSaraiBackPreview" class="preview-img" />
+            </div>
+          </div>
+        </ion-card-content>
+      </ion-card>

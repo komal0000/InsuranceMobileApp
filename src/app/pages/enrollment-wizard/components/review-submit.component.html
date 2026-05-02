@@ -1,0 +1,242 @@
+      <ion-accordion-group [multiple]="true" value="['location','head','members','premium']">
+
+        <!-- Household Info -->
+        <ion-accordion value="location">
+          <ion-item slot="header" color="light">
+            <ion-label><strong>Household Location</strong></ion-label>
+          </ion-item>
+          <div slot="content" style="padding:14px">
+            <div class="review-section">
+              <div class="review-item">
+                <span class="review-label">Province</span>
+                <span class="review-value">{{ enrollment?.province || step1.province || '—' }}</span>
+              </div>
+              <div class="review-item">
+                <span class="review-label">District</span>
+                <span class="review-value">{{ enrollment?.district || step1.district || '—' }}</span>
+              </div>
+              <div class="review-item">
+                <span class="review-label">Municipality</span>
+                <span class="review-value">{{ enrollment?.municipality || step1.municipality || '—' }}</span>
+              </div>
+              <div class="review-item">
+                <span class="review-label">Ward Number</span>
+                <span class="review-value">{{ enrollment?.ward_number || step1.ward_number || '—' }}</span>
+              </div>
+              <div class="review-item">
+                <span class="review-label">Tole / Village</span>
+                <span class="review-value">{{ enrollment?.tole_village || step1.tole_village || '—' }}</span>
+              </div>
+              <div class="review-item">
+                <span class="review-label">Full Address</span>
+                <span class="review-value">{{ enrollment?.full_address || step1.full_address || '—' }}</span>
+              </div>
+            </div>
+            <ion-button size="small" fill="clear" (click)="goToStep(1)" style="margin-top:10px">
+              <ion-icon slot="start" name="create-outline"></ion-icon>
+              Edit
+            </ion-button>
+          </div>
+        </ion-accordion>
+
+        <!-- Household Head -->
+        <ion-accordion value="head">
+          <ion-item slot="header" color="light">
+            <ion-label><strong>Household Head</strong></ion-label>
+          </ion-item>
+          <div slot="content" style="padding:14px">
+            <div class="review-section">
+              <div class="review-item">
+                <span class="review-label">Full Name</span>
+                <span class="review-value">
+                  {{ headData.first_name }} {{ headData.last_name }}
+                </span>
+              </div>
+              <div class="review-item" *ngIf="headData.first_name_ne">
+                <span class="review-label">Nepali Name</span>
+                <span class="review-value">{{ headData.first_name_ne }} {{ headData.last_name_ne }}</span>
+              </div>
+              <div class="review-item">
+                <span class="review-label">Gender</span>
+                <span class="review-value">{{ label('gender', headData.gender, t('common.not_available')) }}</span>
+              </div>
+              <div class="review-item">
+                <span class="review-label">Date of Birth</span>
+                <span class="review-value">{{ headData.date_of_birth || '—' }}</span>
+              </div>
+              <div class="review-item">
+                <span class="review-label">Blood Group</span>
+                <span class="review-value">{{ headData.blood_group || '—' }}</span>
+              </div>
+              <div class="review-item">
+                <span class="review-label">Marital Status</span>
+                <span class="review-value">{{ label('marital', headData.marital_status, t('common.not_available')) }}</span>
+              </div>
+              <div class="review-item">
+                <span class="review-label">Mobile</span>
+                <span class="review-value">{{ headData.mobile_number || '—' }}</span>
+              </div>
+              <div class="review-item" *ngIf="headData.email">
+                <span class="review-label">Email</span>
+                <span class="review-value">{{ headData.email }}</span>
+              </div>
+              <div class="review-item">
+                <span class="review-label">Citizenship No.</span>
+                <span class="review-value">{{ headData.citizenship_number || '—' }}</span>
+              </div>
+              <div class="review-item" *ngIf="headData.citizenship_issue_date">
+                <span class="review-label">Citizenship Issue Date</span>
+                <span class="review-value">{{ headData.citizenship_issue_date }}</span>
+              </div>
+              <div class="review-item" *ngIf="headData.citizenship_issue_district">
+                <span class="review-label">Citizenship Issue District</span>
+                <span class="review-value">{{ headData.citizenship_issue_district }}</span>
+              </div>
+              <div class="review-item">
+                <span class="review-label">Confirmation Type</span>
+                <span class="review-value">{{ headData.is_target_group ? (getConfirmationLabel(headData.target_group_type) || 'Yes') : 'Normal' }}</span>
+              </div>
+              <div class="review-item" *ngIf="headData.occupation">
+                <span class="review-label">Occupation</span>
+                <span class="review-value">{{ headData.occupation }}</span>
+              </div>
+              <div class="review-item" *ngIf="headData.education_level">
+                <span class="review-label">Education</span>
+                <span class="review-value">{{ headData.education_level }}</span>
+              </div>
+            </div>
+            <!-- Image previews -->
+            <div *ngIf="headPhotoPreview || citizenshipFrontPreview || citizenshipBackPreview"
+                 style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px">
+              <img *ngIf="headPhotoPreview" [src]="headPhotoPreview"
+                   style="width:80px;height:80px;object-fit:cover;border-radius:8px;border:1px solid #dee2e6" />
+              <img *ngIf="citizenshipFrontPreview" [src]="citizenshipFrontPreview"
+                   style="width:110px;height:70px;object-fit:cover;border-radius:8px;border:1px solid #dee2e6" />
+              <img *ngIf="citizenshipBackPreview" [src]="citizenshipBackPreview"
+                   style="width:110px;height:70px;object-fit:cover;border-radius:8px;border:1px solid #dee2e6" />
+            </div>
+            <ion-button size="small" fill="clear" (click)="goToStep(1)" style="margin-top:10px">
+              <ion-icon slot="start" name="create-outline"></ion-icon>
+              Edit
+            </ion-button>
+          </div>
+        </ion-accordion>
+
+        <!-- Family Members -->
+        <ion-accordion value="members">
+          <ion-item slot="header" color="light">
+            <ion-label><strong>Family Members ({{ (members.length || 0) + 1 }} total)</strong></ion-label>
+          </ion-item>
+          <div slot="content" style="padding:14px">
+            <div class="member-list">
+              <!-- Head -->
+              <div class="member-row" *ngIf="householdHead">
+                <div class="member-avatar">{{ (householdHead.first_name || 'H')[0].toUpperCase() }}</div>
+                <div class="member-info">
+                  <strong>{{ householdHead.first_name }} {{ householdHead.last_name }}</strong>
+                  <span>Household Head</span>
+                </div>
+                <ion-badge color="primary">Head</ion-badge>
+              </div>
+              <!-- Members -->
+              <div class="member-row" *ngFor="let m of members">
+                <div class="member-avatar">{{ (m.first_name || '?')[0].toUpperCase() }}</div>
+                <div class="member-info">
+                  <strong>{{ m.first_name }} {{ m.last_name }}</strong>
+                  <span>{{ formatRelationship(m.relationship) }} · {{ displayDate(m.date_of_birth, m.date_of_birth_bs) }} · {{ t('common.age') }} {{ formatNumber(getAge(m.date_of_birth, m.date_of_birth_bs)) }}</span>
+                </div>
+              </div>
+            </div>
+            <ion-button size="small" fill="clear" (click)="goToStep(2)" style="margin-top:10px">
+              <ion-icon slot="start" name="create-outline"></ion-icon>
+              Edit
+            </ion-button>
+          </div>
+        </ion-accordion>
+
+        <!-- Premium Summary -->
+        <ion-accordion value="premium">
+          <ion-item slot="header" color="light">
+            <ion-label><strong>Premium Summary</strong></ion-label>
+          </ion-item>
+          <div slot="content" style="padding:14px">
+            <div class="review-section">
+              <div class="review-item">
+                <span class="review-label">Total Members</span>
+                <span class="review-value">{{ premiumBreakdown.members }}</span>
+              </div>
+              <div class="review-item">
+                <span class="review-label">Base Premium</span>
+                <span class="review-value">{{ formatCurrency(premiumBreakdown.base) }}</span>
+              </div>
+              <div class="review-item" *ngIf="premiumBreakdown.extra > 0">
+                <span class="review-label">Extra Members Premium</span>
+                <span class="review-value">{{ formatCurrency(premiumBreakdown.extra) }}</span>
+              </div>
+              <div class="review-item">
+                <span class="review-label" style="font-size:0.8rem;color:#003087;font-weight:700">TOTAL PREMIUM</span>
+                <span class="review-value" style="font-size:1.1rem;color:#003087;font-weight:700">{{ formatCurrency(premiumBreakdown.total) }}</span>
+              </div>
+            </div>
+
+            <!-- Subsidy Information -->
+            <div *ngIf="subsidyResults.length > 0" style="margin-top:14px;padding:12px;background:#e8f5e9;border-radius:8px;border:1px solid #a5d6a7">
+              <p style="font-weight:700;color:#2e7d32;margin:0 0 8px;font-size:0.85rem">
+                <ion-icon name="checkmark-circle-outline" style="vertical-align:middle;margin-right:4px"></ion-icon>
+                Subsidy Eligibility ({{ subsidyResults.length }} rule(s) matched)
+              </p>
+              <div *ngFor="let sr of subsidyResults" style="padding:6px 0;border-bottom:1px solid #c8e6c9;font-size:0.82rem">
+                <strong>{{ sr.member_name }}</strong> ({{ formatNumber(sr.member_age) }} {{ t('common.years_short') }})
+                <br>
+                <span style="color:#555">{{ sr.rule_name }}</span>
+                — <ion-badge [color]="sr.benefit_type === 'full_premium_waiver' ? 'success' : 'warning'" style="font-size:0.72rem">
+                    {{ getBenefitLabel(sr) }}
+                  </ion-badge>
+              </div>
+              <div *ngIf="subsidySummary" style="margin-top:10px;padding-top:8px;border-top:2px solid #66bb6a">
+                <div class="review-item">
+                  <span class="review-label" style="color:#2e7d32;font-weight:600">Subsidy Discount</span>
+                  <span class="review-value" style="color:#2e7d32;font-weight:700">- {{ formatCurrency(subsidySummary.best_discount) }}</span>
+                </div>
+                <div class="review-item">
+                  <span class="review-label" style="font-size:0.85rem;color:#1b5e20;font-weight:700">PAYABLE AMOUNT</span>
+                  <span class="review-value" style="font-size:1.1rem;color:#1b5e20;font-weight:700">{{ formatCurrency(subsidySummary.final_premium) }}</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </ion-accordion>
+
+      </ion-accordion-group>
+
+      <!-- Confirmation -->
+      <ion-card style="margin-top:16px">
+        <ion-card-content>
+          <ion-item lines="none" style="--padding-start:0">
+            <ion-checkbox slot="start" [(ngModel)]="confirmed"></ion-checkbox>
+            <ion-label class="ion-text-wrap" style="font-size:0.88rem;margin-left:10px">
+              I confirm that all the information provided is accurate and complete to the best of my knowledge.
+            </ion-label>
+          </ion-item>
+        </ion-card-content>
+      </ion-card>
+
+      <!-- Navigation -->
+      <div class="nav-buttons">
+        <ion-button expand="block" fill="outline" color="medium" (click)="prevStep()">
+          <ion-icon slot="start" name="arrow-back-outline"></ion-icon>
+          Back
+        </ion-button>
+        <ion-button *ngIf="!subsidySummary || subsidySummary.final_premium > 0"
+                    expand="block" color="success" [disabled]="!confirmed" (click)="payAndSubmit()">
+          <ion-icon slot="start" name="card-outline"></ion-icon>
+          {{ paySubmitLabel(subsidySummary ? subsidySummary.final_premium : premiumBreakdown.total) }}
+        </ion-button>
+        <ion-button *ngIf="subsidySummary && subsidySummary.final_premium === 0"
+                    expand="block" color="success" [disabled]="!confirmed || submitting" (click)="submitEnrollment()">
+          <ion-spinner *ngIf="submitting" name="crescent" style="margin-right:8px"></ion-spinner>
+          <ion-icon *ngIf="!submitting" slot="start" name="checkmark-circle-outline"></ion-icon>
+          {{ t('wizard.submit_fully_subsidized') }}
+        </ion-button>
+      </div>

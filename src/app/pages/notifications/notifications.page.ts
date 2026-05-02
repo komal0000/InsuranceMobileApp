@@ -16,6 +16,7 @@ import { DateService } from '../../services/date.service';
 import { LanguageService } from '../../services/language.service';
 import { ApiResponse, PaginatedData } from '../../interfaces/api-response.interface';
 import { AppNotification } from '../../interfaces/notification.interface';
+import { LanguageToggleComponent } from '../../components/language-toggle/language-toggle.component';
 
 @Component({
   selector: 'app-notifications',
@@ -24,7 +25,8 @@ import { AppNotification } from '../../interfaces/notification.interface';
     CommonModule,
     IonContent, IonHeader, IonToolbar, IonTitle, IonBadge, IonIcon,
     IonSpinner, IonRefresher, IonRefresherContent, IonInfiniteScroll,
-    IonInfiniteScrollContent, IonButtons, IonButton
+    IonInfiniteScrollContent, IonButtons, IonButton,
+    LanguageToggleComponent
   ],
   templateUrl: './notifications.page.html',
   styleUrls: ['./notifications.page.scss'],

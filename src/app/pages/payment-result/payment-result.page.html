@@ -1,6 +1,7 @@
 <ion-header>
   <ion-toolbar>
     <ion-title>{{ t('payment_result.title') }}</ion-title>
+    <app-language-toggle slot="end" placement="toolbar"></app-language-toggle>
   </ion-toolbar>
 </ion-header>
 
@@ -34,6 +35,22 @@
 
     <ion-button expand="block" color="primary" (click)="continue()">
       {{ t('payment_result.continue') }}
+    </ion-button>
+  </div>
+
+  <!-- Pending -->
+  <div class="result-card" *ngIf="status === 'pending'">
+    <ion-icon name="time-outline" class="icon pending-icon"></ion-icon>
+    <h2>{{ t('payment_result.pending') }}</h2>
+    <p>{{ t('payment_result.pending_message') }}</p>
+    <p class="ref-id" *ngIf="referenceId">{{ t('payment_result.ref') }}: {{ referenceId }}</p>
+
+    <ion-button expand="block" color="warning" (click)="refreshStatus()" [disabled]="checkingStatus">
+      <ion-spinner name="crescent" *ngIf="checkingStatus"></ion-spinner>
+      <span *ngIf="!checkingStatus">{{ t('payment_result.check_again') }}</span>
+    </ion-button>
+    <ion-button expand="block" fill="outline" color="medium" (click)="goToDashboard()">
+      {{ t('payment_result.back_dashboard') }}
     </ion-button>
   </div>
 

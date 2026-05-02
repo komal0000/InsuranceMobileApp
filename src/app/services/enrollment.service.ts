@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { shareReplay } from 'rxjs/operators';
 import { ApiService } from './api.service';
 import { ApiResponse, PaginatedData } from '../interfaces/api-response.interface';
 import {
@@ -15,6 +16,7 @@ export class EnrollmentService {
     'citizenship_issue_date',
     'birth_certificate_issue_date',
   ];
+  private configRequest$?: Observable<ApiResponse<EnrollmentConfig>>;
 
   constructor(
     private api: ApiService,
@@ -24,7 +26,17 @@ export class EnrollmentService {
   // ── Config ──────────────────────────────────────────────────
 
   getConfig(): Observable<ApiResponse<EnrollmentConfig>> {
-    return this.api.get<ApiResponse<EnrollmentConfig>>('/enrollment-config');
+    if (!this.configRequest$) {
+      this.configRequest$ = this.api.get<ApiResponse<EnrollmentConfig>>('/enrollment-config').pipe(
+        shareReplay({ bufferSize: 1, refCount: false })
+      );
+    }
+
+    return this.configRequest$;
+  }
+
+  clearConfigCache(): void {
+    this.configRequest$ = undefined;
   }
 
   // ── CRUD ────────────────────────────────────────────────────

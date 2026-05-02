@@ -19,6 +19,7 @@ import { AuthService } from '../../services/auth.service';
 import { ApiResponse } from '../../interfaces/api-response.interface';
 import { Enrollment } from '../../interfaces/enrollment.interface';
 import { User } from '../../interfaces/user.interface';
+import { LanguageToggleComponent } from '../../components/language-toggle/language-toggle.component';
 import { DashboardDataService } from '../../services/dashboard-data.service';
 import { LanguageService } from '../../services/language.service';
 
@@ -28,7 +29,8 @@ import { LanguageService } from '../../services/language.service';
   imports: [
     CommonModule,
     IonContent, IonHeader, IonToolbar, IonTitle, IonCard, IonCardContent,
-    IonIcon, IonRefresher, IonRefresherContent, IonSpinner
+    IonIcon, IonRefresher, IonRefresherContent, IonSpinner,
+    LanguageToggleComponent
   ],
   templateUrl: './dashboard.page.html',
   styleUrls: ['./dashboard.page.scss'],

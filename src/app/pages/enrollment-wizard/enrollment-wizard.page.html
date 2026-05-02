@@ -1,9 +1,10 @@
-﻿<ion-header>
+<ion-header>
   <ion-toolbar color="primary">
     <ion-buttons slot="start">
       <ion-back-button defaultHref="/tabs/enrollments"></ion-back-button>
     </ion-buttons>
     <ion-title>{{ stepTitles[currentStep - 1] }}</ion-title>
+    <app-language-toggle slot="end" placement="toolbar"></app-language-toggle>
   </ion-toolbar>
 </ion-header>
 
@@ -26,479 +27,77 @@
 
   <div class="wizard-content">
 
-    <!-- Address fields are rendered after the NID gate and household-head details. -->
-    <ng-template #householdAddressFields>
-      <ion-card>
-        <ion-card-content>
-          <div class="section-title">
-            <div class="section-icon" style="background:rgba(0,48,135,0.08)">
-              <ion-icon name="location-outline" style="color:#003087"></ion-icon>
-            </div>
-            <h3>Permanent Address</h3>
-          </div>
-
-          <div class="form-group">
-            <!-- Province -->
-            <ion-item class="form-item">
-              <ion-select label="Province *" labelPlacement="stacked"
-                          placeholder="Select Province"
-                          [(ngModel)]="step1.province"
-                          [disabled]="isHeadFieldReadonly('province')"
-                          (ionChange)="onProvinceChange()">
-                <ion-select-option *ngFor="let p of provinces" [value]="p">{{ p }}</ion-select-option>
-              </ion-select>
-            </ion-item>
-
-            <!-- District -->
-            <ion-item class="form-item">
-              <ion-select label="District *" labelPlacement="stacked"
-                          placeholder="Select District"
-                          [(ngModel)]="step1.district"
-                          [disabled]="!districts.length || isHeadFieldReadonly('district')"
-                          (ionChange)="onDistrictChange()">
-                <ion-select-option *ngFor="let d of districts" [value]="d">{{ d }}</ion-select-option>
-              </ion-select>
-            </ion-item>
-
-            <!-- Municipality -->
-            <ion-item class="form-item">
-              <ion-select label="Municipality *" labelPlacement="stacked"
-                          placeholder="Select Municipality"
-                          [(ngModel)]="step1.municipality"
-                          [disabled]="!municipalities.length || isHeadFieldReadonly('municipality')"
-                          (ionChange)="onMunicipalityChange()">
-                <ion-select-option *ngFor="let m of municipalities" [value]="m">{{ m }}</ion-select-option>
-              </ion-select>
-            </ion-item>
-
-            <!-- Ward -->
-            <ion-item class="form-item">
-              <ion-select label="Ward Number *" labelPlacement="stacked"
-                          placeholder="Select Ward"
-                          [(ngModel)]="step1.ward_number"
-                          [disabled]="!wards.length || isHeadFieldReadonly('ward_number')"
-                          (ionChange)="updateFullAddress()">
-                <ion-select-option *ngFor="let w of wards" [value]="w">{{ w }}</ion-select-option>
-              </ion-select>
-            </ion-item>
-
-            <!-- Tole -->
-            <ion-item class="form-item">
-              <ion-input label="Tole / Village" labelPlacement="stacked"
-                         placeholder="e.g. Baneshwor"
-                         [(ngModel)]="step1.tole_village"
-                         [readonly]="isHeadFieldReadonly('tole_village')"
-                         (ionInput)="updateFullAddress()">
-              </ion-input>
-            </ion-item>
-
-            <!-- Full address (auto) -->
-            <ion-item class="form-item" *ngIf="step1.full_address">
-              <ion-input label="Full Address" labelPlacement="stacked"
-                         [value]="step1.full_address" readonly>
-              </ion-input>
-            </ion-item>
-          </div>
-        </ion-card-content>
-      </ion-card>
-
-      <ion-card>
-        <ion-card-content>
-          <div class="section-title">
-            <div class="section-icon" style="background:rgba(0,48,135,0.08)">
-              <ion-icon name="location-outline" style="color:#003087"></ion-icon>
-            </div>
-            <h3>Temporary Address</h3>
-          </div>
-
-          <ion-item class="form-item">
-            <ion-label>Same as permanent address</ion-label>
-            <ion-toggle slot="end" [(ngModel)]="temporarySameAsPermanent" (ionChange)="copyPermanentToTemporary()"></ion-toggle>
-          </ion-item>
-
-          <div *ngIf="!temporarySameAsPermanent">
-            <ion-item class="form-item">
-              <ion-select label="Temporary Province" labelPlacement="stacked" placeholder="Select Province"
-                          [(ngModel)]="temporaryAddress.province" (ionChange)="onTemporaryProvinceChange()">
-                <ion-select-option *ngFor="let p of provinces" [value]="p">{{ p }}</ion-select-option>
-              </ion-select>
-            </ion-item>
-
-            <ion-item class="form-item">
-              <ion-select label="Temporary District" labelPlacement="stacked" placeholder="Select District"
-                          [(ngModel)]="temporaryAddress.district" [disabled]="!temporaryDistricts.length"
-                          (ionChange)="onTemporaryDistrictChange()">
-                <ion-select-option *ngFor="let d of temporaryDistricts" [value]="d">{{ d }}</ion-select-option>
-              </ion-select>
-            </ion-item>
-
-            <ion-item class="form-item">
-              <ion-select label="Temporary Municipality" labelPlacement="stacked" placeholder="Select Municipality"
-                          [(ngModel)]="temporaryAddress.municipality" [disabled]="!temporaryMunicipalities.length"
-                          (ionChange)="onTemporaryMunicipalityChange()">
-                <ion-select-option *ngFor="let m of temporaryMunicipalities" [value]="m">{{ m }}</ion-select-option>
-              </ion-select>
-            </ion-item>
-
-            <ion-item class="form-item">
-              <ion-select label="Temporary Ward" labelPlacement="stacked" placeholder="Select Ward"
-                          [(ngModel)]="temporaryAddress.ward_number" [disabled]="!temporaryWards.length"
-                          (ionChange)="updateTemporaryFullAddress()">
-                <ion-select-option *ngFor="let w of temporaryWards" [value]="w">{{ w }}</ion-select-option>
-              </ion-select>
-            </ion-item>
-
-            <ion-item class="form-item">
-              <ion-input label="Temporary Tole / Village" labelPlacement="stacked"
-                         [(ngModel)]="temporaryAddress.tole_village"
-                         (ionInput)="updateTemporaryFullAddress()">
-              </ion-input>
-            </ion-item>
-
-            <ion-item class="form-item" *ngIf="temporaryAddress.full_address">
-              <ion-input label="Temporary Full Address" labelPlacement="stacked"
-                         [value]="temporaryAddress.full_address" readonly>
-              </ion-input>
-            </ion-item>
-
-            <div class="capture-section">
-              <div class="capture-row">
-                <span class="capture-label">Basai Sarai Front (Optional)</span>
-                <ion-button size="small" fill="outline" (click)="captureImage('head','basai_sarai_front')">
-                  <ion-icon slot="start" name="camera-outline"></ion-icon>
-                  {{ basaiSaraiFrontPreview ? 'Change' : 'Capture' }}
-                </ion-button>
-              </div>
-              <img *ngIf="basaiSaraiFrontPreview" [src]="basaiSaraiFrontPreview" class="preview-img" />
-            </div>
-
-            <div class="capture-section">
-              <div class="capture-row">
-                <span class="capture-label">Basai Sarai Back (Optional)</span>
-                <ion-button size="small" fill="outline" (click)="captureImage('head','basai_sarai_back')">
-                  <ion-icon slot="start" name="camera-outline"></ion-icon>
-                  {{ basaiSaraiBackPreview ? 'Change' : 'Capture' }}
-                </ion-button>
-              </div>
-              <img *ngIf="basaiSaraiBackPreview" [src]="basaiSaraiBackPreview" class="preview-img" />
-            </div>
-          </div>
-        </ion-card-content>
-      </ion-card>
-
-    </ng-template>
-
 
     <!-- ═══════════════════════  STEP 1 : HOUSEHOLD HEAD  ════════════════════ -->
     <div *ngIf="currentStep === 1">
 
-      <!-- NID Gate -->
-      <ion-card *ngIf="showNidGate2" class="member-form-card">
-        <ion-card-content>
-          <div class="section-title">
-            <div class="section-icon" style="background:rgba(0,48,135,0.08)">
-              <ion-icon name="card-outline" style="color:#003087"></ion-icon>
-            </div>
-            <h3>Verify Household Head</h3>
-          </div>
-          <p style="font-size:0.85rem;color:#6c757d;margin:0 0 12px">
-            Enter the NID number to auto-fill details, or skip to fill manually.
-          </p>
-          <div class="form-group">
-            <ion-item class="form-item">
-              <ion-input label="NID Number" labelPlacement="stacked"
-                         placeholder="Enter NID number (min. 8 digits)"
-                         [(ngModel)]="nidNumber2"
-                         type="text"
-                         inputmode="numeric">
-              </ion-input>
-            </ion-item>
-          </div>
-          <div *ngIf="nidMessage2" style="margin:8px 0;padding:8px 12px;background:#fff3cd;border-radius:6px;font-size:0.82rem;color:#856404">
-            {{ nidMessage2 }}
-          </div>
-          <div class="btn-row" style="margin-top:12px">
-            <ion-button expand="block" (click)="lookupNid2()" [disabled]="nidLooking2 || !nidNumber2.trim()">
-              <ion-spinner *ngIf="nidLooking2" name="crescent"></ion-spinner>
-              <span *ngIf="nidLooking2">Verifying...</span>
-              <ion-icon *ngIf="!nidLooking2" slot="start" name="search-outline"></ion-icon>
-              <span *ngIf="!nidLooking2">Verify NID</span>
-            </ion-button>
-            <ion-button expand="block" fill="outline" color="medium" (click)="skipNidGate2()">
-              Skip &amp; Fill Manually
-            </ion-button>
-          </div>
-        </ion-card-content>
-      </ion-card>
+      <app-nid-gate *ngIf="showNidGate2"
+                    [title]="t('wizard.start_household_head_nid')"
+                    description="Enter the NID number to auto-fill details, or skip to fill manually."
+                    [(nidNumber)]="nidNumber2"
+                    [message]="nidMessage2"
+                    [looking]="nidLooking2"
+                    skipLabel="Skip &amp; Fill Manually"
+                    [card]="true"
+                    (verify)="lookupNid2()"
+                    (skip)="skipNidGate2()">
+      </app-nid-gate>
 
       <!-- Head Form -->
-      <ion-card *ngIf="showHouseholdHeadForm">
-        <ion-card-content>
-          <div class="section-title">
-            <div class="section-icon" style="background:rgba(0,48,135,0.08)">
-              <ion-icon name="person-outline" style="color:#003087"></ion-icon>
-            </div>
-            <h3>Household Head Details</h3>
-            <ion-badge *ngIf="nidVerifiedHead" color="success" style="margin-left:8px;font-size:0.7rem;vertical-align:middle">
-              <ion-icon name="checkmark-circle-outline" style="vertical-align:middle;margin-right:2px"></ion-icon>
-              NID Verified
-            </ion-badge>
-          </div>
+      <app-household-head-form *ngIf="showHouseholdHeadForm"
+                               sectionGroup="identity"
+                               [headData]="headData"
+                               [nidVerifiedHead]="nidVerifiedHead"
+                               [headPhotoPreview]="headPhotoPreview"
+                               [citizenshipFrontPreview]="citizenshipFrontPreview"
+                               [citizenshipBackPreview]="citizenshipBackPreview"
+                               [targetGroupFrontPreview]="targetGroupFrontPreview"
+                               [targetGroupBackPreview]="targetGroupBackPreview"
+                               [(firstServicePoint)]="firstServicePoint"
+                               [professionOptions]="professionOptions"
+                               [qualificationOptions]="qualificationOptions"
+                               [lockedFields]="nidLockedHeadFields"
+                               (capture)="captureImage('head', $event)">
+      </app-household-head-form>
 
-          <div class="form-group">
-            <!-- Profile Photo (top) -->
-            <div class="capture-section" style="margin-bottom:16px">
-              <div class="capture-row">
-                <span class="capture-label">Photo *</span>
-                <ion-button size="small" fill="outline" (click)="captureImage('head','photo')">
-                  <ion-icon slot="start" name="camera-outline"></ion-icon>
-                  {{ headPhotoPreview ? 'Change' : 'Capture' }}
-                </ion-button>
-              </div>
-              <img *ngIf="headPhotoPreview" [src]="headPhotoPreview" class="preview-img" />
-            </div>
+      <app-address-form *ngIf="showHouseholdHeadForm"
+                        [step1]="step1"
+                        [provinces]="provinces"
+                        [districts]="districts"
+                        [municipalities]="municipalities"
+                        [wards]="wards"
+                        [(temporarySameAsPermanent)]="temporarySameAsPermanent"
+                        [temporaryAddress]="temporaryAddress"
+                        [temporaryDistricts]="temporaryDistricts"
+                        [temporaryMunicipalities]="temporaryMunicipalities"
+                        [temporaryWards]="temporaryWards"
+                        [basaiSaraiFrontPreview]="basaiSaraiFrontPreview"
+                        [basaiSaraiBackPreview]="basaiSaraiBackPreview"
+                        [lockedFields]="nidLockedHeadFields"
+                        (provinceChange)="onProvinceChange()"
+                        (districtChange)="onDistrictChange()"
+                        (municipalityChange)="onMunicipalityChange()"
+                        (fullAddressChange)="updateFullAddress()"
+                        (copyPermanent)="copyPermanentToTemporary()"
+                        (temporaryProvinceChange)="onTemporaryProvinceChange()"
+                        (temporaryDistrictChange)="onTemporaryDistrictChange()"
+                        (temporaryMunicipalityChange)="onTemporaryMunicipalityChange()"
+                        (temporaryFullAddressChange)="updateTemporaryFullAddress()"
+                        (capture)="captureImage('head', $event)">
+      </app-address-form>
 
-            <ion-item class="form-item">
-              <ion-input label="National ID" labelPlacement="stacked"
-                         [(ngModel)]="headData.national_id"
-                         [readonly]="isHeadFieldReadonly('national_id')">
-              </ion-input>
-            </ion-item>
-
-            <!-- English name -->
-            <p style="font-size:0.7rem;font-weight:700;color:#6c757d;text-transform:uppercase;margin:8px 0 4px">English Name</p>
-            <ion-item class="form-item">
-              <ion-input label="First Name *" labelPlacement="stacked" placeholder="First Name"
-                         [(ngModel)]="headData.first_name"
-                         [readonly]="isHeadFieldReadonly('first_name')">
-              </ion-input>
-            </ion-item>
-            <ion-item class="form-item">
-              <ion-input label="Middle Name" labelPlacement="stacked" placeholder="Middle Name (optional)"
-                         [(ngModel)]="headData.middle_name">
-              </ion-input>
-            </ion-item>
-            <ion-item class="form-item">
-              <ion-input label="Last Name *" labelPlacement="stacked" placeholder="Last Name"
-                         [(ngModel)]="headData.last_name"
-                         [readonly]="isHeadFieldReadonly('last_name')">
-              </ion-input>
-            </ion-item>
-
-            <!-- Nepali name -->
-            <p style="font-size:0.7rem;font-weight:700;color:#6c757d;text-transform:uppercase;margin:8px 0 4px">नेपाली नाम (Nepali Name)</p>
-            <ion-item class="form-item">
-              <ion-input label="पहिलो नाम" labelPlacement="stacked" placeholder="Type in English e.g. Komal"
-                         appNepaliInput [(ngModel)]="headData.first_name_ne"
-                         [readonly]="isHeadFieldReadonly('first_name_ne')">
-              </ion-input>
-            </ion-item>
-            <ion-item class="form-item">
-              <ion-input label="बीचको नाम" labelPlacement="stacked" placeholder="Type in English (optional)"
-                         appNepaliInput [(ngModel)]="headData.middle_name_ne">
-              </ion-input>
-            </ion-item>
-            <ion-item class="form-item">
-              <ion-input label="थर" labelPlacement="stacked" placeholder="Type in English e.g. Shrestha"
-                         appNepaliInput [(ngModel)]="headData.last_name_ne"
-                         [readonly]="isHeadFieldReadonly('last_name_ne')">
-              </ion-input>
-            </ion-item>
-
-            <p style="font-size:0.7rem;font-weight:700;color:#6c757d;text-transform:uppercase;margin:8px 0 4px">Family Names From NID</p>
-            <ion-item class="form-item">
-              <ion-input label="Father Name" labelPlacement="stacked" [(ngModel)]="headData.father_name" [readonly]="isHeadFieldReadonly('father_name')"></ion-input>
-            </ion-item>
-            <ion-item class="form-item">
-              <ion-input label="Father Name Nepali" labelPlacement="stacked" appNepaliInput [(ngModel)]="headData.father_name_ne" [readonly]="isHeadFieldReadonly('father_name_ne')"></ion-input>
-            </ion-item>
-            <ion-item class="form-item">
-              <ion-input label="Mother Name" labelPlacement="stacked" [(ngModel)]="headData.mother_name" [readonly]="isHeadFieldReadonly('mother_name')"></ion-input>
-            </ion-item>
-            <ion-item class="form-item">
-              <ion-input label="Mother Name Nepali" labelPlacement="stacked" appNepaliInput [(ngModel)]="headData.mother_name_ne" [readonly]="isHeadFieldReadonly('mother_name_ne')"></ion-input>
-            </ion-item>
-            <ion-item class="form-item">
-              <ion-input label="Grandfather Name" labelPlacement="stacked" [(ngModel)]="headData.grandfather_name" [readonly]="isHeadFieldReadonly('grandfather_name')"></ion-input>
-            </ion-item>
-            <ion-item class="form-item">
-              <ion-input label="Grandfather Name Nepali" labelPlacement="stacked" appNepaliInput [(ngModel)]="headData.grandfather_name_ne" [readonly]="isHeadFieldReadonly('grandfather_name_ne')"></ion-input>
-            </ion-item>
-
-            <!-- Personal details -->
-            <p style="font-size:0.7rem;font-weight:700;color:#6c757d;text-transform:uppercase;margin:8px 0 4px">Personal Details</p>
-            <ion-item class="form-item">
-              <ion-select label="Gender *" labelPlacement="stacked" placeholder="Select Gender"
-                          [(ngModel)]="headData.gender"
-                          [disabled]="isHeadFieldReadonly('gender')">
-                <ion-select-option value="male">Male</ion-select-option>
-                <ion-select-option value="female">Female</ion-select-option>
-                <ion-select-option value="other">Other</ion-select-option>
-              </ion-select>
-            </ion-item>
-            <app-bs-date-picker
-              [(ngModel)]="headData.date_of_birth"
-              label="Date of Birth *"
-              placeholder="Select BS date"
-              [disabled]="isHeadFieldReadonly('date_of_birth')">
-            </app-bs-date-picker>
-            <ion-item class="form-item">
-              <ion-select label="Blood Group" labelPlacement="stacked" placeholder="Select Blood Group"
-                          [(ngModel)]="headData.blood_group">
-                <ion-select-option value="A+">A+</ion-select-option>
-                <ion-select-option value="A-">A-</ion-select-option>
-                <ion-select-option value="B+">B+</ion-select-option>
-                <ion-select-option value="B-">B-</ion-select-option>
-                <ion-select-option value="AB+">AB+</ion-select-option>
-                <ion-select-option value="AB-">AB-</ion-select-option>
-                <ion-select-option value="O+">O+</ion-select-option>
-                <ion-select-option value="O-">O-</ion-select-option>
-              </ion-select>
-            </ion-item>
-            <ion-item class="form-item">
-              <ion-select label="Marital Status *" labelPlacement="stacked" placeholder="Select Status"
-                          [(ngModel)]="headData.marital_status">
-                <ion-select-option value="Single">Single</ion-select-option>
-                <ion-select-option value="Married">Married</ion-select-option>
-                <ion-select-option value="Divorced">Divorced</ion-select-option>
-                <ion-select-option value="Widowed">Widowed</ion-select-option>
-              </ion-select>
-            </ion-item>
-
-            <!-- Contact -->
-            <p style="font-size:0.7rem;font-weight:700;color:#6c757d;text-transform:uppercase;margin:8px 0 4px">Contact</p>
-            <ion-item class="form-item">
-              <ion-input label="Mobile Number *" labelPlacement="stacked" placeholder="98XXXXXXXX"
-                         type="tel" [(ngModel)]="headData.mobile_number" maxlength="10" minlength="10"
-                         [readonly]="isHeadFieldReadonly('mobile_number')">
-              </ion-input>
-            </ion-item>
-            <ion-item class="form-item">
-              <ion-input label="Email" labelPlacement="stacked" placeholder="email@example.com"
-                         type="email" [(ngModel)]="headData.email"
-                         [readonly]="isHeadFieldReadonly('email')">
-              </ion-input>
-            </ion-item>
-
-            <!-- Citizenship -->
-            <p style="font-size:0.7rem;font-weight:700;color:#6c757d;text-transform:uppercase;margin:8px 0 4px">Citizenship</p>
-            <ion-item class="form-item">
-              <ion-input label="Citizenship Number *" labelPlacement="stacked" placeholder="Citizenship No."
-                         [(ngModel)]="headData.citizenship_number"
-                         [readonly]="isHeadFieldReadonly('citizenship_number')">
-              </ion-input>
-            </ion-item>
-            <app-bs-date-picker
-              [(ngModel)]="headData.citizenship_issue_date"
-              label="Issue Date"
-              placeholder="Select BS date"
-              [disabled]="isHeadFieldReadonly('citizenship_issue_date')">
-            </app-bs-date-picker>
-            <ion-item class="form-item">
-              <ion-input label="Issue District" labelPlacement="stacked" placeholder="e.g. Kathmandu"
-                         [(ngModel)]="headData.citizenship_issue_district"
-                         [readonly]="isHeadFieldReadonly('citizenship_issue_district')">
-              </ion-input>
-            </ion-item>
-
-            <!-- Citizenship Images (contextual) -->
-            <div class="capture-section">
-              <div class="capture-row">
-                <span class="capture-label">Citizenship Front *</span>
-                <ion-button size="small" fill="outline" (click)="captureImage('head','citizenship_front_image')">
-                  <ion-icon slot="start" name="camera-outline"></ion-icon>
-                  {{ citizenshipFrontPreview ? 'Change' : 'Capture' }}
-                </ion-button>
-              </div>
-              <img *ngIf="citizenshipFrontPreview" [src]="citizenshipFrontPreview" class="preview-img" />
-            </div>
-            <div class="capture-section">
-              <div class="capture-row">
-                <span class="capture-label">Citizenship Back *</span>
-                <ion-button size="small" fill="outline" (click)="captureImage('head','citizenship_back_image')">
-                  <ion-icon slot="start" name="camera-outline"></ion-icon>
-                  {{ citizenshipBackPreview ? 'Change' : 'Capture' }}
-                </ion-button>
-              </div>
-              <img *ngIf="citizenshipBackPreview" [src]="citizenshipBackPreview" class="preview-img" />
-            </div>
-
-            <!-- Target Group -->
-            <p style="font-size:0.7rem;font-weight:700;color:#6c757d;text-transform:uppercase;margin:8px 0 4px">Target Group</p>
-            <ion-item class="form-item">
-              <ion-label>Is Target Group Member?</ion-label>
-              <ion-toggle slot="end" [(ngModel)]="headData.is_target_group"></ion-toggle>
-            </ion-item>
-            <div *ngIf="headData.is_target_group">
-              <ion-item class="form-item">
-                <ion-select label="Confirmation Type" labelPlacement="stacked" placeholder="Select Type"
-                            [(ngModel)]="headData.target_group_type">
-                  <ion-select-option value="ultra_poor">Ultra Poor</ion-select-option>
-                  <ion-select-option value="fchv">FCHV</ion-select-option>
-                  <ion-select-option value="senior_citizen">Senior Citizen</ion-select-option>
-                  <ion-select-option value="hiv">HIV</ion-select-option>
-                  <ion-select-option value="leprosy">Leprosy</ion-select-option>
-                  <ion-select-option value="null_disability">Null Disability</ion-select-option>
-                  <ion-select-option value="mdr_tb">MDR-TB</ion-select-option>
-                </ion-select>
-              </ion-item>
-              <p *ngIf="headData.target_group_type === 'senior_citizen'" style="font-size:0.82rem;color:#6c757d;margin:8px 0">
-                Senior citizen target group does not require target card images or ID number.
-              </p>
-              <ion-item class="form-item" *ngIf="headData.target_group_type !== 'senior_citizen'">
-                <ion-input label="Target Group ID Number" labelPlacement="stacked" placeholder="ID Number"
-                           [(ngModel)]="headData.target_group_id_number">
-                </ion-input>
-              </ion-item>
-              <!-- Target Group Images (contextual) -->
-              <div class="capture-section" *ngIf="headData.target_group_type !== 'senior_citizen'">
-                <div class="capture-row">
-                  <span class="capture-label">Target Group ID Front</span>
-                  <ion-button size="small" fill="outline" (click)="captureImage('head','target_group_front_image')">
-                    <ion-icon slot="start" name="camera-outline"></ion-icon>
-                    {{ targetGroupFrontPreview ? 'Change' : 'Capture' }}
-                  </ion-button>
-                </div>
-                <img *ngIf="targetGroupFrontPreview" [src]="targetGroupFrontPreview" class="preview-img" />
-              </div>
-              <div class="capture-section" *ngIf="headData.target_group_type !== 'senior_citizen'">
-                <div class="capture-row">
-                  <span class="capture-label">Target Group ID Back</span>
-                  <ion-button size="small" fill="outline" (click)="captureImage('head','target_group_back_image')">
-                    <ion-icon slot="start" name="camera-outline"></ion-icon>
-                    {{ targetGroupBackPreview ? 'Change' : 'Capture' }}
-                  </ion-button>
-                </div>
-                <img *ngIf="targetGroupBackPreview" [src]="targetGroupBackPreview" class="preview-img" />
-              </div>
-            </div>
-
-            <!-- Socio-economic -->
-            <p style="font-size:0.7rem;font-weight:700;color:#6c757d;text-transform:uppercase;margin:8px 0 4px">Socio-Economic</p>
-            <ion-item class="form-item">
-              <ion-input label="First Service Point" labelPlacement="stacked"
-                         placeholder="Optional"
-                         [(ngModel)]="firstServicePoint">
-              </ion-input>
-            </ion-item>
-            <ion-item class="form-item">
-              <ion-select label="Profession" labelPlacement="stacked" placeholder="Select Profession"
-                          [(ngModel)]="headData.profession_id">
-                <ion-select-option *ngFor="let option of professionOptions" [value]="option.id">{{ option.label }}</ion-select-option>
-              </ion-select>
-            </ion-item>
-            <ion-item class="form-item">
-              <ion-select label="Qualification" labelPlacement="stacked" placeholder="Select Qualification"
-                          [(ngModel)]="headData.qualification_id">
-                <ion-select-option *ngFor="let option of qualificationOptions" [value]="option.id">{{ option.label }}</ion-select-option>
-              </ion-select>
-            </ion-item>
-          </div>
-        </ion-card-content>
-      </ion-card>
-
-      <ng-container *ngIf="showHouseholdHeadForm" [ngTemplateOutlet]="householdAddressFields"></ng-container>
-
+      <app-household-head-form *ngIf="showHouseholdHeadForm"
+                               sectionGroup="additional"
+                               [headData]="headData"
+                               [nidVerifiedHead]="nidVerifiedHead"
+                               [targetGroupFrontPreview]="targetGroupFrontPreview"
+                               [targetGroupBackPreview]="targetGroupBackPreview"
+                               [(firstServicePoint)]="firstServicePoint"
+                               [professionOptions]="professionOptions"
+                               [qualificationOptions]="qualificationOptions"
+                               [lockedFields]="nidLockedHeadFields"
+                               (capture)="captureImage('head', $event)">
+      </app-household-head-form>
       <!-- Navigation -->
       <div class="nav-buttons" *ngIf="showHouseholdHeadForm">
         <ion-button expand="block" fill="outline" color="medium" (click)="prevStep()">
@@ -529,7 +128,7 @@
               {{ (householdHead.first_name || 'H')[0].toUpperCase() }}
             </div>
             <div class="member-info">
-              <strong>{{ householdHead.first_name }} {{ householdHead.middle_name }} {{ householdHead.last_name }}</strong>
+              <strong>{{ householdHead.first_name }} {{ householdHead.last_name }}</strong>
               <span>{{ t('common.household_head') }} · {{ t('common.age') }} {{ formatNumber(getAge(householdHead.date_of_birth, householdHead.date_of_birth_bs)) }}</span>
             </div>
             <ion-badge color="primary">Head</ion-badge>
@@ -545,7 +144,7 @@
               {{ (m.first_name || '?')[0].toUpperCase() }}
             </div>
             <div class="member-info">
-              <strong>{{ m.first_name }} {{ m.middle_name }} {{ m.last_name }}</strong>
+              <strong>{{ m.first_name }} {{ m.last_name }}</strong>
               <span>{{ formatRelationship(m.relationship) }} · {{ t('common.age') }} {{ formatNumber(getAge(m.date_of_birth, m.date_of_birth_bs)) }}</span>
             </div>
             <ion-button size="small" fill="clear" color="primary" (click)="editMember(m)">
@@ -578,238 +177,33 @@
             </ion-badge>
           </div>
 
-          <!-- Member NID Gate -->
-          <div *ngIf="showNidGateMember && !isEditingMember">
-            <p style="font-size:0.85rem;color:#6c757d;margin:0 0 10px">Enter NID to auto-fill, or skip to fill manually.</p>
-            <div class="form-group">
-              <ion-item class="form-item">
-                <ion-input label="NID Number" labelPlacement="stacked"
-                           placeholder="Enter NID number (min. 8 digits)"
-                           [(ngModel)]="nidNumberMember"
-                           inputmode="numeric">
-                </ion-input>
-              </ion-item>
-            </div>
-            <div *ngIf="nidMessageMember" style="margin:8px 0;padding:8px 12px;background:#fff3cd;border-radius:6px;font-size:0.82rem;color:#856404">
-              {{ nidMessageMember }}
-            </div>
-            <div class="btn-row" style="margin-top:10px">
-              <ion-button expand="block" (click)="lookupNidMember()" [disabled]="nidLookingMember || !nidNumberMember.trim()">
-                <ion-spinner *ngIf="nidLookingMember" name="crescent"></ion-spinner>
-                <span *ngIf="nidLookingMember">Verifying...</span>
-                <ion-icon *ngIf="!nidLookingMember" slot="start" name="search-outline"></ion-icon>
-                <span *ngIf="!nidLookingMember">Verify NID</span>
-              </ion-button>
-              <ion-button expand="block" fill="outline" color="medium" (click)="skipNidGateMember()">
-                Skip
-              </ion-button>
-            </div>
-          </div>
+          <app-nid-gate *ngIf="showNidGateMember && !isEditingMember"
+                        description="Enter NID to auto-fill, or skip to fill manually."
+                        [(nidNumber)]="nidNumberMember"
+                        [message]="nidMessageMember"
+                        [looking]="nidLookingMember"
+                        skipLabel="Skip"
+                        (verify)="lookupNidMember()"
+                        (skip)="skipNidGateMember()">
+          </app-nid-gate>
 
-          <!-- Member Form -->
-          <div *ngIf="!showNidGateMember">
-            <div class="form-group">
-              <!-- Profile Photo (top) -->
-              <div class="capture-section" style="margin-bottom:16px">
-                <div class="capture-row">
-                  <span class="capture-label">Photo</span>
-                  <ion-button size="small" fill="outline" (click)="captureImage('member','photo')">
-                    <ion-icon slot="start" name="camera-outline"></ion-icon>
-                    {{ memberPhotoPreview ? 'Change' : 'Capture' }}
-                  </ion-button>
-                </div>
-                <img *ngIf="memberPhotoPreview" [src]="memberPhotoPreview" class="preview-img" />
-              </div>
-
-              <!-- English name -->
-              <p style="font-size:0.7rem;font-weight:700;color:#6c757d;text-transform:uppercase;margin:4px 0">English Name</p>
-              <ion-item class="form-item">
-                <ion-input label="First Name *" labelPlacement="stacked" placeholder="First Name"
-                           [(ngModel)]="newMember.first_name">
-                </ion-input>
-              </ion-item>
-              <ion-item class="form-item">
-                <ion-input label="Middle Name" labelPlacement="stacked" placeholder="Middle Name"
-                           [(ngModel)]="newMember.middle_name">
-                </ion-input>
-              </ion-item>
-              <ion-item class="form-item">
-                <ion-input label="Last Name *" labelPlacement="stacked" placeholder="Last Name"
-                           [(ngModel)]="newMember.last_name">
-                </ion-input>
-              </ion-item>
-
-              <!-- Nepali name -->
-              <p style="font-size:0.7rem;font-weight:700;color:#6c757d;text-transform:uppercase;margin:8px 0 4px">नेपाली नाम</p>
-              <ion-item class="form-item">
-                <ion-input label="पहिलो नाम" labelPlacement="stacked" placeholder="Type in English e.g. Komal"
-                           appNepaliInput [(ngModel)]="newMember.first_name_ne">
-                </ion-input>
-              </ion-item>
-              <ion-item class="form-item">
-                <ion-input label="बीचको नाम" labelPlacement="stacked" placeholder="Type in English (optional)"
-                           appNepaliInput [(ngModel)]="newMember.middle_name_ne">
-                </ion-input>
-              </ion-item>
-              <ion-item class="form-item">
-                <ion-input label="थर" labelPlacement="stacked" placeholder="Type in English e.g. Shrestha"
-                           appNepaliInput [(ngModel)]="newMember.last_name_ne">
-                </ion-input>
-              </ion-item>
-
-              <!-- Personal -->
-              <p style="font-size:0.7rem;font-weight:700;color:#6c757d;text-transform:uppercase;margin:8px 0 4px">Personal Details</p>
-              <ion-item class="form-item">
-                <ion-select label="Gender *" labelPlacement="stacked" placeholder="Select Gender"
-                            [(ngModel)]="newMember.gender">
-                  <ion-select-option value="male">Male</ion-select-option>
-                  <ion-select-option value="female">Female</ion-select-option>
-                  <ion-select-option value="other">Other</ion-select-option>
-                </ion-select>
-              </ion-item>
-                <app-bs-date-picker
-                  [(ngModel)]="newMember.date_of_birth"
-                  label="Date of Birth *"
-                  placeholder="Select BS date">
-                </app-bs-date-picker>
-              <ion-item class="form-item">
-                <ion-select label="Relationship to Head *" labelPlacement="stacked" placeholder="Select Relationship"
-                            [(ngModel)]="newMember.relationship">
-                  <ion-select-option *ngFor="let option of availableMemberRelationshipOptions" [value]="option.value">
-                    {{ formatRelationship(option.value) }}
-                  </ion-select-option>
-                </ion-select>
-              </ion-item>
-              <p *ngIf="isHeadSingle" style="margin:2px 4px 8px;color:#6c757d;font-size:0.75rem;">
-                Spouse, son, and daughter options are hidden because household head marital status is single.
-              </p>
-              <ion-item class="form-item">
-                <ion-select label="Blood Group" labelPlacement="stacked" placeholder="Select"
-                            [(ngModel)]="newMember.blood_group">
-                  <ion-select-option value="A+">A+</ion-select-option>
-                  <ion-select-option value="A-">A-</ion-select-option>
-                  <ion-select-option value="B+">B+</ion-select-option>
-                  <ion-select-option value="B-">B-</ion-select-option>
-                  <ion-select-option value="AB+">AB+</ion-select-option>
-                  <ion-select-option value="AB-">AB-</ion-select-option>
-                  <ion-select-option value="O+">O+</ion-select-option>
-                  <ion-select-option value="O-">O-</ion-select-option>
-                </ion-select>
-              </ion-item>
-              <ion-item class="form-item">
-                <ion-select label="Marital Status" labelPlacement="stacked" placeholder="Select"
-                            [(ngModel)]="newMember.marital_status">
-                  <ion-select-option value="single">Single</ion-select-option>
-                  <ion-select-option value="married">Married</ion-select-option>
-                  <ion-select-option value="divorced">Divorced</ion-select-option>
-                  <ion-select-option value="widowed">Widowed</ion-select-option>
-                </ion-select>
-              </ion-item>
-              <ion-item class="form-item">
-                <ion-input label="Mobile Number" labelPlacement="stacked" placeholder="98XXXXXXXX"
-                           type="tel" [(ngModel)]="newMember.mobile_number" maxlength="10" minlength="10">
-                </ion-input>
-              </ion-item>
-
-              <!-- Document Type -->
-              <p style="font-size:0.7rem;font-weight:700;color:#6c757d;text-transform:uppercase;margin:8px 0 4px">Identity Document</p>
-              <ion-item class="form-item">
-                <ion-select label="Document Type" labelPlacement="stacked" placeholder="Select Document Type"
-                            [(ngModel)]="newMember.document_type">
-                  <ion-select-option value="citizenship">Citizenship Certificate</ion-select-option>
-                  <ion-select-option value="birth_certificate">Birth Certificate</ion-select-option>
-                </ion-select>
-              </ion-item>
-
-              <!-- Citizenship fields (shown when document_type is citizenship) -->
-              <div *ngIf="newMember.document_type === 'citizenship'">
-                <ion-item class="form-item">
-                  <ion-input label="Citizenship Number" labelPlacement="stacked" placeholder="Citizenship No."
-                             [(ngModel)]="newMember.citizenship_number">
-                  </ion-input>
-                </ion-item>
-                  <app-bs-date-picker
-                    [(ngModel)]="newMember.citizenship_issue_date"
-                    label="Issue Date"
-                    placeholder="Select BS date">
-                  </app-bs-date-picker>
-                <ion-item class="form-item">
-                  <ion-input label="Issue District" labelPlacement="stacked" placeholder="e.g. Kathmandu"
-                             [(ngModel)]="newMember.citizenship_issue_district">
-                  </ion-input>
-                </ion-item>
-                <!-- Citizenship Images -->
-                <div class="capture-section">
-                  <div class="capture-row">
-                    <span class="capture-label">Citizenship Front</span>
-                    <ion-button size="small" fill="outline" (click)="captureImage('member','citizenship_front_image')">
-                      <ion-icon slot="start" name="camera-outline"></ion-icon>
-                      {{ memberCitizenshipFrontPreview ? 'Change' : 'Capture' }}
-                    </ion-button>
-                  </div>
-                  <img *ngIf="memberCitizenshipFrontPreview" [src]="memberCitizenshipFrontPreview" class="preview-img" />
-                </div>
-                <div class="capture-section">
-                  <div class="capture-row">
-                    <span class="capture-label">Citizenship Back</span>
-                    <ion-button size="small" fill="outline" (click)="captureImage('member','citizenship_back_image')">
-                      <ion-icon slot="start" name="camera-outline"></ion-icon>
-                      {{ memberCitizenshipBackPreview ? 'Change' : 'Capture' }}
-                    </ion-button>
-                  </div>
-                  <img *ngIf="memberCitizenshipBackPreview" [src]="memberCitizenshipBackPreview" class="preview-img" />
-                </div>
-              </div>
-
-              <!-- Birth Certificate fields (shown when document_type is birth_certificate) -->
-              <div *ngIf="newMember.document_type === 'birth_certificate'">
-                <ion-item class="form-item">
-                  <ion-input label="Birth Certificate Number" labelPlacement="stacked" placeholder="Birth Certificate No."
-                             [(ngModel)]="newMember.birth_certificate_number">
-                  </ion-input>
-                </ion-item>
-                  <app-bs-date-picker
-                    [(ngModel)]="newMember.birth_certificate_issue_date"
-                    label="Issue Date"
-                    placeholder="Select BS date">
-                  </app-bs-date-picker>
-                <!-- Birth Certificate Images -->
-                <div class="capture-section">
-                  <div class="capture-row">
-                    <span class="capture-label">Birth Certificate Front</span>
-                    <ion-button size="small" fill="outline" (click)="captureImage('member','birth_certificate_front_image')">
-                      <ion-icon slot="start" name="camera-outline"></ion-icon>
-                      {{ memberBirthCertFrontPreview ? 'Change' : 'Capture' }}
-                    </ion-button>
-                  </div>
-                  <img *ngIf="memberBirthCertFrontPreview" [src]="memberBirthCertFrontPreview" class="preview-img" />
-                </div>
-                <div class="capture-section">
-                  <div class="capture-row">
-                    <span class="capture-label">Birth Certificate Back</span>
-                    <ion-button size="small" fill="outline" (click)="captureImage('member','birth_certificate_back_image')">
-                      <ion-icon slot="start" name="camera-outline"></ion-icon>
-                      {{ memberBirthCertBackPreview ? 'Change' : 'Capture' }}
-                    </ion-button>
-                  </div>
-                  <img *ngIf="memberBirthCertBackPreview" [src]="memberBirthCertBackPreview" class="preview-img" />
-                </div>
-              </div>
-
-            </div>
-
-            <!-- Save / Cancel -->
-            <div class="btn-row" style="margin-top:14px">
-              <ion-button expand="block" fill="outline" color="medium" (click)="cancelAddMember()">Cancel</ion-button>
-              <ion-button expand="block" (click)="saveMember()" [disabled]="savingMember">
-                <ion-spinner *ngIf="savingMember" name="crescent"></ion-spinner>
-                <span *ngIf="!savingMember">{{ isEditingMember ? 'Update Member' : 'Save Member' }}</span>
-              </ion-button>
-            </div>
-          </div>
+          <app-member-form *ngIf="!showNidGateMember"
+                           [member]="newMember"
+                           [relationshipOptions]="availableMemberRelationshipOptions"
+                           [isHeadSingle]="isHeadSingle"
+                           [isEditing]="isEditingMember"
+                           [saving]="savingMember"
+                           [photoPreview]="memberPhotoPreview"
+                           [citizenshipFrontPreview]="memberCitizenshipFrontPreview"
+                           [citizenshipBackPreview]="memberCitizenshipBackPreview"
+                           [birthCertificateFrontPreview]="memberBirthCertFrontPreview"
+                           [birthCertificateBackPreview]="memberBirthCertBackPreview"
+                           (capture)="captureImage('member', $event)"
+                           (save)="saveMember()"
+                           (cancel)="cancelAddMember()">
+          </app-member-form>
         </ion-card-content>
       </ion-card>
-
       <!-- Navigation -->
       <div class="nav-buttons" style="order:3">
         <ion-button expand="block" fill="outline" color="medium" (click)="prevStep()">
@@ -824,252 +218,24 @@
     </div>
 
 
-    <!-- ═══════════════════════  STEP 3 : REVIEW & SUBMIT  ═══════════════════ -->
-    <div *ngIf="currentStep === 3">
-
-      <ion-accordion-group [multiple]="true" value="['location','head','members','premium']">
-
-        <!-- Household Info -->
-        <ion-accordion value="location">
-          <ion-item slot="header" color="light">
-            <ion-label><strong>Household Location</strong></ion-label>
-          </ion-item>
-          <div slot="content" style="padding:14px">
-            <div class="review-section">
-              <div class="review-item">
-                <span class="review-label">Province</span>
-                <span class="review-value">{{ enrollment?.province || step1.province || '—' }}</span>
-              </div>
-              <div class="review-item">
-                <span class="review-label">District</span>
-                <span class="review-value">{{ enrollment?.district || step1.district || '—' }}</span>
-              </div>
-              <div class="review-item">
-                <span class="review-label">Municipality</span>
-                <span class="review-value">{{ enrollment?.municipality || step1.municipality || '—' }}</span>
-              </div>
-              <div class="review-item">
-                <span class="review-label">Ward Number</span>
-                <span class="review-value">{{ enrollment?.ward_number || step1.ward_number || '—' }}</span>
-              </div>
-              <div class="review-item">
-                <span class="review-label">Tole / Village</span>
-                <span class="review-value">{{ enrollment?.tole_village || step1.tole_village || '—' }}</span>
-              </div>
-              <div class="review-item">
-                <span class="review-label">Full Address</span>
-                <span class="review-value">{{ enrollment?.full_address || step1.full_address || '—' }}</span>
-              </div>
-            </div>
-            <ion-button size="small" fill="clear" (click)="goToStep(1)" style="margin-top:10px">
-              <ion-icon slot="start" name="create-outline"></ion-icon>
-              Edit
-            </ion-button>
-          </div>
-        </ion-accordion>
-
-        <!-- Household Head -->
-        <ion-accordion value="head">
-          <ion-item slot="header" color="light">
-            <ion-label><strong>Household Head</strong></ion-label>
-          </ion-item>
-          <div slot="content" style="padding:14px">
-            <div class="review-section">
-              <div class="review-item">
-                <span class="review-label">Full Name</span>
-                <span class="review-value">
-                  {{ headData.first_name }} {{ headData.middle_name }} {{ headData.last_name }}
-                </span>
-              </div>
-              <div class="review-item" *ngIf="headData.first_name_ne">
-                <span class="review-label">Nepali Name</span>
-                <span class="review-value">{{ headData.first_name_ne }} {{ headData.middle_name_ne }} {{ headData.last_name_ne }}</span>
-              </div>
-              <div class="review-item">
-                <span class="review-label">Gender</span>
-                <span class="review-value">{{ label('gender', headData.gender, t('common.not_available')) }}</span>
-              </div>
-              <div class="review-item">
-                <span class="review-label">Date of Birth</span>
-                <span class="review-value">{{ headData.date_of_birth || '—' }}</span>
-              </div>
-              <div class="review-item">
-                <span class="review-label">Blood Group</span>
-                <span class="review-value">{{ headData.blood_group || '—' }}</span>
-              </div>
-              <div class="review-item">
-                <span class="review-label">Marital Status</span>
-                <span class="review-value">{{ label('marital', headData.marital_status, t('common.not_available')) }}</span>
-              </div>
-              <div class="review-item">
-                <span class="review-label">Mobile</span>
-                <span class="review-value">{{ headData.mobile_number || '—' }}</span>
-              </div>
-              <div class="review-item" *ngIf="headData.email">
-                <span class="review-label">Email</span>
-                <span class="review-value">{{ headData.email }}</span>
-              </div>
-              <div class="review-item">
-                <span class="review-label">Citizenship No.</span>
-                <span class="review-value">{{ headData.citizenship_number || '—' }}</span>
-              </div>
-              <div class="review-item" *ngIf="headData.citizenship_issue_date">
-                <span class="review-label">Citizenship Issue Date</span>
-                <span class="review-value">{{ headData.citizenship_issue_date }}</span>
-              </div>
-              <div class="review-item" *ngIf="headData.citizenship_issue_district">
-                <span class="review-label">Citizenship Issue District</span>
-                <span class="review-value">{{ headData.citizenship_issue_district }}</span>
-              </div>
-              <div class="review-item">
-                <span class="review-label">Confirmation Type</span>
-                <span class="review-value">{{ headData.is_target_group ? (getConfirmationLabel(headData.target_group_type) || 'Yes') : 'Normal' }}</span>
-              </div>
-              <div class="review-item" *ngIf="headData.occupation">
-                <span class="review-label">Occupation</span>
-                <span class="review-value">{{ headData.occupation }}</span>
-              </div>
-              <div class="review-item" *ngIf="headData.education_level">
-                <span class="review-label">Education</span>
-                <span class="review-value">{{ headData.education_level }}</span>
-              </div>
-            </div>
-            <!-- Image previews -->
-            <div *ngIf="headPhotoPreview || citizenshipFrontPreview || citizenshipBackPreview"
-                 style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px">
-              <img *ngIf="headPhotoPreview" [src]="headPhotoPreview"
-                   style="width:80px;height:80px;object-fit:cover;border-radius:8px;border:1px solid #dee2e6" />
-              <img *ngIf="citizenshipFrontPreview" [src]="citizenshipFrontPreview"
-                   style="width:110px;height:70px;object-fit:cover;border-radius:8px;border:1px solid #dee2e6" />
-              <img *ngIf="citizenshipBackPreview" [src]="citizenshipBackPreview"
-                   style="width:110px;height:70px;object-fit:cover;border-radius:8px;border:1px solid #dee2e6" />
-            </div>
-            <ion-button size="small" fill="clear" (click)="goToStep(1)" style="margin-top:10px">
-              <ion-icon slot="start" name="create-outline"></ion-icon>
-              Edit
-            </ion-button>
-          </div>
-        </ion-accordion>
-
-        <!-- Family Members -->
-        <ion-accordion value="members">
-          <ion-item slot="header" color="light">
-            <ion-label><strong>Family Members ({{ (members.length || 0) + 1 }} total)</strong></ion-label>
-          </ion-item>
-          <div slot="content" style="padding:14px">
-            <div class="member-list">
-              <!-- Head -->
-              <div class="member-row" *ngIf="householdHead">
-                <div class="member-avatar">{{ (householdHead.first_name || 'H')[0].toUpperCase() }}</div>
-                <div class="member-info">
-                  <strong>{{ householdHead.first_name }} {{ householdHead.last_name }}</strong>
-                  <span>Household Head</span>
-                </div>
-                <ion-badge color="primary">Head</ion-badge>
-              </div>
-              <!-- Members -->
-              <div class="member-row" *ngFor="let m of members">
-                <div class="member-avatar">{{ (m.first_name || '?')[0].toUpperCase() }}</div>
-                <div class="member-info">
-                  <strong>{{ m.first_name }} {{ m.last_name }}</strong>
-                  <span>{{ formatRelationship(m.relationship) }} · {{ displayDate(m.date_of_birth, m.date_of_birth_bs) }} · {{ t('common.age') }} {{ formatNumber(getAge(m.date_of_birth, m.date_of_birth_bs)) }}</span>
-                </div>
-              </div>
-            </div>
-            <ion-button size="small" fill="clear" (click)="goToStep(2)" style="margin-top:10px">
-              <ion-icon slot="start" name="create-outline"></ion-icon>
-              Edit
-            </ion-button>
-          </div>
-        </ion-accordion>
-
-        <!-- Premium Summary -->
-        <ion-accordion value="premium">
-          <ion-item slot="header" color="light">
-            <ion-label><strong>Premium Summary</strong></ion-label>
-          </ion-item>
-          <div slot="content" style="padding:14px">
-            <div class="review-section">
-              <div class="review-item">
-                <span class="review-label">Total Members</span>
-                <span class="review-value">{{ premiumBreakdown.members }}</span>
-              </div>
-              <div class="review-item">
-                <span class="review-label">Base Premium</span>
-                <span class="review-value">{{ formatCurrency(premiumBreakdown.base) }}</span>
-              </div>
-              <div class="review-item" *ngIf="premiumBreakdown.extra > 0">
-                <span class="review-label">Extra Members Premium</span>
-                <span class="review-value">{{ formatCurrency(premiumBreakdown.extra) }}</span>
-              </div>
-              <div class="review-item">
-                <span class="review-label" style="font-size:0.8rem;color:#003087;font-weight:700">TOTAL PREMIUM</span>
-                <span class="review-value" style="font-size:1.1rem;color:#003087;font-weight:700">{{ formatCurrency(premiumBreakdown.total) }}</span>
-              </div>
-            </div>
-
-            <!-- Subsidy Information -->
-            <div *ngIf="subsidyResults.length > 0" style="margin-top:14px;padding:12px;background:#e8f5e9;border-radius:8px;border:1px solid #a5d6a7">
-              <p style="font-weight:700;color:#2e7d32;margin:0 0 8px;font-size:0.85rem">
-                <ion-icon name="checkmark-circle-outline" style="vertical-align:middle;margin-right:4px"></ion-icon>
-                Subsidy Eligibility ({{ subsidyResults.length }} rule(s) matched)
-              </p>
-              <div *ngFor="let sr of subsidyResults" style="padding:6px 0;border-bottom:1px solid #c8e6c9;font-size:0.82rem">
-                <strong>{{ sr.member_name }}</strong> ({{ formatNumber(sr.member_age) }} {{ t('common.years_short') }})
-                <br>
-                <span style="color:#555">{{ sr.rule_name }}</span>
-                — <ion-badge [color]="sr.benefit_type === 'full_premium_waiver' ? 'success' : 'warning'" style="font-size:0.72rem">
-                    {{ getBenefitLabel(sr) }}
-                  </ion-badge>
-              </div>
-              <div *ngIf="subsidySummary" style="margin-top:10px;padding-top:8px;border-top:2px solid #66bb6a">
-                <div class="review-item">
-                  <span class="review-label" style="color:#2e7d32;font-weight:600">Subsidy Discount</span>
-                  <span class="review-value" style="color:#2e7d32;font-weight:700">- {{ formatCurrency(subsidySummary.best_discount) }}</span>
-                </div>
-                <div class="review-item">
-                  <span class="review-label" style="font-size:0.85rem;color:#1b5e20;font-weight:700">PAYABLE AMOUNT</span>
-                  <span class="review-value" style="font-size:1.1rem;color:#1b5e20;font-weight:700">{{ formatCurrency(subsidySummary.final_premium) }}</span>
-                </div>
-              </div>
-            </div>
-
-          </div>
-        </ion-accordion>
-
-      </ion-accordion-group>
-
-      <!-- Confirmation -->
-      <ion-card style="margin-top:16px">
-        <ion-card-content>
-          <ion-item lines="none" style="--padding-start:0">
-            <ion-checkbox slot="start" [(ngModel)]="confirmed"></ion-checkbox>
-            <ion-label class="ion-text-wrap" style="font-size:0.88rem;margin-left:10px">
-              I confirm that all the information provided is accurate and complete to the best of my knowledge.
-            </ion-label>
-          </ion-item>
-        </ion-card-content>
-      </ion-card>
-
-      <!-- Navigation -->
-      <div class="nav-buttons">
-        <ion-button expand="block" fill="outline" color="medium" (click)="prevStep()">
-          <ion-icon slot="start" name="arrow-back-outline"></ion-icon>
-          Back
-        </ion-button>
-        <ion-button *ngIf="!subsidySummary || subsidySummary.final_premium > 0"
-                    expand="block" color="success" [disabled]="!confirmed" (click)="payAndSubmit()">
-          <ion-icon slot="start" name="card-outline"></ion-icon>
-          {{ paySubmitLabel(subsidySummary ? subsidySummary.final_premium : premiumBreakdown.total) }}
-        </ion-button>
-        <ion-button *ngIf="subsidySummary && subsidySummary.final_premium === 0"
-                    expand="block" color="success" [disabled]="!confirmed || submitting" (click)="submitEnrollment()">
-          <ion-spinner *ngIf="submitting" name="crescent" style="margin-right:8px"></ion-spinner>
-          <ion-icon *ngIf="!submitting" slot="start" name="checkmark-circle-outline"></ion-icon>
-          {{ t('wizard.submit_fully_subsidized') }}
-        </ion-button>
-      </div>
-    </div>
-
+    <app-review-submit *ngIf="currentStep === 3"
+                       [enrollment]="enrollment"
+                       [step1]="step1"
+                       [headData]="headData"
+                       [householdHead]="householdHead"
+                       [members]="members"
+                       [subsidyResults]="subsidyResults"
+                       [subsidySummary]="subsidySummary"
+                       [premiumBreakdown]="premiumBreakdown"
+                       [headPhotoPreview]="headPhotoPreview"
+                       [citizenshipFrontPreview]="citizenshipFrontPreview"
+                       [citizenshipBackPreview]="citizenshipBackPreview"
+                       [(confirmed)]="confirmed"
+                       [submitting]="submitting"
+                       (goToStepRequested)="goToStep($event)"
+                       (previousStepRequested)="prevStep()"
+                       (payAndSubmitRequested)="payAndSubmit()"
+                       (submitEnrollmentRequested)="submitEnrollment()">
+    </app-review-submit>
   </div>
 </ion-content>

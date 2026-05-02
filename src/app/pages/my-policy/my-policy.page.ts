@@ -13,6 +13,7 @@ import {
 import { ApiService } from '../../services/api.service';
 import { DateService } from '../../services/date.service';
 import { ApiResponse } from '../../interfaces/api-response.interface';
+import { LanguageToggleComponent } from '../../components/language-toggle/language-toggle.component';
 import { LanguageService } from '../../services/language.service';
 
 @Component({
@@ -21,7 +22,8 @@ import { LanguageService } from '../../services/language.service';
   imports: [
     CommonModule,
     IonContent, IonHeader, IonToolbar, IonTitle, IonCard, IonCardContent,
-    IonBadge, IonIcon, IonSpinner, IonRefresher, IonRefresherContent
+    IonBadge, IonIcon, IonSpinner, IonRefresher, IonRefresherContent,
+    LanguageToggleComponent
   ],
   templateUrl: './my-policy.page.html',
   styleUrls: ['./my-policy.page.scss'],

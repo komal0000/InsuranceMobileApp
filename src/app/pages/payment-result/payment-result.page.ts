@@ -10,7 +10,9 @@ import { addIcons } from 'ionicons';
 import {
   checkmarkCircleOutline, closeCircleOutline, timeOutline,
 } from 'ionicons/icons';
+import { LanguageToggleComponent } from '../../components/language-toggle/language-toggle.component';
 import { LanguageService } from '../../services/language.service';
+import { PaymentService } from '../../services/payment.service';
 
 @Component({
   selector: 'app-payment-result',
@@ -19,6 +21,7 @@ import { LanguageService } from '../../services/language.service';
     CommonModule,
     IonContent, IonHeader, IonToolbar, IonTitle,
     IonButton, IonIcon, IonSpinner,
+    LanguageToggleComponent
   ],
   templateUrl: './payment-result.page.html',
   styleUrls: ['./payment-result.page.scss'],
@@ -32,12 +35,14 @@ export class PaymentResultPage implements OnInit {
   enrollmentId: number | null = null;
   renewalId: number | null = null;
   errorCode = '';
+  checkingStatus = false;
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private toastCtrl: ToastController,
     private languageService: LanguageService,
+    private paymentService: PaymentService,
   ) {
     addIcons({ checkmarkCircleOutline, closeCircleOutline, timeOutline });
   }
@@ -55,6 +60,8 @@ export class PaymentResultPage implements OnInit {
 
     if (incoming === 'success') {
       this.handleSuccess();
+    } else if (incoming === 'pending') {
+      this.status = 'pending';
     } else {
       this.status = 'failed';
     }
@@ -114,6 +121,33 @@ export class PaymentResultPage implements OnInit {
   private async showToast(message: string, color: string) {
     const toast = await this.toastCtrl.create({ message: this.languageService.translateText(message), color, duration: 3000, position: 'top' });
     await toast.present();
+  }
+
+  refreshStatus() {
+    if (!this.referenceId || this.checkingStatus) return;
+
+    this.checkingStatus = true;
+    this.paymentService.getPaymentStatus(this.referenceId).subscribe({
+      next: (res) => {
+        if (res.success) {
+          const status = res.data.payment.status;
+          if (status === 'paid') {
+            this.status = 'success';
+            this.errorCode = '';
+          } else if (status === 'failed') {
+            this.status = 'failed';
+            this.errorCode = res.data.payment.failure_reason || 'verification_failed';
+          } else {
+            this.status = 'pending';
+            this.showToast(this.t('payment_result.still_pending'), 'warning');
+          }
+        }
+      },
+      error: () => this.showToast(this.t('payment.pending_alert'), 'warning'),
+      complete: () => {
+        this.checkingStatus = false;
+      },
+    });
   }
 
   t(key: string): string {

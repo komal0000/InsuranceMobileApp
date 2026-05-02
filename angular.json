@@ -37,13 +37,9 @@
             ],
             "styles": [
               "src/global.scss",
-              "src/theme/variables.scss",
-              "node_modules/nepali-date-picker/dist/nepaliDatePicker.min.css"
+              "src/theme/variables.scss"
             ],
-            "scripts": [
-              "node_modules/jquery/dist/jquery.min.js",
-              "node_modules/nepali-date-picker/dist/nepaliDatePicker.min.js"
-            ],
+            "scripts": [],
             "browser": "src/main.ts"
           },
           "configurations": {
@@ -118,13 +114,9 @@
             ],
             "styles": [
               "src/global.scss",
-              "src/theme/variables.scss",
-              "node_modules/nepali-date-picker/dist/nepaliDatePicker.min.css"
+              "src/theme/variables.scss"
             ],
-            "scripts": [
-              "node_modules/jquery/dist/jquery.min.js",
-              "node_modules/nepali-date-picker/dist/nepaliDatePicker.min.js"
-            ]
+            "scripts": []
           },
           "configurations": {
             "ci": {

@@ -24,6 +24,7 @@ export const routes: Routes = [
   {
     path: 'tabs',
     canActivate: [authGuard],
+    data: { preload: true },
     loadChildren: () =>
       import('./tabs/tabs.routes').then(m => m.tabsRoutes),
   },

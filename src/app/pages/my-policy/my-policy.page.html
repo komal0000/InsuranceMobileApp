@@ -1,8 +1,9 @@
     <ion-header>
-      <ion-toolbar color="primary">
-        <ion-title>{{ t('policy.title') }}</ion-title>
-      </ion-toolbar>
-    </ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>{{ t('policy.title') }}</ion-title>
+    <app-language-toggle slot="end" placement="toolbar"></app-language-toggle>
+  </ion-toolbar>
+</ion-header>
 
     <ion-content>
       <ion-refresher slot="fixed" (ionRefresh)="refresh($event)">

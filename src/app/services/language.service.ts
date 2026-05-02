@@ -67,6 +67,7 @@ export class LanguageService {
   private readonly textOriginals = new WeakMap<Text, string>();
   private readonly attributeOriginals = new WeakMap<Element, Record<string, string>>();
   private observer?: MutationObserver;
+  private domTranslationRoot?: Element;
 
   readonly language$ = this.languageSubject.asObservable();
 
@@ -111,7 +112,9 @@ export class LanguageService {
 
     if (typeof document !== 'undefined') {
       document.documentElement.lang = language;
-      this.translateDocument();
+      if (this.domTranslationRoot) {
+        this.translateDocument();
+      }
     }
   }
 
@@ -191,15 +194,29 @@ export class LanguageService {
     return this.translateText(fallback ?? this.humanize(normalized));
   }
 
-  startDomTranslator(): void {
-    if (typeof document === 'undefined' || typeof MutationObserver === 'undefined' || this.observer) {
+  startDomTranslator(root?: Element | string): void {
+    if (typeof document === 'undefined' || !root) {
+      return;
+    }
+
+    const rootElement = typeof root === 'string'
+      ? document.querySelector(root)
+      : root;
+
+    if (!rootElement) {
+      return;
+    }
+
+    this.domTranslationRoot = rootElement;
+
+    if (typeof MutationObserver === 'undefined' || this.observer) {
       this.translateDocument();
       return;
     }
 
     this.translateDocument();
     this.observer = new MutationObserver(() => this.translateDocument());
-    this.observer.observe(document.body, {
+    this.observer.observe(rootElement, {
       childList: true,
       subtree: true,
       characterData: true,
@@ -208,12 +225,16 @@ export class LanguageService {
     });
   }
 
+  startLegacyDomTranslator(root: Element | string): void {
+    this.startDomTranslator(root);
+  }
+
   private translateDocument(): void {
-    if (typeof document === 'undefined' || !document.body) {
+    if (!this.domTranslationRoot) {
       return;
     }
 
-    this.walk(document.body);
+    this.walk(this.domTranslationRoot);
   }
 
   private walk(node: Node): void {

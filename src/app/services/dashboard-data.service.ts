@@ -39,7 +39,10 @@ export class DashboardDataService {
       return this.inFlightRequest$;
     }
 
-    this.inFlightRequest$ = this.api.get<ApiResponse<DashboardData>>('/dashboard').pipe(
+    this.inFlightRequest$ = this.api.get<ApiResponse<DashboardData>>(
+      '/dashboard',
+      forceRefresh ? { refresh: 1 } : undefined
+    ).pipe(
       tap((response) => {
         this.cachedResponse = response;
       }),

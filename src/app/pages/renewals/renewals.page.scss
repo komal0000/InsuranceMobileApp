@@ -1,388 +1,291 @@
-    .loading-center { display: flex; justify-content: center; align-items: center; height: 50%; }
-    .beneficiary-content { padding: 12px; }
-    .list-content { padding: 12px; }
+.loading-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 50%;
+}
 
-    // ─── Enrollment Header ───
-    .enrollment-header {
-      background: linear-gradient(135deg, #003087 0%, #0052cc 100%);
-      border-radius: 12px;
-      padding: 16px;
-      margin-bottom: 12px;
-      color: #fff;
+.beneficiary-content,
+.list-content,
+.action-section {
+  padding: 12px;
+}
 
-      .header-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
+.enrollment-header {
+  margin-bottom: 12px;
+  padding: 16px;
+  color: #fff;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #003087, #0052cc);
+}
 
-      .enrollment-id {
-        font-weight: 700;
-        font-size: 1rem;
-      }
-    }
+.header-row,
+.card-top-row,
+.renewal-card-meta,
+.premium-row,
+.capture-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
 
-    // ─── Detail Cards ───
-    .detail-card {
-      margin: 0 0 12px !important;
-      border-radius: 12px !important;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.06) !important;
+.enrollment-id,
+.renewal-number,
+.amount-text {
+  font-weight: 700;
+}
 
-      .section-title {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin-bottom: 14px;
+.detail-card,
+.renewal-card {
+  margin: 0 0 12px !important;
+  border-radius: 12px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06) !important;
+}
 
-        .section-icon {
-          width: 36px;
-          height: 36px;
-          border-radius: 10px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          ion-icon { font-size: 18px; }
-        }
+.head-card {
+  border-left: 3px solid #003087;
+}
 
-        h3 {
-          margin: 0;
-          font-size: 1rem;
-          font-weight: 700;
-          color: #212529;
-        }
-      }
-    }
+.premium-card {
+  border-left: 3px solid #198754;
+}
 
-    // ─── Household Head Card ───
-    .head-card {
-      border-left: 3px solid #003087;
-    }
+.renewal-card {
+  border-left: 3px solid #fd7e14;
+}
 
-    .head-profile {
-      display: flex;
-      gap: 14px;
-      align-items: flex-start;
-    }
+.section-title,
+.head-profile,
+.member-card,
+.member-pricing-note,
+.field-section-label,
+.capture-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
 
-    .head-avatar {
-      flex-shrink: 0;
-      .head-photo {
-        width: 72px;
-        height: 72px;
-        border-radius: 50%;
-        object-fit: cover;
-        border: 3px solid #003087;
-      }
-      .avatar-placeholder {
-        width: 72px;
-        height: 72px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, #003087, #0052cc);
-        color: #fff;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.8rem;
-        font-weight: 700;
-      }
-    }
+.section-title {
+  margin-bottom: 14px;
+}
 
-    .head-details {
-      flex: 1;
-      .head-name {
-        margin: 0 0 2px;
-        font-size: 1rem;
-        font-weight: 700;
-        color: #212529;
-      }
-      .nepali-name {
-        display: block;
-        font-size: 0.85rem;
-        color: #6c757d;
-        margin-bottom: 6px;
-      }
-      .head-meta {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-        margin-top: 4px;
-        span {
-          display: flex;
-          align-items: center;
-          gap: 4px;
-          font-size: 0.8rem;
-          color: #495057;
-          ion-icon { font-size: 14px; color: #6c757d; }
-        }
-      }
-    }
+.section-title h3,
+.head-name {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #212529;
+}
 
-    // ─── Info Grid (Household Details) ───
-    .info-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
+.section-icon {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+}
 
-      .info-item {
-        .info-label {
-          display: block;
-          font-size: 0.7rem;
-          color: #6c757d;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-          margin-bottom: 2px;
-        }
-        .info-value {
-          font-size: 0.88rem;
-          font-weight: 600;
-          color: #212529;
-        }
-      }
-    }
+.head-profile,
+.member-card {
+  align-items: flex-start;
+}
 
-    // ─── Premium Card ───
-    .premium-card {
-      border-left: 3px solid #198754;
-    }
+.head-avatar,
+.member-avatar-wrapper {
+  flex-shrink: 0;
+}
 
-    .premium-details {
-      .premium-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 6px 0;
-        border-bottom: 1px solid #f0f0f0;
+.head-details,
+.member-info {
+  flex: 1;
+}
 
-        span { font-size: 0.85rem; color: #495057; }
-        strong { font-size: 0.88rem; color: #212529; }
+.head-photo,
+.member-photo,
+.avatar-placeholder {
+  border-radius: 50%;
+}
 
-        &:last-child { border-bottom: none; }
+.head-photo,
+.avatar-placeholder {
+  width: 72px;
+  height: 72px;
+}
 
-        &.premium-total {
-          border-top: 2px solid #dee2e6;
-          padding-top: 10px;
-          margin-top: 4px;
-          span { font-weight: 700; font-size: 0.9rem; }
-          strong { font-size: 1rem; color: #003087; }
-        }
+.member-photo,
+.avatar-placeholder.small {
+  width: 48px;
+  height: 48px;
+}
 
-        &.subsidy-row {
-          background: rgba(25,135,84,0.04);
-          border-radius: 6px;
-          padding: 8px;
-        }
-      }
-    }
+.head-photo,
+.member-photo {
+  object-fit: cover;
+  border: 2px solid currentColor;
+}
 
-    // ─── Family Members List ───
-    .member-list {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
+.avatar-placeholder {
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-size: 1.8rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #003087, #0052cc);
+}
 
-    .member-card {
-      display: flex;
-      gap: 12px;
-      align-items: flex-start;
-      padding: 10px;
-      background: #f8f9fa;
-      border-radius: 10px;
-      border-left: 3px solid #0dcaf0;
-    }
+.avatar-placeholder.small {
+  font-size: 1.2rem;
+  background: linear-gradient(135deg, #0dcaf0, #0aa2c0);
+}
 
-    .member-avatar-wrapper {
-      flex-shrink: 0;
-      .member-photo {
-        width: 48px;
-        height: 48px;
-        border-radius: 50%;
-        object-fit: cover;
-        border: 2px solid #0dcaf0;
-      }
-      .avatar-placeholder.small {
-        width: 48px;
-        height: 48px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, #0dcaf0, #0aa2c0);
-        color: #fff;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.2rem;
-        font-weight: 700;
-      }
-    }
+.nepali-name,
+.date-text,
+.member-meta span,
+.no-members p {
+  color: #6c757d;
+  font-size: 0.8rem;
+}
 
-    .member-info {
-      flex: 1;
-      .member-name {
-        font-size: 0.92rem;
-        color: #212529;
-        display: block;
-      }
-      .nepali-name {
-        display: block;
-        font-size: 0.78rem;
-        color: #6c757d;
-      }
-      .member-meta {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 6px;
-        margin-top: 3px;
-        span {
-          font-size: 0.75rem;
-          color: #6c757d;
-          display: flex;
-          align-items: center;
-          gap: 3px;
-          ion-icon { font-size: 12px; }
-        }
-      }
-    }
+.head-meta,
+.member-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
 
-    .no-members {
-      text-align: center;
-      padding: 16px;
-      p { color: #adb5bd; font-size: 0.85rem; }
-    }
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
 
-    .member-pricing-note {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-top: 12px;
-      padding: 10px;
-      background: #fff3cd;
-      border-radius: 8px;
-      border: 1px solid #ffc107;
-      ion-icon { font-size: 18px; color: #856404; flex-shrink: 0; }
-      span { font-size: 0.8rem; color: #856404; }
-    }
+.info-label {
+  display: block;
+  margin-bottom: 2px;
+  color: #6c757d;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
 
-    .rejection-reason {
-      display: block;
-      font-size: 0.75rem;
-      color: #dc3545;
-      margin-top: 4px;
-      font-style: italic;
-    }
+.info-value,
+.premium-row strong,
+.capture-label,
+.field-section-label {
+  color: #212529;
+  font-weight: 600;
+}
 
-    // ─── Action Section ───
-    .action-section {
-      padding: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
+.premium-row {
+  padding: 7px 0;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 0.86rem;
+}
 
-    // ─── Add Member Form ───
-    .form-item {
-      --background: #f8f9fa;
-      --border-radius: 8px;
-      --padding-start: 12px;
-      margin-bottom: 8px;
-      border-radius: 8px;
-      border: 1px solid #dee2e6;
-    }
+.premium-row:last-child {
+  border-bottom: 0;
+}
 
-    .btn-row {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      margin-top: 12px;
-    }
+.premium-total {
+  margin-top: 4px;
+  padding-top: 10px;
+  border-top: 2px solid #dee2e6;
+}
 
-    .field-section-label {
-      margin: 14px 0 4px;
-      font-weight: 600;
-      font-size: 0.85rem;
-      color: #495057;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
+.premium-total strong,
+.renewal-number {
+  color: #003087;
+}
 
-    .capture-section {
-      margin: 14px 0;
-      padding-top: 10px;
-      border-top: 1px solid #f0f0f0;
-    }
+.subsidy-row,
+.member-pricing-note {
+  padding: 8px;
+  border-radius: 8px;
+}
 
-    .capture-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
+.subsidy-row {
+  background: rgba(25, 135, 84, 0.04);
+}
 
-    .capture-label {
-      font-weight: 600;
-      font-size: 0.85rem;
-      color: #212529;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
+.member-list,
+.action-section,
+.btn-row {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
 
-    .preview-img {
-      max-width: 100%;
-      max-height: 160px;
-      margin-top: 8px;
-      border-radius: 8px;
-      border: 1px solid #e9ecef;
-      object-fit: cover;
-      display: block;
-    }
+.member-card {
+  padding: 10px;
+  border-left: 3px solid #0dcaf0;
+  border-radius: 10px;
+  background: #f8f9fa;
+}
 
-    // ─── Renewal Cards (history + admin) ───
-    .renewal-card {
-      margin: 0 0 10px !important;
-      border-left: 3px solid #fd7e14;
-      border-radius: 10px !important;
-    }
+.member-name {
+  display: block;
+  color: #212529;
+  font-size: 0.92rem;
+}
 
-    .card-top-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 6px;
-    }
+.member-pricing-note {
+  margin-top: 12px;
+  color: #856404;
+  border: 1px solid #ffc107;
+  background: #fff3cd;
+  font-size: 0.8rem;
+}
 
-    .renewal-number {
-      font-weight: 700;
-      font-size: 0.92rem;
-      color: #003087;
-    }
+.rejection-reason {
+  display: block;
+  margin-top: 4px;
+  color: #dc3545;
+  font-size: 0.75rem;
+  font-style: italic;
+}
 
-    .renewal-card-meta {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
+.form-item {
+  --background: #f8f9fa;
+  --border-radius: 8px;
+  --padding-start: 12px;
+  margin-bottom: 8px;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+}
 
-    .date-text {
-      font-size: 0.75rem;
-      color: #adb5bd;
-    }
+.field-section-label,
+.capture-section {
+  margin-top: 14px;
+}
 
-    .amount-text {
-      font-size: 0.82rem;
-      font-weight: 700;
-      color: #198754;
-    }
+.capture-section {
+  padding-top: 10px;
+  border-top: 1px solid #f0f0f0;
+}
 
-    .section-heading {
-      font-size: 1rem;
-      font-weight: 700;
-      color: #495057;
-      margin: 16px 0 8px;
-    }
+.preview-img {
+  display: block;
+  max-width: 100%;
+  max-height: 160px;
+  margin-top: 8px;
+  object-fit: cover;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+}
 
-    // ─── Empty State ───
-    .empty-state {
-      margin-top: 25%;
-      .empty-icon { font-size: 64px; color: var(--ion-color-medium); }
-      h3 { color: #6c757d; margin: 12px 0 4px; }
-      p { color: #adb5bd; font-size: 0.85rem; margin-bottom: 16px; }
-    }
+.section-heading {
+  margin: 16px 0 8px;
+  color: #495057;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.empty-state {
+  margin-top: 25%;
+}
+
+.empty-icon {
+  color: var(--ion-color-medium);
+  font-size: 64px;
+}

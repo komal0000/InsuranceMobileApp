@@ -13,13 +13,14 @@ import { searchOutline, arrowForwardOutline } from 'ionicons/icons';
 import { ApiService } from '../../services/api.service';
 import { AuthService } from '../../services/auth.service';
 import { ApiResponse } from '../../interfaces/api-response.interface';
+import { LanguageToggleComponent } from '../../components/language-toggle/language-toggle.component';
 import { LanguageService } from '../../services/language.service';
 
 @Component({
   selector: 'app-renewal-search',
   standalone: true,
   imports: [
-    CommonModule, FormsModule,
+    CommonModule, FormsModule, LanguageToggleComponent,
     IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton,
     IonButton, IonItem, IonInput, IonSelect, IonSelectOption,
     IonCard, IonCardContent, IonIcon, IonSpinner, IonText
