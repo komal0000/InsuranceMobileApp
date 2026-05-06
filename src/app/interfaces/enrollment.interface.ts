@@ -1,3 +1,5 @@
+import { ApiResponse } from './api-response.interface';
+
 export interface Enrollment {
   id: number;
   enrollment_number: string;
@@ -41,6 +43,10 @@ export interface Enrollment {
   family_members?: FamilyMember[];
   members?: FamilyMember[];
   documents?: EnrollmentDocument[];
+  pdf_path?: string | null;
+  pdf_generated_at?: string | null;
+  pdf_download_url?: string | null;
+  card_download_url?: string | null;
 }
 
 export type EnrollmentStatus =
@@ -231,6 +237,27 @@ export interface NidLookupData {
   portrait_image?: string | null;
   photo_url?: string | null;
 }
+
+export interface EnrollmentSubmitResponse extends ApiResponse<Enrollment> {
+  pdf_generated?: boolean;
+  pdf_download_url?: string | null;
+}
+
+export interface EnrollmentCardHolder {
+  type: 'head' | 'member';
+  id: number;
+  label: string;
+  name: string;
+  name_ne?: string | null;
+  member_number: string;
+  insurance_number: string;
+  pdf_url: string;
+}
+
+export interface EnrollmentCardsResponse extends ApiResponse<{
+  cards: EnrollmentCardHolder[];
+  all_cards_pdf_url: string;
+}> {}
 
 export interface NidLookupResponse {
   success: boolean;

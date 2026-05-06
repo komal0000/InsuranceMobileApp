@@ -27,6 +27,13 @@
             </ion-badge>
           </div>
 
+          <div class="card-actions" *ngIf="canExportCards">
+            <ion-button expand="block" color="primary" (click)="downloadAllCards()">
+              <ion-icon name="download-outline" slot="start"></ion-icon>
+              {{ t('policy.export_all_cards') }}
+            </ion-button>
+          </div>
+
           <!-- Summary Cards -->
           <div class="summary-row">
             <div class="summary-card">
@@ -131,6 +138,11 @@
                 </div>
               </div>
 
+              <ion-button *ngIf="canExportCards" expand="block" fill="outline" color="primary" (click)="downloadHeadCard()">
+                <ion-icon name="download-outline" slot="start"></ion-icon>
+                {{ t('policy.export_card_pdf') }}
+              </ion-button>
+
               <div class="info-grid mt-8">
                 <div class="info-cell" *ngIf="policy.household_head.gender">
                   <span class="info-label">{{ t('policy.gender') }}</span>
@@ -175,10 +187,14 @@
                       {{ label('relation', m.relationship, t('common.member')) }} &bull; {{ label('gender', m.gender) }}
                       <span *ngIf="m.date_of_birth"> &bull; {{ displayDate(m.date_of_birth, m.date_of_birth_bs) }}</span>
                     </span>
-                    <span class="member-id" *ngIf="m.citizenship_number">{{ t('common.id') }}: {{ m.citizenship_number }}</span>
-                  </div>
-                  <ion-badge color="warning" *ngIf="m.is_target_group" class="target-sm">{{ m.target_group_type }}</ion-badge>
+                  <span class="member-id" *ngIf="m.citizenship_number">{{ t('common.id') }}: {{ m.citizenship_number }}</span>
+                  <ion-button *ngIf="canExportCards" size="small" fill="clear" class="member-card-button" (click)="downloadMemberCard(m.id)">
+                    <ion-icon name="download-outline" slot="start"></ion-icon>
+                    {{ t('policy.export_card_pdf') }}
+                  </ion-button>
                 </div>
+                <ion-badge color="warning" *ngIf="m.is_target_group" class="target-sm">{{ m.target_group_type }}</ion-badge>
+              </div>
               </div>
             </ion-card-content>
           </ion-card>

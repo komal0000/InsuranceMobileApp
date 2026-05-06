@@ -4,7 +4,7 @@ import { shareReplay } from 'rxjs/operators';
 import { ApiService } from './api.service';
 import { ApiResponse, PaginatedData } from '../interfaces/api-response.interface';
 import {
-  Enrollment, EnrollmentConfig, EnrollmentShowResponse, FamilyMember, NidLookupResponse
+  Enrollment, EnrollmentCardsResponse, EnrollmentConfig, EnrollmentShowResponse, EnrollmentSubmitResponse, FamilyMember, NidLookupResponse
 } from '../interfaces/enrollment.interface';
 import { DateService } from './date.service';
 
@@ -101,8 +101,28 @@ export class EnrollmentService {
 
   // ── Submit ──────────────────────────────────────────────────
 
-  submit(id: number): Observable<ApiResponse<Enrollment>> {
-    return this.api.post<ApiResponse<Enrollment>>(`/enrollments/${id}/submit`, {});
+  submit(id: number): Observable<EnrollmentSubmitResponse> {
+    return this.api.post<EnrollmentSubmitResponse>(`/enrollments/${id}/submit`, {});
+  }
+
+  getPdfUrl(id: number): Observable<ApiResponse<{ pdf_download_url: string | null; pdf_generated: boolean }>> {
+    return this.api.get<ApiResponse<{ pdf_download_url: string | null; pdf_generated: boolean }>>(`/enrollments/${id}/pdf-url`);
+  }
+
+  getCards(id: number): Observable<EnrollmentCardsResponse> {
+    return this.api.get<EnrollmentCardsResponse>(`/enrollments/${id}/cards`);
+  }
+
+  getAllCardsPdfUrl(id: number): Observable<ApiResponse<{ card_download_url: string | null; card_generated: boolean }>> {
+    return this.api.get<ApiResponse<{ card_download_url: string | null; card_generated: boolean }>>(`/enrollments/${id}/cards/pdf-url`);
+  }
+
+  getHeadCardPdfUrl(id: number): Observable<ApiResponse<{ card_download_url: string | null; card_generated: boolean }>> {
+    return this.api.get<ApiResponse<{ card_download_url: string | null; card_generated: boolean }>>(`/enrollments/${id}/cards/head/pdf-url`);
+  }
+
+  getMemberCardPdfUrl(enrollmentId: number, memberId: number): Observable<ApiResponse<{ card_download_url: string | null; card_generated: boolean }>> {
+    return this.api.get<ApiResponse<{ card_download_url: string | null; card_generated: boolean }>>(`/enrollments/${enrollmentId}/cards/members/${memberId}/pdf-url`);
   }
 
   // ── NID Lookup ──────────────────────────────────────────────

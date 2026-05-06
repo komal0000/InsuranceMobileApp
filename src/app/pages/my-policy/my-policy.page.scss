@@ -30,6 +30,10 @@
     .status-badge { font-size: 0.72rem; padding: 4px 14px; }
     .inline-badge { font-size: 0.72rem; padding: 3px 10px; }
 
+    .card-actions {
+      margin: 0 0 12px;
+    }
+
     /* Summary Row */
     .summary-row {
       display: flex;
@@ -184,6 +188,13 @@
 
     .member-meta { font-size: 0.75rem; color: #6c757d; text-transform: capitalize; }
     .member-id { font-size: 0.7rem; color: #adb5bd; }
+
+    .member-card-button {
+      align-self: flex-start;
+      margin: 4px 0 0 -8px;
+      min-height: 30px;
+      font-size: 0.76rem;
+    }
 
     .history-list { display: flex; flex-direction: column; gap: 8px; }
 

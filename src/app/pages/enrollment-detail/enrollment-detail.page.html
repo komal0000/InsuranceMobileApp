@@ -165,6 +165,14 @@
             <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
             {{ t('enrollment_detail.submit_verification') }}
           </ion-button>
+          <ion-button expand="block" fill="outline" color="primary" (click)="downloadEnrollmentPdf()" *ngIf="enrollment.status !== 'draft'">
+            <ion-icon name="download-outline" slot="start"></ion-icon>
+            {{ t('enrollment_detail.download_pdf') }}
+          </ion-button>
+          <ion-button expand="block" fill="outline" color="success" (click)="downloadAllCardsPdf()" *ngIf="enrollment.status === 'active'">
+            <ion-icon name="download-outline" slot="start"></ion-icon>
+            {{ t('enrollment_detail.export_member_cards') }}
+          </ion-button>
           <ion-button expand="block" color="success" (click)="verifyEnrollment()" *ngIf="canVerify && enrollment.status === 'pending_verification'">
             <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
             {{ t('enrollment_detail.verify') }}

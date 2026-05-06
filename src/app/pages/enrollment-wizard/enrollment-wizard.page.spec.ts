@@ -32,6 +32,7 @@ describe('EnrollmentWizardPage', () => {
   }
 
   function createPage(overrides: {
+    router?: unknown;
     enrollmentSvc?: unknown;
     geoSvc?: unknown;
     dateService?: unknown;
@@ -40,7 +41,7 @@ describe('EnrollmentWizardPage', () => {
   } = {}) {
     return new EnrollmentWizardPage(
       {} as any,
-      {} as any,
+      (overrides.router || {}) as any,
       (overrides.enrollmentSvc || {}) as any,
       (overrides.geoSvc || {}) as any,
       (overrides.dateService || {}) as any,
@@ -95,6 +96,53 @@ describe('EnrollmentWizardPage', () => {
     (page as any).applyRegisteredMobileNumber();
 
     expect(page.headData.mobile_number).toBe('9811111111');
+  });
+
+  it('opens the generated enrollment PDF after successful submit', async () => {
+    const router = { navigateByUrl: jasmine.createSpy() };
+    const enrollmentSvc = {
+      submit: jasmine.createSpy().and.returnValue(of({
+        success: true,
+        message: 'Submitted.',
+        data: { id: 12, pdf_download_url: 'https://example.test/enrollment.pdf' },
+        pdf_generated: true,
+        pdf_download_url: 'https://example.test/enrollment.pdf',
+      })),
+    };
+    const page = createPage({ router, enrollmentSvc });
+    page.enrollmentId = 12;
+    page.confirmed = true;
+    spyOn(page, 'openEnrollmentPdf').and.returnValue(Promise.resolve());
+
+    await page.submitEnrollment();
+    await Promise.resolve();
+
+    expect(enrollmentSvc.submit).toHaveBeenCalledWith(12);
+    expect(page.openEnrollmentPdf).toHaveBeenCalledWith('https://example.test/enrollment.pdf');
+    expect(router.navigateByUrl).toHaveBeenCalledWith('/tabs/enrollments');
+  });
+
+  it('still completes submit when no enrollment PDF URL is returned', async () => {
+    const router = { navigateByUrl: jasmine.createSpy() };
+    const enrollmentSvc = {
+      submit: jasmine.createSpy().and.returnValue(of({
+        success: true,
+        message: 'Submitted.',
+        data: { id: 12 },
+        pdf_generated: false,
+        pdf_download_url: null,
+      })),
+    };
+    const page = createPage({ router, enrollmentSvc });
+    page.enrollmentId = 12;
+    page.confirmed = true;
+    spyOn(page, 'openEnrollmentPdf').and.returnValue(Promise.resolve());
+
+    await page.submitEnrollment();
+    await Promise.resolve();
+
+    expect(page.openEnrollmentPdf).toHaveBeenCalledWith(null);
+    expect(router.navigateByUrl).toHaveBeenCalledWith('/tabs/enrollments');
   });
 
   it('prefills cascading location fields from mapped NID data', () => {

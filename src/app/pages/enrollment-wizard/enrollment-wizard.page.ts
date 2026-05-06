@@ -2,6 +2,7 @@
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Browser } from '@capacitor/browser';
 import {
   IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton,
   IonButton,
@@ -1011,13 +1012,24 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
     if (!this.confirmed) { this.showToast(this.t('wizard.confirm_information'), 'warning'); return; }
     this.submitting = true;
     this.enrollmentSvc.submit(this.enrollmentId).subscribe({
-      next: async () => {
+      next: async (res) => {
         this.submitting = false;
+        await this.openEnrollmentPdf(res.pdf_download_url || res.data?.pdf_download_url || null);
         this.showToast(this.t('wizard.submitted'), 'success');
         this.router.navigateByUrl('/tabs/enrollments');
       },
       error: () => { this.submitting = false; },
     });
+  }
+
+  async openEnrollmentPdf(url?: string | null) {
+    if (!url) return;
+
+    try {
+      await Browser.open({ url });
+    } catch {
+      this.showToast(this.t('wizard.pdf_open_failed'), 'warning');
+    }
   }
 
   // â”€â”€ Image capture â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€

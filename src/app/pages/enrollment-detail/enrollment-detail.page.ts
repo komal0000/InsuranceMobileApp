@@ -1,6 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Browser } from '@capacitor/browser';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import {
@@ -13,12 +14,13 @@ import { addIcons } from 'ionicons';
 import {
   locationOutline, personOutline, peopleOutline, documentOutline,
   checkmarkCircleOutline, closeCircleOutline, createOutline, trashOutline,
-  shieldCheckmarkOutline
+  shieldCheckmarkOutline, downloadOutline
 } from 'ionicons/icons';
 import { ApiService } from '../../services/api.service';
 import { AppSyncEvent, AppSyncService } from '../../services/app-sync.service';
 import { AuthService } from '../../services/auth.service';
 import { DateService } from '../../services/date.service';
+import { EnrollmentService } from '../../services/enrollment.service';
 import { LanguageService } from '../../services/language.service';
 import { ApiResponse } from '../../interfaces/api-response.interface';
 import { Enrollment } from '../../interfaces/enrollment.interface';
@@ -51,6 +53,7 @@ export class EnrollmentDetailPage implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private router: Router,
     private api: ApiService,
+    private enrollmentService: EnrollmentService,
     private syncService: AppSyncService,
     private authService: AuthService,
     private dateService: DateService,
@@ -61,7 +64,7 @@ export class EnrollmentDetailPage implements OnInit, OnDestroy {
     addIcons({
       locationOutline, personOutline, peopleOutline, documentOutline,
       checkmarkCircleOutline, closeCircleOutline, createOutline, trashOutline,
-      shieldCheckmarkOutline
+      shieldCheckmarkOutline, downloadOutline
     });
   }
 
@@ -101,6 +104,12 @@ export class EnrollmentDetailPage implements OnInit, OnDestroy {
     this.api.get<ApiResponse<Enrollment>>(`/enrollments/${this.enrollmentId}`).subscribe({
       next: (res) => {
         this.enrollment = res.data;
+        if ((res as any).pdf_download_url) {
+          this.enrollment.pdf_download_url = (res as any).pdf_download_url;
+        }
+        if ((res as any).card_download_url) {
+          this.enrollment.card_download_url = (res as any).card_download_url;
+        }
         this.loading = false;
       },
       error: () => { this.loading = false; },
@@ -114,6 +123,7 @@ export class EnrollmentDetailPage implements OnInit, OnDestroy {
   async submitEnrollment() {
     this.api.post<ApiResponse>(`/enrollments/${this.enrollmentId}/submit`, {}).subscribe({
       next: async (res) => {
+        await this.openEnrollmentPdf((res as any).pdf_download_url || (res.data as any)?.pdf_download_url || null);
         const toast = await this.toastCtrl.create({
           message: this.languageService.translateText(res.message) || this.t('enrollment_detail.submitted'),
           duration: 2000, color: 'success', position: 'top',
@@ -122,6 +132,46 @@ export class EnrollmentDetailPage implements OnInit, OnDestroy {
         this.loadDetail();
       },
     });
+  }
+
+  downloadEnrollmentPdf() {
+    this.enrollmentService.getPdfUrl(this.enrollmentId).subscribe({
+      next: (res) => {
+        const url = res.data?.pdf_download_url || null;
+        if (this.enrollment) {
+          this.enrollment.pdf_download_url = url;
+        }
+        this.openEnrollmentPdf(url);
+      },
+    });
+  }
+
+  downloadAllCardsPdf() {
+    this.enrollmentService.getAllCardsPdfUrl(this.enrollmentId).subscribe({
+      next: (res) => {
+        const url = res.data?.card_download_url || null;
+        if (this.enrollment) {
+          this.enrollment.card_download_url = url;
+        }
+        this.openEnrollmentPdf(url);
+      },
+    });
+  }
+
+  async openEnrollmentPdf(url?: string | null) {
+    if (!url) return;
+
+    try {
+      await Browser.open({ url });
+    } catch {
+      const toast = await this.toastCtrl.create({
+        message: this.t('enrollment_detail.pdf_open_failed'),
+        duration: 2000,
+        color: 'warning',
+        position: 'top',
+      });
+      await toast.present();
+    }
   }
 
   async verifyEnrollment() {

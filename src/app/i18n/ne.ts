@@ -415,6 +415,9 @@
   'policy.no_active': 'सक्रिय पोलिसी छैन',
   'policy.no_active_message': 'तपाईंको सक्रिय पोलिसी छैन।',
   'policy.days_left': 'दिन बाँकी',
+  'policy.export_all_cards': 'सबै सदस्य कार्ड निर्यात गर्नुहोस्',
+  'policy.export_card_pdf': 'कार्ड PDF निर्यात गर्नुहोस्',
+  'policy.card_open_failed': 'कार्ड PDF खोल्न सकिएन।',
 
   'payments.title': 'मेरा भुक्तानीहरू',
   'payments.no_payments': 'भुक्तानी छैन',
@@ -566,6 +569,9 @@
   'renewal_detail.pay_amount_complete': 'नवीकरण पूरा गर्न :amount भुक्तानी गर्नुहोस्',
 
   'profile.photo': 'प्रोफाइल फोटो',
+  'enrollment_detail.download_pdf': 'नामांकन PDF डाउनलोड गर्नुहोस्',
+  'enrollment_detail.export_member_cards': 'सदस्य कार्ड निर्यात गर्नुहोस्',
+  'enrollment_detail.pdf_open_failed': 'नामांकन PDF खोल्न सकिएन।',
   'enrollments.title': 'नामांकनहरू',
   'enrollments.search_placeholder': 'नाम वा नामांकन नं. बाट खोज्नुहोस्...',
   'enrollments.all': 'सबै',
@@ -581,6 +587,8 @@
   'enrollments.create_failed': 'नामांकन सिर्जना गर्न सकिएन।',
   'enrollments.draft_prefix': 'मस्यौदा #',
   'enrollments.number_prefix': 'नामांकन #',
+  'wizard.submitted': 'नामांकन प्रमाणीकरणका लागि पेश भयो!',
+  'wizard.pdf_open_failed': 'नामांकन PDF खोल्न सकिएन।',
   'wizard.start_household_head_nid': 'घरमूलीको NID बाट सुरु गर्नुहोस्',
   'wizard.personal_information': 'व्यक्तिगत जानकारी',
   'wizard.parent_grandparent_information': 'अभिभावक र हजुरबुवा/हजुरआमाको जानकारी',
