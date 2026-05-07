@@ -3,10 +3,20 @@ import { of } from 'rxjs';
 import { PaymentPage } from './payment.page';
 
 describe('PaymentPage', () => {
-  function makePage(paymentStatus: 'pending' | 'paid' | 'failed' = 'pending') {
-    const route = { snapshot: { queryParams: { type: 'new' } } };
+  function makePage(
+    paymentStatus: 'pending' | 'paid' | 'failed' = 'pending',
+    queryParams: Record<string, string> = { type: 'new' },
+  ) {
+    const route = { snapshot: { queryParams } };
     const router = jasmine.createSpyObj('Router', ['navigate', 'navigateByUrl']);
     const paymentSvc = jasmine.createSpyObj('PaymentService', ['createPayment', 'getPaymentStatus']);
+    paymentSvc.createPayment.and.returnValue(of({
+      success: true,
+      data: {
+        redirect_url: 'https://gateway.example/pay',
+        reference_id: 'REF-GATEWAY',
+      },
+    }));
     paymentSvc.getPaymentStatus.and.returnValue(of({
       success: true,
       data: {
@@ -60,4 +70,36 @@ describe('PaymentPage', () => {
       replaceUrl: true,
     });
   }));
+
+  it('uses the returned reference for a no-payment renewal response', async () => {
+    const { page, router, paymentSvc } = makePage('pending', {
+      type: 'renewal',
+      renewalId: '42',
+    });
+    paymentSvc.createPayment.and.returnValue(of({
+      success: true,
+      data: {
+        requires_payment: false,
+        renewal_id: 42,
+        reference_id: 'SUBSIDY-REF',
+        payment_method: 'subsidy',
+      },
+    }));
+    page.selectedGateway = 'khalti';
+
+    await page.proceedToPay();
+
+    expect(paymentSvc.createPayment).toHaveBeenCalledOnceWith('khalti', 'renewal', {
+      renewal_id: 42,
+    });
+    expect(router.navigate).toHaveBeenCalledWith(['/payment-result'], {
+      queryParams: {
+        status: 'success',
+        reference_id: 'SUBSIDY-REF',
+        type: 'renewal',
+        renewal_id: '42',
+      },
+      replaceUrl: true,
+    });
+  });
 });

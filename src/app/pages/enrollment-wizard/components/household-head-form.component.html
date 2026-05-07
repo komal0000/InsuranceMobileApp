@@ -25,31 +25,31 @@
             <img *ngIf="headPhotoPreview" [src]="headPhotoPreview" class="preview-img" />
           </div>
 
-          <ion-item class="form-item">
+          <ion-item class="form-item" *ngIf="!isHeadFieldReadonly('first_name')">
             <ion-input [label]="text('wizard.first_name_required', 'First Name *')" labelPlacement="stacked" placeholder="First Name"
                        [(ngModel)]="headData.first_name"
                        [readonly]="isHeadFieldReadonly('first_name')">
             </ion-input>
           </ion-item>
-          <ion-item class="form-item">
+          <ion-item class="form-item" *ngIf="!isHeadFieldReadonly('last_name')">
             <ion-input [label]="text('wizard.last_name_required', 'Last Name *')" labelPlacement="stacked" placeholder="Last Name"
                        [(ngModel)]="headData.last_name"
                        [readonly]="isHeadFieldReadonly('last_name')">
             </ion-input>
           </ion-item>
-          <ion-item class="form-item">
+          <ion-item class="form-item" *ngIf="!isHeadFieldReadonly('first_name_ne')">
             <ion-input [label]="text('wizard.first_name_ne', 'First Name Nepali')" labelPlacement="stacked" placeholder="Type in English e.g. Komal"
                        appNepaliInput [(ngModel)]="headData.first_name_ne"
                        [readonly]="isHeadFieldReadonly('first_name_ne')">
             </ion-input>
           </ion-item>
-          <ion-item class="form-item">
+          <ion-item class="form-item" *ngIf="!isHeadFieldReadonly('last_name_ne')">
             <ion-input [label]="text('wizard.last_name_ne', 'Last Name Nepali')" labelPlacement="stacked" placeholder="Type in English e.g. Shrestha"
                        appNepaliInput [(ngModel)]="headData.last_name_ne"
                        [readonly]="isHeadFieldReadonly('last_name_ne')">
             </ion-input>
           </ion-item>
-          <ion-item class="form-item">
+          <ion-item class="form-item" *ngIf="!isHeadFieldReadonly('gender')">
             <ion-select [label]="text('wizard.gender_required', 'Gender *')" labelPlacement="stacked" placeholder="Select Gender"
                         [(ngModel)]="headData.gender"
                         [disabled]="isHeadFieldReadonly('gender')">
@@ -59,6 +59,7 @@
             </ion-select>
           </ion-item>
           <app-bs-date-picker
+            *ngIf="!isHeadFieldReadonly('date_of_birth')"
             [(ngModel)]="headData.date_of_birth"
             [label]="text('wizard.date_of_birth_required', 'Date of Birth *')"
             [placeholder]="text('common.select_bs_date', 'Select BS date')"
@@ -86,13 +87,13 @@
               <ion-select-option value="widowed">{{ text('marital.widowed', 'Widowed') }}</ion-select-option>
             </ion-select>
           </ion-item>
-          <ion-item class="form-item">
+          <ion-item class="form-item" *ngIf="!isHeadFieldReadonly('mobile_number')">
             <ion-input [label]="text('profile.mobile_number', 'Mobile Number') + ' *'" labelPlacement="stacked" placeholder="98XXXXXXXX"
                        type="tel" [(ngModel)]="headData.mobile_number" maxlength="10" minlength="10"
                        [readonly]="isHeadFieldReadonly('mobile_number')">
             </ion-input>
           </ion-item>
-          <ion-item class="form-item">
+          <ion-item class="form-item" *ngIf="!isHeadFieldReadonly('email')">
             <ion-input [label]="text('profile.email', 'Email')" labelPlacement="stacked" placeholder="email@example.com"
                        type="email" [(ngModel)]="headData.email"
                        [readonly]="isHeadFieldReadonly('email')">
@@ -102,7 +103,7 @@
       </ion-card-content>
     </ion-card>
 
-    <ion-card>
+    <ion-card *ngIf="hasAnyEditable(['father_name', 'father_name_ne', 'mother_name', 'mother_name_ne', 'grandfather_name', 'grandfather_name_ne'])">
       <ion-card-content>
         <div class="section-title">
           <div class="section-icon" style="background:rgba(0,48,135,0.08)">
@@ -112,22 +113,22 @@
         </div>
 
         <div class="form-group">
-          <ion-item class="form-item">
+          <ion-item class="form-item" *ngIf="!isHeadFieldReadonly('father_name')">
             <ion-input label="Father Name" labelPlacement="stacked" [(ngModel)]="headData.father_name" [readonly]="isHeadFieldReadonly('father_name')"></ion-input>
           </ion-item>
-          <ion-item class="form-item">
+          <ion-item class="form-item" *ngIf="!isHeadFieldReadonly('father_name_ne')">
             <ion-input label="Father Name Nepali" labelPlacement="stacked" appNepaliInput [(ngModel)]="headData.father_name_ne" [readonly]="isHeadFieldReadonly('father_name_ne')"></ion-input>
           </ion-item>
-          <ion-item class="form-item">
+          <ion-item class="form-item" *ngIf="!isHeadFieldReadonly('mother_name')">
             <ion-input label="Mother Name" labelPlacement="stacked" [(ngModel)]="headData.mother_name" [readonly]="isHeadFieldReadonly('mother_name')"></ion-input>
           </ion-item>
-          <ion-item class="form-item">
+          <ion-item class="form-item" *ngIf="!isHeadFieldReadonly('mother_name_ne')">
             <ion-input label="Mother Name Nepali" labelPlacement="stacked" appNepaliInput [(ngModel)]="headData.mother_name_ne" [readonly]="isHeadFieldReadonly('mother_name_ne')"></ion-input>
           </ion-item>
-          <ion-item class="form-item">
+          <ion-item class="form-item" *ngIf="!isHeadFieldReadonly('grandfather_name')">
             <ion-input label="Grandfather Name" labelPlacement="stacked" [(ngModel)]="headData.grandfather_name" [readonly]="isHeadFieldReadonly('grandfather_name')"></ion-input>
           </ion-item>
-          <ion-item class="form-item">
+          <ion-item class="form-item" *ngIf="!isHeadFieldReadonly('grandfather_name_ne')">
             <ion-input label="Grandfather Name Nepali" labelPlacement="stacked" appNepaliInput [(ngModel)]="headData.grandfather_name_ne" [readonly]="isHeadFieldReadonly('grandfather_name_ne')"></ion-input>
           </ion-item>
         </div>
@@ -144,26 +145,31 @@
         </div>
 
         <div class="form-group">
-          <ion-item class="form-item">
+          <ion-item class="form-item" *ngIf="!isHeadFieldReadonly('citizenship_number')">
             <ion-input [label]="text('wizard.citizenship_number', 'Citizenship Number') + ' *'" labelPlacement="stacked" placeholder="Citizenship No."
                        [(ngModel)]="headData.citizenship_number"
                        [readonly]="isHeadFieldReadonly('citizenship_number')">
             </ion-input>
           </ion-item>
           <app-bs-date-picker
+            *ngIf="!isHeadFieldReadonly('citizenship_issue_date')"
             [(ngModel)]="headData.citizenship_issue_date"
             [label]="text('wizard.citizenship_issue_date', 'Issue Date')"
             [placeholder]="text('common.select_bs_date', 'Select BS date')"
             [disabled]="isHeadFieldReadonly('citizenship_issue_date')">
           </app-bs-date-picker>
-          <ion-item class="form-item">
+          <ion-item class="form-item" *ngIf="!isHeadFieldReadonly('citizenship_issue_district')">
             <ion-input [label]="text('wizard.citizenship_issue_district', 'Issue District')" labelPlacement="stacked" placeholder="e.g. Kathmandu"
                        [(ngModel)]="headData.citizenship_issue_district"
                        [readonly]="isHeadFieldReadonly('citizenship_issue_district')">
             </ion-input>
           </ion-item>
 
-          <div class="capture-section">
+          <p *ngIf="nidVerifiedHead" class="nid-waiver-note">
+            {{ text('wizard.citizenship_images_not_required_nid', 'Citizenship card images are not required because the household head was verified from NID.') }}
+          </p>
+
+          <div class="capture-section" *ngIf="!nidVerifiedHead">
             <div class="capture-row">
               <span class="capture-label">{{ text('wizard.citizenship_front', 'Citizenship Front') }} *</span>
               <ion-button size="small" fill="outline" (click)="captureImage('head','citizenship_front_image')">
@@ -173,7 +179,7 @@
             </div>
             <img *ngIf="citizenshipFrontPreview" [src]="citizenshipFrontPreview" class="preview-img" />
           </div>
-          <div class="capture-section">
+          <div class="capture-section" *ngIf="!nidVerifiedHead">
             <div class="capture-row">
               <span class="capture-label">{{ text('wizard.citizenship_back', 'Citizenship Back') }} *</span>
               <ion-button size="small" fill="outline" (click)="captureImage('head','citizenship_back_image')">

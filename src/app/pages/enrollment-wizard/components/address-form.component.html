@@ -1,4 +1,4 @@
-      <ion-card>
+      <ion-card *ngIf="hasEditablePermanentAddressFields()">
         <ion-card-content>
           <div class="section-title">
             <div class="section-icon" style="background:rgba(0,48,135,0.08)">
@@ -9,7 +9,7 @@
 
           <div class="form-group">
             <!-- Province -->
-            <ion-item class="form-item">
+            <ion-item class="form-item" *ngIf="!isHeadFieldReadonly('province')">
               <ion-select label="Province *" labelPlacement="stacked"
                           placeholder="Select Province"
                           [(ngModel)]="step1.province"
@@ -20,7 +20,7 @@
             </ion-item>
 
             <!-- District -->
-            <ion-item class="form-item">
+            <ion-item class="form-item" *ngIf="!isHeadFieldReadonly('district')">
               <ion-select label="District *" labelPlacement="stacked"
                           placeholder="Select District"
                           [(ngModel)]="step1.district"
@@ -31,7 +31,7 @@
             </ion-item>
 
             <!-- Municipality -->
-            <ion-item class="form-item">
+            <ion-item class="form-item" *ngIf="!isHeadFieldReadonly('municipality')">
               <ion-select label="Municipality *" labelPlacement="stacked"
                           placeholder="Select Municipality"
                           [(ngModel)]="step1.municipality"
@@ -42,7 +42,7 @@
             </ion-item>
 
             <!-- Ward -->
-            <ion-item class="form-item">
+            <ion-item class="form-item" *ngIf="!isHeadFieldReadonly('ward_number')">
               <ion-select label="Ward Number *" labelPlacement="stacked"
                           placeholder="Select Ward"
                           [(ngModel)]="step1.ward_number"
@@ -53,7 +53,7 @@
             </ion-item>
 
             <!-- Tole -->
-            <ion-item class="form-item">
+            <ion-item class="form-item" *ngIf="!isHeadFieldReadonly('tole_village')">
               <ion-input label="Tole / Village" labelPlacement="stacked"
                          placeholder="e.g. Baneshwor"
                          [(ngModel)]="step1.tole_village"

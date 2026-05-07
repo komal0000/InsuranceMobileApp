@@ -4,11 +4,15 @@ import { EnrollmentConfig } from '../interfaces/enrollment.interface';
 import { EnrollmentService } from './enrollment.service';
 
 describe('EnrollmentService', () => {
-  let api: jasmine.SpyObj<{ get: (...args: unknown[]) => unknown; post: (...args: unknown[]) => unknown }>;
+  let api: jasmine.SpyObj<{
+    get: (...args: unknown[]) => unknown;
+    post: (...args: unknown[]) => unknown;
+    postFormData: (...args: unknown[]) => unknown;
+  }>;
   let service: EnrollmentService;
 
   beforeEach(() => {
-    api = jasmine.createSpyObj('ApiService', ['get', 'post']);
+    api = jasmine.createSpyObj('ApiService', ['get', 'post', 'postFormData']);
     service = new EnrollmentService(api as any, {} as any);
   });
 
@@ -97,5 +101,18 @@ describe('EnrollmentService', () => {
 
     service.getMemberCardPdfUrl(25, 9).subscribe();
     expect(api.get).toHaveBeenCalledWith('/enrollments/25/cards/members/9/pdf-url');
+  });
+
+  it('removes members with a required death/removal supporting document', () => {
+    const response = { success: true, message: 'Removed.', data: null };
+    const file = new Blob(['proof'], { type: 'application/pdf' });
+    api.postFormData.and.returnValue(of(response));
+
+    service.removeMember(25, 9, file).subscribe(result => expect(result).toEqual(response));
+
+    expect(api.postFormData).toHaveBeenCalledWith('/enrollments/25/members/9', jasmine.any(FormData));
+    const submitted = api.postFormData.calls.mostRecent().args[1] as FormData;
+    expect(submitted.get('_method')).toBe('DELETE');
+    expect(submitted.has('death_document')).toBeTrue();
   });
 });

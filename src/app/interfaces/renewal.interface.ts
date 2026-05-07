@@ -9,6 +9,10 @@ export interface Renewal {
   discount_amount?: number;
   penalty_amount?: number;
   final_amount?: number;
+  payment_method?: string | null;
+  payment_reference?: string | null;
+  payment_date?: string | null;
+  payment_date_bs?: string | null;
   renewal_start_date?: string;
   renewal_start_date_bs?: string;
   renewal_end_date?: string;

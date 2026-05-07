@@ -89,7 +89,6 @@ export class RenewalsPage implements OnInit, OnDestroy {
   memberCitizenshipFrontPreview: string | null = null;
   memberCitizenshipBackPreview: string | null = null;
   memberBirthCertFrontPreview: string | null = null;
-  memberBirthCertBackPreview: string | null = null;
   private readonly destroy$ = new Subject<void>();
   private hasEnteredView = false;
 
@@ -256,13 +255,12 @@ export class RenewalsPage implements OnInit, OnDestroy {
     this.memberCitizenshipFrontPreview = null;
     this.memberCitizenshipBackPreview = null;
     this.memberBirthCertFrontPreview = null;
-    this.memberBirthCertBackPreview = null;
     this.showMemberForm = true;
   }
 
   async captureRenewalMemberImage(
     field: 'photo' | 'citizenship_front_image' | 'citizenship_back_image' |
-           'birth_certificate_front_image' | 'birth_certificate_back_image'
+           'birth_certificate_front_image'
   ) {
     try {
       const { Camera, CameraResultType, CameraSource } = await import('@capacitor/camera');
@@ -299,7 +297,6 @@ export class RenewalsPage implements OnInit, OnDestroy {
     else if (field === 'citizenship_front_image') this.memberCitizenshipFrontPreview = dataUrl;
     else if (field === 'citizenship_back_image') this.memberCitizenshipBackPreview = dataUrl;
     else if (field === 'birth_certificate_front_image') this.memberBirthCertFrontPreview = dataUrl;
-    else if (field === 'birth_certificate_back_image') this.memberBirthCertBackPreview = dataUrl;
   }
 
   private dataUrlToBlob(dataUrl: string): Blob {

@@ -416,17 +416,7 @@
                       {{ memberBirthCertFrontPreview ? t('common.change') : t('common.capture') }}
                     </ion-button>
                   </div>
-                  <img *ngIf="memberBirthCertFrontPreview" [src]="memberBirthCertFrontPreview" class="preview-img" alt="Birth Certificate Front" />
-                </div>
-                <div class="capture-section">
-                  <div class="capture-row">
-                    <span class="capture-label">{{ t('wizard.birth_certificate_back') }}</span>
-                    <ion-button size="small" fill="outline" (click)="captureRenewalMemberImage('birth_certificate_back_image')">
-                      <ion-icon slot="start" name="camera-outline"></ion-icon>
-                      {{ memberBirthCertBackPreview ? t('common.change') : t('common.capture') }}
-                    </ion-button>
-                  </div>
-                  <img *ngIf="memberBirthCertBackPreview" [src]="memberBirthCertBackPreview" class="preview-img" alt="Birth Certificate Back" />
+                  <img *ngIf="memberBirthCertFrontPreview" [src]="memberBirthCertFrontPreview" class="preview-img" alt="Birth Certificate Document" />
                 </div>
               </div>
 

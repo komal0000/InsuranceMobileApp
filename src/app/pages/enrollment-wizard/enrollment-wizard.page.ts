@@ -15,7 +15,7 @@ import {
   locationOutline, personOutline, peopleOutline,
   checkmarkCircleOutline, cameraOutline, trashOutline,
   arrowForwardOutline, arrowBackOutline, searchOutline,
-  cardOutline, documentTextOutline, createOutline
+  cardOutline, documentTextOutline, createOutline, addOutline
 } from 'ionicons/icons';
 import { EnrollmentService } from '../../services/enrollment.service';
 import { GeoService } from '../../services/geo.service';
@@ -58,6 +58,16 @@ const DEFAULT_MEMBER_RELATIONSHIPS: Array<{ value: string; label: string }> = [
 ];
 
 const SINGLE_HEAD_BLOCKED_RELATIONSHIPS = ['spouse', 'son', 'daughter'];
+
+interface VerifiedNidField {
+  label: string;
+  value: string;
+}
+
+interface VerifiedNidGroup {
+  title: string;
+  fields: VerifiedNidField[];
+}
 
 @Component({
   selector: 'app-enrollment-wizard',
@@ -167,7 +177,7 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
 
   members: FamilyMember[] = [];
   householdHead: HouseholdHead | null = null;
-  showMemberForm = true;
+  showMemberForm = false;
   editingMemberId: number | null = null;
   savingMember = false;
   showNidGateMember = true;
@@ -190,7 +200,6 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
     citizenship_front_image: null as File | Blob | null,
     citizenship_back_image: null as File | Blob | null,
     birth_certificate_front_image: null as File | Blob | null,
-    birth_certificate_back_image: null as File | Blob | null,
     target_group_front_image: null as File | Blob | null,
     target_group_back_image: null as File | Blob | null,
   };
@@ -198,7 +207,6 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
   memberCitizenshipFrontPreview = '';
   memberCitizenshipBackPreview = '';
   memberBirthCertFrontPreview = '';
-  memberBirthCertBackPreview = '';
   memberTargetGroupFrontPreview = '';
   memberTargetGroupBackPreview = '';
 
@@ -217,7 +225,7 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
       locationOutline, personOutline, peopleOutline,
       checkmarkCircleOutline, cameraOutline, trashOutline,
       arrowForwardOutline, arrowBackOutline, searchOutline,
-      cardOutline, documentTextOutline, createOutline
+      cardOutline, documentTextOutline, createOutline, addOutline
     });
     this.refreshStepTitles();
   }
@@ -307,6 +315,8 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
 
     // ── Step 2: Household head ────────────────────────────────────────────────
     const head = e.household_head;
+    this.nidLockedHeadFields.clear();
+    this.nidVerifiedHead = false;
     if (head) {
       this.showNidGate2 = false;
       this.headData = {
@@ -346,6 +356,10 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
       this.citizenshipBackPreview = this.getDocUrl(head, 'citizenship_back') || '';
       this.targetGroupFrontPreview = this.getDocUrl(head, 'target_group_front') || '';
       this.targetGroupBackPreview = this.getDocUrl(head, 'target_group_back') || '';
+      if (head.nid_verified_at && head.nid_raw_payload) {
+        this.nidVerifiedHead = true;
+        this.markLockedHeadFields(head.nid_raw_payload as NidLookupData);
+      }
     } else {
       this.applyRegisteredMobileNumber();
     }
@@ -496,7 +510,7 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
   lookupNid2() {
     const nin = this.nidNumber2.trim();
     if (!nin) return;
-    if (nin.length < 8) {
+    if (!this.isValidNid(nin)) {
       this.nidMessage2 = this.t('wizard.nid_invalid_length');
       return;
     }
@@ -556,8 +570,14 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
   skipNidGate2() {
     const manualNid = this.nidNumber2.trim();
     if (manualNid) {
+      if (!this.isValidNid(manualNid)) {
+        this.nidMessage2 = this.t('wizard.nid_invalid_length');
+        return;
+      }
       this.headData.national_id = manualNid;
     }
+    this.nidLockedHeadFields.clear();
+    this.nidVerifiedHead = false;
     this.nidMessage2 = '';
     this.showNidGate2 = false;
   }
@@ -570,30 +590,133 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
     return this.nidLockedHeadFields.has(field);
   }
 
+  get verifiedNidGroups(): VerifiedNidGroup[] {
+    if (!this.nidVerifiedHead) {
+      return [];
+    }
+
+    const groups: Array<{ title: string; fields: Array<{ key: string; label: string }> }> = [
+      {
+        title: this.text('wizard.personal_information', 'Personal Information'),
+        fields: [
+          { key: 'national_id', label: this.text('wizard.national_id_number', 'National ID Number') },
+          { key: 'first_name', label: this.text('wizard.first_name', 'First Name') },
+          { key: 'last_name', label: this.text('wizard.last_name', 'Last Name') },
+          { key: 'first_name_ne', label: this.text('wizard.first_name_ne', 'First Name Nepali') },
+          { key: 'last_name_ne', label: this.text('wizard.last_name_ne', 'Last Name Nepali') },
+          { key: 'gender', label: this.text('wizard.gender', 'Gender') },
+          { key: 'date_of_birth', label: this.text('wizard.date_of_birth', 'Date of Birth') },
+          { key: 'mobile_number', label: this.text('profile.mobile_number', 'Mobile Number') },
+          { key: 'email', label: this.text('profile.email', 'Email') },
+        ],
+      },
+      {
+        title: this.text('wizard.parent_grandparent_information', 'Parent and Grandparent Information'),
+        fields: [
+          { key: 'father_name', label: this.text('wizard.father_name', 'Father Name') },
+          { key: 'father_name_ne', label: this.text('wizard.father_name_ne', 'Father Name Nepali') },
+          { key: 'mother_name', label: this.text('wizard.mother_name', 'Mother Name') },
+          { key: 'mother_name_ne', label: this.text('wizard.mother_name_ne', 'Mother Name Nepali') },
+          { key: 'grandfather_name', label: this.text('wizard.grandfather_name', 'Grandfather Name') },
+          { key: 'grandfather_name_ne', label: this.text('wizard.grandfather_name_ne', 'Grandfather Name Nepali') },
+        ],
+      },
+      {
+        title: this.text('wizard.citizenship_information', 'Citizenship Information'),
+        fields: [
+          { key: 'citizenship_number', label: this.text('wizard.citizenship_number', 'Citizenship Number') },
+          { key: 'citizenship_issue_date', label: this.text('wizard.citizenship_issue_date', 'Citizenship Issue Date') },
+          { key: 'citizenship_issue_district', label: this.text('wizard.citizenship_issue_district', 'Citizenship Issue District') },
+        ],
+      },
+      {
+        title: this.text('wizard.permanent_address', 'Permanent Address'),
+        fields: [
+          { key: 'province', label: this.text('wizard.province', 'Province') },
+          { key: 'district', label: this.text('wizard.district', 'District') },
+          { key: 'municipality', label: this.text('wizard.municipality', 'Municipality') },
+          { key: 'ward_number', label: this.text('wizard.ward_number', 'Ward Number') },
+          { key: 'tole_village', label: this.text('wizard.tole_village', 'Tole / Village') },
+        ],
+      },
+    ];
+
+    return groups
+      .map(group => ({
+        title: group.title,
+        fields: group.fields
+          .filter(field => this.nidLockedHeadFields.has(field.key))
+          .map(field => ({ label: field.label, value: this.verifiedNidValue(field.key) }))
+          .filter(field => field.value.length > 0),
+      }))
+      .filter(group => group.fields.length > 0);
+  }
+
+  private verifiedNidValue(field: string): string {
+    const addressFields: Record<string, string | undefined> = {
+      province: this.step1.province,
+      district: this.step1.district,
+      municipality: this.step1.municipality,
+      ward_number: this.step1.ward_number,
+      tole_village: this.step1.tole_village,
+    };
+    const rawValue = Object.prototype.hasOwnProperty.call(addressFields, field)
+      ? addressFields[field]
+      : this.headData?.[field];
+    const value = this.compactText(rawValue);
+
+    if (field === 'gender' && value) {
+      return this.label('gender', value, this.titleize(value));
+    }
+
+    return value;
+  }
+
+  private compactText(value: unknown): string {
+    return value === null || value === undefined ? '' : String(value).trim();
+  }
+
+  private text(key: string, fallback: string): string {
+    const translated = this.languageService.t(key);
+    return translated === key ? fallback : translated;
+  }
+
+  private isValidNid(value: string): boolean {
+    return /^\d{10}$/.test(value.trim());
+  }
+
+  private titleize(value: string): string {
+    return value
+      .split(/[_\s-]+/)
+      .filter(Boolean)
+      .map(part => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+      .join(' ');
+  }
+
   private markLockedHeadFields(d: NidLookupData) {
-    const fieldMap: Record<string, keyof NidLookupData> = {
-      national_id: 'national_id',
-      first_name: 'first_name',
-      last_name: 'last_name',
-      first_name_ne: 'first_name_ne',
-      last_name_ne: 'last_name_ne',
-      father_name: 'father_name',
-      father_name_ne: 'father_name_ne',
-      mother_name: 'mother_name',
-      mother_name_ne: 'mother_name_ne',
-      grandfather_name: 'grandfather_name',
-      grandfather_name_ne: 'grandfather_name_ne',
-      gender: 'gender',
-      date_of_birth: 'date_of_birth',
-      mobile_number: 'mobile_number',
-      email: 'email',
-      citizenship_number: 'citizenship_number',
-      citizenship_issue_date: 'citizenship_issue_date',
-      citizenship_issue_district: 'citizenship_issue_district',
+    const fieldMap: Record<string, Array<keyof NidLookupData>> = {
+      national_id: ['national_id', 'nin_loc'],
+      first_name: ['first_name'],
+      last_name: ['last_name'],
+      first_name_ne: ['first_name_ne'],
+      last_name_ne: ['last_name_ne'],
+      father_name: ['father_name'],
+      father_name_ne: ['father_name_ne'],
+      mother_name: ['mother_name'],
+      mother_name_ne: ['mother_name_ne'],
+      grandfather_name: ['grandfather_name'],
+      grandfather_name_ne: ['grandfather_name_ne'],
+      gender: ['gender'],
+      date_of_birth: ['date_of_birth', 'date_of_birth_bs', 'dob_loc'],
+      mobile_number: ['mobile_number'],
+      email: ['email'],
+      citizenship_number: ['citizenship_number'],
+      citizenship_issue_date: ['citizenship_issue_date', 'citizenship_issue_date_bs'],
+      citizenship_issue_district: ['citizenship_issue_district'],
     };
 
-    Object.entries(fieldMap).forEach(([field, key]) => {
-      if (d[key]) this.nidLockedHeadFields.add(field);
+    Object.entries(fieldMap).forEach(([field, keys]) => {
+      if (keys.some(key => d[key])) this.nidLockedHeadFields.add(field);
     });
     if (d.province) this.nidLockedHeadFields.add('province');
     if (d.district) this.nidLockedHeadFields.add('district');
@@ -605,7 +728,7 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
   lookupNidMember() {
     const nin = this.nidNumberMember.trim();
     if (!nin) return;
-    if (nin.length < 8) {
+    if (!this.isValidNid(nin)) {
       this.nidMessageMember = this.t('wizard.nid_invalid_length');
       return;
     }
@@ -719,6 +842,9 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
       if (!/^\d{10}$/.test(this.headData.mobile_number)) {
         this.showToast(this.t('wizard.mobile_digits'), 'warning'); return;
       }
+      if (this.headData.national_id && !this.isValidNid(this.headData.national_id)) {
+        this.showToast(this.t('wizard.nid_invalid_length'), 'warning'); return;
+      }
       if (this.calculateAge(this.headData.date_of_birth) < 16) {
         this.showToast(this.t('wizard.head_age'), 'warning'); return;
       }
@@ -787,6 +913,10 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
       this.showToast(this.t('wizard.mobile_digits'), 'warning');
         this.savingDraft = false; return;
       }
+      if (this.headData.national_id && !this.isValidNid(this.headData.national_id)) {
+        this.showToast(this.t('wizard.nid_invalid_length'), 'warning');
+        this.savingDraft = false; return;
+      }
       if (this.calculateAge(this.headData.date_of_birth) < 16) {
         this.showToast(this.t('wizard.head_age'), 'warning');
         this.savingDraft = false; return;
@@ -823,19 +953,23 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
       is_target_group: false,
       target_group_type: '', target_group_id_number: '',
       photo: null, citizenship_front_image: null, citizenship_back_image: null,
-      birth_certificate_front_image: null, birth_certificate_back_image: null,
+      birth_certificate_front_image: null,
       target_group_front_image: null, target_group_back_image: null,
     };
     this.memberPhotoPreview = '';
     this.memberCitizenshipFrontPreview = '';
     this.memberCitizenshipBackPreview = '';
     this.memberBirthCertFrontPreview = '';
-    this.memberBirthCertBackPreview = '';
     this.memberTargetGroupFrontPreview = '';
     this.memberTargetGroupBackPreview = '';
     this.nidNumberMember = ''; this.nidMessageMember = '';
     this.nidVerifiedMember = false;
     this.showNidGateMember = true;
+    this.showMemberForm = false;
+  }
+
+  showAddMember() {
+    this.resetMemberForm();
     this.showMemberForm = true;
   }
 
@@ -876,7 +1010,6 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
       citizenship_front_image: null,
       citizenship_back_image: null,
       birth_certificate_front_image: null,
-      birth_certificate_back_image: null,
       target_group_front_image: null,
       target_group_back_image: null,
     };
@@ -885,7 +1018,6 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
     this.memberCitizenshipFrontPreview = this.getDocUrl(member, 'citizenship_front') || '';
     this.memberCitizenshipBackPreview = this.getDocUrl(member, 'citizenship_back') || '';
     this.memberBirthCertFrontPreview = this.getDocUrl(member, 'birth_certificate_front') || '';
-    this.memberBirthCertBackPreview = this.getDocUrl(member, 'birth_certificate_back') || '';
     this.memberTargetGroupFrontPreview = this.getDocUrl(member, 'target_group_front') || '';
     this.memberTargetGroupBackPreview = this.getDocUrl(member, 'target_group_back') || '';
   }
@@ -968,6 +1100,12 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
   }
 
   async removeMember(member: FamilyMember) {
+    const deathDocument = await this.selectRemovalDocument();
+    if (!deathDocument) {
+      this.showToast(this.t('wizard.death_document_required'), 'warning');
+      return;
+    }
+
     const alert = await this.alertCtrl.create({
       header: this.t('wizard.remove_member_header'),
       message: `${this.t('wizard.remove_member_message')} ${member.first_name} ${member.last_name}`,
@@ -976,14 +1114,63 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
         {
           text: this.t('common.delete'), cssClass: 'danger',
           handler: () => {
-            this.enrollmentSvc.removeMember(this.enrollmentId, member.id).subscribe({
-              next: () => { this.members = this.members.filter(m => m.id !== member.id); },
+            this.enrollmentSvc.removeMember(this.enrollmentId, member.id, deathDocument).subscribe({
+              next: () => {
+                this.members = this.members.filter(m => m.id !== member.id);
+                this.showToast(this.t('wizard.member_removed'), 'success');
+              },
+              error: () => {
+                this.showToast(this.t('wizard.member_remove_failed'), 'danger');
+              },
             });
           },
         },
       ],
     });
     await alert.present();
+  }
+
+  private selectRemovalDocument(): Promise<File | null> {
+    return new Promise(resolve => {
+      const input = document.createElement('input');
+      let resolved = false;
+      const finish = (file: File | null) => {
+        if (resolved) {
+          return;
+        }
+
+        resolved = true;
+        window.removeEventListener('focus', handleFocus);
+        resolve(file);
+      };
+      const handleFocus = () => {
+        window.setTimeout(() => {
+          if (!input.files?.length) {
+            finish(null);
+          }
+        }, 300);
+      };
+      input.type = 'file';
+      input.accept = 'image/jpg,image/jpeg,image/png,application/pdf';
+      input.onchange = (event: Event) => {
+        const file = (event.target as HTMLInputElement | null)?.files?.[0] ?? null;
+        if (!file) {
+          finish(null);
+          return;
+        }
+
+        if (file.size > 5 * 1024 * 1024) {
+          this.showToast(this.t('wizard.death_document_size'), 'danger');
+          finish(null);
+          return;
+        }
+
+        finish(file);
+      };
+      input.addEventListener('cancel', () => finish(null), { once: true });
+      window.addEventListener('focus', handleFocus, { once: true });
+      input.click();
+    });
   }
 
 
@@ -1039,7 +1226,7 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
     field: 'photo' | 'citizenship_front_image' | 'citizenship_back_image' |
            'target_group_front_image' | 'target_group_back_image' |
            'basai_sarai_front' | 'basai_sarai_back' |
-           'birth_certificate_front_image' | 'birth_certificate_back_image'
+           'birth_certificate_front_image'
   ) {
     try {
       const { Camera, CameraResultType, CameraSource } = await import('@capacitor/camera');
@@ -1083,7 +1270,6 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
       else if (field === 'citizenship_front_image') this.memberCitizenshipFrontPreview = dataUrl;
       else if (field === 'citizenship_back_image') this.memberCitizenshipBackPreview = dataUrl;
       else if (field === 'birth_certificate_front_image') this.memberBirthCertFrontPreview = dataUrl;
-      else if (field === 'birth_certificate_back_image') this.memberBirthCertBackPreview = dataUrl;
       else if (field === 'target_group_front_image') this.memberTargetGroupFrontPreview = dataUrl;
       else if (field === 'target_group_back_image') this.memberTargetGroupBackPreview = dataUrl;
     }

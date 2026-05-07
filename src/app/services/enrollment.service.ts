@@ -95,8 +95,12 @@ export class EnrollmentService {
     );
   }
 
-  removeMember(enrollmentId: number, memberId: number): Observable<ApiResponse<any>> {
-    return this.api.delete<ApiResponse<any>>(`/enrollments/${enrollmentId}/members/${memberId}`);
+  removeMember(enrollmentId: number, memberId: number, deathDocument: File | Blob): Observable<ApiResponse<any>> {
+    const formData = new FormData();
+    formData.append('_method', 'DELETE');
+    formData.append('death_document', deathDocument, this.fileNameFor(deathDocument, 'death-document'));
+
+    return this.api.postFormData<ApiResponse<any>>(`/enrollments/${enrollmentId}/members/${memberId}`, formData);
   }
 
   // ── Submit ──────────────────────────────────────────────────
@@ -129,5 +133,9 @@ export class EnrollmentService {
 
   nidLookup(nationalId: string): Observable<NidLookupResponse> {
     return this.api.post<NidLookupResponse>('/nid-lookup', { national_id: nationalId });
+  }
+
+  private fileNameFor(file: File | Blob, fallback: string): string {
+    return typeof File !== 'undefined' && file instanceof File && file.name ? file.name : fallback;
   }
 }

@@ -51,6 +51,18 @@
                 <strong *ngIf="!isFreeRenewal">{{ formatCurrency(renewal.final_amount || 0) }}</strong>
                 <ion-badge color="success" *ngIf="isFreeRenewal">{{ t('renewal_detail.free_target_group') }}</ion-badge>
               </div>
+              <div class="premium-row" *ngIf="renewal.payment_reference && renewal.payment_method">
+                <span>{{ t('payment.method') }}</span>
+                <strong>{{ formatPaymentMethod(renewal.payment_method) }}</strong>
+              </div>
+              <div class="premium-row" *ngIf="renewal.payment_reference">
+                <span>{{ t('payment.reference') }}</span>
+                <strong>{{ renewal.payment_reference }}</strong>
+              </div>
+              <div class="premium-row" *ngIf="renewal.payment_reference && renewal.payment_date">
+                <span>{{ t('payment.reference_date') }}</span>
+                <strong>{{ displayDate(renewal.payment_date, renewal.payment_date_bs) }}</strong>
+              </div>
             </div>
 
             <div class="renewal-dates" *ngIf="renewal.renewal_start_date">
@@ -128,7 +140,6 @@
                                [citizenshipFrontPreview]="memberCitizenshipFrontPreview"
                                [citizenshipBackPreview]="memberCitizenshipBackPreview"
                                [birthCertificateFrontPreview]="memberBirthCertFrontPreview"
-                               [birthCertificateBackPreview]="memberBirthCertBackPreview"
                                (capture)="captureImage($event)"
                                (save)="saveMember()"
                                (cancel)="cancelMemberForm()">

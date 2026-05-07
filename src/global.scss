@@ -102,6 +102,147 @@ ion-select, ion-input {
   --padding-start: 4px;
 }
 
+/* Checkbox controls */
+input[type="checkbox"] {
+  appearance: none;
+  width: 1.125rem;
+  height: 1.125rem;
+  margin: 0 0.45rem 0 0;
+  border: 2px solid var(--hib-checkbox-border, #5d6b7a);
+  border-radius: 4px;
+  background-color: #ffffff;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 0.78rem 0.78rem;
+  accent-color: var(--hib-checkbox-blue, #003087);
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+  vertical-align: -0.16em;
+}
+
+input[type="checkbox"]:hover:not(:disabled) {
+  border-color: var(--hib-checkbox-border-hover, #34495e);
+}
+
+input[type="checkbox"]:checked {
+  border-color: var(--hib-checkbox-blue, #003087);
+  background-color: var(--hib-checkbox-blue, #003087);
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='%23fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='m6 10 3 3 6-6'/%3e%3c/svg%3e");
+}
+
+input[type="checkbox"]:focus-visible {
+  border-color: var(--hib-checkbox-blue-light, #0050B3);
+  box-shadow: 0 0 0 0.22rem var(--hib-checkbox-focus, rgba(0, 48, 135, 0.22));
+  outline: none;
+}
+
+input[type="checkbox"]:disabled {
+  background-color: #eef1f5;
+  border-color: #9aa6b2;
+  cursor: not-allowed;
+  opacity: 0.72;
+}
+
+ion-checkbox {
+  --size: 1.25rem;
+  --border-radius: 4px;
+  --border-width: 2px;
+  --border-style: solid;
+  --border-color: var(--hib-checkbox-border, #5d6b7a);
+  --border-color-checked: var(--hib-checkbox-blue, #003087);
+  --checkbox-background: #ffffff;
+  --checkbox-background-checked: var(--hib-checkbox-blue, #003087);
+  --checkmark-color: #ffffff;
+  --checkmark-width: 3;
+}
+
+ion-checkbox::part(container) {
+  border: 2px solid var(--hib-checkbox-border, #5d6b7a);
+  box-sizing: border-box;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+ion-checkbox.checkbox-checked::part(container),
+ion-checkbox.checkbox-indeterminate::part(container) {
+  border-color: var(--hib-checkbox-blue, #003087);
+}
+
+ion-checkbox.ion-focused::part(container),
+ion-checkbox:focus-visible::part(container) {
+  border-color: var(--hib-checkbox-blue-light, #0050B3);
+  box-shadow: 0 0 0 0.22rem var(--hib-checkbox-focus, rgba(0, 48, 135, 0.22));
+}
+
+ion-checkbox.checkbox-disabled::part(container) {
+  border-color: #9aa6b2;
+  opacity: 0.72;
+}
+
+/* Radio controls */
+input[type="radio"] {
+  appearance: none;
+  width: 1rem;
+  height: 1rem;
+  margin: 0 0.35rem 0 0;
+  border: 2px solid var(--hib-radio-green, #198754);
+  border-radius: 50%;
+  background-color: #ffffff;
+  accent-color: var(--hib-radio-green, #198754);
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+  vertical-align: -0.125em;
+}
+
+input[type="radio"]:checked {
+  border-color: var(--hib-radio-green, #198754);
+  background-image: radial-gradient(circle, var(--hib-radio-green, #198754) 45%, transparent 48%);
+}
+
+input[type="radio"]:focus-visible {
+  border-color: var(--hib-radio-green-dark, #146c43);
+  box-shadow: 0 0 0 0.2rem var(--hib-radio-green-soft, rgba(25, 135, 84, 0.18));
+  outline: none;
+}
+
+input[type="radio"]:disabled {
+  border-color: rgba(25, 135, 84, 0.45);
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+ion-radio {
+  --color: var(--hib-radio-green, #198754);
+  --color-checked: var(--hib-radio-green, #198754);
+  --border-color: var(--hib-radio-green, #198754);
+  --border-radius: 50%;
+  --border-style: solid;
+  --border-width: 0.125rem;
+}
+
+ion-radio::part(container) {
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 2px solid var(--hib-radio-green, #198754);
+  border-radius: 50%;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+ion-radio.radio-checked::part(container) {
+  border-color: var(--hib-radio-green, #198754);
+}
+
+ion-radio.ion-focused::part(container),
+ion-radio:focus-visible::part(container) {
+  border-color: var(--hib-radio-green-dark, #146c43);
+  box-shadow: 0 0 0 0.2rem var(--hib-radio-green-soft, rgba(25, 135, 84, 0.18));
+}
+
+ion-radio.radio-disabled::part(container) {
+  border-color: rgba(25, 135, 84, 0.45);
+  opacity: 0.65;
+}
+
 /* ── Progress bar ── */
 ion-progress-bar {
   --background: #e9ecef;

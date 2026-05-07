@@ -36,7 +36,9 @@
               </ion-select>
             </ion-item>
             <ion-item class="form-item">
-              <ion-input [label]="t('renewal_search.search_value')" labelPlacement="stacked" [placeholder]="t('renewal_search.enter_value')"
+              <ion-input [label]="t('renewal_search.search_value')" labelPlacement="stacked" [placeholder]="searchPlaceholder"
+                [attr.inputmode]="searchType === 'national_id' ? 'numeric' : null"
+                [attr.maxlength]="searchType === 'national_id' ? '10' : null"
                 [(ngModel)]="searchValue"></ion-input>
             </ion-item>
             <ion-button expand="block" (click)="searchPolicy()" [disabled]="searching" class="ion-margin-top">

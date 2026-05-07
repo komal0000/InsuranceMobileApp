@@ -78,7 +78,11 @@
                 </div>
                 <div class="info-cell" *ngIf="policy.payment_method">
                   <span class="info-label">{{ t('policy.payment_via') }}</span>
-                  <span class="info-value">{{ languageText(policy.payment_method | titlecase) }}</span>
+                  <span class="info-value">{{ formatPaymentMethod(policy.payment_method) }}</span>
+                </div>
+                <div class="info-cell" *ngIf="policy.payment_reference">
+                  <span class="info-label">{{ t('payment.reference') }}</span>
+                  <span class="info-value">{{ policy.payment_reference }}</span>
                 </div>
               </div>
 
@@ -227,6 +231,14 @@
                 <div class="info-cell" *ngIf="policy.renewal.renewal_end">
                   <span class="info-label">{{ t('policy.period_end') }}</span>
                   <span class="info-value">{{ displayDate(policy.renewal.renewal_end, policy.renewal.renewal_end_bs) }}</span>
+                </div>
+                <div class="info-cell" *ngIf="policy.renewal.payment_reference && policy.renewal.payment_method">
+                  <span class="info-label">{{ t('policy.payment_via') }}</span>
+                  <span class="info-value">{{ formatPaymentMethod(policy.renewal.payment_method) }}</span>
+                </div>
+                <div class="info-cell" *ngIf="policy.renewal.payment_reference">
+                  <span class="info-label">{{ t('payment.reference') }}</span>
+                  <span class="info-value">{{ policy.renewal.payment_reference }}</span>
                 </div>
               </div>
             </ion-card-content>

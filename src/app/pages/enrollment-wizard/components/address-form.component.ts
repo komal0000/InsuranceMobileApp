@@ -81,6 +81,11 @@ export class AddressFormComponent {
     return this.lockedFields.has(field);
   }
 
+  hasEditablePermanentAddressFields(): boolean {
+    return ['province', 'district', 'municipality', 'ward_number', 'tole_village']
+      .some(field => !this.isHeadFieldReadonly(field));
+  }
+
   onProvinceChange(): void {
     this.provinceChange.emit();
   }

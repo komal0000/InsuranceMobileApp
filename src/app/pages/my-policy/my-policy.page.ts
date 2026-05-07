@@ -126,6 +126,14 @@ export class MyPolicyPage implements OnInit {
     return this.languageService.translateText(value);
   }
 
+  formatPaymentMethod(value: string | null | undefined): string {
+    if (value === 'subsidy') {
+      return this.t('payment.subsidy_method');
+    }
+
+    return this.languageText(value ? value.replace(/_/g, ' ') : '');
+  }
+
   get canExportCards(): boolean {
     return this.policy?.status === 'active' && !!this.policy?.enrollment_id;
   }

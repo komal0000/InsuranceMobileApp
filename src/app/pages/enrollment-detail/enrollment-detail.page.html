@@ -69,6 +69,20 @@
             <div class="premium-display">
               <span class="premium-amount">Rs. {{ formatNumber(enrollment.premium_amount, 2) }}</span>
             </div>
+            <div class="premium-details" *ngIf="enrollment.payment_reference">
+              <div class="premium-row" *ngIf="enrollment.payment_method">
+                <span>{{ t('payment.method') }}</span>
+                <strong>{{ formatPaymentMethod(enrollment.payment_method) }}</strong>
+              </div>
+              <div class="premium-row">
+                <span>{{ t('payment.reference') }}</span>
+                <strong>{{ enrollment.payment_reference }}</strong>
+              </div>
+              <div class="premium-row" *ngIf="enrollment.payment_date">
+                <span>{{ t('payment.reference_date') }}</span>
+                <strong>{{ displayDate(enrollment.payment_date, enrollment.payment_date_bs) }}</strong>
+              </div>
+            </div>
           </ion-card-content>
         </ion-card>
 

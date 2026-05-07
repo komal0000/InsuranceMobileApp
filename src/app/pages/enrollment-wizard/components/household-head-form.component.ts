@@ -112,6 +112,10 @@ export class HouseholdHeadFormComponent {
     return this.lockedFields.has(field);
   }
 
+  hasAnyEditable(fields: readonly string[]): boolean {
+    return fields.some(field => !this.isHeadFieldReadonly(field));
+  }
+
   captureImage(_target: 'head', field: HouseholdHeadImageField): void {
     this.capture.emit(field);
   }

@@ -43,6 +43,28 @@
                     (skip)="skipNidGate2()">
       </app-nid-gate>
 
+      <ion-card *ngIf="showHouseholdHeadForm && verifiedNidGroups.length" class="verified-nid-card">
+        <ion-card-content>
+          <div class="section-title">
+            <div class="section-icon" style="background:rgba(25,135,84,0.1)">
+              <ion-icon name="checkmark-circle-outline" style="color:#198754"></ion-icon>
+            </div>
+            <h3>{{ t('wizard.verified_from_nid') }}</h3>
+            <ion-badge color="success">{{ t('wizard.nid_verified_badge') }}</ion-badge>
+          </div>
+          <p class="verified-nid-help">{{ t('wizard.nid_verified_fields_help') }}</p>
+          <div class="verified-nid-group" *ngFor="let group of verifiedNidGroups">
+            <div class="verified-nid-group-title">{{ group.title }}</div>
+            <div class="verified-nid-grid">
+              <div class="verified-nid-item" *ngFor="let field of group.fields">
+                <span class="verified-nid-label">{{ field.label }}</span>
+                <strong class="verified-nid-value">{{ field.value }}</strong>
+              </div>
+            </div>
+          </div>
+        </ion-card-content>
+      </ion-card>
+
       <!-- Head Form -->
       <app-household-head-form *ngIf="showHouseholdHeadForm"
                                sectionGroup="identity"
@@ -121,7 +143,7 @@
     <div *ngIf="currentStep === 2" style="display:flex;flex-direction:column">
 
       <!-- Household Head Card -->
-      <ion-card *ngIf="householdHead" style="border-left:4px solid #003087;order:2">
+      <ion-card *ngIf="householdHead" style="border-left:4px solid #003087">
         <ion-card-content>
           <div class="member-row">
             <div class="member-avatar">
@@ -137,7 +159,7 @@
       </ion-card>
 
       <!-- Members -->
-      <ion-card *ngFor="let m of members" style="order:2">
+      <ion-card *ngFor="let m of members">
         <ion-card-content>
           <div class="member-row">
             <div class="member-avatar">
@@ -158,13 +180,18 @@
       </ion-card>
 
       <!-- Empty state -->
-      <div *ngIf="!members.length && !householdHead" class="empty-text" style="order:2">
+      <div *ngIf="!members.length && !householdHead" class="empty-text">
         <ion-icon name="people-outline" style="font-size:40px;color:#adb5bd"></ion-icon>
-        <p style="color:#6c757d;font-size:0.85rem">No members added yet.</p>
+        <p style="color:#6c757d;font-size:0.85rem">No members added yet. Use the button below to add family members.</p>
       </div>
 
+      <ion-button expand="block" fill="outline" (click)="showAddMember()" *ngIf="!showMemberForm" class="ion-margin-top">
+        <ion-icon name="add-outline" slot="start"></ion-icon>
+        Add Family Member
+      </ion-button>
+
       <!-- Add Member Form -->
-      <ion-card *ngIf="showMemberForm" class="member-form-card" style="order:1">
+      <ion-card *ngIf="showMemberForm" class="member-form-card">
         <ion-card-content>
           <div class="section-title">
             <div class="section-icon" style="background:rgba(0,48,135,0.08)">
@@ -197,7 +224,6 @@
                            [citizenshipFrontPreview]="memberCitizenshipFrontPreview"
                            [citizenshipBackPreview]="memberCitizenshipBackPreview"
                            [birthCertificateFrontPreview]="memberBirthCertFrontPreview"
-                           [birthCertificateBackPreview]="memberBirthCertBackPreview"
                            (capture)="captureImage('member', $event)"
                            (save)="saveMember()"
                            (cancel)="cancelAddMember()">

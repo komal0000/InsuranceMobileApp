@@ -287,6 +287,14 @@ export class EnrollmentDetailPage implements OnInit, OnDestroy {
     return this.languageService.formatNumber(value, decimals);
   }
 
+  formatPaymentMethod(value: string | null | undefined): string {
+    if (value === 'subsidy') {
+      return this.t('payment.subsidy_method');
+    }
+
+    return this.languageService.translateText(value ? value.replace(/_/g, ' ') : '');
+  }
+
   label(namespace: string, value: string | null | undefined): string {
     return this.languageService.label(namespace, value);
   }

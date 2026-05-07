@@ -145,12 +145,17 @@
     .premium-row {
       display: flex;
       justify-content: space-between;
-      align-items: center;
+      align-items: flex-start;
+      gap: 12px;
       padding: 6px 0;
       font-size: 0.85rem;
 
       span { color: #6c757d; }
-      strong { color: #212529; }
+      strong {
+        color: #212529;
+        text-align: right;
+        overflow-wrap: anywhere;
+      }
     }
 
     .premium-total {

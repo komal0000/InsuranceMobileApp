@@ -42,18 +42,21 @@ const MAX_SELECTABLE_YEAR = 2100;
         {{ label }}<span *ngIf="required"> *</span>
       </label>
 
-      <div
-        class="trigger-field"
-        [class.is-disabled]="disabled"
-        (click)="!disabled && openSheet()"
-        role="button"
-        [attr.tabindex]="disabled ? -1 : 0"
-        (keydown.enter)="!disabled && openSheet()"
-        (keydown.space)="!disabled && openSheet()"
-      >
-        <span class="trigger-value" [class.is-placeholder]="!selectedDate">
-          {{ displayValue || effectivePlaceholder }}
-        </span>
+      <div class="trigger-field" [class.is-disabled]="disabled" [class.is-invalid]="inputInvalid">
+        <input
+          type="text"
+          class="trigger-input"
+          [value]="inputValue"
+          [placeholder]="effectivePlaceholder"
+          [disabled]="disabled"
+          inputmode="numeric"
+          maxlength="10"
+          autocomplete="off"
+          aria-label="BS date"
+          (input)="onTextInput($event)"
+          (blur)="onTextBlur()"
+          (keydown.enter)="onTextEnter($event)"
+        />
 
         <button
           type="button"
@@ -130,7 +133,7 @@ const MAX_SELECTABLE_YEAR = 2100;
               [class.is-selected]="cell.selected"
               (click)="selectDay(cell.day)"
             >
-              <span class="day-number">{{ toNepaliNumber(cell.day) }}</span>
+              <span class="day-number">{{ formatNumberForLocale(cell.day) }}</span>
               <span *ngIf="cell.today && !cell.selected" class="today-dot" aria-hidden="true"></span>
             </button>
           </div>
@@ -193,7 +196,6 @@ const MAX_SELECTABLE_YEAR = 2100;
       color: inherit;
       text-align: left;
       box-shadow: 0 3px 10px rgba(107, 15, 15, 0.06);
-      cursor: pointer;
     }
 
     .trigger-field.is-disabled {
@@ -201,18 +203,31 @@ const MAX_SELECTABLE_YEAR = 2100;
       box-shadow: none;
     }
 
-    .trigger-value {
+    .trigger-field.is-invalid {
+      border-color: #dc3545;
+      box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.12);
+    }
+
+    .trigger-input {
       flex: 1;
       min-width: 0;
+      width: 100%;
+      border: 0;
+      outline: none;
+      background: transparent;
       font-size: 16px;
       font-weight: 600;
       line-height: 1.35;
       color: #5d1b1b;
     }
 
-    .trigger-value.is-placeholder {
+    .trigger-input::placeholder {
       color: #9a6d6d;
       font-weight: 500;
+    }
+
+    .trigger-input:disabled {
+      opacity: 1;
     }
 
     .trigger-icon,
@@ -481,6 +496,8 @@ export class BsDatePickerComponent implements ControlValueAccessor, OnDestroy {
   todayDate: BsDateValue;
   viewYear: number;
   viewMonth: number;
+  inputValue = '';
+  inputInvalid = false;
 
   private closeTimeout: ReturnType<typeof setTimeout> | null = null;
   private onChange: (value: string) => void = () => undefined;
@@ -504,7 +521,7 @@ export class BsDatePickerComponent implements ControlValueAccessor, OnDestroy {
   }
 
   get displayValue(): string {
-    return this.selectedDate ? this.formatNumberForLocale(this.toIso(this.selectedDate)) : '';
+    return this.selectedDate ? this.formatNumberForLocale(this.toDisplayIso(this.selectedDate)) : '';
   }
 
   get selectedFullDate(): string {
@@ -512,7 +529,7 @@ export class BsDatePickerComponent implements ControlValueAccessor, OnDestroy {
       return '';
     }
 
-    return `${this.formatNumberForLocale(this.selectedDate.year)} ${this.months[this.selectedDate.month - 1]} ${this.formatNumberForLocale(this.selectedDate.day)}`;
+    return this.displayValue;
   }
 
   get effectivePlaceholder(): string {
@@ -550,6 +567,8 @@ export class BsDatePickerComponent implements ControlValueAccessor, OnDestroy {
   writeValue(value: string | null): void {
     if (!value) {
       this.selectedDate = null;
+      this.inputValue = '';
+      this.inputInvalid = false;
       this.viewYear = this.todayDate.year;
       this.viewMonth = this.todayDate.month;
       return;
@@ -563,6 +582,8 @@ export class BsDatePickerComponent implements ControlValueAccessor, OnDestroy {
 
     if (!parsed || !this.isYearSelectable(parsed.year)) {
       this.selectedDate = null;
+      this.inputValue = '';
+      this.inputInvalid = false;
       this.viewYear = this.todayDate.year;
       this.viewMonth = this.todayDate.month;
       return;
@@ -571,6 +592,8 @@ export class BsDatePickerComponent implements ControlValueAccessor, OnDestroy {
     this.selectedDate = parsed;
     this.viewYear = parsed.year;
     this.viewMonth = parsed.month;
+    this.inputValue = this.displayValue;
+    this.inputInvalid = false;
   }
 
   registerOnChange(fn: (value: string) => void): void {
@@ -585,12 +608,26 @@ export class BsDatePickerComponent implements ControlValueAccessor, OnDestroy {
     this.disabled = isDisabled;
   }
 
+  onTextInput(event: Event): void {
+    const raw = (event.target as HTMLInputElement).value;
+    this.inputValue = raw.replace(/-/g, '/');
+    this.inputInvalid = false;
+  }
+
+  onTextBlur(): void {
+    this.commitTypedInput();
+    this.onTouched();
+  }
+
+  onTextEnter(event: Event): void {
+    event.preventDefault();
+    this.commitTypedInput();
+  }
+
   openSheet(): void {
     if (this.disabled) {
       return;
     }
-
-    console.log('[BS Date Picker] clicked');
 
     const hasValidSelection = this.selectedDate !== null && this.isYearSelectable(this.selectedDate.year);
     const focusDate: BsDateValue = hasValidSelection
@@ -656,6 +693,8 @@ export class BsDatePickerComponent implements ControlValueAccessor, OnDestroy {
 
   clearSelection(): void {
     this.selectedDate = null;
+    this.inputValue = '';
+    this.inputInvalid = false;
     this.onChange('');
     this.bsDateChange.emit('');
     this.closeSheet();
@@ -684,8 +723,32 @@ export class BsDatePickerComponent implements ControlValueAccessor, OnDestroy {
   private commitValue(date: BsDateValue): void {
     const iso = this.toIso(date);
     this.selectedDate = date;
+    this.inputValue = this.displayValue;
+    this.inputInvalid = false;
     this.onChange(iso);
     this.bsDateChange.emit(iso);
+  }
+
+  private commitTypedInput(): void {
+    if (this.disabled) {
+      return;
+    }
+
+    const raw = this.inputValue.trim();
+    if (!raw) {
+      this.clearSelection();
+      return;
+    }
+
+    const parsed = this.parseBsDate(raw);
+    if (!parsed) {
+      this.inputInvalid = true;
+      return;
+    }
+
+    this.viewYear = parsed.year;
+    this.viewMonth = parsed.month;
+    this.commitValue(parsed);
   }
 
   private scheduleClose(): void {
@@ -720,7 +783,12 @@ export class BsDatePickerComponent implements ControlValueAccessor, OnDestroy {
       return null;
     }
 
-    const match = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    const normalized = this.normalizeDateInput(value);
+    if (!normalized) {
+      return null;
+    }
+
+    const match = normalized.match(/^(\d{4})-(\d{2})-(\d{2})$/);
     if (!match) {
       return null;
     }
@@ -731,11 +799,34 @@ export class BsDatePickerComponent implements ControlValueAccessor, OnDestroy {
       day: Number(match[3]),
     };
 
-    if (!this.isYearSelectable(parsed.year) || parsed.month < 1 || parsed.month > 12 || parsed.day < 1 || parsed.day > 32) {
+    if (!this.isYearSelectable(parsed.year) || parsed.month < 1 || parsed.month > 12 || parsed.day < 1) {
+      return null;
+    }
+
+    if (parsed.day > this.getDaysInMonth(parsed.year, parsed.month)) {
       return null;
     }
 
     return parsed;
+  }
+
+  private normalizeDateInput(value: string): string | null {
+    const normalizedDigits = Array.from(value.trim()).map(char => {
+      const index = NEPALI_DIGITS.indexOf(char);
+      return index >= 0 ? String(index) : char;
+    }).join('');
+    const normalized = normalizedDigits.replace(/-/g, '/').replace(/\s+/g, '');
+    const match = normalized.match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})$/);
+
+    if (!match) {
+      return null;
+    }
+
+    return [
+      match[1],
+      match[2].padStart(2, '0'),
+      match[3].padStart(2, '0'),
+    ].join('-');
   }
 
   private buildYearOptions(): number[] {
@@ -755,6 +846,10 @@ export class BsDatePickerComponent implements ControlValueAccessor, OnDestroy {
       String(date.month).padStart(2, '0'),
       String(date.day).padStart(2, '0'),
     ].join('-');
+  }
+
+  private toDisplayIso(date: BsDateValue): string {
+    return this.toIso(date).replace(/-/g, '/');
   }
 
   private getDaysInMonth(year: number, month: number): number {

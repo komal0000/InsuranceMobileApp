@@ -15,6 +15,7 @@ type CalendarSource = 'auto' | 'bs' | 'ad';
 @Injectable({ providedIn: 'root' })
 export class DateService {
   private readonly isoDatePattern = /^\d{4}-\d{2}-\d{2}$/;
+  private readonly inputDatePattern = /^\d{4}[-/]\d{2}[-/]\d{2}$/;
 
   constructor(private languageService: LanguageService) {}
 
@@ -74,7 +75,8 @@ export class DateService {
   }
 
   isValidBsDate(value: string | null | undefined): boolean {
-    return !!value && isValidNepaliDate(value);
+    const normalized = this.normalizeDate(value);
+    return !!normalized && isValidNepaliDate(normalized);
   }
 
   getDaysInBsMonth(year: number, month: number): number {
@@ -82,15 +84,17 @@ export class DateService {
   }
 
   formatForDisplay(adDate?: string | null, bsDate?: string | null): string {
-    if (bsDate) {
-      return this.languageService.localizeDigits(this.normalizeDate(bsDate) ?? bsDate);
+    const normalizedBs = this.normalizeDate(bsDate);
+    if (normalizedBs) {
+      return this.languageService.localizeDigits(this.toDisplayDate(normalizedBs));
     }
 
     if (!adDate) {
       return '';
     }
 
-    return this.languageService.localizeDigits(this.adToBs(adDate));
+    const converted = this.adToBs(adDate);
+    return this.languageService.localizeDigits(this.toDisplayDate(converted));
   }
 
   formatDateTimeForDisplay(
@@ -227,20 +231,22 @@ export class DateService {
   }
 
   isBsDate(value: string | null | undefined): boolean {
-    if (!value || !this.isoDatePattern.test(value)) {
+    const normalized = this.normalizeDate(value);
+    if (!normalized || !this.isoDatePattern.test(normalized)) {
       return false;
     }
 
-    const year = Number(value.slice(0, 4));
-    return year >= 2000 && year <= 2090 && this.isValidBsDate(value);
+    const year = Number(normalized.slice(0, 4));
+    return year >= 2000 && year <= 2090 && this.isValidBsDate(normalized);
   }
 
   isAdDate(value: string | null | undefined): boolean {
-    if (!value || !this.isoDatePattern.test(value)) {
+    const normalized = this.normalizeDate(value);
+    if (!normalized || !this.isoDatePattern.test(normalized)) {
       return false;
     }
 
-    const year = Number(value.slice(0, 4));
+    const year = Number(normalized.slice(0, 4));
     return year >= 1943 && year <= 2034;
   }
 
@@ -258,15 +264,19 @@ export class DateService {
       return null;
     }
 
-    if (this.isoDatePattern.test(trimmed)) {
-      return trimmed;
+    if (this.inputDatePattern.test(trimmed)) {
+      return trimmed.replace(/\//g, '-');
     }
 
-    if (trimmed.length >= 10 && this.isoDatePattern.test(trimmed.slice(0, 10))) {
-      return trimmed.slice(0, 10);
+    if (trimmed.length >= 10 && this.inputDatePattern.test(trimmed.slice(0, 10))) {
+      return trimmed.slice(0, 10).replace(/\//g, '-');
     }
 
     return null;
+  }
+
+  private toDisplayDate(value: string): string {
+    return value.replace(/-/g, '/');
   }
 
   private getStringValue(value: unknown): string | null {

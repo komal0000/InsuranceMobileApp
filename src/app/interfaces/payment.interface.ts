@@ -39,6 +39,7 @@ export interface PaymentCreateResponse {
   retry_allowed?: boolean;
   requires_payment?: boolean;
   renewal_id?: number;
+  payment_method?: string;
 }
 
 export interface PaymentRetryMeta {

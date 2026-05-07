@@ -77,13 +77,11 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
     citizenship_front_image: null as File | Blob | null,
     citizenship_back_image: null as File | Blob | null,
     birth_certificate_front_image: null as File | Blob | null,
-    birth_certificate_back_image: null as File | Blob | null,
   };
   memberPhotoPreview = '';
   memberCitizenshipFrontPreview = '';
   memberCitizenshipBackPreview = '';
   memberBirthCertFrontPreview = '';
-  memberBirthCertBackPreview = '';
   private readonly memberDateFields = [
     'date_of_birth',
     'citizenship_issue_date',
@@ -206,7 +204,6 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
       citizenship_front_image: null,
       citizenship_back_image: null,
       birth_certificate_front_image: null,
-      birth_certificate_back_image: null,
     };
 
     this.resetMemberPreviews();
@@ -214,7 +211,6 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
     this.memberCitizenshipFrontPreview = this.getDocUrl(member, 'citizenship_front') || '';
     this.memberCitizenshipBackPreview = this.getDocUrl(member, 'citizenship_back') || '';
     this.memberBirthCertFrontPreview = this.getDocUrl(member, 'birth_certificate_front') || '';
-    this.memberBirthCertBackPreview = this.getDocUrl(member, 'birth_certificate_back') || '';
     this.showMemberForm = true;
   }
 
@@ -324,7 +320,7 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
 
   async captureImage(
     field: 'photo' | 'citizenship_front_image' | 'citizenship_back_image' |
-           'birth_certificate_front_image' | 'birth_certificate_back_image'
+           'birth_certificate_front_image'
   ) {
     try {
       const { Camera, CameraResultType, CameraSource } = await import('@capacitor/camera');
@@ -346,7 +342,7 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
 
   private fallbackFileInput(
     field: 'photo' | 'citizenship_front_image' | 'citizenship_back_image' |
-           'birth_certificate_front_image' | 'birth_certificate_back_image'
+           'birth_certificate_front_image'
   ) {
     const input = document.createElement('input');
     input.type = 'file';
@@ -371,7 +367,7 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
 
   private applyImage(
     field: 'photo' | 'citizenship_front_image' | 'citizenship_back_image' |
-           'birth_certificate_front_image' | 'birth_certificate_back_image',
+           'birth_certificate_front_image',
     blob: Blob,
     dataUrl: string,
   ) {
@@ -381,10 +377,20 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
     else if (field === 'citizenship_front_image') this.memberCitizenshipFrontPreview = dataUrl;
     else if (field === 'citizenship_back_image') this.memberCitizenshipBackPreview = dataUrl;
     else if (field === 'birth_certificate_front_image') this.memberBirthCertFrontPreview = dataUrl;
-    else if (field === 'birth_certificate_back_image') this.memberBirthCertBackPreview = dataUrl;
   }
 
   async removeMember(member: any) {
+    const deathDocument = await this.selectRemovalDocument();
+    if (!deathDocument) {
+      this.toastCtrl.create({
+        message: this.t('wizard.death_document_required'),
+        duration: 2200,
+        color: 'warning',
+        position: 'top',
+      }).then(t => t.present());
+      return;
+    }
+
     const alert = await this.alertCtrl.create({
       header: this.t('wizard.remove_member_header'),
       message: this.t('renewal_detail.remove_member_message').replace(':name', `${member.first_name || ''} ${member.last_name || ''}`.trim()),
@@ -393,14 +399,87 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
         {
           text: this.t('common.remove'),
           handler: () => {
-            this.api.delete<ApiResponse>(`/renewals/${this.renewalId}/members/${member.id}`).subscribe({
-              next: () => this.loadDetail(),
+            const formData = new FormData();
+            formData.append('_method', 'DELETE');
+            formData.append('death_document', deathDocument, this.fileNameFor(deathDocument, 'death-document'));
+            this.api.postFormData<ApiResponse>(`/renewals/${this.renewalId}/members/${member.id}`, formData).subscribe({
+              next: async () => {
+                this.loadDetail();
+                const toast = await this.toastCtrl.create({
+                  message: this.t('wizard.member_removed'),
+                  duration: 1500,
+                  color: 'success',
+                  position: 'top',
+                });
+                await toast.present();
+              },
+              error: async (err) => {
+                const toast = await this.toastCtrl.create({
+                  message: this.languageService.translateText(err?.error?.message) || this.t('wizard.member_remove_failed'),
+                  duration: 2200,
+                  color: 'danger',
+                  position: 'top',
+                });
+                await toast.present();
+              },
             });
           },
         },
       ],
     });
     await alert.present();
+  }
+
+  private selectRemovalDocument(): Promise<File | null> {
+    return new Promise(resolve => {
+      const input = document.createElement('input');
+      let resolved = false;
+      const finish = (file: File | null) => {
+        if (resolved) {
+          return;
+        }
+
+        resolved = true;
+        window.removeEventListener('focus', handleFocus);
+        resolve(file);
+      };
+      const handleFocus = () => {
+        window.setTimeout(() => {
+          if (!input.files?.length) {
+            finish(null);
+          }
+        }, 300);
+      };
+      input.type = 'file';
+      input.accept = 'image/jpg,image/jpeg,image/png,application/pdf';
+      input.onchange = (event: Event) => {
+        const file = (event.target as HTMLInputElement | null)?.files?.[0] ?? null;
+        if (!file) {
+          finish(null);
+          return;
+        }
+
+        if (file.size > 5 * 1024 * 1024) {
+          this.toastCtrl.create({
+            message: this.t('wizard.death_document_size'),
+            duration: 2200,
+            color: 'danger',
+            position: 'top',
+          }).then(t => t.present());
+          finish(null);
+          return;
+        }
+
+        finish(file);
+      };
+      input.addEventListener('cancel', () => finish(null), { once: true });
+      window.addEventListener('focus', handleFocus, { once: true });
+      input.click();
+    });
+  }
+
+  private fileNameFor(file: File | Blob, fallback: string): string {
+    return typeof File !== 'undefined' && file instanceof File && file.name ? file.name : fallback;
   }
 
   async submitRenewal() {
@@ -606,7 +685,6 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
       citizenship_front_image: null,
       citizenship_back_image: null,
       birth_certificate_front_image: null,
-      birth_certificate_back_image: null,
     };
   }
 
@@ -615,7 +693,6 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
     this.memberCitizenshipFrontPreview = '';
     this.memberCitizenshipBackPreview = '';
     this.memberBirthCertFrontPreview = '';
-    this.memberBirthCertBackPreview = '';
   }
 
   getDocUrl(member: any, type: string): string | null {
@@ -654,6 +731,14 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
 
   formatCurrency(value: string | number | null | undefined, decimals = 2): string {
     return `${this.t('common.currency')} ${this.languageService.formatNumber(value ?? 0, decimals)}`;
+  }
+
+  formatPaymentMethod(value: string | null | undefined): string {
+    if (value === 'subsidy') {
+      return this.t('payment.subsidy_method');
+    }
+
+    return this.languageService.translateText(value ? value.replace(/_/g, ' ') : '');
   }
 
   formatRelationship(value: string | null | undefined): string {

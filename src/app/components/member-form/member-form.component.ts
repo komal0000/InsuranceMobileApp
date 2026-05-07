@@ -18,8 +18,7 @@ export type MemberImageField =
   | 'photo'
   | 'citizenship_front_image'
   | 'citizenship_back_image'
-  | 'birth_certificate_front_image'
-  | 'birth_certificate_back_image';
+  | 'birth_certificate_front_image';
 
 interface MemberFormModel {
   [key: string]: any;
@@ -257,23 +256,13 @@ interface MemberFormModel {
 
         <div class="capture-section">
           <div class="capture-row">
-            <span class="capture-label">{{ text('wizard.birth_certificate_front', 'Birth Certificate Front') }}</span>
+            <span class="capture-label">{{ text('wizard.birth_certificate_front', 'Birth Certificate Document') }}</span>
             <ion-button size="small" fill="outline" (click)="captureImage('birth_certificate_front_image')">
               <ion-icon slot="start" name="camera-outline"></ion-icon>
               {{ birthCertificateFrontPreview ? text('common.change', 'Change') : text('common.capture', 'Capture') }}
             </ion-button>
           </div>
           <img *ngIf="birthCertificateFrontPreview" [src]="birthCertificateFrontPreview" class="preview-img" />
-        </div>
-        <div class="capture-section">
-          <div class="capture-row">
-            <span class="capture-label">{{ text('wizard.birth_certificate_back', 'Birth Certificate Back') }}</span>
-            <ion-button size="small" fill="outline" (click)="captureImage('birth_certificate_back_image')">
-              <ion-icon slot="start" name="camera-outline"></ion-icon>
-              {{ birthCertificateBackPreview ? text('common.change', 'Change') : text('common.capture', 'Capture') }}
-            </ion-button>
-          </div>
-          <img *ngIf="birthCertificateBackPreview" [src]="birthCertificateBackPreview" class="preview-img" />
         </div>
       </div>
 
@@ -301,7 +290,6 @@ export class MemberFormComponent {
   @Input() citizenshipFrontPreview = '';
   @Input() citizenshipBackPreview = '';
   @Input() birthCertificateFrontPreview = '';
-  @Input() birthCertificateBackPreview = '';
 
   @Output() capture = new EventEmitter<MemberImageField>();
   @Output() save = new EventEmitter<void>();

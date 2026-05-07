@@ -1,6 +1,6 @@
 # InsuranceMobileApp Current Context
 
-Last updated: 2026-05-05
+Last updated: 2026-05-07
 
 This file captures the current Ionic/Angular state so future conversations do not need to rediscover the mobile app.
 
@@ -100,21 +100,24 @@ Step 1 includes:
 
 NID behavior:
 - Step 1 starts with the household-head NID lookup/manual fallback gate, matching the web enrollment flow; permanent and temporary address fields are not shown until lookup succeeds or the user chooses manual entry.
+- User-entered NID values must be exactly 10 numeric digits. Household-head lookup, household-head manual fallback, family-member lookup, household-head save/draft validation, and renewal national-ID search all enforce the exact 10-digit rule before calling the API.
 - Manual fallback preserves the typed NID number into the household-head `national_id` field as unverified manual data.
 - `headNidLookup(id, nationalId)` calls `POST /api/enrollments/{id}/head/nid-lookup`.
 - On success, returned NID fields are written into `headData` and permanent address state.
 - Populated NID fields are tracked in `nidLockedHeadFields`.
-- Locked fields are readonly/disabled in UI, including date picker fields.
+- Locked household-head NID fields render as grouped `Verified From NID` label/value rows above Step 1 editable controls; their underlying model values stay in `headData`/address state and continue to be submitted in `FormData`.
 - Missing NID fields remain editable.
 - NID photo preview is used when `photo_url` is returned.
+- For household-head NID-verified Step 1, citizenship front/back capture controls are hidden and a note explains that citizenship card images are not required. Manual fallback, family-member NID, and renewal member behavior are unchanged.
 - Mobile consumes backend-mapped NID display fields directly: `province`, `district`, `municipality`, `ward_number`, `tole_village`, `citizenship_issue_district`, and JPEG `photo_url`.
-- Household-head NID tests cover Bagamati/Makawanpur/Hetauda mapped address selection, locked citizenship issue district, and JPEG photo preview.
+- Household-head NID tests cover Bagamati/Makawanpur/Hetauda mapped address selection, locked citizenship issue/date fields, grouped verified label/value metadata, saved NID payload restoration, and JPEG photo preview.
 - Member NID tests cover `citizenship_issue_district` and JPEG `photo_url` preview.
 
 Save behavior:
 - `saveHouseholdHead(id, formData)` calls `POST /api/enrollments/{id}/household-head`.
 - Old `saveStep1`, `saveStep2`, and generic `nidLookup` methods remain for compatibility.
 - Step 1 save sends permanent address, temporary address, first service point, household-head fields, profession/qualification IDs, target-group fields, and files.
+- Backend API save/submit endpoints now also accept an enrollment in `rejected` status when the rejection actor was `district_eo` or `province` and the authenticated user is the household head or original enroller. Resubmission returns the enrollment to `pending_verification` and clears stale rejection/verification fields; response shapes are unchanged.
 
 Enrollment PDF behavior:
 - Backend submit responses include `pdf_generated` and `pdf_download_url`, with the URL also available as `data.pdf_download_url`.
@@ -168,9 +171,12 @@ Household target group:
 
 Family members:
 - Family-member NID lookup still exists.
+- Enrollment Step 2 shows the household head and existing members first. The Add Family Member button/form is below the list and the form is hidden until the user chooses to add or edit a member.
+- Member birth certificate capture now collects a single `birth_certificate_front_image` document labeled as the birth certificate document. Active enrollment and renewal member UI/FormData paths no longer collect `birth_certificate_back_image`; the optional interface field remains only for legacy backend payload compatibility.
 - Member English and Nepali middle-name inputs are not rendered in enrollment member entry, not copied into edit form state, and not submitted in member add/update FormData even if stale keys exist locally.
 - Step 2 and review name displays show first name plus last name only.
 - Member target-group UI and payload collection are removed.
+- Member removal in enrollment now requires a selected death/removal supporting file. `EnrollmentService.removeMember()` sends multipart `FormData` with `_method=DELETE` and `death_document`.
 - Existing stale keys are skipped in FormData where relevant.
 - The shared `src\app\components\member-form\member-form.component.ts` is used by enrollment member entry and renewal detail member entry.
 - Enrollment member add/update uses mutation response data to update the current in-memory member list when enough state is returned; full enrollment refetches are still used where server-calculated review/subsidy state is needed.
@@ -178,6 +184,8 @@ Family members:
 
 ## Renewal Mobile Changes
 - Renewal member add/edit no longer collects target-group fields.
+- Renewal member add/edit no longer collects a birth certificate back image; birth certificate is one document capture.
+- Renewal detail keeps Add Family Member below the member list. Removing a renewal member now requires a death/removal supporting file and posts multipart `_method=DELETE` with `death_document`.
 - Relevant files:
   - `src\app\pages\renewal-detail\renewal-detail.page.ts`
   - `src\app\pages\renewal-detail\renewal-detail.page.html`
@@ -194,14 +202,21 @@ Family members:
 - Payment return handling treats `status=pending` as a first-class result instead of showing a failed payment.
 - The payment page polls backend status longer after gateway return. If the backend still reports pending after polling, the app routes to the payment result page with `status=pending` and a verification-pending reason.
 - The payment result page can display pending verification, lets the user check again, and moves to success/failed only when `/api/payments/status/{referenceId}` returns a settled state.
+- No-pay renewal payment creation may return `requires_payment=false` with `reference_id` and `payment_method=subsidy`; the app treats this as success and passes the returned reference to the payment result page without expecting a `payment_id`.
+- Enrollment detail, renewal detail, and My Policy display saved subsidy/payment references when the backend includes `payment_reference`.
 - Payment result pending copy is translated through the English/Nepali dictionaries.
 - Relevant files:
   - `src\app\pages\payment\payment.page.ts`
   - `src\app\pages\payment\payment.page.spec.ts`
+  - `src\app\pages\enrollment-detail\enrollment-detail.page.*`
+  - `src\app\pages\renewal-detail\renewal-detail.page.*`
+  - `src\app\pages\my-policy\my-policy.page.*`
   - `src\app\pages\payment-result\payment-result.page.ts`
   - `src\app\pages\payment-result\payment-result.page.html`
   - `src\app\pages\payment-result\payment-result.page.scss`
   - `src\app\pages\payment-result\payment-result.page.spec.ts`
+  - `src\app\interfaces\payment.interface.ts`
+  - `src\app\interfaces\renewal.interface.ts`
   - `src\app\i18n\en.ts`
   - `src\app\i18n\ne.ts`
 
@@ -215,7 +230,9 @@ Family members:
 - DOM phrase translation is default-off. Keyed translations and locale helpers are the primary path; legacy DOM translation can be opted in with an explicit container only.
 - `LanguageService` now also provides locale-aware number formatting, digit localization, `translateText()` for backend/display messages, `label()` for enum-like values, and residual DOM attribute translation for `placeholder`, `title`, `aria-label`, `label`, and `alt`.
 - `DateService` display helpers now localize BS dates and time digits in Nepali mode.
-- `BsDatePickerComponent` now renders Nepali labels and Devanagari digits in Nepali mode.
+- `DateService` display helpers now show BS dates as numeric `YYYY/MM/DD`; slash-separated typed BS dates are accepted and normalized back to AD `YYYY-MM-DD` for API payloads.
+- `BsDatePickerComponent` now uses an editable numeric BS input plus a calendar button. Valid typed `YYYY/MM/DD` input updates the model, invalid input is visibly rejected, and calendar selection still works.
+- Global radio styling gives native radios, Ionic `ion-radio`, and fallback radio inputs a visible green unchecked outline and matching green selected/focus states.
 - Nepali text-entry fields using `appNepaliInput` now use the phonetic `TransliterateService` on committed Ionic input values instead of the `nepalify` keyboard-layout formatter; examples covered include `Komal Shrestha`, `Ram`, and `Shrestha`.
 - As of 2026-05-01, the remaining high-traffic mobile UI was moved to keyed translations or locale helpers: home, tabs, login/register/forgot password, profile, dashboard labels, enrollment list/detail/wizard, policy, payments, payment result, notifications, subsidies, renewal search, renewals, and renewal detail.
 - A static scan of mobile HTML templates on 2026-05-01 found no unmatched static user-facing English text/placeholder/title/aria-label/alt strings outside keyed translation bindings or dictionary-backed residual translations.
@@ -277,6 +294,21 @@ npm test -- --watch=false --browsers=ChromeHeadless
 
 Result:
 - `npm run build` passes.
+
+Enrollment UI/member-removal/date/radio verification on 2026-05-07:
+```powershell
+cd C:\Insurance\InsuranceMobileApp
+npx tsc -p tsconfig.spec.json --noEmit
+npm test -- --watch=false --browsers=ChromeHeadless
+npm run build
+```
+
+Result:
+- TypeScript spec compile passes.
+- Karma suite passes: `71 SUCCESS`.
+- `npm run build` succeeds.
+- Build warning: `src/app/components/bs-date-picker/bs-date-picker.component.ts` style budget exceeded by 55 bytes (`4.05 kB` total against `4.00 kB`).
+- Source radio scan under `src` finds no live mobile radio instances, only the global native/`ion-radio` styling rules.
 - `npx tsc -p tsconfig.spec.json --noEmit` passes.
 - Existing SCSS budget warning remains for `src/app/pages/renewals/renewals.page.scss`.
 - `npm test` could not launch ChromeHeadless in this local sandbox: Karma fails with `spawn EPERM` before executing browser tests.
@@ -474,6 +506,34 @@ Result:
 - Karma/ChromeHeadless tests pass: `65 SUCCESS`.
 - `npm run build` succeeds and writes to `C:\Insurance\InsuranceMobileApp\www`.
 - Enrollment detail PDF and card export buttons now request fresh signed URLs before opening, avoiding expired cached links from the detail payload.
+
+NID-verified enrollment refactor on 2026-05-07:
+```powershell
+cd C:\Insurance\InsuranceMobileApp
+npx tsc -p tsconfig.spec.json --noEmit
+npm test -- --watch=false --browsers=ChromeHeadless
+npm run build
+```
+
+Result:
+- `tsc` passed.
+- Karma/ChromeHeadless tests pass: `67 SUCCESS`.
+- `npm run build` succeeds and writes to `C:\Insurance\InsuranceMobileApp\www`.
+
+Enrollment detail/NID/birth-certificate/verification UI follow-up on 2026-05-07:
+```powershell
+cd C:\Insurance\InsuranceMobileApp
+npx tsc -p tsconfig.spec.json --noEmit
+npm test -- --watch=false --browsers=ChromeHeadless
+npm run build
+```
+
+Result:
+- TypeScript spec compile passes.
+- Karma/ChromeHeadless tests pass: `73 SUCCESS`.
+- `npm run build` succeeds and writes to `C:\Insurance\InsuranceMobileApp\www`.
+- Existing build warning remains: `src/app/components/bs-date-picker/bs-date-picker.component.ts` style budget exceeded by 55 bytes (`4.05 kB` total against `4.00 kB`).
+- Focused coverage now includes exact 10-digit household NID lookup/manual fallback validation.
 
 ## Deployment Notes
 - Environment API URL is configured in:
