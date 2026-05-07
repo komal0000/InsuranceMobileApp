@@ -15,6 +15,7 @@ import { AuthService } from '../../services/auth.service';
 import { ApiResponse } from '../../interfaces/api-response.interface';
 import { LanguageToggleComponent } from '../../components/language-toggle/language-toggle.component';
 import { LanguageService } from '../../services/language.service';
+import { isValidNidInput, nidLookupValue } from '../../utils/nid-number.util';
 
 @Component({
   selector: 'app-renewal-search',
@@ -50,7 +51,7 @@ export class RenewalSearchPage {
   async searchPolicy() {
     const value = this.searchValue.trim();
     if (!this.canInitiateRenewal || !value) return;
-    if (this.searchType === 'national_id' && !/^\d{10}$/.test(value)) {
+    if (this.searchType === 'national_id' && !isValidNidInput(value)) {
       const toast = await this.toastCtrl.create({
         message: this.t('wizard.nid_invalid_length'),
         duration: 2000,
@@ -64,7 +65,7 @@ export class RenewalSearchPage {
     this.searching = true;
     this.api.post<ApiResponse>('/renewals/search', {
       search_type: this.searchType,
-      search_value: value,
+      search_value: this.searchType === 'national_id' ? nidLookupValue(value) : value,
     }).subscribe({
       next: (res) => {
         this.searching = false;

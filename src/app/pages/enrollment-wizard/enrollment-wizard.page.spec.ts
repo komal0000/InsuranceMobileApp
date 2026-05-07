@@ -60,9 +60,9 @@ describe('EnrollmentWizardPage', () => {
     expect(page.showHouseholdHeadForm).toBeFalse();
   });
 
-  it('manual NID fallback reveals the form and preserves the typed NID', () => {
+  it('manual NID fallback reveals the form and stores a canonical NID', () => {
     const page = createPage();
-    page.nidNumber2 = ' 1234567890 ';
+    page.nidNumber2 = ' १२३-४५६-७८९-० ';
     page.nidMessage2 = 'Lookup failed.';
 
     page.skipNidGate2();
@@ -75,13 +75,13 @@ describe('EnrollmentWizardPage', () => {
     expect(page.verifiedNidGroups.length).toBe(0);
   });
 
-  it('requires exactly 10 digits before household NID lookup or manual fallback', () => {
+  it('accepts hyphenated and Nepali-digit NIDs but rejects invalid household lookup values', () => {
     const enrollmentSvc = {
       headNidLookup: jasmine.createSpy(),
     };
     const page = createPage({ enrollmentSvc });
     page.enrollmentId = 4;
-    page.nidNumber2 = '123456789';
+    page.nidNumber2 = '12345678901';
 
     page.lookupNid2();
 
@@ -92,6 +92,22 @@ describe('EnrollmentWizardPage', () => {
 
     expect(page.showNidGate2).toBeTrue();
     expect(page.headData.national_id).toBe('');
+
+    page.nidNumber2 = '123-ABC';
+    page.lookupNid2();
+
+    expect(enrollmentSvc.headNidLookup).not.toHaveBeenCalled();
+    expect(page.nidMessage2).toBe('wizard.nid_invalid_length');
+
+    page.nidNumber2 = '१२३-४५६-७८९-०';
+    enrollmentSvc.headNidLookup.and.returnValue(of({
+      success: false,
+      message: 'Not found.',
+    }));
+
+    page.lookupNid2();
+
+    expect(enrollmentSvc.headNidLookup).toHaveBeenCalledWith(4, '123-456-789-0');
   });
 
   it('builds grouped label-value rows for household fields verified from NID', () => {
@@ -283,7 +299,7 @@ describe('EnrollmentWizardPage', () => {
     );
 
     page.enrollmentId = 4;
-    page.nidNumber2 = '1234567890';
+    page.nidNumber2 = '१२३-४५६-७८९-०';
     page.lookupNid2();
 
     expect(page.step1.province).toBe('Bagamati');
@@ -301,7 +317,8 @@ describe('EnrollmentWizardPage', () => {
       []
     );
     expect(verifiedValues).toContain('311022/65843');
-    expect(enrollmentSvc.headNidLookup).toHaveBeenCalledWith(4, '1234567890');
+    expect(enrollmentSvc.headNidLookup).toHaveBeenCalledWith(4, '123-456-789-0');
+    expect(page.headData.national_id).toBe('1234567890');
   });
 
   it('restores verified household-head NID labels from a saved enrollment payload', () => {
@@ -394,13 +411,13 @@ describe('EnrollmentWizardPage', () => {
       {} as any
     );
 
-    page.nidNumberMember = '1234567890';
+    page.nidNumberMember = '१२३-४५६-७८९-०';
     page.lookupNidMember();
 
     expect(page.newMember.citizenship_issue_district).toBe('Makawanpur');
     expect(page.memberPhotoPreview).toBe('data:image/jpeg;base64,member123');
     expect(page.nidVerifiedMember).toBeTrue();
-    expect(enrollmentSvc.nidLookup).toHaveBeenCalledWith('1234567890');
+    expect(enrollmentSvc.nidLookup).toHaveBeenCalledWith('123-456-789-0');
   });
 
   it('localizes step titles from the language service', () => {

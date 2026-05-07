@@ -100,8 +100,8 @@ Step 1 includes:
 
 NID behavior:
 - Step 1 starts with the household-head NID lookup/manual fallback gate, matching the web enrollment flow; permanent and temporary address fields are not shown until lookup succeeds or the user chooses manual entry.
-- User-entered NID values must be exactly 10 numeric digits. Household-head lookup, household-head manual fallback, family-member lookup, household-head save/draft validation, and renewal national-ID search all enforce the exact 10-digit rule before calling the API.
-- Manual fallback preserves the typed NID number into the household-head `national_id` field as unverified manual data.
+- User-entered NID values accept ASCII digits, Nepali/Devanagari digits, and optional hyphen/space separators; validation counts 1 to 10 actual digits after normalization. Household-head lookup, household-head manual fallback, family-member lookup, household-head save/draft validation, and renewal national-ID search enforce that rule before calling the API.
+- Manual fallback stores the household-head `national_id` as canonical ASCII digits while leaving it as unverified manual data.
 - `headNidLookup(id, nationalId)` calls `POST /api/enrollments/{id}/head/nid-lookup`.
 - On success, returned NID fields are written into `headData` and permanent address state.
 - Populated NID fields are tracked in `nidLockedHeadFields`.
@@ -533,7 +533,23 @@ Result:
 - Karma/ChromeHeadless tests pass: `73 SUCCESS`.
 - `npm run build` succeeds and writes to `C:\Insurance\InsuranceMobileApp\www`.
 - Existing build warning remains: `src/app/components/bs-date-picker/bs-date-picker.component.ts` style budget exceeded by 55 bytes (`4.05 kB` total against `4.00 kB`).
-- Focused coverage now includes exact 10-digit household NID lookup/manual fallback validation.
+- Focused coverage now includes household NID lookup/manual fallback validation.
+
+NID normalization fix on 2026-05-07:
+```powershell
+cd C:\Insurance\InsuranceMobileApp
+npx tsc -p tsconfig.spec.json --noEmit
+npm test -- --watch=false --browsers=ChromeHeadless
+npm run build
+```
+
+Result:
+- Added shared `src/app/utils/nid-number.util.ts` for Devanagari digit normalization, separator-aware validation, canonical digit storage, and normalized lookup payloads.
+- NID inputs and messages now accept values such as `898-414-375-3`, `८९८-४१४-३७५-३`, and `८९८४१४३७५३` while still rejecting letters, unsupported symbols, and more than 10 actual digits.
+- TypeScript spec compile passes.
+- Karma/ChromeHeadless tests pass: `73 SUCCESS`.
+- `npm run build` succeeds and writes to `C:\Insurance\InsuranceMobileApp\www`.
+- Existing build warning remains: `src/app/components/bs-date-picker/bs-date-picker.component.ts` style budget exceeded by 55 bytes (`4.05 kB` total against `4.00 kB`).
 
 ## Deployment Notes
 - Environment API URL is configured in:

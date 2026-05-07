@@ -33,7 +33,7 @@
 
       <app-nid-gate *ngIf="showNidGate2"
                     [title]="t('wizard.start_household_head_nid')"
-                    description="Enter the NID number to auto-fill details, or skip to fill manually."
+                    description="Enter the NID number to auto-fill details. Hyphens and Nepali digits are allowed."
                     [(nidNumber)]="nidNumber2"
                     [message]="nidMessage2"
                     [looking]="nidLooking2"
@@ -205,7 +205,7 @@
           </div>
 
           <app-nid-gate *ngIf="showNidGateMember && !isEditingMember"
-                        description="Enter NID to auto-fill, or skip to fill manually."
+                        description="Enter NID to auto-fill. Hyphens and Nepali digits are allowed."
                         [(nidNumber)]="nidNumberMember"
                         [message]="nidMessageMember"
                         [looking]="nidLookingMember"

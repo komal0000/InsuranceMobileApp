@@ -33,6 +33,7 @@ import {
   Enrollment, EnrollmentConfig, FamilyMember, HouseholdHead, NidLookupData, Step1Data,
   SubsidyResult, SubsidySummary
 } from '../../interfaces/enrollment.interface';
+import { canonicalNid, isValidNidInput, nidLookupValue } from '../../utils/nid-number.util';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
@@ -514,19 +515,20 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
       this.nidMessage2 = this.t('wizard.nid_invalid_length');
       return;
     }
+    const lookupNin = nidLookupValue(nin);
     if (this.nidLooking2) return;
 
     this.nidLooking2 = true;
     this.nidMessage2 = '';
     this.nidVerifiedHead = false;
 
-    this.enrollmentSvc.headNidLookup(this.enrollmentId, nin).subscribe({
+    this.enrollmentSvc.headNidLookup(this.enrollmentId, lookupNin).subscribe({
       next: (res) => {
         this.nidLooking2 = false;
         if (res.success && res.data) {
           const d = res.data;
           this.nidLockedHeadFields.clear();
-          this.headData.national_id                 = d.national_id || d.nin_loc || nin;
+          this.headData.national_id                 = canonicalNid(d.national_id || d.nin_loc || lookupNin);
           this.headData.first_name                 = d.first_name    || '';
           this.headData.last_name                  = d.last_name     || '';
           this.headData.first_name_ne              = d.first_name_ne || this.headData.first_name_ne;
@@ -574,7 +576,7 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
         this.nidMessage2 = this.t('wizard.nid_invalid_length');
         return;
       }
-      this.headData.national_id = manualNid;
+      this.headData.national_id = canonicalNid(manualNid);
     }
     this.nidLockedHeadFields.clear();
     this.nidVerifiedHead = false;
@@ -682,7 +684,7 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
   }
 
   private isValidNid(value: string): boolean {
-    return /^\d{10}$/.test(value.trim());
+    return isValidNidInput(value);
   }
 
   private titleize(value: string): string {
@@ -732,13 +734,14 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
       this.nidMessageMember = this.t('wizard.nid_invalid_length');
       return;
     }
+    const lookupNin = nidLookupValue(nin);
     if (this.nidLookingMember) return;
 
     this.nidLookingMember = true;
     this.nidMessageMember = '';
     this.nidVerifiedMember = false;
 
-    this.enrollmentSvc.nidLookup(nin).subscribe({
+    this.enrollmentSvc.nidLookup(lookupNin).subscribe({
       next: (res) => {
         this.nidLookingMember = false;
         if (res.success && res.data) {
@@ -893,7 +896,7 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
       if (val === null || val === undefined) return;
       if (typeof val === 'boolean') { fd.append(key, val ? '1' : '0'); return; }
       if (val instanceof Blob) { fd.append(key, val, `${key}.jpg`); return; }
-      if (val !== '') fd.append(key, String(val));
+      if (val !== '') fd.append(key, key === 'national_id' ? canonicalNid(val) : String(val));
     });
 
     return fd;

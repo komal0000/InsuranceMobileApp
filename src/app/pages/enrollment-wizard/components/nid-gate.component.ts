@@ -37,14 +37,12 @@ import {
       <div class="form-group">
         <ion-item class="form-item">
           <ion-input label="NID Number" labelPlacement="stacked"
-                     placeholder="Enter 10-digit NID number"
+                     placeholder="Enter NID number (hyphens and Nepali digits allowed)"
                      [(ngModel)]="nidNumber"
                      (ngModelChange)="nidNumberChange.emit($event)"
                      type="text"
-                     inputmode="numeric"
-                     maxlength="10"
-                     minlength="10"
-                     pattern="[0-9]*">
+                     inputmode="text"
+                     maxlength="32">
           </ion-input>
         </ion-item>
       </div>
