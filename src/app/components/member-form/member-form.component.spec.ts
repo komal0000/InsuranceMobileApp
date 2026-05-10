@@ -50,4 +50,40 @@ describe('MemberFormComponent', () => {
     expect(labels).not.toContain('Middle Name');
     expect(labels).not.toContain('Middle Name Nepali');
   });
+
+  it('sets male gender and locks the field when son is selected', () => {
+    const fixture = TestBed.createComponent(MemberFormComponent);
+    const component = fixture.componentInstance;
+    component.member = { relationship: '', gender: '' };
+    component.relationshipGenderMap = { son: 'male', daughter: 'female' };
+
+    component.onRelationshipChange('son');
+
+    expect(component.member.gender).toBe('male');
+    expect(component.isGenderLocked).toBeTrue();
+  });
+
+  it('sets female gender and locks the field when daughter is selected', () => {
+    const fixture = TestBed.createComponent(MemberFormComponent);
+    const component = fixture.componentInstance;
+    component.member = { relationship: '', gender: '' };
+    component.relationshipGenderMap = { son: 'male', daughter: 'female' };
+
+    component.onRelationshipChange('daughter');
+
+    expect(component.member.gender).toBe('female');
+    expect(component.isGenderLocked).toBeTrue();
+  });
+
+  it('keeps spouse gender manual and unlocked', () => {
+    const fixture = TestBed.createComponent(MemberFormComponent);
+    const component = fixture.componentInstance;
+    component.member = { relationship: '', gender: 'female' };
+    component.relationshipGenderMap = { son: 'male', daughter: 'female' };
+
+    component.onRelationshipChange('spouse');
+
+    expect(component.member.gender).toBe('female');
+    expect(component.isGenderLocked).toBeFalse();
+  });
 });

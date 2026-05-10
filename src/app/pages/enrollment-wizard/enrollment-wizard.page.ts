@@ -34,6 +34,11 @@ import {
   SubsidyResult, SubsidySummary
 } from '../../interfaces/enrollment.interface';
 import { canonicalNid, isValidNidInput, nidLookupValue } from '../../utils/nid-number.util';
+import {
+  RelationshipGenderMap,
+  genderForRelationship,
+  normalizeRelationshipGenderMap,
+} from '../../utils/relationship-gender.util';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
@@ -98,6 +103,7 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
   confirmed = false;
   stepTitles = [...STEP_TITLE_KEYS];
   relationshipOptions: Array<{ value: string; label: string }> = [...DEFAULT_MEMBER_RELATIONSHIPS];
+  relationshipGenderMap: RelationshipGenderMap = {};
   private initialLoad = true;
 
   // Subsidy data from API
@@ -239,13 +245,15 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
     const currentBs = this.dateService.getCurrentBs();
     if (!this.headData.date_of_birth) this.headData.date_of_birth = currentBs;
     if (!this.headData.citizenship_issue_date) this.headData.citizenship_issue_date = currentBs;
-    this.applyRegisteredMobileNumber();
+    this.applyRegisteredContactDetails();
     this.resetMemberForm();
     this.geoSvc.provinces().subscribe({ next: r => this.provinces = r.data || [] });
     this.enrollmentSvc.getConfig().subscribe({
       next: r => {
         this.config = r.data;
-        this.relationshipOptions = this.buildRelationshipOptions((r.data as unknown as { relationship_types?: unknown })?.relationship_types);
+        const configData = r.data as EnrollmentConfig & { relationship_types?: unknown; relationship_gender_map?: unknown };
+        this.relationshipOptions = this.buildRelationshipOptions(configData?.relationship_types);
+        this.relationshipGenderMap = normalizeRelationshipGenderMap(configData?.relationship_gender_map);
         this.professionOptions = this.optionRecordToArray(r.data?.profession_options, this.professionOptions);
         this.qualificationOptions = this.optionRecordToArray(r.data?.qualification_options, this.qualificationOptions);
       },
@@ -335,7 +343,8 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
         gender: head.gender || '',
         date_of_birth: this.dateService.formatForDisplay(head.date_of_birth, head.date_of_birth_bs) || '',
         blood_group: head.blood_group || '', marital_status: head.marital_status || '',
-        mobile_number: head.mobile_number || this.registeredMobileNumber || '', email: head.email || '',
+        mobile_number: head.mobile_number || this.registeredMobileNumber || '',
+        email: head.email || this.registeredEmail || '',
         citizenship_number: head.citizenship_number || '',
         citizenship_issue_date: this.dateService.formatForDisplay(
           head.citizenship_issue_date,
@@ -362,7 +371,7 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
         this.markLockedHeadFields(head.nid_raw_payload as NidLookupData);
       }
     } else {
-      this.applyRegisteredMobileNumber();
+      this.applyRegisteredContactDetails();
     }
 
     // ── Step 3: Family members ────────────────────────────────────────────────
@@ -542,7 +551,7 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
           this.headData.gender                     = d.gender        || '';
           this.headData.date_of_birth              = this.dateService.formatForDisplay(d.date_of_birth, d.date_of_birth_bs) || '';
           this.headData.mobile_number              = d.mobile_number || this.registeredMobileNumber || this.headData.mobile_number || '';
-          this.headData.email                      = d.email         || '';
+          this.headData.email                      = d.email || this.headData.email || this.registeredEmail || '';
           if (d.citizenship_number)          this.headData.citizenship_number          = d.citizenship_number;
           if (d.citizenship_issue_date_bs)   this.headData.citizenship_issue_date      = d.citizenship_issue_date_bs;
           if (d.citizenship_issue_district)  this.headData.citizenship_issue_district  = d.citizenship_issue_district;
@@ -561,7 +570,7 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
         if (err?.status === 404) {
           this.nidMessage2 = this.t('wizard.nid_no_record');
         } else if (err?.status === 422) {
-          this.nidMessage2 = this.t('wizard.nid_invalid_format');
+          this.nidMessage2 = this.errorMessage(err, 'wizard.nid_invalid_format');
         } else {
           this.nidMessage2 = this.t('wizard.nid_failed');
         }
@@ -858,7 +867,10 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
           this.saving = false;
           if (res.success) { this.enrollment = res.data; this.prefillFromEnrollment(res.data); this.currentStep = 2; this.loadEnrollment(); }
         },
-        error: () => { this.saving = false; },
+        error: (err) => {
+          this.saving = false;
+          this.showToast(this.errorMessage(err, 'wizard.save_failed'), 'danger');
+        },
       });
 
     } else if (this.currentStep === 2) {
@@ -932,7 +944,10 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
           this.showToast(this.t('wizard.draft_saved'), 'success');
           }
         },
-      error: () => { this.savingDraft = false; this.showToast(this.t('wizard.draft_failed'), 'danger'); },
+      error: (err) => {
+        this.savingDraft = false;
+        this.showToast(this.errorMessage(err, 'wizard.draft_failed'), 'danger');
+      },
       });
     } else {
       this.savingDraft = false;
@@ -1034,6 +1049,8 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
   }
 
   async saveMember() {
+    this.applyMemberRelationshipGender(this.newMember.relationship);
+
     if (!this.newMember.first_name || !this.newMember.last_name ||
         !this.newMember.gender || !this.newMember.date_of_birth || !this.newMember.relationship) {
       this.showToast(this.t('wizard.member_required'), 'warning'); return;
@@ -1375,6 +1392,13 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
     return deduped;
   }
 
+  private applyMemberRelationshipGender(relationship: unknown): void {
+    const gender = genderForRelationship(this.relationshipGenderMap, relationship);
+    if (gender) {
+      this.newMember.gender = gender;
+    }
+  }
+
   private normalizeKey(value: unknown): string {
     if (typeof value !== 'string') {
       return '';
@@ -1387,9 +1411,17 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
     return this.authService.getCurrentUser()?.mobile_number?.trim() || '';
   }
 
-  private applyRegisteredMobileNumber(): void {
+  private get registeredEmail(): string {
+    return this.authService.getCurrentUser()?.email?.trim() || '';
+  }
+
+  private applyRegisteredContactDetails(): void {
     if (!this.headData.mobile_number && this.registeredMobileNumber) {
       this.headData.mobile_number = this.registeredMobileNumber;
+    }
+
+    if (!this.headData.email && this.registeredEmail) {
+      this.headData.email = this.registeredEmail;
     }
   }
 
@@ -1461,6 +1493,23 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
   private async showToast(message: string, color: string) {
     const t = await this.toastCtrl.create({ message: this.languageService.translateText(message), duration: 2500, color, position: 'top' });
     await t.present();
+  }
+
+  private errorMessage(error: any, fallbackKey: string): string {
+    const validationErrors = error?.error?.errors;
+    const firstValidation = validationErrors
+      ? Object.values(validationErrors).reduce<string | null>((found, value) => {
+          if (found) return found;
+          if (typeof value === 'string') return value;
+          if (Array.isArray(value)) {
+            return value.find((item): item is string => typeof item === 'string') || null;
+          }
+          return null;
+        }, null)
+      : null;
+    const message = firstValidation || error?.error?.message;
+
+    return this.languageService.translateText(message) || this.t(fallbackKey);
   }
 
   private calculateAge(dob: string): number {

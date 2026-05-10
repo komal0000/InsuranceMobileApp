@@ -23,6 +23,11 @@ import { Renewal } from '../../interfaces/renewal.interface';
 import { MemberFormComponent } from '../../components/member-form/member-form.component';
 import { LanguageToggleComponent } from '../../components/language-toggle/language-toggle.component';
 import { LanguageService } from '../../services/language.service';
+import {
+  RelationshipGenderMap,
+  genderForRelationship,
+  normalizeRelationshipGenderMap,
+} from '../../utils/relationship-gender.util';
 
 const DEFAULT_MEMBER_RELATIONSHIPS: Array<{ value: string; label: string }> = [
   { value: 'spouse', label: 'Spouse' },
@@ -65,6 +70,7 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
   editingMemberId: number | null = null;
   savingMember = false;
   relationshipOptions: Array<{ value: string; label: string }> = [...DEFAULT_MEMBER_RELATIONSHIPS];
+  relationshipGenderMap: RelationshipGenderMap = {};
   newMember: any = {
     first_name: '', middle_name: '', last_name: '',
     first_name_ne: '', middle_name_ne: '', last_name_ne: '',
@@ -226,6 +232,8 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
   }
 
   saveMember() {
+    this.applyMemberRelationshipGender(this.newMember.relationship);
+
     if (!this.newMember.first_name || !this.newMember.last_name ||
         !this.newMember.gender || !this.newMember.date_of_birth || !this.newMember.relationship) {
       this.toastCtrl.create({
@@ -615,6 +623,7 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
     this.api.get<ApiResponse<any>>('/enrollment-config').subscribe({
       next: (res) => {
         this.relationshipOptions = this.buildRelationshipOptions(res?.data?.relationship_types);
+        this.relationshipGenderMap = normalizeRelationshipGenderMap(res?.data?.relationship_gender_map);
       },
     });
   }
@@ -662,6 +671,13 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
     }
 
     return deduped;
+  }
+
+  private applyMemberRelationshipGender(relationship: unknown): void {
+    const gender = genderForRelationship(this.relationshipGenderMap, relationship);
+    if (gender) {
+      this.newMember.gender = gender;
+    }
   }
 
   private normalizeKey(value: unknown): string {

@@ -12,6 +12,7 @@ import {
 } from '../../interfaces/user.interface';
 import { NepaliInputDirective } from '../../directives/nepali-input.directive';
 import { LanguageService } from '../../services/language.service';
+import { isEnglishFullName, isNepaliFullName, normalizeSpaces } from '../../utils/auth-validation';
 import { addIcons } from 'ionicons';
 import {
   shieldCheckmarkOutline, arrowBackOutline, personOutline,
@@ -54,10 +55,23 @@ export class RegisterPage {
   }
 
   async register() {
+    this.formData.name = normalizeSpaces(this.formData.name);
+    this.formData.name_ne = normalizeSpaces(this.formData.name_ne);
     this.formData.mobile_number = this.formData.mobile_number.replace(/\D+/g, '').slice(0, 10);
+    this.formData.email = normalizeSpaces(this.formData.email);
 
     if (!this.formData.name || !this.formData.name_ne || !this.formData.mobile_number) {
       await this.presentToast(this.t('register.required_fields'), 'warning');
+      return;
+    }
+
+    if (!isEnglishFullName(this.formData.name)) {
+      await this.presentToast(this.t('register.full_name_format'), 'warning');
+      return;
+    }
+
+    if (!isNepaliFullName(this.formData.name_ne)) {
+      await this.presentToast(this.t('register.full_name_ne_format'), 'warning');
       return;
     }
 

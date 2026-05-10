@@ -1,4 +1,4 @@
-import { of, Subject } from 'rxjs';
+import { of, Subject, throwError } from 'rxjs';
 import { EnrollmentWizardPage } from './enrollment-wizard.page';
 import { ApiResponse } from '../../interfaces/api-response.interface';
 
@@ -151,29 +151,32 @@ describe('EnrollmentWizardPage', () => {
     expect(values).toContain('Province:Bagmati');
   });
 
-  it('prefills empty household mobile number from the registered user', () => {
+  it('prefills empty household contact details from the registered user', () => {
     const page = createPage({
       authService: {
-        getCurrentUser: () => ({ mobile_number: '9800980066' }),
+        getCurrentUser: () => ({ mobile_number: '9800980066', email: 'registered@example.com' }),
       },
     });
 
-    (page as any).applyRegisteredMobileNumber();
+    (page as any).applyRegisteredContactDetails();
 
     expect(page.headData.mobile_number).toBe('9800980066');
+    expect(page.headData.email).toBe('registered@example.com');
   });
 
-  it('does not overwrite an existing household mobile number with the registered user mobile', () => {
+  it('does not overwrite existing household contact details with registered user details', () => {
     const page = createPage({
       authService: {
-        getCurrentUser: () => ({ mobile_number: '9800980066' }),
+        getCurrentUser: () => ({ mobile_number: '9800980066', email: 'registered@example.com' }),
       },
     });
     page.headData.mobile_number = '9811111111';
+    page.headData.email = 'household@example.com';
 
-    (page as any).applyRegisteredMobileNumber();
+    (page as any).applyRegisteredContactDetails();
 
     expect(page.headData.mobile_number).toBe('9811111111');
+    expect(page.headData.email).toBe('household@example.com');
   });
 
   it('opens the generated enrollment PDF after successful submit', async () => {
@@ -319,6 +322,51 @@ describe('EnrollmentWizardPage', () => {
     expect(verifiedValues).toContain('311022/65843');
     expect(enrollmentSvc.headNidLookup).toHaveBeenCalledWith(4, '123-456-789-0');
     expect(page.headData.national_id).toBe('1234567890');
+  });
+
+  it('shows duplicate active NID validation messages from household-head save', () => {
+    const enrollmentSvc = {
+      saveHouseholdHead: jasmine.createSpy().and.returnValue(throwError(() => ({
+        status: 422,
+        error: {
+          errors: {
+            national_id: ['This NID already has active insurance. Use renewal instead of a new enrollment.'],
+          },
+        },
+      }))),
+    };
+    const page = createPage({ enrollmentSvc });
+    page.enrollmentId = 4;
+    page.currentStep = 1;
+    page.step1 = {
+      province: 'Bagmati',
+      district: 'Kathmandu',
+      municipality: 'Kathmandu',
+      ward_number: '1',
+      tole_village: '',
+      full_address: '',
+    };
+    page.headData = {
+      ...page.headData,
+      national_id: '1234567890',
+      first_name: 'Komal',
+      last_name: 'Shrestha',
+      gender: 'female',
+      date_of_birth: '1990-06-15',
+      mobile_number: '9812345678',
+      citizenship_number: '311022/65843',
+      marital_status: 'married',
+    };
+    spyOn<any>(page, 'showToast');
+
+    page.nextStep();
+
+    expect(enrollmentSvc.saveHouseholdHead).toHaveBeenCalled();
+    expect((page as any).showToast).toHaveBeenCalledWith(
+      'This NID already has active insurance. Use renewal instead of a new enrollment.',
+      'danger'
+    );
+    expect(page.saving).toBeFalse();
   });
 
   it('restores verified household-head NID labels from a saved enrollment payload', () => {

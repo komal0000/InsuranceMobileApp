@@ -13,6 +13,7 @@ import {
 } from 'ionicons/icons';
 import { AuthService } from '../../services/auth.service';
 import { LanguageService } from '../../services/language.service';
+import { isStrongPassword } from '../../utils/auth-validation';
 
 type RecoveryMethod = 'otp' | 'email';
 type OtpStep = 1 | 2 | 3;
@@ -102,8 +103,8 @@ export class ForgotPasswordPage {
       return;
     }
 
-    if (this.password.length < 8) {
-      await this.presentToast(this.t('login.password_min_length'), 'warning');
+    if (!isStrongPassword(this.password)) {
+      await this.presentToast(this.t('auth.password_policy'), 'warning');
       return;
     }
 

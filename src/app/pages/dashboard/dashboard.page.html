@@ -147,6 +147,50 @@
       </div>
     </div>
 
+    <ion-card *ngIf="showInsuranceChecker" class="insurance-check-card">
+      <ion-card-content>
+        <div class="insurance-check-head">
+          <div>
+            <strong>{{ t('dashboard.insurance_check_title') }}</strong>
+            <span>{{ t('dashboard.insurance_check_help') }}</span>
+          </div>
+        </div>
+
+        <div class="insurance-check-form">
+          <ion-input
+            fill="outline"
+            label-placement="stacked"
+            [label]="t('dashboard.insurance_check_input_label')"
+            [placeholder]="t('dashboard.insurance_check_input_placeholder')"
+            inputmode="numeric"
+            name="insuranceCheckNid"
+            [(ngModel)]="insuranceCheckNid">
+          </ion-input>
+          <ion-button expand="block" (click)="checkInsurance()" [disabled]="insuranceCheckLoading">
+            <ion-icon name="search-outline" slot="start"></ion-icon>
+            {{ insuranceCheckLoading ? t('common.loading') : t('dashboard.insurance_check_button') }}
+          </ion-button>
+        </div>
+
+        <div
+          *ngIf="insuranceCheckMessage"
+          class="insurance-check-result"
+          [class.result-blocked]="insuranceCheckResult?.has_active_insurance"
+          [class.result-ok]="insuranceCheckResult && !insuranceCheckResult.has_active_insurance"
+          [class.result-error]="insuranceCheckHasError && !insuranceCheckResult">
+          <strong>
+            {{ insuranceCheckResult?.has_active_insurance ? t('dashboard.insurance_check_found_title') : (insuranceCheckResult ? t('dashboard.insurance_check_available_title') : t('dashboard.insurance_check_title')) }}
+          </strong>
+          <span>{{ insuranceCheckMessage }}</span>
+          <div class="insurance-check-summary" *ngIf="insuranceCheckResult?.summary as summary">
+            <div>{{ t('dashboard.insurance_check_enrollment_number') }}: <b>{{ summary.enrollment_number }}</b></div>
+            <div>{{ t('dashboard.insurance_check_status') }}: <b>{{ summary.status }}</b></div>
+            <div>{{ t('dashboard.insurance_check_policy_period') }}: <b>{{ formatPolicyPeriod(insuranceCheckResult) }}</b></div>
+          </div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
     <!-- Quick Actions -->
     <div class="section-header">
       <h3>{{ t('dashboard.quick_actions') }}</h3>

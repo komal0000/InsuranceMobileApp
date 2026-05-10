@@ -28,6 +28,11 @@ import { Renewal } from '../../interfaces/renewal.interface';
 import { BsDatePickerComponent } from '../../components/bs-date-picker/bs-date-picker.component';
 import { LanguageToggleComponent } from '../../components/language-toggle/language-toggle.component';
 import { LanguageService } from '../../services/language.service';
+import {
+  RelationshipGenderMap,
+  genderForRelationship,
+  normalizeRelationshipGenderMap,
+} from '../../utils/relationship-gender.util';
 
 const DEFAULT_MEMBER_RELATIONSHIPS: Array<{ value: string; label: string }> = [
   { value: 'spouse', label: 'Spouse' },
@@ -83,6 +88,7 @@ export class RenewalsPage implements OnInit, OnDestroy {
   newMember: any = {};
   savingMember = false;
   relationshipOptions: Array<{ value: string; label: string }> = [...DEFAULT_MEMBER_RELATIONSHIPS];
+  relationshipGenderMap: RelationshipGenderMap = {};
 
   // Image previews for new member form
   memberPhotoPreview: string | null = null;
@@ -312,6 +318,8 @@ export class RenewalsPage implements OnInit, OnDestroy {
   async addNewMember() {
     if (!this.canInitiateRenewal || !this.enrollment) return;
     const m = this.newMember;
+    this.applyNewMemberRelationshipGender(m.relationship);
+
     if (!m.first_name || !m.last_name || !m.gender || !m.date_of_birth || !m.relationship) {
       this.toastCtrl.create({ message: this.t('wizard.required_fields'), duration: 2000, color: 'warning', position: 'top' }).then(t => t.present());
       return;
@@ -552,10 +560,20 @@ export class RenewalsPage implements OnInit, OnDestroy {
     return this.relationshipOptions.filter(option => !SINGLE_HEAD_BLOCKED_RELATIONSHIPS.includes(option.value));
   }
 
+  get isNewMemberGenderLocked(): boolean {
+    return genderForRelationship(this.relationshipGenderMap, this.newMember?.relationship) !== null;
+  }
+
+  onNewMemberRelationshipChange(relationship: string): void {
+    this.newMember.relationship = relationship;
+    this.applyNewMemberRelationshipGender(relationship);
+  }
+
   private loadRelationshipOptions() {
     this.api.get<ApiResponse<any>>('/enrollment-config').subscribe({
       next: (res) => {
         this.relationshipOptions = this.buildRelationshipOptions(res?.data?.relationship_types);
+        this.relationshipGenderMap = normalizeRelationshipGenderMap(res?.data?.relationship_gender_map);
       },
     });
   }
@@ -603,6 +621,13 @@ export class RenewalsPage implements OnInit, OnDestroy {
     }
 
     return deduped;
+  }
+
+  private applyNewMemberRelationshipGender(relationship: unknown): void {
+    const gender = genderForRelationship(this.relationshipGenderMap, relationship);
+    if (gender) {
+      this.newMember.gender = gender;
+    }
   }
 
   private normalizeKey(value: unknown): string {

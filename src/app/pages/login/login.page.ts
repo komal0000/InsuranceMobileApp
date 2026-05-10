@@ -10,6 +10,7 @@ import { ToastController } from '@ionic/angular/standalone';
 import { AuthService } from '../../services/auth.service';
 import { LoginRequest } from '../../interfaces/user.interface';
 import { LanguageService } from '../../services/language.service';
+import { isStrongPassword } from '../../utils/auth-validation';
 import { addIcons } from 'ionicons';
 import {
   logInOutline, personOutline, lockClosedOutline, eyeOutline,
@@ -189,8 +190,8 @@ export class LoginPage {
   }
 
   async createSetupPassword() {
-    if (this.setupPassword.length < 8) {
-      await this.presentToast(this.t('login.password_min_length'), 'warning');
+    if (!isStrongPassword(this.setupPassword)) {
+      await this.presentToast(this.t('auth.password_policy'), 'warning');
       return;
     }
 

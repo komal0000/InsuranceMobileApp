@@ -21,6 +21,7 @@ import { User, ProfileUpdateRequest, ChangePasswordRequest } from '../../interfa
 import { BsDatePickerComponent } from '../../components/bs-date-picker/bs-date-picker.component';
 import { LanguageToggleComponent } from '../../components/language-toggle/language-toggle.component';
 import { LanguageService } from '../../services/language.service';
+import { isStrongPassword } from '../../utils/auth-validation';
 
 @Component({
   selector: 'app-profile',
@@ -173,6 +174,13 @@ export class ProfilePage implements OnInit {
     if (!this.passwordData.current_password || !this.passwordData.password) {
       const toast = await this.toastCtrl.create({
         message: this.t('profile.password_fields'), duration: 2000, color: 'warning', position: 'top',
+      });
+      await toast.present();
+      return;
+    }
+    if (!isStrongPassword(this.passwordData.password)) {
+      const toast = await this.toastCtrl.create({
+        message: this.t('auth.password_policy'), duration: 2000, color: 'warning', position: 'top',
       });
       await toast.present();
       return;

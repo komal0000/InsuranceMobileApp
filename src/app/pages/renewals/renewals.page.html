@@ -321,7 +321,7 @@
               <!-- Personal Details -->
               <p class="field-section-label">{{ t('wizard.personal_details') }}</p>
               <ion-item class="form-item">
-                <ion-select [label]="t('wizard.gender_required')" labelPlacement="stacked" [(ngModel)]="newMember.gender">
+                <ion-select [label]="t('wizard.gender_required')" labelPlacement="stacked" [(ngModel)]="newMember.gender" [disabled]="isNewMemberGenderLocked">
                   <ion-select-option value="male">{{ t('gender.male') }}</ion-select-option>
                   <ion-select-option value="female">{{ t('gender.female') }}</ion-select-option>
                   <ion-select-option value="other">{{ t('gender.other') }}</ion-select-option>
@@ -329,7 +329,7 @@
               </ion-item>
               <app-bs-date-picker [(ngModel)]="newMember.date_of_birth" [label]="t('wizard.date_of_birth_required')" [placeholder]="t('common.select_bs_date')"></app-bs-date-picker>
               <ion-item class="form-item">
-                <ion-select [label]="t('wizard.relationship_to_head_required')" labelPlacement="stacked" [(ngModel)]="newMember.relationship">
+                <ion-select [label]="t('wizard.relationship_to_head_required')" labelPlacement="stacked" [(ngModel)]="newMember.relationship" (ngModelChange)="onNewMemberRelationshipChange($event)">
                   <ion-select-option *ngFor="let option of availableMemberRelationshipOptions" [value]="option.value">
                     {{ formatRelationship(option.value) }}
                   </ion-select-option>

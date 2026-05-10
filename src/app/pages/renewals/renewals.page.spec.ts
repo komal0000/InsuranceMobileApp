@@ -45,4 +45,22 @@ describe('RenewalsPage', () => {
     expect(page.canInitiateRenewal).toBeTrue();
     expect(router.navigateByUrl).toHaveBeenCalledWith('/renewal-search');
   });
+
+  it('applies relationship gender map to the inline new member form', () => {
+    const { page } = makePage('beneficiary');
+    page.relationshipGenderMap = { son: 'male', daughter: 'female' };
+    page.newMember.gender = '';
+
+    page.onNewMemberRelationshipChange('son');
+
+    expect(page.newMember.relationship).toBe('son');
+    expect(page.newMember.gender).toBe('male');
+    expect(page.isNewMemberGenderLocked).toBeTrue();
+
+    page.onNewMemberRelationshipChange('spouse');
+
+    expect(page.newMember.relationship).toBe('spouse');
+    expect(page.newMember.gender).toBe('male');
+    expect(page.isNewMemberGenderLocked).toBeFalse();
+  });
 });

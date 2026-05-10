@@ -63,4 +63,35 @@ describe('ForgotPasswordPage', () => {
 
     expect(authService.sendPasswordResetEmail).toHaveBeenCalledWith({ mobile_number: '9812345678' });
   });
+
+  it('blocks weak passwords before resetting with OTP', async () => {
+    const authService = jasmine.createSpyObj('AuthService', [
+      'sendPasswordOtp',
+      'verifyPasswordOtp',
+      'resetPasswordWithOtp',
+      'sendPasswordResetEmail',
+    ]);
+    const router = jasmine.createSpyObj('Router', ['navigateByUrl']);
+    const toastCtrl = createToastController();
+
+    authService.resetPasswordWithOtp.and.returnValue(of({
+      success: true,
+      message: 'Password reset successful.',
+      data: undefined,
+    }));
+
+    const page = new ForgotPasswordPage(authService as any, router as any, toastCtrl as any, languageService as any);
+    page.mobileNumber = '9812345678';
+    page.otp = '123456';
+    page.password = 'Password123';
+    page.passwordConfirmation = 'Password123';
+
+    await page.resetPassword();
+
+    expect(authService.resetPasswordWithOtp).not.toHaveBeenCalled();
+    expect(toastCtrl.create).toHaveBeenCalledWith(jasmine.objectContaining({
+      message: 'auth.password_policy',
+      color: 'warning',
+    }));
+  });
 });

@@ -217,6 +217,7 @@
           <app-member-form *ngIf="!showNidGateMember"
                            [member]="newMember"
                            [relationshipOptions]="availableMemberRelationshipOptions"
+                           [relationshipGenderMap]="relationshipGenderMap"
                            [isHeadSingle]="isHeadSingle"
                            [isEditing]="isEditingMember"
                            [saving]="savingMember"

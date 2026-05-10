@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import {
   IonButton,
@@ -13,6 +13,7 @@ import {
 import { BsDatePickerComponent } from '../bs-date-picker/bs-date-picker.component';
 import { NepaliInputDirective } from '../../directives/nepali-input.directive';
 import { LanguageService } from '../../services/language.service';
+import { RelationshipGenderMap, genderForRelationship } from '../../utils/relationship-gender.util';
 
 export type MemberImageField =
   | 'photo'
@@ -153,7 +154,7 @@ interface MemberFormModel {
 
       <p class="form-section-title">{{ text('wizard.personal_details', 'Personal Details') }}</p>
       <ion-item class="form-item">
-        <ion-select [label]="text('wizard.gender_required', 'Gender *')" labelPlacement="stacked" [(ngModel)]="member.gender">
+        <ion-select [label]="text('wizard.gender_required', 'Gender *')" labelPlacement="stacked" [(ngModel)]="member.gender" [disabled]="isGenderLocked">
           <ion-select-option value="male">{{ text('gender.male', 'Male') }}</ion-select-option>
           <ion-select-option value="female">{{ text('gender.female', 'Female') }}</ion-select-option>
           <ion-select-option value="other">{{ text('gender.other', 'Other') }}</ion-select-option>
@@ -165,7 +166,7 @@ interface MemberFormModel {
         [placeholder]="text('common.select_bs_date', 'Select BS date')">
       </app-bs-date-picker>
       <ion-item class="form-item">
-        <ion-select [label]="text('wizard.relationship_required', 'Relationship to Head *')" labelPlacement="stacked" [(ngModel)]="member.relationship">
+        <ion-select [label]="text('wizard.relationship_required', 'Relationship to Head *')" labelPlacement="stacked" [(ngModel)]="member.relationship" (ngModelChange)="onRelationshipChange($event)">
           <ion-select-option *ngFor="let option of relationshipOptions" [value]="option.value">
             {{ relationshipLabel(option.value) }}
           </ion-select-option>
@@ -278,9 +279,10 @@ interface MemberFormModel {
     </div>
   `,
 })
-export class MemberFormComponent {
+export class MemberFormComponent implements OnChanges {
   @Input({ required: true }) member!: MemberFormModel;
   @Input() relationshipOptions: Array<{ value: string; label: string }> = [];
+  @Input() relationshipGenderMap: RelationshipGenderMap = {};
   @Input() isHeadSingle = false;
   @Input() isEditing = false;
   @Input() saving = false;
@@ -296,6 +298,16 @@ export class MemberFormComponent {
   @Output() cancel = new EventEmitter<void>();
 
   constructor(private languageService: LanguageService) {}
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['member'] || changes['relationshipGenderMap']) {
+      this.applyRelationshipGender(this.member?.relationship);
+    }
+  }
+
+  get isGenderLocked(): boolean {
+    return genderForRelationship(this.relationshipGenderMap, this.member?.relationship) !== null;
+  }
 
   get isSaveDisabled(): boolean {
     if (this.saving) {
@@ -313,6 +325,14 @@ export class MemberFormComponent {
     return this.languageService.label('relation', value);
   }
 
+  onRelationshipChange(value: string): void {
+    if (this.member) {
+      this.member.relationship = value;
+    }
+
+    this.applyRelationshipGender(value);
+  }
+
   text(key: string, fallback: string): string {
     const translated = this.languageService.t(key);
     return translated === key ? fallback : translated;
@@ -326,5 +346,12 @@ export class MemberFormComponent {
       this.member?.['date_of_birth'] &&
       this.member?.['relationship']
     );
+  }
+
+  private applyRelationshipGender(relationship: unknown): void {
+    const gender = genderForRelationship(this.relationshipGenderMap, relationship);
+    if (gender && this.member) {
+      this.member.gender = gender;
+    }
   }
 }

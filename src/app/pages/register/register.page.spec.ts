@@ -55,4 +55,76 @@ describe('RegisterPage', () => {
       },
     });
   });
+
+  it('blocks single-word English names before registration submit', async () => {
+    const authService = jasmine.createSpyObj('AuthService', ['registerBeneficiary']);
+    const router = jasmine.createSpyObj('Router', ['navigate']);
+    const toastCtrl = createToastController();
+
+    authService.registerBeneficiary.and.returnValue(of({
+      success: true,
+      message: 'Registration started successfully.',
+      data: {
+        registration_status: 'pending_otp',
+        mobile_number: '9812345678',
+      },
+    }));
+
+    const page = new RegisterPage(
+      authService as any,
+      router as any,
+      toastCtrl as any,
+      createLanguageService() as any
+    );
+    page.formData = {
+      name: 'Komal',
+      name_ne: 'कोमल श्रेष्ठ',
+      mobile_number: '9812345678',
+      email: '',
+    };
+
+    await page.register();
+
+    expect(authService.registerBeneficiary).not.toHaveBeenCalled();
+    expect(toastCtrl.create).toHaveBeenCalledWith(jasmine.objectContaining({
+      message: 'register.full_name_format',
+      color: 'warning',
+    }));
+  });
+
+  it('blocks non-Devanagari Nepali names before registration submit', async () => {
+    const authService = jasmine.createSpyObj('AuthService', ['registerBeneficiary']);
+    const router = jasmine.createSpyObj('Router', ['navigate']);
+    const toastCtrl = createToastController();
+
+    authService.registerBeneficiary.and.returnValue(of({
+      success: true,
+      message: 'Registration started successfully.',
+      data: {
+        registration_status: 'pending_otp',
+        mobile_number: '9812345678',
+      },
+    }));
+
+    const page = new RegisterPage(
+      authService as any,
+      router as any,
+      toastCtrl as any,
+      createLanguageService() as any
+    );
+    page.formData = {
+      name: 'Komal Shrestha',
+      name_ne: 'Komal Shrestha',
+      mobile_number: '9812345678',
+      email: '',
+    };
+
+    await page.register();
+
+    expect(authService.registerBeneficiary).not.toHaveBeenCalled();
+    expect(toastCtrl.create).toHaveBeenCalledWith(jasmine.objectContaining({
+      message: 'register.full_name_ne_format',
+      color: 'warning',
+    }));
+  });
 });

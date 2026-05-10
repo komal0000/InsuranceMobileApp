@@ -150,8 +150,8 @@ describe('LoginPage', () => {
     });
     expect(page.otpVerified).toBeTrue();
 
-    page.setupPassword = 'Password123';
-    page.setupPasswordConfirmation = 'Password123';
+    page.setupPassword = 'Password123!';
+    page.setupPasswordConfirmation = 'Password123!';
     await page.createSetupPassword();
     await Promise.resolve();
     await Promise.resolve();
@@ -160,11 +160,55 @@ describe('LoginPage', () => {
       identifier_type: 'mobile',
       identifier: '9812345678',
       otp: '123456',
-      password: 'Password123',
-      password_confirmation: 'Password123',
+      password: 'Password123!',
+      password_confirmation: 'Password123!',
       remember: false,
     });
     expect(router.navigateByUrl).toHaveBeenCalledWith('/tabs/dashboard', { replaceUrl: true });
+  });
+
+  it('blocks weak setup passwords before creating registration password', async () => {
+    const authService = createAuthService();
+    const router = jasmine.createSpyObj('Router', ['navigateByUrl']);
+    const toastCtrl = createToastController();
+    const page = new LoginPage(
+      authService as any,
+      router as any,
+      createRoute({
+        setup: 'registration',
+        identifier_type: 'mobile',
+        identifier: '9812345678',
+      }) as any,
+      toastCtrl as any,
+      createLanguageService() as any
+    );
+
+    authService.createLoginSetupPassword.and.returnValue(of({
+      success: true,
+      message: 'Password created successfully.',
+      data: {
+        token: 'token-123',
+        user: {
+          id: 1,
+          name: 'Komal Shrestha',
+          mobile_number: '9812345678',
+          role: 'beneficiary',
+          permissions: [],
+        },
+      },
+    }));
+
+    page.setupOtp = '123456';
+    page.setupPassword = 'Password123';
+    page.setupPasswordConfirmation = 'Password123';
+
+    await page.createSetupPassword();
+
+    expect(authService.createLoginSetupPassword).not.toHaveBeenCalled();
+    expect(toastCtrl.create).toHaveBeenCalledWith(jasmine.objectContaining({
+      message: 'auth.password_policy',
+      color: 'warning',
+    }));
   });
 
   it('renders normal password login controls on direct login', async () => {

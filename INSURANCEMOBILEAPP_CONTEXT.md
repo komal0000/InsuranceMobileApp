@@ -1,6 +1,6 @@
 # InsuranceMobileApp Current Context
 
-Last updated: 2026-05-07
+Last updated: 2026-05-10
 
 This file captures the current Ionic/Angular state so future conversations do not need to rediscover the mobile app.
 
@@ -18,6 +18,10 @@ This file captures the current Ionic/Angular state so future conversations do no
   - Nepali full name
   - mobile number
   - optional email
+- Register now validates names before calling the API:
+  - English full name must be at least two Latin-letter words.
+  - Nepali full name must be at least two Devanagari-script words.
+  - Extra spaces are normalized before submit.
 - Register no longer asks for OTP or password.
 - After successful registration, the app navigates to login with:
   - `identifier_type=mobile`
@@ -28,6 +32,7 @@ This file captures the current Ionic/Angular state so future conversations do no
   - registration handoff: Send OTP, Verify, Create Password on the login page.
 - During registration handoff, the normal direct-login password, remember-me, forgot-password, and Sign In controls are hidden until the OTP setup path reaches its own Create Password step.
 - Final setup-password and password-reset requests send the OTP code again because the backend re-checks it before changing passwords.
+- Login setup-password, forgot-password reset, and profile change-password now use the backend-aligned strong-password rule: 8+ characters with uppercase, lowercase, number, and symbol. The mobile validator counts Unicode code points, not JavaScript UTF-16 code units, to match Laravel `Str::length()`.
 - Existing user login remains password-based by mobile or HIB number.
 - Authenticated user payloads now include `preferred_language`.
 - `AuthService` syncs backend `preferred_language` into the mobile language service on login, setup-password login, profile fetch, and language update.
@@ -40,6 +45,8 @@ Important auth files:
 - `src\app\pages\login\login.page.ts`
 - `src\app\pages\login\login.page.html`
 - `src\app\pages\forgot-password\*`
+- `src\app\pages\profile\profile.page.ts`
+- `src\app\utils\auth-validation.ts`
 - `src\app\services\auth.service.ts`
 - `src\app\services\language.service.ts`
 - `src\app\components\language-toggle\language-toggle.component.ts`
@@ -96,14 +103,17 @@ Step 1 includes:
   7. Service Point and Additional Information
   8. Household Target Group
 - Household-head English and Nepali middle-name inputs are not rendered or submitted from mobile enrollment. Existing backend/interface middle-name fields remain for compatibility with historical data only.
-- The household-head mobile number is prefilled from the authenticated user's registered `mobile_number` when the enrollment field is empty. Existing saved/manual enrollment mobile numbers and NID-provided mobile numbers are not overwritten.
+- Household-head contact fields are prefilled from the authenticated user when the enrollment fields are empty: registered `mobile_number` and optional registered `email`. Existing saved/manual enrollment values and NID-provided values are not overwritten.
 
 NID behavior:
 - Step 1 starts with the household-head NID lookup/manual fallback gate, matching the web enrollment flow; permanent and temporary address fields are not shown until lookup succeeds or the user chooses manual entry.
 - User-entered NID values accept ASCII digits, Nepali/Devanagari digits, and optional hyphen/space separators; validation counts 1 to 10 actual digits after normalization. Household-head lookup, household-head manual fallback, family-member lookup, household-head save/draft validation, and renewal national-ID search enforce that rule before calling the API.
+- The beneficiary dashboard includes an insurance checker card that posts normalized NID input to `POST /api/insurance-check`. Results show only whether active insurance exists plus enrollment number, status, and policy period. When active insurance is found, the UI tells the user they cannot enroll using that NID and should use renewal.
+- Backend duplicate-active-NID validation from household-head lookup/save is surfaced in the enrollment wizard instead of falling back to a generic save failure.
 - Manual fallback stores the household-head `national_id` as canonical ASCII digits while leaving it as unverified manual data.
 - `headNidLookup(id, nationalId)` calls `POST /api/enrollments/{id}/head/nid-lookup`.
 - On success, returned NID fields are written into `headData` and permanent address state.
+- If NID lookup does not return an email, the wizard preserves the existing/registered household-head email instead of clearing it.
 - Populated NID fields are tracked in `nidLockedHeadFields`.
 - Locked household-head NID fields render as grouped `Verified From NID` label/value rows above Step 1 editable controls; their underlying model values stay in `headData`/address state and continue to be submitted in `FormData`.
 - Missing NID fields remain editable.
@@ -176,6 +186,7 @@ Family members:
 - Member English and Nepali middle-name inputs are not rendered in enrollment member entry, not copied into edit form state, and not submitted in member add/update FormData even if stale keys exist locally.
 - Step 2 and review name displays show first name plus last name only.
 - Member target-group UI and payload collection are removed.
+- Relationship selection now auto-fills and locks member gender when the backend `relationship_gender_map` marks the relationship as deterministic. Son/father/brother/grandfather/grandson/father-in-law/son-in-law map to male; daughter/mother/sister/grandmother/granddaughter/mother-in-law/daughter-in-law map to female. Spouse, other, self, and unknown relationships remain manual.
 - Member removal in enrollment now requires a selected death/removal supporting file. `EnrollmentService.removeMember()` sends multipart `FormData` with `_method=DELETE` and `death_document`.
 - Existing stale keys are skipped in FormData where relevant.
 - The shared `src\app\components\member-form\member-form.component.ts` is used by enrollment member entry and renewal detail member entry.
@@ -185,6 +196,7 @@ Family members:
 ## Renewal Mobile Changes
 - Renewal member add/edit no longer collects target-group fields.
 - Renewal member add/edit no longer collects a birth certificate back image; birth certificate is one document capture.
+- Renewal member add/edit uses the same backend `relationship_gender_map` behavior as enrollment: deterministic relationships auto-fill and lock gender, while spouse/other/custom relationships stay manual.
 - Renewal detail keeps Add Family Member below the member list. Removing a renewal member now requires a death/removal supporting file and posts multipart `_method=DELETE` with `death_document`.
 - Relevant files:
   - `src\app\pages\renewal-detail\renewal-detail.page.ts`
@@ -197,6 +209,22 @@ Family members:
 - `RenewalSearchPage` also blocks direct renewal search/initiation for management roles and shows a management-safe notice.
 - Dashboard enrollment creation now permits only `beneficiary` and `enrollment_assistant`.
 - Renewal detail uses the shared member form component. It still refetches renewal detail after member mutations because the backend response does not include enough updated premium/renewal aggregate state.
+
+## Dashboard Insurance Checker
+- Beneficiary dashboard only:
+  - `DashboardDataService.checkInsurance()` calls `POST /api/insurance-check`.
+  - `DashboardPage` validates NID input with `src\app\utils\nid-number.util.ts` before calling the API.
+  - The dashboard card shows a minimal result and policy summary; admin/staff/enrollment-assistant dashboards do not show the checker.
+- Response data expected from backend:
+  - `national_id`
+  - `has_active_insurance`
+  - `can_enroll`
+  - `message`
+  - `summary` with enrollment number, status, policy start date, and policy end date.
+- Relevant files:
+  - `src\app\pages\dashboard\dashboard.page.*`
+  - `src\app\services\dashboard-data.service.ts`
+  - `src\app\interfaces\dashboard.interface.ts`
 
 ## Payment Gateway Flow
 - Payment return handling treats `status=pending` as a first-class result instead of showing a failed payment.
@@ -548,6 +576,20 @@ Result:
 - NID inputs and messages now accept values such as `898-414-375-3`, `८९८-४१४-३७५-३`, and `८९८४१४३७५३` while still rejecting letters, unsupported symbols, and more than 10 actual digits.
 - TypeScript spec compile passes.
 - Karma/ChromeHeadless tests pass: `73 SUCCESS`.
+- `npm run build` succeeds and writes to `C:\Insurance\InsuranceMobileApp\www`.
+- Existing build warning remains: `src/app/components/bs-date-picker/bs-date-picker.component.ts` style budget exceeded by 55 bytes (`4.05 kB` total against `4.00 kB`).
+
+Beneficiary dashboard insurance checker verification on 2026-05-10:
+```powershell
+cd C:\Insurance\InsuranceMobileApp
+node node_modules/typescript/bin/tsc -p tsconfig.spec.json --noEmit
+npm test -- --watch=false --browsers=ChromeHeadless
+npm run build
+```
+
+Result:
+- Direct TypeScript spec compile passes. Local `npx tsc` shim is not executable on this machine (`Permission denied`), so the equivalent TypeScript binary was run through `node`.
+- `npm test -- --watch=false --browsers=ChromeHeadless` compiles the browser test bundle but cannot launch Chrome because `/Applications/Google Chrome.app/Contents/MacOS/Google Chrome` is missing and `CHROME_BIN` is unset.
 - `npm run build` succeeds and writes to `C:\Insurance\InsuranceMobileApp\www`.
 - Existing build warning remains: `src/app/components/bs-date-picker/bs-date-picker.component.ts` style budget exceeded by 55 bytes (`4.05 kB` total against `4.00 kB`).
 

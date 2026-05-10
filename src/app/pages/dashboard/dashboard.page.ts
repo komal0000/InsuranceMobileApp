@@ -1,17 +1,18 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import {
   IonContent, IonHeader, IonToolbar, IonTitle, IonCard, IonCardContent,
-  IonIcon, IonRefresher, IonRefresherContent, IonSpinner
+  IonIcon, IonRefresher, IonRefresherContent, IonSpinner, IonInput, IonButton
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
   documentTextOutline, shieldCheckmarkOutline, refreshOutline,
   cashOutline, peopleOutline, alertCircleOutline, todayOutline,
-  arrowForwardOutline, walletOutline, receiptOutline
+  arrowForwardOutline, walletOutline, receiptOutline, searchOutline
 } from 'ionicons/icons';
 import { ApiService } from '../../services/api.service';
 import { AppSyncEvent, AppSyncService } from '../../services/app-sync.service';
@@ -22,14 +23,16 @@ import { User } from '../../interfaces/user.interface';
 import { LanguageToggleComponent } from '../../components/language-toggle/language-toggle.component';
 import { DashboardDataService } from '../../services/dashboard-data.service';
 import { LanguageService } from '../../services/language.service';
+import { InsuranceCheckResult } from '../../interfaces/dashboard.interface';
+import { isValidNidInput } from '../../utils/nid-number.util';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
   imports: [
-    CommonModule,
+    CommonModule, FormsModule,
     IonContent, IonHeader, IonToolbar, IonTitle, IonCard, IonCardContent,
-    IonIcon, IonRefresher, IonRefresherContent, IonSpinner,
+    IonIcon, IonRefresher, IonRefresherContent, IonSpinner, IonInput, IonButton,
     LanguageToggleComponent
   ],
   templateUrl: './dashboard.page.html',
@@ -42,6 +45,11 @@ export class DashboardPage implements OnInit, OnDestroy {
   isBeneficiary = true;
   isEnrollmentAssistant = false;
   canCreateEnrollment = true;
+  insuranceCheckNid = '';
+  insuranceCheckLoading = false;
+  insuranceCheckMessage = '';
+  insuranceCheckResult: InsuranceCheckResult | null = null;
+  insuranceCheckHasError = false;
   private readonly destroy$ = new Subject<void>();
   private dashboardRequestId = 0;
 
@@ -56,7 +64,7 @@ export class DashboardPage implements OnInit, OnDestroy {
     addIcons({
       documentTextOutline, shieldCheckmarkOutline, refreshOutline,
       cashOutline, peopleOutline, alertCircleOutline, todayOutline,
-      arrowForwardOutline, walletOutline, receiptOutline
+      arrowForwardOutline, walletOutline, receiptOutline, searchOutline
     });
   }
 
@@ -169,6 +177,43 @@ export class DashboardPage implements OnInit, OnDestroy {
 
   navigate(path: string) { this.router.navigateByUrl(path); }
 
+  get showInsuranceChecker(): boolean {
+    return this.isBeneficiary;
+  }
+
+  checkInsurance() {
+    const nid = this.insuranceCheckNid.trim();
+
+    this.insuranceCheckResult = null;
+    this.insuranceCheckHasError = false;
+
+    if (!isValidNidInput(nid)) {
+      this.insuranceCheckMessage = this.t('dashboard.insurance_check_invalid_nid');
+      this.insuranceCheckHasError = true;
+      return;
+    }
+
+    this.insuranceCheckLoading = true;
+    this.insuranceCheckMessage = '';
+
+    this.dashboardData.checkInsurance(nid)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res) => {
+          this.insuranceCheckLoading = false;
+          this.insuranceCheckResult = res.data || null;
+          this.insuranceCheckMessage = this.insuranceCheckResult?.message || res.message || '';
+          this.insuranceCheckHasError = !this.insuranceCheckResult?.can_enroll;
+        },
+        error: (err) => {
+          this.insuranceCheckLoading = false;
+          this.insuranceCheckResult = null;
+          this.insuranceCheckHasError = true;
+          this.insuranceCheckMessage = this.errorMessage(err, 'dashboard.insurance_check_failed');
+        },
+      });
+  }
+
   createNewEnrollment() {
     this.api.post<ApiResponse<Enrollment>>('/enrollments', { enrollment_type: 'new' }).subscribe({
       next: (res) => {
@@ -192,6 +237,13 @@ export class DashboardPage implements OnInit, OnDestroy {
     return this.languageService.formatNumber(Number(value ?? 0), 0);
   }
 
+  formatPolicyPeriod(result: InsuranceCheckResult | null): string {
+    const summary = result?.summary;
+    const period = [summary?.policy_start_date, summary?.policy_end_date].filter(Boolean);
+
+    return period.length > 0 ? period.join(' - ') : '-';
+  }
+
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
@@ -200,6 +252,23 @@ export class DashboardPage implements OnInit, OnDestroy {
   private canRoleCreateEnrollment(role?: string): boolean {
     return ['beneficiary', 'enrollment_assistant']
       .includes(role || '');
+  }
+
+  private errorMessage(error: any, fallbackKey: string): string {
+    const validationErrors = error?.error?.errors;
+    const firstValidation = validationErrors
+      ? Object.values(validationErrors).reduce<string | null>((found, value) => {
+          if (found) return found;
+          if (typeof value === 'string') return value;
+          if (Array.isArray(value)) {
+            return value.find((item): item is string => typeof item === 'string') || null;
+          }
+          return null;
+        }, null)
+      : null;
+    const message = firstValidation || error?.error?.message;
+
+    return this.languageService.translateText(message) || this.t(fallbackKey);
   }
 
   private shouldRefreshDashboard(event: AppSyncEvent): boolean {

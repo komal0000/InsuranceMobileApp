@@ -2,9 +2,10 @@ import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { finalize, shareReplay, tap } from 'rxjs/operators';
 import { ApiResponse } from '../interfaces/api-response.interface';
-import { DashboardData } from '../interfaces/dashboard.interface';
+import { DashboardData, InsuranceCheckResult } from '../interfaces/dashboard.interface';
 import { ApiService } from './api.service';
 import { AuthService } from './auth.service';
+import { nidLookupValue } from '../utils/nid-number.util';
 
 @Injectable({ providedIn: 'root' })
 export class DashboardDataService {
@@ -53,6 +54,12 @@ export class DashboardDataService {
     );
 
     return this.inFlightRequest$;
+  }
+
+  checkInsurance(nationalId: string): Observable<ApiResponse<InsuranceCheckResult>> {
+    return this.api.post<ApiResponse<InsuranceCheckResult>>('/insurance-check', {
+      national_id: nidLookupValue(nationalId),
+    });
   }
 
   clear(): void {
