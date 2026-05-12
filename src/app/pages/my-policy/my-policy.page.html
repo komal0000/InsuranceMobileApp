@@ -156,7 +156,11 @@
                   <span class="info-label">{{ t('profile.date_of_birth') }}</span>
                   <span class="info-value">{{ displayDate(policy.household_head.date_of_birth, policy.household_head.date_of_birth_bs) }}</span>
                 </div>
-                <div class="info-cell" *ngIf="policy.household_head.citizenship_number">
+                <div class="info-cell" *ngIf="policy.household_head.document_type === 'birth_certificate' && policy.household_head.birth_certificate_number">
+                  <span class="info-label">{{ t('wizard.birth_certificate_number') }}</span>
+                  <span class="info-value">{{ policy.household_head.birth_certificate_number }}</span>
+                </div>
+                <div class="info-cell" *ngIf="policy.household_head.document_type !== 'birth_certificate' && policy.household_head.citizenship_number">
                   <span class="info-label">{{ t('policy.citizenship_no') }}</span>
                   <span class="info-value">{{ policy.household_head.citizenship_number }}</span>
                 </div>

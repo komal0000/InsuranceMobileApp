@@ -120,7 +120,8 @@
               <div class="head-details">
                 <strong>{{ enrollment.household_head.first_name }} {{ enrollment.household_head.last_name }}</strong>
                 <span>{{ label('gender', enrollment.household_head.gender) }} | {{ t('profile.date_of_birth') }}: {{ displayDate(enrollment.household_head.date_of_birth, enrollment.household_head.date_of_birth_bs) }}</span>
-                <span *ngIf="enrollment.household_head.citizenship_number">{{ t('enrollment_detail.citizenship') }}: {{ enrollment.household_head.citizenship_number }}</span>
+                <span *ngIf="enrollment.household_head.document_type === 'birth_certificate' && enrollment.household_head.birth_certificate_number">{{ t('wizard.birth_certificate_number') }}: {{ enrollment.household_head.birth_certificate_number }}</span>
+                <span *ngIf="enrollment.household_head.document_type !== 'birth_certificate' && enrollment.household_head.citizenship_number">{{ t('enrollment_detail.citizenship') }}: {{ enrollment.household_head.citizenship_number }}</span>
                 <span *ngIf="enrollment.household_head.mobile_number">{{ t('common.mobile') }}: {{ enrollment.household_head.mobile_number }}</span>
               </div>
             </div>

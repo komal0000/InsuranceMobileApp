@@ -10,7 +10,7 @@ import { DateService } from './date.service';
 
 @Injectable({ providedIn: 'root' })
 export class EnrollmentService {
-  private readonly headDateFields = ['date_of_birth', 'citizenship_issue_date'];
+  private readonly headDateFields = ['date_of_birth', 'citizenship_issue_date', 'birth_certificate_issue_date'];
   private readonly memberDateFields = [
     'date_of_birth',
     'citizenship_issue_date',

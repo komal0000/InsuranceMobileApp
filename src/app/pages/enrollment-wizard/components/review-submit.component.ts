@@ -44,9 +44,12 @@ interface ReviewHeadData {
   marital_status?: string;
   mobile_number?: string;
   email?: string;
+  document_type?: 'citizenship' | 'birth_certificate';
   citizenship_number?: string;
   citizenship_issue_date?: string;
   citizenship_issue_district?: string;
+  birth_certificate_number?: string;
+  birth_certificate_issue_date?: string;
   is_target_group?: boolean;
   target_group_type?: string;
   occupation?: string;
@@ -88,6 +91,7 @@ export class ReviewSubmitComponent {
   @Input() headPhotoPreview = '';
   @Input() citizenshipFrontPreview = '';
   @Input() citizenshipBackPreview = '';
+  @Input() birthCertificateFrontPreview = '';
   @Input() submitting = false;
 
   @Input()

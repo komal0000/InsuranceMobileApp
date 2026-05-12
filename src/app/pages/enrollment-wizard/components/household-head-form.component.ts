@@ -17,11 +17,13 @@ import {
 import { NepaliInputDirective } from '../../../directives/nepali-input.directive';
 import { BsDatePickerComponent } from '../../../components/bs-date-picker/bs-date-picker.component';
 import { LanguageService } from '../../../services/language.service';
+import { ServicePointOption } from '../../../interfaces/enrollment.interface';
 
 type HouseholdHeadImageField =
   | 'photo'
   | 'citizenship_front_image'
   | 'citizenship_back_image'
+  | 'birth_certificate_front_image'
   | 'target_group_front_image'
   | 'target_group_back_image';
 type HouseholdHeadSectionGroup = 'identity' | 'additional';
@@ -45,9 +47,12 @@ interface HouseholdHeadFormModel {
   marital_status?: string;
   mobile_number?: string;
   email?: string;
+  document_type?: 'citizenship' | 'birth_certificate';
   citizenship_number?: string;
   citizenship_issue_date?: string;
   citizenship_issue_district?: string;
+  birth_certificate_number?: string;
+  birth_certificate_issue_date?: string;
   is_target_group?: boolean;
   target_group_type?: string;
   target_group_id_number?: string;
@@ -80,6 +85,7 @@ interface HouseholdHeadFormModel {
 })
 export class HouseholdHeadFormComponent {
   private firstServicePointValue = '';
+  private firstServicePointIdValue: string | number = '';
 
   @Input() showHouseholdHeadForm = true;
   @Input() sectionGroup: HouseholdHeadSectionGroup = 'identity';
@@ -88,8 +94,11 @@ export class HouseholdHeadFormComponent {
   @Input() headPhotoPreview = '';
   @Input() citizenshipFrontPreview = '';
   @Input() citizenshipBackPreview = '';
+  @Input() birthCertificateFrontPreview = '';
   @Input() targetGroupFrontPreview = '';
   @Input() targetGroupBackPreview = '';
+  @Input() usesBirthCertificate = false;
+  @Input() servicePointOptions: ServicePointOption[] = [];
   @Input() professionOptions: Array<{ id: number; label: string }> = [];
   @Input() qualificationOptions: Array<{ id: number; label: string }> = [];
   @Input() lockedFields: ReadonlySet<string> = new Set<string>();
@@ -104,7 +113,19 @@ export class HouseholdHeadFormComponent {
   }
 
   @Output() firstServicePointChange = new EventEmitter<string>();
+
+  @Input()
+  get firstServicePointId(): string | number {
+    return this.firstServicePointIdValue;
+  }
+  set firstServicePointId(value: string | number) {
+    this.firstServicePointIdValue = value;
+    this.firstServicePointIdChange.emit(value);
+  }
+
+  @Output() firstServicePointIdChange = new EventEmitter<string | number>();
   @Output() capture = new EventEmitter<HouseholdHeadImageField>();
+  @Output() identityModeChange = new EventEmitter<void>();
 
   constructor(private languageService: LanguageService) {}
 
@@ -118,6 +139,10 @@ export class HouseholdHeadFormComponent {
 
   captureImage(_target: 'head', field: HouseholdHeadImageField): void {
     this.capture.emit(field);
+  }
+
+  notifyIdentityModeChange(): void {
+    this.identityModeChange.emit();
   }
 
   text(key: string, fallback: string): string {

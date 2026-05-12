@@ -1,6 +1,6 @@
 # InsuranceMobileApp Current Context
 
-Last updated: 2026-05-10
+Last updated: 2026-05-11
 
 This file captures the current Ionic/Angular state so future conversations do not need to rediscover the mobile app.
 
@@ -85,11 +85,11 @@ Step 1 includes:
 - household-head NID lookup
 - personal information
 - father/mother/grandfather names in English and Nepali
-- citizenship fields
+- age-aware identity document fields: citizenship for household heads 16+, birth-certificate number/issue-date/document for household heads under 16
 - permanent address
 - temporary address
 - optional Basai Sarai front/back file capture when temporary differs
-- first service point
+- first service point dropdown loaded from backend service points after permanent province/district selection
 - profession ID select
 - qualification ID select
 - household target group
@@ -97,7 +97,7 @@ Step 1 includes:
   1. Start with Household Head NID
   2. Personal Information
   3. Parent and Grandparent Information
-  4. Citizenship Information
+  4. Identity Document
   5. Permanent Address
   6. Temporary Address
   7. Service Point and Additional Information
@@ -119,6 +119,8 @@ NID behavior:
 - Missing NID fields remain editable.
 - NID photo preview is used when `photo_url` is returned.
 - For household-head NID-verified Step 1, citizenship front/back capture controls are hidden and a note explains that citizenship card images are not required. Manual fallback, family-member NID, and renewal member behavior are unchanged.
+- Household-head DOB now drives identity collection. Ages 1 through 100 are accepted; under-16 heads submit `document_type=birth_certificate`, `birth_certificate_number`, `birth_certificate_issue_date`, and `birth_certificate_front_image`, while stale citizenship keys/files are removed from `FormData`. Exactly 16 and older submit `document_type=citizenship` and keep the existing citizenship details/image flow.
+- If household-head NID lookup fills an under-16 DOB, the wizard still requires birth-certificate details/document while keeping the NID photo behavior.
 - Mobile consumes backend-mapped NID display fields directly: `province`, `district`, `municipality`, `ward_number`, `tole_village`, `citizenship_issue_district`, and JPEG `photo_url`.
 - Household-head NID tests cover Bagamati/Makawanpur/Hetauda mapped address selection, locked citizenship issue/date fields, grouped verified label/value metadata, saved NID payload restoration, and JPEG photo preview.
 - Member NID tests cover `citizenship_issue_district` and JPEG `photo_url` preview.
@@ -126,7 +128,7 @@ NID behavior:
 Save behavior:
 - `saveHouseholdHead(id, formData)` calls `POST /api/enrollments/{id}/household-head`.
 - Old `saveStep1`, `saveStep2`, and generic `nidLookup` methods remain for compatibility.
-- Step 1 save sends permanent address, temporary address, first service point, household-head fields, profession/qualification IDs, target-group fields, and files.
+- Step 1 save sends permanent address, temporary address, selected `first_service_point_id`, household-head fields, profession/qualification IDs, target-group fields, and files. The backend resolves the selected ID to the service-point name snapshot.
 - Backend API save/submit endpoints now also accept an enrollment in `rejected` status when the rejection actor was `district_eo` or `province` and the authenticated user is the household head or original enroller. Resubmission returns the enrollment to `pending_verification` and clears stale rejection/verification fields; response shapes are unchanged.
 
 Enrollment PDF behavior:
@@ -152,6 +154,7 @@ Member card export behavior:
 - Card PDFs open with Capacitor Browser using fresh signed URLs from the backend.
 
 Temporary address:
+- `temporarySameAsPermanent` defaults to `false`; users must explicitly toggle same-as-permanent.
 - `temporarySameAsPermanent` copies permanent address into temporary address locally.
 - If unchecked, temporary location dropdowns and Basai Sarai front/back capture are shown.
 - Backend treats Basai Sarai files as optional.
@@ -187,6 +190,7 @@ Family members:
 - Step 2 and review name displays show first name plus last name only.
 - Member target-group UI and payload collection are removed.
 - Relationship selection now auto-fills and locks member gender when the backend `relationship_gender_map` marks the relationship as deterministic. Son/father/brother/grandfather/grandson/father-in-law/son-in-law map to male; daughter/mother/sister/grandmother/granddaughter/mother-in-law/daughter-in-law map to female. Spouse, other, self, and unknown relationships remain manual.
+- Backend enrollment/renewal member saves enforce relationship DOB hierarchy across household members. Mobile remains UI-assistive only and now surfaces backend member-save validation errors, including `date_of_birth` hierarchy failures, in the enrollment wizard toast.
 - Member removal in enrollment now requires a selected death/removal supporting file. `EnrollmentService.removeMember()` sends multipart `FormData` with `_method=DELETE` and `death_document`.
 - Existing stale keys are skipped in FormData where relevant.
 - The shared `src\app\components\member-form\member-form.component.ts` is used by enrollment member entry and renewal detail member entry.
@@ -273,6 +277,7 @@ Family members:
   - districts
   - municipality
   - wards
+- `GeoService.servicePoints(province, district)` calls `/geo/service-points/{province}/{district}` and caches the in-session response; the enrollment wizard clears and reloads service-point options whenever the permanent province/district changes.
 
 ## Runtime And Bundle Optimization
 - Global jQuery and `nepali-date-picker` assets were removed from `angular.json`; the existing Angular `BsDatePickerComponent` remains the active date-picker path.
@@ -593,6 +598,44 @@ Result:
 - `npm run build` succeeds and writes to `C:\Insurance\InsuranceMobileApp\www`.
 - Existing build warning remains: `src/app/components/bs-date-picker/bs-date-picker.component.ts` style budget exceeded by 55 bytes (`4.05 kB` total against `4.00 kB`).
 
+Under-16 household-head birth-certificate verification on 2026-05-11:
+```bash
+cd /Users/rahkehs/Downloads/Insurance/InsuranceMobileApp
+CHROME_BIN="/Applications/Brave Browser.app/Contents/MacOS/Brave Browser" npm test -- --watch=false --browsers=ChromeHeadless --include src/app/pages/enrollment-wizard/enrollment-wizard.page.spec.ts
+CHROME_BIN="/Applications/Brave Browser.app/Contents/MacOS/Brave Browser" npm test -- --watch=false --browsers=ChromeHeadless
+npm run build
+```
+
+Result:
+- Focused enrollment wizard tests pass: `22 SUCCESS`.
+- Full mobile Karma suite passes: `93 SUCCESS`.
+- `npm run build` succeeds and writes to `www`.
+- Existing build warning remains: `src/app/components/bs-date-picker/bs-date-picker.component.ts` style budget exceeded by 55 bytes (`4.05 kB` total against `4.00 kB`).
+
+Service-point dropdown verification on 2026-05-11:
+```bash
+cd /Users/rahkehs/Downloads/Insurance/InsuranceMobileApp
+CHROME_BIN="/Applications/Brave Browser.app/Contents/MacOS/Brave Browser" npm test -- --watch=false --browsers=ChromeHeadless --include=src/app/services/geo.service.spec.ts --include=src/app/pages/enrollment-wizard/enrollment-wizard.page.spec.ts
+npm run build
+```
+
+Result:
+- Targeted geo/enrollment wizard tests pass: `28 SUCCESS`.
+- `npm run build` succeeds and writes to `www`.
+- Existing build warning remains: `src/app/components/bs-date-picker/bs-date-picker.component.ts` style budget exceeded by 55 bytes (`4.05 kB` total against `4.00 kB`).
+
+Temporary-address default verification on 2026-05-11:
+```bash
+cd /Users/rahkehs/Downloads/Insurance/InsuranceMobileApp
+CHROME_BIN="/Applications/Brave Browser.app/Contents/MacOS/Brave Browser" npm test -- --watch=false --browsers=ChromeHeadless --include src/app/pages/enrollment-wizard/enrollment-wizard.page.spec.ts
+npm run build
+```
+
+Result:
+- Focused enrollment wizard tests pass: `26 SUCCESS`.
+- `npm run build` succeeds and writes to `www`.
+- Existing build warning remains: `src/app/components/bs-date-picker/bs-date-picker.component.ts` style budget exceeded by 55 bytes (`4.05 kB` total against `4.00 kB`).
+
 ## Deployment Notes
 - Environment API URL is configured in:
   - `src\environments\environment.ts`
@@ -605,6 +648,11 @@ cd C:\Insurance\InsuranceMobileApp
 npm run build
 npx cap sync android
 ```
+- macOS local release/device install verified on 2026-05-11:
+  - Android SDK path: `/opt/homebrew/share/android-commandlinetools`
+  - `npm run build:prod`, `npx cap sync android`, `sh ./gradlew assembleRelease`, `apksigner verify`, and `adb install -r` succeeded.
+  - Direct `./gradlew` execution may be blocked by macOS quarantine metadata on copied files; running the wrapper through `sh ./gradlew ...` works.
+  - Installed package on device `ba72a8a0` is `io.ionic.starter`, `versionCode=1`, `versionName=1.0`.
 
 ## Backend References
 - Backend root: `C:\Insurance\InsuranceApp`.

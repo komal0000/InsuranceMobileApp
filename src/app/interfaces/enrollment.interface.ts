@@ -21,6 +21,7 @@ export interface Enrollment {
   temporary_ward_number?: string | null;
   temporary_tole_village?: string | null;
   temporary_full_address?: string | null;
+  first_service_point_id?: number | null;
   first_service_point?: string | null;
   total_members: number;
   premium_amount: number;
@@ -87,10 +88,15 @@ export interface HouseholdHead {
   relationship?: string;
   mobile_number?: string;
   email?: string;
+  document_type?: 'citizenship' | 'birth_certificate';
   citizenship_number?: string;
   citizenship_issue_date?: string;
   citizenship_issue_date_bs?: string;
   citizenship_issue_district?: string;
+  birth_certificate_number?: string;
+  birth_certificate_issue_date?: string;
+  birth_certificate_issue_date_bs?: string;
+  birth_certificate_front_image?: string;
   is_target_group: boolean;
   target_group_type?: string;
   target_group_id_number?: string;
@@ -299,4 +305,10 @@ export interface Step1Data {
   ward_number: string;
   tole_village: string;
   full_address: string;
+}
+
+export interface ServicePointOption {
+  id: number;
+  code: string;
+  name: string;
 }

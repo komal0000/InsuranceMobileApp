@@ -52,6 +52,22 @@ describe('GeoService', () => {
     expect(api.get).toHaveBeenCalledWith('/geo/districts/Bagamati');
   });
 
+  it('loads service points for a selected province and district', () => {
+    const response: ApiResponse<Array<{ id: number; code: string; name: string }>> = {
+      success: true,
+      message: 'Loaded.',
+      data: [{ id: 7, code: 'H0302000', name: 'Bir Hospital' }],
+    };
+
+    api.get.and.returnValue(of(response));
+
+    service.servicePoints('Bagamati', 'Kathmandu').subscribe(result => {
+      expect(result).toEqual(response);
+    });
+
+    expect(api.get).toHaveBeenCalledWith('/geo/service-points/Bagamati/Kathmandu');
+  });
+
   it('clears cached requests when requested', () => {
     api.get.and.returnValue(of({
       success: true,

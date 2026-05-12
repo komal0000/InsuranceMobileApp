@@ -61,6 +61,7 @@
           <app-bs-date-picker
             *ngIf="!isHeadFieldReadonly('date_of_birth')"
             [(ngModel)]="headData.date_of_birth"
+            (ngModelChange)="notifyIdentityModeChange()"
             [label]="text('wizard.date_of_birth_required', 'Date of Birth *')"
             [placeholder]="text('common.select_bs_date', 'Select BS date')"
             [disabled]="isHeadFieldReadonly('date_of_birth')">
@@ -141,10 +142,17 @@
           <div class="section-icon" style="background:rgba(0,48,135,0.08)">
             <ion-icon name="document-text-outline" style="color:#003087"></ion-icon>
           </div>
-          <h3>{{ text('wizard.citizenship_information', 'Citizenship Information') }}</h3>
+          <h3>{{ text('wizard.identity_document', 'Identity Document') }}</h3>
         </div>
 
         <div class="form-group">
+          <p class="nid-waiver-note">
+            {{ usesBirthCertificate
+              ? text('wizard.birth_certificate_for_under_16', 'Household heads under 16 use birth-certificate details.')
+              : text('wizard.citizenship_for_16_plus', 'Household heads 16 or older use citizenship details.') }}
+          </p>
+
+          <ng-container *ngIf="!usesBirthCertificate; else birthCertificateFields">
           <ion-item class="form-item" *ngIf="!isHeadFieldReadonly('citizenship_number')">
             <ion-input [label]="text('wizard.citizenship_number', 'Citizenship Number') + ' *'" labelPlacement="stacked" placeholder="Citizenship No."
                        [(ngModel)]="headData.citizenship_number"
@@ -189,6 +197,30 @@
             </div>
             <img *ngIf="citizenshipBackPreview" [src]="citizenshipBackPreview" class="preview-img" />
           </div>
+          </ng-container>
+
+          <ng-template #birthCertificateFields>
+            <ion-item class="form-item">
+              <ion-input [label]="text('wizard.birth_certificate_number', 'Birth Certificate Number') + ' *'" labelPlacement="stacked" placeholder="Birth certificate no."
+                         [(ngModel)]="headData.birth_certificate_number">
+              </ion-input>
+            </ion-item>
+            <app-bs-date-picker
+              [(ngModel)]="headData.birth_certificate_issue_date"
+              [label]="text('wizard.birth_certificate_issue_date', 'Birth Certificate Issue Date') + ' *'"
+              [placeholder]="text('common.select_bs_date', 'Select BS date')">
+            </app-bs-date-picker>
+            <div class="capture-section">
+              <div class="capture-row">
+                <span class="capture-label">{{ text('wizard.birth_certificate_front', 'Birth Certificate Document') }} *</span>
+                <ion-button size="small" fill="outline" (click)="captureImage('head','birth_certificate_front_image')">
+                  <ion-icon slot="start" name="camera-outline"></ion-icon>
+                  {{ birthCertificateFrontPreview ? text('common.change', 'Change') : text('common.capture', 'Capture') }}
+                </ion-button>
+              </div>
+              <img *ngIf="birthCertificateFrontPreview" [src]="birthCertificateFrontPreview" class="preview-img" />
+            </div>
+          </ng-template>
         </div>
       </ion-card-content>
     </ion-card>
@@ -206,10 +238,12 @@
 
         <div class="form-group">
           <ion-item class="form-item">
-            <ion-input [label]="text('wizard.first_service_point', 'First Service Point')" labelPlacement="stacked"
-                       [placeholder]="text('common.optional', 'Optional')"
-                       [(ngModel)]="firstServicePoint">
-            </ion-input>
+            <ion-select [label]="text('wizard.first_service_point', 'First Service Point')" labelPlacement="stacked"
+                        [placeholder]="text('wizard.select_service_point', 'Select Service Point')"
+                        [disabled]="!servicePointOptions.length"
+                        [(ngModel)]="firstServicePointId">
+              <ion-select-option *ngFor="let option of servicePointOptions" [value]="option.id">{{ option.name }}</ion-select-option>
+            </ion-select>
           </ion-item>
           <ion-item class="form-item">
             <ion-select [label]="text('wizard.profession', 'Profession')" labelPlacement="stacked" placeholder="Select Profession"

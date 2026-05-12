@@ -39,7 +39,7 @@ type HeadAddressImageField = 'basai_sarai_front' | 'basai_sarai_back';
   styleUrls: ['../enrollment-wizard.page.scss'],
 })
 export class AddressFormComponent {
-  private temporarySameAsPermanentValue = true;
+  private temporarySameAsPermanentValue = false;
 
   @Input({ required: true }) step1!: Step1Data;
   @Input() provinces: string[] = [];

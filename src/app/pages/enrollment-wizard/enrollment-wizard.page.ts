@@ -31,7 +31,7 @@ import { NidGateComponent } from './components/nid-gate.component';
 import { ReviewSubmitComponent } from './components/review-submit.component';
 import {
   Enrollment, EnrollmentConfig, FamilyMember, HouseholdHead, NidLookupData, Step1Data,
-  SubsidyResult, SubsidySummary
+  ServicePointOption, SubsidyResult, SubsidySummary
 } from '../../interfaces/enrollment.interface';
 import { canonicalNid, isValidNidInput, nidLookupValue } from '../../utils/nid-number.util';
 import {
@@ -119,7 +119,7 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
   districts: string[] = [];
   municipalities: string[] = [];
   wards: string[] = [];
-  temporarySameAsPermanent = true;
+  temporarySameAsPermanent = false;
   temporaryAddress: Step1Data = {
     province: '', district: '', municipality: '', ward_number: '',
     tole_village: '', full_address: '',
@@ -127,6 +127,8 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
   temporaryDistricts: string[] = [];
   temporaryMunicipalities: string[] = [];
   temporaryWards: string[] = [];
+  servicePointOptions: ServicePointOption[] = [];
+  firstServicePointId: number | string = '';
   firstServicePoint = '';
   professionOptions: Array<{ id: number; label: string }> = [
     { id: 1, label: 'Government' },
@@ -163,12 +165,15 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
     grandfather_name: '', grandfather_name_ne: '',
     gender: '', date_of_birth: '', blood_group: '', marital_status: '',
     mobile_number: '', email: '',
+    document_type: 'citizenship',
     citizenship_number: '', citizenship_issue_date: '', citizenship_issue_district: '',
+    birth_certificate_number: '', birth_certificate_issue_date: '',
     is_target_group: false, target_group_type: '', target_group_id_number: '',
     occupation: '', education_level: '', profession_id: '', qualification_id: '',
     photo: null as File | Blob | null,
     citizenship_front_image: null as File | Blob | null,
     citizenship_back_image: null as File | Blob | null,
+    birth_certificate_front_image: null as File | Blob | null,
     target_group_front_image: null as File | Blob | null,
     target_group_back_image: null as File | Blob | null,
     basai_sarai_front: null as File | Blob | null,
@@ -177,6 +182,7 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
   headPhotoPreview = '';
   citizenshipFrontPreview = '';
   citizenshipBackPreview = '';
+  birthCertificateFrontPreview = '';
   targetGroupFrontPreview = '';
   targetGroupBackPreview = '';
   basaiSaraiFrontPreview = '';
@@ -279,6 +285,9 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
 
   private prefillFromEnrollment(e: Enrollment) {
     // ── Step 1: Location ─────────────────────────────────────────────────────
+    this.firstServicePointId = e.first_service_point_id || '';
+    this.firstServicePoint = e.first_service_point || '';
+
     if (e.province) {
       this.step1 = {
         province: e.province || '',
@@ -308,10 +317,10 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
         },
       });
       this.updateFullAddress();
+      this.loadServicePoints(true);
     }
 
-    this.temporarySameAsPermanent = e.temporary_same_as_permanent ?? true;
-    this.firstServicePoint = e.first_service_point || '';
+    this.temporarySameAsPermanent = e.temporary_same_as_permanent ?? false;
     this.temporaryAddress = {
       province: e.temporary_province || '',
       district: e.temporary_district || '',
@@ -345,12 +354,18 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
         blood_group: head.blood_group || '', marital_status: head.marital_status || '',
         mobile_number: head.mobile_number || this.registeredMobileNumber || '',
         email: head.email || this.registeredEmail || '',
+        document_type: head.document_type || 'citizenship',
         citizenship_number: head.citizenship_number || '',
         citizenship_issue_date: this.dateService.formatForDisplay(
           head.citizenship_issue_date,
           head.citizenship_issue_date_bs
         ) || '',
         citizenship_issue_district: head.citizenship_issue_district || '',
+        birth_certificate_number: head.birth_certificate_number || '',
+        birth_certificate_issue_date: this.dateService.formatForDisplay(
+          head.birth_certificate_issue_date,
+          head.birth_certificate_issue_date_bs
+        ) || '',
         is_target_group: !!head.is_target_group,
         target_group_type: head.target_group_type || '',
         target_group_id_number: head.target_group_id_number || '',
@@ -358,17 +373,21 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
         profession_id: head.profession_id || '',
         qualification_id: head.qualification_id || '',
         photo: null, citizenship_front_image: null, citizenship_back_image: null,
+        birth_certificate_front_image: null,
         target_group_front_image: null, target_group_back_image: null,
         basai_sarai_front: null, basai_sarai_back: null,
       };
       this.headPhotoPreview = this.getDocUrl(head, 'photo') || '';
       this.citizenshipFrontPreview = this.getDocUrl(head, 'citizenship_front') || '';
       this.citizenshipBackPreview = this.getDocUrl(head, 'citizenship_back') || '';
+      this.birthCertificateFrontPreview = this.getDocUrl(head, 'birth_certificate_front') || '';
       this.targetGroupFrontPreview = this.getDocUrl(head, 'target_group_front') || '';
       this.targetGroupBackPreview = this.getDocUrl(head, 'target_group_back') || '';
+      this.syncHouseholdHeadDocumentType();
       if (head.nid_verified_at && head.nid_raw_payload) {
         this.nidVerifiedHead = true;
         this.markLockedHeadFields(head.nid_raw_payload as NidLookupData);
+        this.syncHouseholdHeadDocumentType();
       }
     } else {
       this.applyRegisteredContactDetails();
@@ -400,6 +419,8 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
     if (reset) {
       this.step1.district = ''; this.step1.municipality = ''; this.step1.ward_number = '';
       this.districts = []; this.municipalities = []; this.wards = [];
+      this.servicePointOptions = [];
+      this.firstServicePointId = '';
     }
     if (this.step1.province) {
       this.geoSvc.districts(this.step1.province).subscribe({ next: r => this.districts = r.data || [] });
@@ -411,12 +432,35 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
     if (reset) {
       this.step1.municipality = ''; this.step1.ward_number = '';
       this.municipalities = []; this.wards = [];
+      this.firstServicePointId = '';
     }
     if (this.step1.province && this.step1.district) {
       this.geoSvc.municipalities(this.step1.province, this.step1.district)
         .subscribe({ next: r => this.municipalities = r.data || [] });
     }
+    this.loadServicePoints(false);
     this.updateFullAddress();
+  }
+
+  private loadServicePoints(preserveSelection = true) {
+    if (!this.step1.province || !this.step1.district) {
+      this.servicePointOptions = [];
+      if (!preserveSelection) this.firstServicePointId = '';
+      return;
+    }
+
+    const selected = this.firstServicePointId;
+    this.geoSvc.servicePoints(this.step1.province, this.step1.district).subscribe({
+      next: r => {
+        this.servicePointOptions = r.data || [];
+        const stillAvailable = this.servicePointOptions.some(option => String(option.id) === String(selected));
+        this.firstServicePointId = preserveSelection && stillAvailable ? selected : '';
+      },
+      error: () => {
+        this.servicePointOptions = [];
+        if (!preserveSelection) this.firstServicePointId = '';
+      },
+    });
   }
 
   onMunicipalityChange(reset = true) {
@@ -558,6 +602,7 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
           if (d.photo_url) this.headPhotoPreview = d.photo_url;
           this.applyNidLocation(d);
           this.markLockedHeadFields(d);
+          this.syncHouseholdHeadDocumentType();
           this.nidVerifiedHead = true;
           this.showNidGate2    = false;
         this.showToast(this.t('wizard.nid_verified'), 'success');
@@ -595,6 +640,14 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
 
   get showHouseholdHeadForm(): boolean {
     return !this.showNidGate2;
+  }
+
+  get householdHeadUsesBirthCertificate(): boolean {
+    return this.isHouseholdHeadUnderSixteen();
+  }
+
+  onHouseholdHeadIdentityModeChange(): void {
+    this.syncHouseholdHeadDocumentType();
   }
 
   isHeadFieldReadonly(field: string): boolean {
@@ -801,6 +854,8 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
     this.districts = [];
     this.municipalities = [];
     this.wards = [];
+    this.servicePointOptions = [];
+    this.firstServicePointId = '';
 
     this.geoSvc.districts(d.province).subscribe({
       next: r => {
@@ -812,6 +867,7 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
         }
 
         this.step1.district = d.district;
+        this.loadServicePoints(false);
 
         this.geoSvc.municipalities(d.province!, d.district).subscribe({
           next: r2 => {
@@ -843,12 +899,12 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
 
   async nextStep() {
     if (this.currentStep === 1) {
+      this.syncHouseholdHeadDocumentType();
       if (!this.step1.province || !this.step1.district || !this.step1.municipality || !this.step1.ward_number) {
       this.showToast(this.t('wizard.required_location'), 'warning'); return;
       }
       if (!this.headData.first_name || !this.headData.last_name || !this.headData.gender ||
-          !this.headData.date_of_birth || !this.headData.mobile_number ||
-          !this.headData.citizenship_number || !this.headData.marital_status) {
+          !this.headData.date_of_birth || !this.headData.mobile_number || !this.headData.marital_status) {
       this.showToast(this.t('wizard.required_fields'), 'warning'); return;
       }
       if (!/^\d{10}$/.test(this.headData.mobile_number)) {
@@ -857,8 +913,18 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
       if (this.headData.national_id && !this.isValidNid(this.headData.national_id)) {
         this.showToast(this.t('wizard.nid_invalid_length'), 'warning'); return;
       }
-      if (this.calculateAge(this.headData.date_of_birth) < 16) {
-        this.showToast(this.t('wizard.head_age'), 'warning'); return;
+      const headAge = this.calculateAge(this.headData.date_of_birth);
+      if (headAge < 1 || headAge > 100) {
+        this.showToast(this.t('wizard.head_age_range'), 'warning'); return;
+      }
+      if (this.householdHeadUsesBirthCertificate) {
+        if (!this.headData.birth_certificate_number || !this.headData.birth_certificate_issue_date ||
+            (!this.headData.birth_certificate_front_image && !this.birthCertificateFrontPreview)) {
+          this.showToast(this.t('wizard.birth_certificate_required'), 'warning'); return;
+        }
+      } else if (!this.headData.citizenship_number || !this.headData.citizenship_issue_date ||
+          !this.headData.citizenship_issue_district) {
+        this.showToast(this.t('wizard.required_fields'), 'warning'); return;
       }
       this.saving = true;
       const fd = this.buildHouseholdHeadFormData();
@@ -885,6 +951,7 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
     if (this.temporarySameAsPermanent) {
       this.copyPermanentToTemporary();
     }
+    const usesBirthCertificate = this.syncHouseholdHeadDocumentType();
 
     const fd = new FormData();
     Object.entries({
@@ -896,14 +963,19 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
       temporary_ward_number: this.temporaryAddress.ward_number,
       temporary_tole_village: this.temporaryAddress.tole_village,
       temporary_full_address: this.temporaryAddress.full_address,
-      first_service_point: this.firstServicePoint,
+      first_service_point_id: this.firstServicePointId,
     }).forEach(([key, val]) => {
       if (typeof val === 'boolean') { fd.append(key, val ? '1' : '0'); return; }
       if (val !== null && val !== undefined && val !== '') fd.append(key, String(val));
     });
 
+    const skippedIdentityFields = usesBirthCertificate
+      ? new Set(['citizenship_number', 'citizenship_issue_date', 'citizenship_issue_district', 'citizenship_front_image', 'citizenship_back_image'])
+      : new Set(['birth_certificate_number', 'birth_certificate_issue_date', 'birth_certificate_front_image']);
+
     Object.keys(this.headData).forEach(key => {
       if (key === 'middle_name' || key === 'middle_name_ne') return;
+      if (skippedIdentityFields.has(key)) return;
       const val = this.headData[key];
       if (val === null || val === undefined) return;
       if (typeof val === 'boolean') { fd.append(key, val ? '1' : '0'); return; }
@@ -917,10 +989,10 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
   async saveDraft() {
     this.savingDraft = true;
     if (this.currentStep === 1) {
+      this.syncHouseholdHeadDocumentType();
       if (!this.headData.first_name || !this.headData.last_name || !this.headData.gender ||
           !this.headData.date_of_birth || !this.headData.mobile_number ||
-          !this.headData.citizenship_number || !this.headData.citizenship_issue_date ||
-          !this.headData.citizenship_issue_district || !this.headData.marital_status) {
+          !this.headData.marital_status) {
       this.showToast(this.t('wizard.required_before_save'), 'warning');
         this.savingDraft = false; return;
       }
@@ -932,8 +1004,20 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
         this.showToast(this.t('wizard.nid_invalid_length'), 'warning');
         this.savingDraft = false; return;
       }
-      if (this.calculateAge(this.headData.date_of_birth) < 16) {
-        this.showToast(this.t('wizard.head_age'), 'warning');
+      const headAge = this.calculateAge(this.headData.date_of_birth);
+      if (headAge < 1 || headAge > 100) {
+        this.showToast(this.t('wizard.head_age_range'), 'warning');
+        this.savingDraft = false; return;
+      }
+      if (this.householdHeadUsesBirthCertificate) {
+        if (!this.headData.birth_certificate_number || !this.headData.birth_certificate_issue_date ||
+            (!this.headData.birth_certificate_front_image && !this.birthCertificateFrontPreview)) {
+          this.showToast(this.t('wizard.birth_certificate_required'), 'warning');
+          this.savingDraft = false; return;
+        }
+      } else if (!this.headData.citizenship_number || !this.headData.citizenship_issue_date ||
+          !this.headData.citizenship_issue_district) {
+        this.showToast(this.t('wizard.required_before_save'), 'warning');
         this.savingDraft = false; return;
       }
       this.enrollmentSvc.saveHouseholdHead(this.enrollmentId, this.buildHouseholdHeadFormData()).subscribe({
@@ -1115,7 +1199,10 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
           this.showToast(this.t(wasEditing ? 'wizard.member_updated' : 'wizard.member_added'), 'success');
         }
       },
-      error: () => { this.savingMember = false; },
+      error: (err) => {
+        this.savingMember = false;
+        this.showToast(this.errorMessage(err, 'wizard.member_save_failed'), 'danger');
+      },
     });
   }
 
@@ -1280,6 +1367,7 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
       if (field === 'photo') this.headPhotoPreview = dataUrl;
       else if (field === 'citizenship_front_image') this.citizenshipFrontPreview = dataUrl;
       else if (field === 'citizenship_back_image') this.citizenshipBackPreview = dataUrl;
+      else if (field === 'birth_certificate_front_image') this.birthCertificateFrontPreview = dataUrl;
       else if (field === 'target_group_front_image') this.targetGroupFrontPreview = dataUrl;
       else if (field === 'target_group_back_image') this.targetGroupBackPreview = dataUrl;
       else if (field === 'basai_sarai_front') this.basaiSaraiFrontPreview = dataUrl;
@@ -1512,8 +1600,65 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
     return this.languageService.translateText(message) || this.t(fallbackKey);
   }
 
+  private isHouseholdHeadUnderSixteen(): boolean {
+    if (!this.headData?.date_of_birth) {
+      return false;
+    }
+
+    const age = this.calculateAge(this.headData.date_of_birth);
+    return Number.isFinite(age) && age < 16;
+  }
+
+  private syncHouseholdHeadDocumentType(): boolean {
+    const usesBirthCertificate = this.isHouseholdHeadUnderSixteen();
+    this.headData.document_type = usesBirthCertificate ? 'birth_certificate' : 'citizenship';
+
+    if (usesBirthCertificate) {
+      this.headData.citizenship_number = '';
+      this.headData.citizenship_issue_date = '';
+      this.headData.citizenship_issue_district = '';
+      this.headData.citizenship_front_image = null;
+      this.headData.citizenship_back_image = null;
+      this.citizenshipFrontPreview = '';
+      this.citizenshipBackPreview = '';
+      this.nidLockedHeadFields.delete('citizenship_number');
+      this.nidLockedHeadFields.delete('citizenship_issue_date');
+      this.nidLockedHeadFields.delete('citizenship_issue_district');
+    } else {
+      this.headData.birth_certificate_number = '';
+      this.headData.birth_certificate_issue_date = '';
+      this.headData.birth_certificate_front_image = null;
+      this.birthCertificateFrontPreview = '';
+    }
+
+    return usesBirthCertificate;
+  }
+
   private calculateAge(dob: string): number {
-    return this.dateService.calculateAge(dob, 'bs');
+    if (!dob) {
+      return 0;
+    }
+
+    if (typeof this.dateService.calculateAge === 'function') {
+      return this.dateService.calculateAge(dob, 'bs');
+    }
+
+    const parsed = new Date(dob);
+    if (Number.isNaN(parsed.getTime())) {
+      return 0;
+    }
+    if (parsed > new Date()) {
+      return 100;
+    }
+
+    const today = new Date();
+    let age = today.getFullYear() - parsed.getFullYear();
+    const monthDelta = today.getMonth() - parsed.getMonth();
+    if (monthDelta < 0 || (monthDelta === 0 && today.getDate() < parsed.getDate())) {
+      age--;
+    }
+
+    return age;
   }
 
   private dataUrlToBlob(dataUrl: string): Blob {

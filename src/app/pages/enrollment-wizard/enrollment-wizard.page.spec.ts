@@ -23,6 +23,14 @@ describe('EnrollmentWizardPage', () => {
     };
   }
 
+  function servicePointResponse(data: Array<{ id: number; code: string; name: string }>): ApiResponse<Array<{ id: number; code: string; name: string }>> {
+    return {
+      success: true,
+      message: 'Loaded.',
+      data,
+    };
+  }
+
   function toastController() {
     return {
       create: jasmine.createSpy().and.returnValue(Promise.resolve({
@@ -40,11 +48,19 @@ describe('EnrollmentWizardPage', () => {
     authService?: unknown;
     alertCtrl?: unknown;
   } = {}) {
+    const defaultGeoSvc = {
+      provinces: jasmine.createSpy().and.returnValue(of(response([]))),
+      districts: jasmine.createSpy().and.returnValue(of(response([]))),
+      municipalities: jasmine.createSpy().and.returnValue(of(response([]))),
+      wards: jasmine.createSpy().and.returnValue(of(response([]))),
+      servicePoints: jasmine.createSpy().and.returnValue(of(servicePointResponse([]))),
+    };
+
     return new EnrollmentWizardPage(
       {} as any,
       (overrides.router || {}) as any,
       (overrides.enrollmentSvc || {}) as any,
-      (overrides.geoSvc || {}) as any,
+      ({ ...defaultGeoSvc, ...((overrides.geoSvc || {}) as object) }) as any,
       (overrides.dateService || {}) as any,
       (overrides.languageService || languageService()) as any,
       (overrides.authService || { getCurrentUser: () => null }) as any,
@@ -58,6 +74,15 @@ describe('EnrollmentWizardPage', () => {
 
     expect(page.showNidGate2).toBeTrue();
     expect(page.showHouseholdHeadForm).toBeFalse();
+    expect(page.temporarySameAsPermanent).toBeFalse();
+  });
+
+  it('submits temporary address as separate until the user opts into same-as-permanent', () => {
+    const page = createPage();
+
+    const formData = (page as any).buildHouseholdHeadFormData() as FormData;
+
+    expect(formData.get('temporary_same_as_permanent')).toBe('0');
   });
 
   it('manual NID fallback reveals the form and stores a canonical NID', () => {
@@ -231,6 +256,7 @@ describe('EnrollmentWizardPage', () => {
       districts: jasmine.createSpy().and.returnValue(of(response(['Kathmandu']))),
       municipalities: jasmine.createSpy().and.returnValue(of(response(['Kathmandu Metropolitan City']))),
       wards: jasmine.createSpy().and.returnValue(of(response(['1', '2']))),
+      servicePoints: jasmine.createSpy().and.returnValue(of(servicePointResponse([]))),
     };
 
     const page = new EnrollmentWizardPage(
@@ -287,6 +313,7 @@ describe('EnrollmentWizardPage', () => {
       districts: jasmine.createSpy().and.returnValue(of(response(['Makawanpur']))),
       municipalities: jasmine.createSpy().and.returnValue(of(response(['Hetauda Sub-Metropolitan City']))),
       wards: jasmine.createSpy().and.returnValue(of(response(['9', '10']))),
+      servicePoints: jasmine.createSpy().and.returnValue(of(servicePointResponse([]))),
     };
 
     const page = new EnrollmentWizardPage(
@@ -355,6 +382,8 @@ describe('EnrollmentWizardPage', () => {
       date_of_birth: '1990-06-15',
       mobile_number: '9812345678',
       citizenship_number: '311022/65843',
+      citizenship_issue_date: '2066-08-04',
+      citizenship_issue_district: 'Kathmandu',
       marital_status: 'married',
     };
     spyOn<any>(page, 'showToast');
@@ -488,6 +517,46 @@ describe('EnrollmentWizardPage', () => {
     ]);
   });
 
+  it('loads service points after the permanent district changes', () => {
+    const geoSvc = {
+      municipalities: jasmine.createSpy().and.returnValue(of(response(['Kathmandu Metropolitan City']))),
+      servicePoints: jasmine.createSpy().and.returnValue(of(servicePointResponse([
+        { id: 7, code: 'H0302000', name: 'Bir Hospital' },
+      ]))),
+    };
+    const page = createPage({ geoSvc });
+    page.step1.province = 'Bagamati';
+    page.step1.district = 'Kathmandu';
+    page.firstServicePointId = '99';
+
+    page.onDistrictChange();
+
+    expect(geoSvc.municipalities).toHaveBeenCalledWith('Bagamati', 'Kathmandu');
+    expect(geoSvc.servicePoints).toHaveBeenCalledWith('Bagamati', 'Kathmandu');
+    expect(page.servicePointOptions).toEqual([
+      { id: 7, code: 'H0302000', name: 'Bir Hospital' },
+    ]);
+    expect(String(page.firstServicePointId)).toBe('');
+  });
+
+  it('submits the selected service point id in the household payload', () => {
+    const page = createPage();
+    page.step1 = {
+      province: 'Bagamati',
+      district: 'Kathmandu',
+      municipality: 'Kathmandu',
+      ward_number: '1',
+      tole_village: '',
+      full_address: '',
+    };
+    page.firstServicePointId = 7;
+
+    const formData = (page as any).buildHouseholdHeadFormData() as FormData;
+
+    expect(formData.get('first_service_point_id')).toBe('7');
+    expect(formData.has('first_service_point')).toBeFalse();
+  });
+
   it('excludes stale household middle-name fields from the household payload', () => {
     const page = createPage();
     page.headData = {
@@ -505,6 +574,105 @@ describe('EnrollmentWizardPage', () => {
     expect(formData.has('last_name')).toBeTrue();
     expect(formData.has('middle_name')).toBeFalse();
     expect(formData.has('middle_name_ne')).toBeFalse();
+  });
+
+  it('submits birth-certificate identity and excludes stale citizenship fields for under-16 household heads', () => {
+    const page = createPage({
+      dateService: {
+        calculateAge: () => 10,
+      },
+    });
+    page.step1 = {
+      province: 'Bagmati',
+      district: 'Kathmandu',
+      municipality: 'Kathmandu',
+      ward_number: '1',
+      tole_village: '',
+      full_address: '',
+    };
+    page.headData = {
+      ...page.headData,
+      first_name: 'Nabin',
+      last_name: 'Shrestha',
+      gender: 'male',
+      date_of_birth: '2072-01-01',
+      mobile_number: '9812345678',
+      marital_status: 'single',
+      citizenship_number: 'STALE-CITIZENSHIP',
+      citizenship_issue_date: '2079-01-01',
+      citizenship_issue_district: 'Kathmandu',
+      citizenship_front_image: new Blob(['front'], { type: 'image/jpeg' }),
+      citizenship_back_image: new Blob(['back'], { type: 'image/jpeg' }),
+      birth_certificate_number: 'BC-123',
+      birth_certificate_issue_date: '2072-02-01',
+      birth_certificate_front_image: new Blob(['birth'], { type: 'image/jpeg' }),
+    };
+
+    const formData = (page as any).buildHouseholdHeadFormData() as FormData;
+
+    expect(formData.get('document_type')).toBe('birth_certificate');
+    expect(formData.get('birth_certificate_number')).toBe('BC-123');
+    expect(formData.get('birth_certificate_issue_date')).toBe('2072-02-01');
+    expect(formData.has('birth_certificate_front_image')).toBeTrue();
+    expect(formData.has('citizenship_number')).toBeFalse();
+    expect(formData.has('citizenship_issue_date')).toBeFalse();
+    expect(formData.has('citizenship_issue_district')).toBeFalse();
+    expect(formData.has('citizenship_front_image')).toBeFalse();
+    expect(formData.has('citizenship_back_image')).toBeFalse();
+  });
+
+  it('allows under-16 household heads to continue with birth-certificate details instead of citizenship details', () => {
+    const enrollmentSvc = {
+      saveHouseholdHead: jasmine.createSpy().and.returnValue(of({
+        success: true,
+        message: 'Saved.',
+        data: { id: 4, current_step: 2, household_head: null, family_members: [] },
+      })),
+      get: jasmine.createSpy().and.returnValue(of({
+        success: true,
+        message: 'Loaded.',
+        data: { id: 4, current_step: 2, household_head: null, family_members: [] },
+      })),
+    };
+    const page = createPage({
+      enrollmentSvc,
+      dateService: {
+        calculateAge: () => 10,
+        formatForDisplay: (_ad?: string, bs?: string) => bs || '',
+      },
+    });
+    page.enrollmentId = 4;
+    page.currentStep = 1;
+    page.step1 = {
+      province: 'Bagmati',
+      district: 'Kathmandu',
+      municipality: 'Kathmandu',
+      ward_number: '1',
+      tole_village: '',
+      full_address: '',
+    };
+    page.headData = {
+      ...page.headData,
+      first_name: 'Nabin',
+      last_name: 'Shrestha',
+      gender: 'male',
+      date_of_birth: '2072-01-01',
+      mobile_number: '9812345678',
+      marital_status: 'single',
+      citizenship_number: '',
+      birth_certificate_number: 'BC-123',
+      birth_certificate_issue_date: '2072-02-01',
+      birth_certificate_front_image: new Blob(['birth'], { type: 'image/jpeg' }),
+    };
+    spyOn<any>(page, 'showToast');
+
+    page.nextStep();
+
+    expect(enrollmentSvc.saveHouseholdHead).toHaveBeenCalled();
+    const submitted = enrollmentSvc.saveHouseholdHead.calls.mostRecent().args[1] as FormData;
+    expect(submitted.get('document_type')).toBe('birth_certificate');
+    expect(submitted.has('citizenship_number')).toBeFalse();
+    expect((page as any).showToast).not.toHaveBeenCalledWith('wizard.head_age', 'warning');
   });
 
   it('excludes stale member middle-name fields from add-member payloads', async () => {
@@ -574,6 +742,43 @@ describe('EnrollmentWizardPage', () => {
     expect(submitted.has('middle_name_ne')).toBeFalse();
   });
 
+  it('shows backend validation messages when member save fails', async () => {
+    const enrollmentSvc = {
+      addMember: jasmine.createSpy().and.returnValue(throwError(() => ({
+        error: {
+          message: 'Relationship grandfather requires member age to be higher than father age.',
+          errors: {
+            date_of_birth: ['Relationship grandfather requires member age to be higher than father age.'],
+          },
+        },
+      }))),
+    };
+    const page = createPage({
+      enrollmentSvc,
+      dateService: {
+        getCurrentBs: () => '2083-01-01',
+        calculateAge: () => 30,
+      },
+    });
+    spyOn<any>(page, 'showToast').and.returnValue(Promise.resolve());
+    page.enrollmentId = 4;
+    page.newMember = {
+      first_name: 'Kalu',
+      last_name: 'Shrestha',
+      gender: 'male',
+      date_of_birth: '2027-01-01',
+      relationship: 'grandfather',
+    };
+
+    await page.saveMember();
+
+    expect(page['showToast']).toHaveBeenCalledWith(
+      'Relationship grandfather requires member age to be higher than father age.',
+      'danger'
+    );
+    expect(page.savingMember).toBeFalse();
+  });
+
   it('keeps the add-member form hidden until the add action is selected', () => {
     const page = createPage({
       dateService: {
@@ -631,6 +836,7 @@ describe('EnrollmentWizardPage', () => {
     };
     const geoSvc = {
       provinces: jasmine.createSpy().and.returnValue(of(response([]))),
+      servicePoints: jasmine.createSpy().and.returnValue(of(servicePointResponse([]))),
     };
     const dateService = {
       getCurrentBs: () => '2083-01-01',

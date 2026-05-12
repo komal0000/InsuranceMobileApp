@@ -75,7 +75,8 @@
                   </div>
                   <div class="head-meta">
                     <span *ngIf="enrollment.household_head.mobile_number"><ion-icon name="call-outline"></ion-icon> {{ enrollment.household_head.mobile_number }}</span>
-                    <span *ngIf="enrollment.household_head.citizenship_number"><ion-icon name="card-outline"></ion-icon> {{ enrollment.household_head.citizenship_number }}</span>
+                    <span *ngIf="enrollment.household_head.document_type === 'birth_certificate' && enrollment.household_head.birth_certificate_number"><ion-icon name="card-outline"></ion-icon> {{ enrollment.household_head.birth_certificate_number }}</span>
+                    <span *ngIf="enrollment.household_head.document_type !== 'birth_certificate' && enrollment.household_head.citizenship_number"><ion-icon name="card-outline"></ion-icon> {{ enrollment.household_head.citizenship_number }}</span>
                   </div>
                   <div class="head-meta" *ngIf="enrollment.household_head.is_target_group">
                     <ion-badge color="warning" style="font-size:0.7rem;">
