@@ -34,19 +34,19 @@
             </div>
             <div class="info-grid">
               <div class="info-item">
-                <span class="info-label">Province</span>
+                <span class="info-label">{{ t('wizard.province') }}</span>
                 <span class="info-value">{{ enrollment.province }}</span>
               </div>
               <div class="info-item">
-                <span class="info-label">District</span>
+                <span class="info-label">{{ t('wizard.district') }}</span>
                 <span class="info-value">{{ enrollment.district }}</span>
               </div>
               <div class="info-item">
-                <span class="info-label">Municipality</span>
+                <span class="info-label">{{ t('wizard.municipality') }}</span>
                 <span class="info-value">{{ enrollment.municipality }}</span>
               </div>
               <div class="info-item">
-                <span class="info-label">Ward</span>
+                <span class="info-label">{{ t('Ward') }}</span>
                 <span class="info-value">{{ enrollment.ward_number }}</span>
               </div>
             </div>
@@ -67,7 +67,7 @@
               <h3>{{ t('enrollment_detail.premium') }}</h3>
             </div>
             <div class="premium-display">
-              <span class="premium-amount">Rs. {{ formatNumber(enrollment.premium_amount, 2) }}</span>
+              <span class="premium-amount">{{ t('common.currency') }} {{ formatNumber(enrollment.premium_amount, 2) }}</span>
             </div>
             <div class="premium-details" *ngIf="enrollment.payment_reference">
               <div class="premium-row" *ngIf="enrollment.payment_method">

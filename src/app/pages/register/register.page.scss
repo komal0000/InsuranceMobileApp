@@ -1,5 +1,25 @@
 .register-content { --background: #f8f9fa; }
 
+.lang-toggle {
+  position: absolute;
+  top: 30px;
+  right: 16px;
+  z-index: 10;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #fff;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+  ion-icon { font-size: 16px; }
+}
+
 .gradient-section {
   background: linear-gradient(135deg, #003087 0%, #001F5C 50%, #0050B3 100%);
   padding: 48px 24px 32px;

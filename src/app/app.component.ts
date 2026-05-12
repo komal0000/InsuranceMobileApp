@@ -1,9 +1,9 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ApplicationRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { App, URLOpenListenerEvent } from '@capacitor/app';
 import { IonApp, IonRouterOutlet } from '@ionic/angular/standalone';
 import { Subscription } from 'rxjs';
-import { filter } from 'rxjs/operators';
+import { filter, skip } from 'rxjs/operators';
 import { LanguageToggleComponent } from './components/language-toggle/language-toggle.component';
 import { AppSyncService } from './services/app-sync.service';
 import { LanguageService } from './services/language.service';
@@ -20,12 +20,14 @@ interface RemovableListener {
 export class AppComponent implements OnInit, OnDestroy {
   private readonly appListeners: RemovableListener[] = [];
   private routerSubscription?: Subscription;
+  private languageSubscription?: Subscription;
   showFloatingLanguageToggle = false;
 
   constructor(
     private router: Router,
     private syncService: AppSyncService,
-    private languageService: LanguageService
+    private languageService: LanguageService,
+    private appRef: ApplicationRef
   ) {}
 
   ngOnInit() {
@@ -35,6 +37,12 @@ export class AppComponent implements OnInit, OnDestroy {
     this.routerSubscription = this.router.events
       .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
       .subscribe(event => this.updateFloatingLanguageToggle(event.urlAfterRedirects));
+
+    this.languageSubscription = this.languageService.language$
+      .pipe(skip(1))
+      .subscribe(() => {
+        queueMicrotask(() => this.appRef.tick());
+      });
 
     // Intercept deep links from payment gateways (io.ionic.starter://payment-result?...)
     void App.addListener('appUrlOpen', (event: URLOpenListenerEvent) => {
@@ -58,6 +66,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.routerSubscription?.unsubscribe();
+    this.languageSubscription?.unsubscribe();
     this.appListeners.forEach(listener => {
       void listener.remove();
     });
@@ -65,7 +74,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
   private updateFloatingLanguageToggle(url: string): void {
     const path = url.split('?')[0].split('#')[0];
-    this.showFloatingLanguageToggle = ['/register', '/forgot-password']
+    this.showFloatingLanguageToggle = ['/forgot-password']
       .some(route => path === route || path.startsWith(`${route}/`));
   }
 }

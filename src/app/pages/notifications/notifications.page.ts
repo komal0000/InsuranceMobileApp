@@ -81,8 +81,10 @@ export class NotificationsPage implements OnInit, OnDestroy, ViewDidEnter {
     this.destroy$.complete();
   }
 
-  load() {
-    this.loading = true;
+  load(showLoading = true) {
+    if (showLoading) {
+      this.loading = true;
+    }
     this.api.get<ApiResponse<PaginatedData<AppNotification>>>('/notifications', { page: this.page }).subscribe({
       next: (res) => {
         this.notifications = this.page === 1 ? res.data.data : [...this.notifications, ...res.data.data];
@@ -144,9 +146,9 @@ export class NotificationsPage implements OnInit, OnDestroy, ViewDidEnter {
     return this.languageService.t(key);
   }
 
-  private reloadFirstPage(): void {
+  private reloadFirstPage(showLoading = this.notifications.length === 0): void {
     this.page = 1;
-    this.load();
+    this.load(showLoading);
     this.pushService.fetchUnreadCount();
   }
 

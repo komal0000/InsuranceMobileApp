@@ -10,6 +10,7 @@ import {
   IonItem,
   IonSpinner,
 } from '@ionic/angular/standalone';
+import { LanguageService } from '../../../services/language.service';
 
 @Component({
   selector: 'app-nid-gate',
@@ -36,8 +37,8 @@ import {
       <p style="font-size:0.85rem;color:#6c757d;margin:0 0 12px">{{ description }}</p>
       <div class="form-group">
         <ion-item class="form-item">
-          <ion-input label="NID Number" labelPlacement="stacked"
-                     placeholder="Enter NID number (hyphens and Nepali digits allowed)"
+          <ion-input [label]="t('wizard.nid_number')" labelPlacement="stacked"
+                     [placeholder]="t('wizard.nid_placeholder')"
                      [(ngModel)]="nidNumber"
                      (ngModelChange)="nidNumberChange.emit($event)"
                      type="text"
@@ -52,9 +53,9 @@ import {
       <div class="btn-row" style="margin-top:12px">
         <ion-button expand="block" (click)="verify.emit()" [disabled]="looking || !nidNumber.trim()">
           <ion-spinner *ngIf="looking" name="crescent"></ion-spinner>
-          <span *ngIf="looking">Verifying...</span>
+          <span *ngIf="looking">{{ t('wizard.verifying') }}</span>
           <ion-icon *ngIf="!looking" slot="start" name="search-outline"></ion-icon>
-          <span *ngIf="!looking">Verify NID</span>
+          <span *ngIf="!looking">{{ t('wizard.verify_nid') }}</span>
         </ion-button>
         <ion-button expand="block" fill="outline" color="medium" (click)="skip.emit()">
           {{ skipLabel }}
@@ -84,4 +85,10 @@ export class NidGateComponent {
   @Output() nidNumberChange = new EventEmitter<string>();
   @Output() verify = new EventEmitter<void>();
   @Output() skip = new EventEmitter<void>();
+
+  constructor(private languageService: LanguageService) {}
+
+  t(key: string): string {
+    return this.languageService.t(key);
+  }
 }

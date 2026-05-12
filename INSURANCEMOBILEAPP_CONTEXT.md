@@ -7,6 +7,8 @@ This file captures the current Ionic/Angular state so future conversations do no
 ## App Shape
 - Root: `C:\Insurance\InsuranceMobileApp`.
 - Ionic `^8.0.0`, Angular `^20.0.0`, Capacitor `8.1.0`, TypeScript `~5.9.0`.
+- Capacitor/Android display app name is `HIB`; package/application id is still `io.ionic.starter`.
+- StatusBar is configured with the HIB blue background and non-overlay mode. Android API 35+ has `values-v35/styles.xml` opt out of edge-to-edge enforcement for the app launch/no-action-bar themes so the system status icons do not overlap Ionic headers where Android permits opt-out.
 - Main UI pages live under `src\app\pages`.
 - API services live under `src\app\services`.
 - Shared interfaces live under `src\app\interfaces`.
@@ -18,6 +20,8 @@ This file captures the current Ionic/Angular state so future conversations do no
   - Nepali full name
   - mobile number
   - optional email
+- Register shows the language switch as a login-style top-right pill over the blue header. The app-level floating language toggle is no longer shown on `/register`; it remains available on `/forgot-password`.
+- Register keeps Nepali full-name transliteration on the Nepali name input through `appNepaliInput`.
 - Register now validates names before calling the API:
   - English full name must be at least two Latin-letter words.
   - Nepali full name must be at least two Devanagari-script words.
@@ -33,6 +37,7 @@ This file captures the current Ionic/Angular state so future conversations do no
 - During registration handoff, the normal direct-login password, remember-me, forgot-password, and Sign In controls are hidden until the OTP setup path reaches its own Create Password step.
 - Final setup-password and password-reset requests send the OTP code again because the backend re-checks it before changing passwords.
 - Login setup-password, forgot-password reset, and profile change-password now use the backend-aligned strong-password rule: 8+ characters with uppercase, lowercase, number, and symbol. The mobile validator counts Unicode code points, not JavaScript UTF-16 code units, to match Laravel `Str::length()`.
+- Backend password reset and profile change-password now reject matching the current password or the immediately previous password tracked from the next successful change onward. API validation messages are surfaced from the backend; request payloads are unchanged.
 - Existing user login remains password-based by mobile or HIB number.
 - Authenticated user payloads now include `preferred_language`.
 - `AuthService` syncs backend `preferred_language` into the mobile language service on login, setup-password login, profile fetch, and language update.
@@ -80,6 +85,7 @@ API methods added/used for login-side setup:
   - `src\app\services\enrollment.service.ts`
 - Interfaces:
   - `src\app\interfaces\enrollment.interface.ts`
+  - `EnrollmentConfig.relationship_blocked_by_head_marital_status` is optional and maps head marital status keys to blocked relationship keys.
 
 Step 1 includes:
 - household-head NID lookup
@@ -190,7 +196,10 @@ Family members:
 - Member English and Nepali middle-name inputs are not rendered in enrollment member entry, not copied into edit form state, and not submitted in member add/update FormData even if stale keys exist locally.
 - Step 2 and review name displays show first name plus last name only.
 - Member target-group UI and payload collection are removed.
-- Relationship selection now auto-fills and locks member gender when the backend `relationship_gender_map` marks the relationship as deterministic. Son/father/brother/grandfather/grandson/father-in-law/son-in-law map to male; daughter/mother/sister/grandmother/granddaughter/mother-in-law/daughter-in-law map to female. Spouse, other, self, and unknown relationships remain manual.
+- Mobile consumes backend `/api/enrollment-config.relationship_blocked_by_head_marital_status` for assistive relationship filtering and stale-value blocking in enrollment wizard, renewals list add-member, and renewal-detail member forms. If config is unavailable, `src\app\utils\relationship-marital-status.util.ts` falls back to the backend matrix: `single` blocks spouse, descendants, and all in-laws; `divorced`/`widowed`/`separated` block spouse plus spouse-side in-laws while allowing child-side in-laws.
+- Relationship option helper text now says relationships are hidden because they are not valid for the household head marital status, not only the old single-head case.
+- Relationship selection now auto-fills and locks member gender when the backend `relationship_gender_map` marks the relationship as deterministic. Son/father/brother/grandfather/grandson/father-in-law/brother-in-law/son-in-law map to male; daughter/mother/sister/grandmother/granddaughter/mother-in-law/sister-in-law/daughter-in-law map to female. Spouse, other, self, and unknown relationships remain manual.
+- Mobile relationship and marital labels include `brother_in_law`, `sister_in_law`, and `separated`.
 - Backend enrollment/renewal member saves enforce relationship DOB hierarchy across household members. Mobile remains UI-assistive only and now surfaces backend member-save validation errors, including `date_of_birth` hierarchy failures, in the enrollment wizard toast.
 - Backend enrollment/renewal member saves also enforce English last-name surname matching for bloodline relationships against both the household-head father and grandfather surnames when those surnames are available; mobile surfaces the backend `last_name` validation message.
 - Member removal in enrollment now requires a selected death/removal supporting file. `EnrollmentService.removeMember()` sends multipart `FormData` with `_method=DELETE` and `death_document`.
@@ -203,6 +212,7 @@ Family members:
 - Renewal member add/edit no longer collects target-group fields.
 - Renewal member add/edit no longer collects a birth certificate back image; birth certificate is one document capture.
 - Renewal member add/edit uses the same backend `relationship_gender_map` behavior as enrollment: deterministic relationships auto-fill and lock gender, while spouse/other/custom relationships stay manual.
+- Renewal member relationship pickers and stale-value validation use the same backend-provided marital-status relationship block matrix as enrollment, with the local fallback matrix if config is unavailable.
 - Renewal detail keeps Add Family Member below the member list. Removing a renewal member now requires a death/removal supporting file and posts multipart `_method=DELETE` with `death_document`.
 - Relevant files:
   - `src\app\pages\renewal-detail\renewal-detail.page.ts`
@@ -215,6 +225,10 @@ Family members:
 - `RenewalSearchPage` also blocks direct renewal search/initiation for management roles and shows a management-safe notice.
 - Dashboard enrollment creation now permits only `beneficiary` and `enrollment_assistant`.
 - Renewal detail uses the shared member form component. It still refetches renewal detail after member mutations because the backend response does not include enough updated premium/renewal aggregate state.
+- Renewals tab re-entry now uses cached-content refresh: existing enrollment/renewal content stays visible while background requests refresh the data, and the full-page spinner is reserved for first/empty loads.
+
+## Notification Mobile Changes
+- Alerts/notifications tab re-entry now keeps the existing notification list visible while page 1 and the unread count refresh in the background. First empty load still shows the full-page spinner, and pull-to-refresh remains the explicit fresh-data interaction.
 
 ## Dashboard Insurance Checker
 - Beneficiary dashboard only:
@@ -270,6 +284,8 @@ Family members:
 - Nepali text-entry fields using `appNepaliInput` now use the phonetic `TransliterateService` on committed Ionic input values instead of the `nepalify` keyboard-layout formatter; examples covered include `Komal Shrestha`, `Ram`, and `Shrestha`.
 - As of 2026-05-01, the remaining high-traffic mobile UI was moved to keyed translations or locale helpers: home, tabs, login/register/forgot password, profile, dashboard labels, enrollment list/detail/wizard, policy, payments, payment result, notifications, subsidies, renewal search, renewals, and renewal detail.
 - A static scan of mobile HTML templates on 2026-05-01 found no unmatched static user-facing English text/placeholder/title/aria-label/alt strings outside keyed translation bindings or dictionary-backed residual translations.
+- On 2026-05-12, Nepali mode was tightened to strict keyed UI coverage: every English dictionary key has a Nepali dictionary entry, the language toggle no longer shows raw `English`/`EN` while Nepali is active, login derived placeholders recompute from `language$`, and `AppComponent` schedules a root change-detection pass on language changes so cached tab/page views re-render.
+- `scripts/check-localized-templates.cjs` and `npm run check:i18n` guard against new hardcoded English text/label/placeholder/alt/title/aria-label values in mobile HTML templates, with expected exceptions for technical notation such as blood groups and IDs.
 
 ## Geo Loading Cache
 - `src\app\services\geo.service.ts` has in-session caching using shared observable behavior for repeated geo calls.
@@ -305,6 +321,21 @@ Important optimization files:
 - `src\app\components\member-form\member-form.component.ts`
 
 ## Verification
+Nepali localization verification on 2026-05-12:
+```powershell
+cd C:\Insurance\InsuranceMobileApp
+npm run check:i18n
+npm run build
+$env:CHROME_BIN="C:\Path\To\Chrome.exe"; npm test -- --watch=false --browsers=ChromeHeadless
+```
+
+Local macOS result:
+- `npm run check:i18n` passes: no hardcoded English template strings found.
+- `npm run build` passes.
+- `CHROME_BIN="/Applications/Brave Browser.app/Contents/MacOS/Brave Browser" npm test -- --watch=false --browsers=ChromeHeadless` passes: `123 SUCCESS`.
+- Plain `ChromeHeadless` without `CHROME_BIN` is unavailable on this Mac because Google Chrome is not installed at `/Applications/Google Chrome.app/...`.
+- Build warning: `src/app/components/bs-date-picker/bs-date-picker.component.ts` style budget exceeded by 55 bytes (`4.05 kB` total against `4.00 kB`).
+
 Commands run successfully on 2026-04-25:
 ```powershell
 cd C:\Insurance\InsuranceMobileApp
@@ -638,6 +669,58 @@ Result:
 - `npm run build` succeeds and writes to `www`.
 - Existing build warning remains: `src/app/components/bs-date-picker/bs-date-picker.component.ts` style budget exceeded by 55 bytes (`4.05 kB` total against `4.00 kB`).
 
+Single-head relationship verification on 2026-05-12:
+```bash
+cd /Users/rahkehs/Downloads/Insurance/InsuranceMobileApp
+CHROME_BIN="/Applications/Brave Browser.app/Contents/MacOS/Brave Browser" npm test -- --watch=false --browsers=ChromeHeadless --include='src/app/pages/enrollment-wizard/enrollment-wizard.page.spec.ts' --include='src/app/pages/renewals/renewals.page.spec.ts'
+npm run build
+```
+
+Result:
+- Focused enrollment wizard and renewals tests pass: `35 SUCCESS`.
+- `npm run build` succeeds and writes to `www`.
+- Existing build warning remains: `src/app/components/bs-date-picker/bs-date-picker.component.ts` style budget exceeded by 55 bytes (`4.05 kB` total against `4.00 kB`).
+
+Marital-status relationship matrix verification on 2026-05-12:
+```bash
+cd /Users/rahkehs/Downloads/Insurance/InsuranceMobileApp
+npm run build
+CHROME_BIN="/Applications/Brave Browser.app/Contents/MacOS/Brave Browser" npm test -- --watch=false --karma-config=/private/tmp/insurance-mobile-karma-ci.conf.js --include='src/app/pages/enrollment-wizard/enrollment-wizard.page.spec.ts' --include='src/app/pages/renewals/renewals.page.spec.ts' --include='src/app/pages/renewal-detail/renewal-detail.page.spec.ts' --include='src/app/components/member-form/member-form.component.spec.ts'
+CHROME_BIN="/Applications/Brave Browser.app/Contents/MacOS/Brave Browser" npm test -- --watch=false --karma-config=/private/tmp/insurance-mobile-karma-ci.conf.js
+```
+
+Result:
+- `npm run build` succeeds and writes to `www`.
+- Focused marital-status relationship specs pass: `47 SUCCESS`.
+- Full Karma suite passes with the Brave-backed headless config: `TOTAL: 246 SUCCESS`.
+- Plain `ChromeHeadless` without Google Chrome remains unavailable on this Mac; the temp Karma config points the Chrome launcher at installed Brave and uses port `9877`.
+- `git diff --check` passed.
+- Existing build warning remains: `src/app/components/bs-date-picker/bs-date-picker.component.ts` style budget exceeded by 55 bytes (`4.05 kB` total against `4.00 kB`).
+
+Renewals/alerts cached-refresh verification on 2026-05-12:
+```bash
+cd /Users/rahkehs/Downloads/Insurance/InsuranceMobileApp
+CHROME_BIN="/Applications/Brave Browser.app/Contents/MacOS/Brave Browser" npm test -- --watch=false --browsers=ChromeHeadless --include='src/app/pages/renewals/renewals.page.spec.ts' --include='src/app/pages/notifications/notifications.page.spec.ts'
+npm run build
+```
+
+Result:
+- Focused renewals and notifications tests pass: `11 SUCCESS`.
+- `npm run build` succeeds and writes to `www`.
+- Existing build warning remains: `src/app/components/bs-date-picker/bs-date-picker.component.ts` style budget exceeded by 55 bytes (`4.05 kB` total against `4.00 kB`).
+
+Registration language-toggle verification on 2026-05-12:
+```bash
+cd /Users/rahkehs/Downloads/Insurance/InsuranceMobileApp
+npm run build
+CHROME_BIN="/Applications/Brave Browser.app/Contents/MacOS/Brave Browser" npm test -- --watch=false --browsers=ChromeHeadless
+```
+
+Result:
+- `npm run build` succeeds and writes to `www`.
+- Full mobile Karma suite passes: `114 SUCCESS`.
+- Existing build warning remains: `src/app/components/bs-date-picker/bs-date-picker.component.ts` style budget exceeded by 55 bytes (`4.05 kB` total against `4.00 kB`).
+
 ## Deployment Notes
 - Environment API URL is configured in:
   - `src\environments\environment.ts`
@@ -649,7 +732,21 @@ Result:
 cd C:\Insurance\InsuranceMobileApp
 npm run build
 npx cap sync android
+npm run android:release:apk
+npm run android:release:aab
 ```
+- Release npm scripts use `scripts/android-gradle.cjs` to choose the Gradle wrapper by platform: `gradlew.bat` on Windows and `sh ./gradlew` on macOS/Linux.
+- `npm run android:release:apk` runs Gradle `assembleRelease`, so it builds the release APK artifact without requiring a connected device. Use `npm run android:install:release` when building and installing the release APK on a connected Android device.
+- macOS release script verified on 2026-05-12:
+  - `npm run android:release:apk` succeeds and creates `android/app/build/outputs/apk/release/app-release.apk`.
+  - `npm run android:install:release` is the explicit connected-device install command for release APKs.
+  - `npm run android:gradle -- bundleRelease` succeeds and creates the release AAB through the same platform-aware helper.
+  - Existing build warning remains: `src/app/components/bs-date-picker/bs-date-picker.component.ts` style budget exceeded by 55 bytes (`4.05 kB` total against `4.00 kB`).
+- Header/status-bar overlap fix verified on 2026-05-12:
+  - `npm run build`, `npx cap sync android`, and `npm run android:release:apk` succeeded after StatusBar/native resource changes; the resulting release APK was installed on connected Android 15 device `CPH2569`.
+  - Generated `android/app/src/main/assets/capacitor.config.json` includes `StatusBar.overlaysWebView=false`, `backgroundColor="#003087"`, and `style="DARK"`.
+  - Android header spacing depends on Capacitor StatusBar non-overlay config plus the API 35 edge-to-edge opt-out resource; no hardcoded toolbar padding is used to avoid double spacing on devices with correct safe-area handling.
+  - Final acceptance remains a visual check on the affected phone/emulator: status icons above the Dashboard title, language toggle inside the toolbar, primary toolbars spaced correctly, and bottom tabs clear of the navigation area.
 - macOS local release/device install verified on 2026-05-11:
   - Android SDK path: `/opt/homebrew/share/android-commandlinetools`
   - `npm run build:prod`, `npx cap sync android`, `sh ./gradlew assembleRelease`, `apksigner verify`, and `adb install -r` succeeded.

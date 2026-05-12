@@ -1,4 +1,4 @@
-import { of } from 'rxjs';
+import { BehaviorSubject, of } from 'rxjs';
 import { ActivatedRoute, convertToParamMap } from '@angular/router';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
@@ -8,12 +8,32 @@ import { LanguageService } from '../../services/language.service';
 import { ToastController } from '@ionic/angular/standalone';
 
 describe('LoginPage', () => {
-  const createLanguageService = () => ({
-    currentLanguage: 'en',
-    t: (key: string) => key,
-    toggleLanguage: jasmine.createSpy().and.returnValue('ne'),
-    setLocalLanguage: jasmine.createSpy().and.resolveTo(),
-  });
+  const createLanguageService = () => {
+    const languageSubject = new BehaviorSubject<'en' | 'ne'>('en');
+    const translations: Record<'en' | 'ne', Record<string, string>> = {
+      en: {
+        'login.enter_mobile_number': 'Enter mobile number',
+        'login.enter_hib_number': 'Enter HIB number',
+      },
+      ne: {
+        'login.enter_mobile_number': 'मोबाइल नम्बर लेख्नुहोस्',
+        'login.enter_hib_number': 'HIB नम्बर लेख्नुहोस्',
+      },
+    };
+    const languageService = {
+      currentLanguage: 'en' as 'en' | 'ne',
+      languageSubject,
+      language$: languageSubject.asObservable(),
+      t: (key: string) => translations[languageService.currentLanguage][key] ?? key,
+      toggleLanguage: jasmine.createSpy().and.callFake(() => languageService.currentLanguage === 'en' ? 'ne' : 'en'),
+      setLocalLanguage: jasmine.createSpy().and.callFake(async (language: 'en' | 'ne') => {
+        languageService.currentLanguage = language;
+        languageSubject.next(language);
+      }),
+    };
+
+    return languageService;
+  };
 
   const createRoute = (params: Record<string, string> = {}) => ({
     queryParamMap: of(convertToParamMap(params)),
@@ -83,6 +103,26 @@ describe('LoginPage', () => {
     expect(page.showRegistrationSetup).toBeTrue();
     expect(page.loginData.identifier_type).toBe('mobile');
     expect(page.loginData.identifier).toBe('9812345678');
+  });
+
+  it('recomputes the identifier placeholder when the language changes', () => {
+    const authService = createAuthService();
+    const router = jasmine.createSpyObj('Router', ['navigateByUrl']);
+    const languageService = createLanguageService();
+    const page = new LoginPage(
+      authService as any,
+      router as any,
+      createRoute() as any,
+      createToastController() as any,
+      languageService as any
+    );
+
+    expect(page.identifierPlaceholder).toBe('Enter mobile number');
+
+    languageService.currentLanguage = 'ne';
+    languageService.languageSubject.next('ne');
+
+    expect(page.identifierPlaceholder).toBe('मोबाइल नम्बर लेख्नुहोस्');
   });
 
   it('sends OTP, verifies OTP, and creates password for registration setup', async () => {

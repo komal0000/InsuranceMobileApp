@@ -11,10 +11,13 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "lint": "ng lint",
+    "check:i18n": "node scripts/check-localized-templates.cjs",
     "android:sync": "npx cap sync android",
     "android:open": "npx cap open android",
-    "android:release:apk": "npm run build:prod && npm run android:sync && cd android && gradlew.bat assembleRelease",
-    "android:release:aab": "npm run build:prod && npm run android:sync && cd android && gradlew.bat bundleRelease"
+    "android:gradle": "node scripts/android-gradle.cjs",
+    "android:release:apk": "npm run build:prod && npm run android:sync && npm run android:gradle -- assembleRelease",
+    "android:install:release": "npm run build:prod && npm run android:sync && npm run android:gradle -- installRelease",
+    "android:release:aab": "npm run build:prod && npm run android:sync && npm run android:gradle -- bundleRelease"
   },
   "private": true,
   "dependencies": {

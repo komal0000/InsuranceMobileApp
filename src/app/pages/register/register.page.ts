@@ -16,7 +16,7 @@ import { isEnglishFullName, isNepaliFullName, normalizeSpaces } from '../../util
 import { addIcons } from 'ionicons';
 import {
   shieldCheckmarkOutline, arrowBackOutline, personOutline,
-  callOutline, mailOutline
+  callOutline, mailOutline, languageOutline
 } from 'ionicons/icons';
 
 @Component({
@@ -46,12 +46,20 @@ export class RegisterPage {
     private languageService: LanguageService
   ) {
     addIcons({
-      shieldCheckmarkOutline, arrowBackOutline, personOutline, callOutline, mailOutline,
+      shieldCheckmarkOutline, arrowBackOutline, personOutline, callOutline, mailOutline, languageOutline,
     });
+  }
+
+  get lang(): 'en' | 'ne' {
+    return this.languageService.currentLanguage;
   }
 
   t(key: string): string {
     return this.languageService.t(key);
+  }
+
+  toggleLang() {
+    void this.languageService.setLocalLanguage(this.languageService.toggleLanguage());
   }
 
   async register() {

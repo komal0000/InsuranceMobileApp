@@ -28,6 +28,13 @@ import {
   genderForRelationship,
   normalizeRelationshipGenderMap,
 } from '../../utils/relationship-gender.util';
+import {
+  RelationshipBlockMap,
+  blockedRelationshipsForHeadMaritalStatus,
+  defaultRelationshipBlockMap,
+  isRelationshipBlockedForHeadMaritalStatus,
+  normalizeRelationshipBlockMap,
+} from '../../utils/relationship-marital-status.util';
 
 const DEFAULT_MEMBER_RELATIONSHIPS: Array<{ value: string; label: string }> = [
   { value: 'spouse', label: 'Spouse' },
@@ -43,12 +50,12 @@ const DEFAULT_MEMBER_RELATIONSHIPS: Array<{ value: string; label: string }> = [
   { value: 'granddaughter', label: 'Granddaughter' },
   { value: 'father_in_law', label: 'Father In Law' },
   { value: 'mother_in_law', label: 'Mother In Law' },
+  { value: 'brother_in_law', label: 'Brother In Law' },
+  { value: 'sister_in_law', label: 'Sister In Law' },
   { value: 'son_in_law', label: 'Son In Law' },
   { value: 'daughter_in_law', label: 'Daughter In Law' },
   { value: 'other', label: 'Other' },
 ];
-
-const SINGLE_HEAD_BLOCKED_RELATIONSHIPS = ['spouse', 'son', 'daughter'];
 
 @Component({
   selector: 'app-renewal-detail',
@@ -71,6 +78,7 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
   savingMember = false;
   relationshipOptions: Array<{ value: string; label: string }> = [...DEFAULT_MEMBER_RELATIONSHIPS];
   relationshipGenderMap: RelationshipGenderMap = {};
+  relationshipBlockedByHeadMaritalStatus: RelationshipBlockMap = defaultRelationshipBlockMap();
   newMember: any = {
     first_name: '', middle_name: '', last_name: '',
     first_name_ne: '', middle_name_ne: '', last_name_ne: '',
@@ -246,12 +254,12 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
     }
 
     const relationship = this.normalizeKey(this.newMember.relationship);
-    if (!relationship || !this.availableMemberRelationshipOptions.some(option => option.value === relationship)) {
-      this.toastCtrl.create({ message: this.t('wizard.relationship_invalid'), duration: 2000, color: 'warning', position: 'top' }).then(t => t.present());
+    if (this.isRelationshipBlockedForHead(relationship)) {
+      this.toastCtrl.create({ message: this.t('wizard.relationship_marital_status_block'), duration: 2500, color: 'warning', position: 'top' }).then(t => t.present());
       return;
     }
-    if (this.isHeadSingle && SINGLE_HEAD_BLOCKED_RELATIONSHIPS.includes(relationship)) {
-      this.toastCtrl.create({ message: this.t('wizard.relationship_single_block'), duration: 2500, color: 'warning', position: 'top' }).then(t => t.present());
+    if (!relationship || !this.availableMemberRelationshipOptions.some(option => option.value === relationship)) {
+      this.toastCtrl.create({ message: this.t('wizard.relationship_invalid'), duration: 2000, color: 'warning', position: 'top' }).then(t => t.present());
       return;
     }
     this.newMember.relationship = relationship;
@@ -552,6 +560,14 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
     return this.normalizeKey(this.householdHead?.marital_status) === 'single';
   }
 
+  get hasBlockedRelationshipOptions(): boolean {
+    const blocked = blockedRelationshipsForHeadMaritalStatus(
+      this.relationshipBlockedByHeadMaritalStatus,
+      this.householdHead?.marital_status,
+    );
+    return blocked.some(relationship => this.relationshipOptions.some(option => option.value === relationship));
+  }
+
   get householdHead(): any {
     const enrollment = this.renewal?.enrollment;
     return enrollment?.household_head ?? enrollment?.householdHead ?? null;
@@ -612,11 +628,23 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
   }
 
   get availableMemberRelationshipOptions(): Array<{ value: string; label: string }> {
-    if (!this.isHeadSingle) {
+    const blocked = blockedRelationshipsForHeadMaritalStatus(
+      this.relationshipBlockedByHeadMaritalStatus,
+      this.householdHead?.marital_status,
+    );
+    if (!blocked.length) {
       return this.relationshipOptions;
     }
 
-    return this.relationshipOptions.filter(option => !SINGLE_HEAD_BLOCKED_RELATIONSHIPS.includes(option.value));
+    return this.relationshipOptions.filter(option => !blocked.includes(option.value));
+  }
+
+  private isRelationshipBlockedForHead(relationship: string): boolean {
+    return isRelationshipBlockedForHeadMaritalStatus(
+      this.relationshipBlockedByHeadMaritalStatus,
+      this.householdHead?.marital_status,
+      relationship,
+    );
   }
 
   private loadRelationshipOptions() {
@@ -624,6 +652,9 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
       next: (res) => {
         this.relationshipOptions = this.buildRelationshipOptions(res?.data?.relationship_types);
         this.relationshipGenderMap = normalizeRelationshipGenderMap(res?.data?.relationship_gender_map);
+        this.relationshipBlockedByHeadMaritalStatus = normalizeRelationshipBlockMap(
+          res?.data?.relationship_blocked_by_head_marital_status,
+        );
       },
     });
   }

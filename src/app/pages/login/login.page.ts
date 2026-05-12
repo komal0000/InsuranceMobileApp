@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -7,6 +7,8 @@ import {
   IonCheckbox, IonSpinner, IonIcon
 } from '@ionic/angular/standalone';
 import { ToastController } from '@ionic/angular/standalone';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { AuthService } from '../../services/auth.service';
 import { LoginRequest } from '../../interfaces/user.interface';
 import { LanguageService } from '../../services/language.service';
@@ -30,7 +32,7 @@ type SetupLoadingAction = 'sendOtp' | 'verifyOtp' | 'createPassword' | null;
   templateUrl: './login.page.html',
   styleUrls: ['./login.page.scss'],
 })
-export class LoginPage {
+export class LoginPage implements OnDestroy {
   loginData: LoginRequest = {
     identifier_type: 'mobile',
     identifier: '',
@@ -49,6 +51,7 @@ export class LoginPage {
 
   identifierPlaceholder = 'Enter mobile number';
   identifierInputType = 'tel';
+  private readonly destroy$ = new Subject<void>();
 
   constructor(
     private authService: AuthService,
@@ -62,7 +65,9 @@ export class LoginPage {
       eyeOffOutline, shieldCheckmarkOutline, languageOutline, keyOutline,
     });
 
-    this.route.queryParamMap.subscribe(params => {
+    this.route.queryParamMap
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(params => {
       this.showRegistrationSetup = params.get('setup') === 'registration';
 
       const identifierType = params.get('identifier_type');
@@ -77,6 +82,10 @@ export class LoginPage {
 
       this.onIdentifierTypeChange(false);
     });
+
+    this.languageService.language$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => this.onIdentifierTypeChange(false));
   }
 
   get lang(): 'en' | 'ne' {
@@ -89,7 +98,11 @@ export class LoginPage {
 
   toggleLang() {
     void this.languageService.setLocalLanguage(this.languageService.toggleLanguage());
-    this.onIdentifierTypeChange(false);
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   onIdentifierTypeChange(clearIdentifier = true) {

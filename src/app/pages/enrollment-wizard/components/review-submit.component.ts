@@ -167,24 +167,17 @@ export class ReviewSubmitComponent {
       return '';
     }
 
-    const labels: Record<string, string> = {
-      normal: 'Normal',
-      ultra_poor: 'Ultra Poor',
-      fchv: 'FCHV',
-      senior_citizen: 'Senior Citizen',
-      hiv: 'HIV',
-      leprosy: 'Leprosy',
-      null_disability: 'Null Disability',
-      mdr_tb: 'MDR-TB',
-    };
+    if (type === 'normal') {
+      return this.t('wizard.normal');
+    }
 
-    return labels[type] || type;
+    return this.languageService.label('target_group', type, type);
   }
 
   getBenefitLabel(result: SubsidyResult): string {
-    if (result.benefit_type === 'full_premium_waiver') return '100% Free';
-    if (result.benefit_type === 'percentage_discount') return `${result.benefit_value}% Discount`;
-    if (result.benefit_type === 'fixed_discount') return `Rs. ${result.benefit_value} Discount`;
-    return result.benefit_type;
+    if (result.benefit_type === 'full_premium_waiver') return this.t('benefit.full_premium_waiver');
+    if (result.benefit_type === 'percentage_discount') return `${this.formatNumber(result.benefit_value)}% ${this.t('benefit.percentage_discount')}`;
+    if (result.benefit_type === 'fixed_discount') return `${this.formatCurrency(result.benefit_value)} ${this.t('benefit.fixed_discount')}`;
+    return this.languageService.translateText(result.benefit_type);
   }
 }

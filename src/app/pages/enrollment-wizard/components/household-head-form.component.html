@@ -26,31 +26,31 @@
           </div>
 
           <ion-item class="form-item" *ngIf="!isHeadFieldReadonly('first_name')">
-            <ion-input [label]="text('wizard.first_name_required', 'First Name *')" labelPlacement="stacked" placeholder="First Name"
+            <ion-input [label]="text('wizard.first_name_required', 'First Name *')" labelPlacement="stacked" [placeholder]="text('wizard.first_name_required', 'First Name *')"
                        [(ngModel)]="headData.first_name"
                        [readonly]="isHeadFieldReadonly('first_name')">
             </ion-input>
           </ion-item>
           <ion-item class="form-item" *ngIf="!isHeadFieldReadonly('last_name')">
-            <ion-input [label]="text('wizard.last_name_required', 'Last Name *')" labelPlacement="stacked" placeholder="Last Name"
+            <ion-input [label]="text('wizard.last_name_required', 'Last Name *')" labelPlacement="stacked" [placeholder]="text('wizard.last_name_required', 'Last Name *')"
                        [(ngModel)]="headData.last_name"
                        [readonly]="isHeadFieldReadonly('last_name')">
             </ion-input>
           </ion-item>
           <ion-item class="form-item" *ngIf="!isHeadFieldReadonly('first_name_ne')">
-            <ion-input [label]="text('wizard.first_name_ne', 'First Name Nepali')" labelPlacement="stacked" placeholder="Type in English e.g. Komal"
+            <ion-input [label]="text('wizard.first_name_ne', 'First Name Nepali')" labelPlacement="stacked" [placeholder]="text('register.full_name_ne_placeholder', 'Type in English')"
                        appNepaliInput [(ngModel)]="headData.first_name_ne"
                        [readonly]="isHeadFieldReadonly('first_name_ne')">
             </ion-input>
           </ion-item>
           <ion-item class="form-item" *ngIf="!isHeadFieldReadonly('last_name_ne')">
-            <ion-input [label]="text('wizard.last_name_ne', 'Last Name Nepali')" labelPlacement="stacked" placeholder="Type in English e.g. Shrestha"
+            <ion-input [label]="text('wizard.last_name_ne', 'Last Name Nepali')" labelPlacement="stacked" [placeholder]="text('register.full_name_ne_placeholder', 'Type in English')"
                        appNepaliInput [(ngModel)]="headData.last_name_ne"
                        [readonly]="isHeadFieldReadonly('last_name_ne')">
             </ion-input>
           </ion-item>
           <ion-item class="form-item" *ngIf="!isHeadFieldReadonly('gender')">
-            <ion-select [label]="text('wizard.gender_required', 'Gender *')" labelPlacement="stacked" placeholder="Select Gender"
+            <ion-select [label]="text('wizard.gender_required', 'Gender *')" labelPlacement="stacked" [placeholder]="text('wizard.select_gender', 'Select Gender')"
                         [(ngModel)]="headData.gender"
                         [disabled]="isHeadFieldReadonly('gender')">
               <ion-select-option value="male">{{ text('gender.male', 'Male') }}</ion-select-option>
@@ -67,7 +67,7 @@
             [disabled]="isHeadFieldReadonly('date_of_birth')">
           </app-bs-date-picker>
           <ion-item class="form-item">
-            <ion-select [label]="text('wizard.blood_group', 'Blood Group')" labelPlacement="stacked" placeholder="Select Blood Group"
+            <ion-select [label]="text('wizard.blood_group', 'Blood Group')" labelPlacement="stacked" [placeholder]="text('wizard.select_blood_group', 'Select Blood Group')"
                         [(ngModel)]="headData.blood_group">
               <ion-select-option value="A+">A+</ion-select-option>
               <ion-select-option value="A-">A-</ion-select-option>
@@ -80,22 +80,23 @@
             </ion-select>
           </ion-item>
           <ion-item class="form-item">
-            <ion-select [label]="text('wizard.marital_status_required', 'Marital Status *')" labelPlacement="stacked" placeholder="Select Status"
+            <ion-select [label]="text('wizard.marital_status_required', 'Marital Status *')" labelPlacement="stacked" [placeholder]="text('wizard.select_status', 'Select Status')"
                         [(ngModel)]="headData.marital_status">
               <ion-select-option value="single">{{ text('marital.single', 'Single') }}</ion-select-option>
               <ion-select-option value="married">{{ text('marital.married', 'Married') }}</ion-select-option>
               <ion-select-option value="divorced">{{ text('marital.divorced', 'Divorced') }}</ion-select-option>
               <ion-select-option value="widowed">{{ text('marital.widowed', 'Widowed') }}</ion-select-option>
+              <ion-select-option value="separated">{{ text('marital.separated', 'Separated') }}</ion-select-option>
             </ion-select>
           </ion-item>
           <ion-item class="form-item" *ngIf="!isHeadFieldReadonly('mobile_number')">
-            <ion-input [label]="text('profile.mobile_number', 'Mobile Number') + ' *'" labelPlacement="stacked" placeholder="98XXXXXXXX"
+            <ion-input [label]="text('profile.mobile_number', 'Mobile Number') + ' *'" labelPlacement="stacked" [placeholder]="text('register.mobile_placeholder', '98XXXXXXXX')"
                        type="tel" [(ngModel)]="headData.mobile_number" maxlength="10" minlength="10"
                        [readonly]="isHeadFieldReadonly('mobile_number')">
             </ion-input>
           </ion-item>
           <ion-item class="form-item" *ngIf="!isHeadFieldReadonly('email')">
-            <ion-input [label]="text('profile.email', 'Email')" labelPlacement="stacked" placeholder="email@example.com"
+            <ion-input [label]="text('profile.email', 'Email')" labelPlacement="stacked" [placeholder]="text('register.email_placeholder', 'email@example.com')"
                        type="email" [(ngModel)]="headData.email"
                        [readonly]="isHeadFieldReadonly('email')">
             </ion-input>
@@ -195,7 +196,7 @@
 
           <ng-container *ngIf="!usesBirthCertificate; else birthCertificateFields">
           <ion-item class="form-item" *ngIf="!isHeadFieldReadonly('citizenship_number')">
-            <ion-input [label]="text('wizard.citizenship_number', 'Citizenship Number') + ' *'" labelPlacement="stacked" placeholder="Citizenship No."
+            <ion-input [label]="text('wizard.citizenship_number', 'Citizenship Number') + ' *'" labelPlacement="stacked" [placeholder]="text('wizard.citizenship_no', 'Citizenship No.')"
                        [(ngModel)]="headData.citizenship_number"
                        [readonly]="isHeadFieldReadonly('citizenship_number')">
             </ion-input>
@@ -208,7 +209,7 @@
             [disabled]="isHeadFieldReadonly('citizenship_issue_date')">
           </app-bs-date-picker>
           <ion-item class="form-item" *ngIf="!isHeadFieldReadonly('citizenship_issue_district')">
-            <ion-input [label]="text('wizard.citizenship_issue_district', 'Issue District')" labelPlacement="stacked" placeholder="e.g. Kathmandu"
+            <ion-input [label]="text('wizard.citizenship_issue_district', 'Issue District')" labelPlacement="stacked" [placeholder]="text('e.g. Kathmandu', 'e.g. Kathmandu')"
                        [(ngModel)]="headData.citizenship_issue_district"
                        [readonly]="isHeadFieldReadonly('citizenship_issue_district')">
             </ion-input>
@@ -242,7 +243,7 @@
 
           <ng-template #birthCertificateFields>
             <ion-item class="form-item">
-              <ion-input [label]="text('wizard.birth_certificate_number', 'Birth Certificate Number') + ' *'" labelPlacement="stacked" placeholder="Birth certificate no."
+              <ion-input [label]="text('wizard.birth_certificate_number', 'Birth Certificate Number') + ' *'" labelPlacement="stacked" [placeholder]="text('wizard.birth_certificate_no', 'Birth Certificate No.')"
                          [(ngModel)]="headData.birth_certificate_number">
               </ion-input>
             </ion-item>
@@ -287,13 +288,13 @@
             </ion-select>
           </ion-item>
           <ion-item class="form-item">
-            <ion-select [label]="text('wizard.profession', 'Profession')" labelPlacement="stacked" placeholder="Select Profession"
+            <ion-select [label]="text('wizard.profession', 'Profession')" labelPlacement="stacked" [placeholder]="text('wizard.select_profession', 'Select Profession')"
                         [(ngModel)]="headData.profession_id">
               <ion-select-option *ngFor="let option of professionOptions" [value]="option.id">{{ option.label }}</ion-select-option>
             </ion-select>
           </ion-item>
           <ion-item class="form-item">
-            <ion-select [label]="text('wizard.qualification', 'Qualification')" labelPlacement="stacked" placeholder="Select Qualification"
+            <ion-select [label]="text('wizard.qualification', 'Qualification')" labelPlacement="stacked" [placeholder]="text('wizard.select_qualification', 'Select Qualification')"
                         [(ngModel)]="headData.qualification_id">
               <ion-select-option *ngFor="let option of qualificationOptions" [value]="option.id">{{ option.label }}</ion-select-option>
             </ion-select>
@@ -318,22 +319,22 @@
           </ion-item>
           <div *ngIf="headData.is_target_group">
             <ion-item class="form-item">
-              <ion-select [label]="text('wizard.target_group_type', 'Target Group Type')" labelPlacement="stacked" placeholder="Select Type"
+              <ion-select [label]="text('wizard.target_group_type', 'Target Group Type')" labelPlacement="stacked" [placeholder]="text('wizard.select_type', 'Select Type')"
                           [(ngModel)]="headData.target_group_type">
-                <ion-select-option value="ultra_poor">Ultra Poor</ion-select-option>
-                <ion-select-option value="fchv">FCHV</ion-select-option>
-                <ion-select-option value="senior_citizen">Senior Citizen</ion-select-option>
-                <ion-select-option value="hiv">HIV</ion-select-option>
-                <ion-select-option value="leprosy">Leprosy</ion-select-option>
-                <ion-select-option value="null_disability">Null Disability</ion-select-option>
-                <ion-select-option value="mdr_tb">MDR-TB</ion-select-option>
+                <ion-select-option value="ultra_poor">{{ text('target_group.ultra_poor', 'Ultra Poor') }}</ion-select-option>
+                <ion-select-option value="fchv">{{ text('target_group.fchv', 'FCHV') }}</ion-select-option>
+                <ion-select-option value="senior_citizen">{{ text('target_group.senior_citizen', 'Senior Citizen') }}</ion-select-option>
+                <ion-select-option value="hiv">{{ text('target_group.hiv', 'HIV') }}</ion-select-option>
+                <ion-select-option value="leprosy">{{ text('target_group.leprosy', 'Leprosy') }}</ion-select-option>
+                <ion-select-option value="null_disability">{{ text('target_group.null_disability', 'Null Disability') }}</ion-select-option>
+                <ion-select-option value="mdr_tb">{{ text('target_group.mdr_tb', 'MDR-TB') }}</ion-select-option>
               </ion-select>
             </ion-item>
             <p *ngIf="headData.target_group_type === 'senior_citizen'" style="font-size:0.82rem;color:#6c757d;margin:8px 0">
               {{ text('wizard.senior_citizen_no_target_docs', 'Senior citizen target group does not require target card images or ID number.') }}
             </p>
             <ion-item class="form-item" *ngIf="headData.target_group_type !== 'senior_citizen'">
-              <ion-input [label]="text('wizard.target_group_id_number', 'Target Group ID Number')" labelPlacement="stacked" placeholder="ID Number"
+              <ion-input [label]="text('wizard.target_group_id_number', 'Target Group ID Number')" labelPlacement="stacked" [placeholder]="text('common.id', 'ID')"
                          [(ngModel)]="headData.target_group_id_number">
               </ion-input>
             </ion-item>

@@ -39,6 +39,13 @@ import {
   genderForRelationship,
   normalizeRelationshipGenderMap,
 } from '../../utils/relationship-gender.util';
+import {
+  RelationshipBlockMap,
+  blockedRelationshipsForHeadMaritalStatus,
+  defaultRelationshipBlockMap,
+  isRelationshipBlockedForHeadMaritalStatus,
+  normalizeRelationshipBlockMap,
+} from '../../utils/relationship-marital-status.util';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
@@ -58,12 +65,12 @@ const DEFAULT_MEMBER_RELATIONSHIPS: Array<{ value: string; label: string }> = [
   { value: 'granddaughter', label: 'Granddaughter' },
   { value: 'father_in_law', label: 'Father In Law' },
   { value: 'mother_in_law', label: 'Mother In Law' },
+  { value: 'brother_in_law', label: 'Brother In Law' },
+  { value: 'sister_in_law', label: 'Sister In Law' },
   { value: 'son_in_law', label: 'Son In Law' },
   { value: 'daughter_in_law', label: 'Daughter In Law' },
   { value: 'other', label: 'Other' },
 ];
-
-const SINGLE_HEAD_BLOCKED_RELATIONSHIPS = ['spouse', 'son', 'daughter'];
 
 interface VerifiedNidField {
   label: string;
@@ -104,6 +111,7 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
   stepTitles = [...STEP_TITLE_KEYS];
   relationshipOptions: Array<{ value: string; label: string }> = [...DEFAULT_MEMBER_RELATIONSHIPS];
   relationshipGenderMap: RelationshipGenderMap = {};
+  relationshipBlockedByHeadMaritalStatus: RelationshipBlockMap = defaultRelationshipBlockMap();
   private initialLoad = true;
 
   // Subsidy data from API
@@ -263,9 +271,16 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
     this.enrollmentSvc.getConfig().subscribe({
       next: r => {
         this.config = r.data;
-        const configData = r.data as EnrollmentConfig & { relationship_types?: unknown; relationship_gender_map?: unknown };
+        const configData = r.data as EnrollmentConfig & {
+          relationship_types?: unknown;
+          relationship_gender_map?: unknown;
+          relationship_blocked_by_head_marital_status?: unknown;
+        };
         this.relationshipOptions = this.buildRelationshipOptions(configData?.relationship_types);
         this.relationshipGenderMap = normalizeRelationshipGenderMap(configData?.relationship_gender_map);
+        this.relationshipBlockedByHeadMaritalStatus = normalizeRelationshipBlockMap(
+          configData?.relationship_blocked_by_head_marital_status,
+        );
         this.professionOptions = this.optionRecordToArray(r.data?.profession_options, this.professionOptions);
         this.qualificationOptions = this.optionRecordToArray(r.data?.qualification_options, this.qualificationOptions);
       },
@@ -1233,11 +1248,11 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
     }
 
     const relationship = this.normalizeKey(this.newMember.relationship);
+    if (this.isRelationshipBlockedForHead(relationship)) {
+      this.showToast(this.t('wizard.relationship_marital_status_block'), 'warning'); return;
+    }
     if (!relationship || !this.availableMemberRelationshipOptions.some(option => option.value === relationship)) {
       this.showToast(this.t('wizard.relationship_invalid'), 'warning'); return;
-    }
-    if (this.isHeadSingle && SINGLE_HEAD_BLOCKED_RELATIONSHIPS.includes(relationship)) {
-      this.showToast(this.t('wizard.relationship_single_block'), 'warning'); return;
     }
     this.newMember.relationship = relationship;
     if (this.newMember.marital_status) {
@@ -1509,12 +1524,32 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
     return this.normalizeKey(this.headData?.marital_status) === 'single';
   }
 
+  get hasBlockedRelationshipOptions(): boolean {
+    const blocked = blockedRelationshipsForHeadMaritalStatus(
+      this.relationshipBlockedByHeadMaritalStatus,
+      this.headData?.marital_status,
+    );
+    return blocked.some(relationship => this.relationshipOptions.some(option => option.value === relationship));
+  }
+
   get availableMemberRelationshipOptions(): Array<{ value: string; label: string }> {
-    if (!this.isHeadSingle) {
+    const blocked = blockedRelationshipsForHeadMaritalStatus(
+      this.relationshipBlockedByHeadMaritalStatus,
+      this.headData?.marital_status,
+    );
+    if (!blocked.length) {
       return this.relationshipOptions;
     }
 
-    return this.relationshipOptions.filter(option => !SINGLE_HEAD_BLOCKED_RELATIONSHIPS.includes(option.value));
+    return this.relationshipOptions.filter(option => !blocked.includes(option.value));
+  }
+
+  private isRelationshipBlockedForHead(relationship: string): boolean {
+    return isRelationshipBlockedForHeadMaritalStatus(
+      this.relationshipBlockedByHeadMaritalStatus,
+      this.headData?.marital_status,
+      relationship,
+    );
   }
 
   private buildRelationshipOptions(raw: unknown): Array<{ value: string; label: string }> {
@@ -1648,26 +1683,19 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
     this.stepTitles = STEP_TITLE_KEYS.map((key) => this.languageService.t(key));
   }
 
-  private confirmationLabels: Record<string, string> = {
-    normal: 'Normal',
-    ultra_poor: 'Ultra Poor',
-    fchv: 'FCHV',
-    senior_citizen: 'Senior Citizen',
-    hiv: 'HIV',
-    leprosy: 'Leprosy',
-    null_disability: 'Null Disability',
-    mdr_tb: 'MDR-TB',
-  };
-
   getConfirmationLabel(type: string): string {
-    return this.confirmationLabels[type] || type;
+    if (type === 'normal') {
+      return this.t('wizard.normal');
+    }
+
+    return this.languageService.label('target_group', type, type);
   }
 
   getBenefitLabel(result: SubsidyResult): string {
-    if (result.benefit_type === 'full_premium_waiver') return '100% Free';
-    if (result.benefit_type === 'percentage_discount') return `${result.benefit_value}% Discount`;
-    if (result.benefit_type === 'fixed_discount') return `Rs. ${result.benefit_value} Discount`;
-    return result.benefit_type;
+    if (result.benefit_type === 'full_premium_waiver') return this.t('benefit.full_premium_waiver');
+    if (result.benefit_type === 'percentage_discount') return `${this.formatNumber(result.benefit_value)}% ${this.t('benefit.percentage_discount')}`;
+    if (result.benefit_type === 'fixed_discount') return `${this.formatCurrency(result.benefit_value)} ${this.t('benefit.fixed_discount')}`;
+    return this.languageService.translateText(result.benefit_type);
   }
 
   private async showToast(message: string, color: string) {

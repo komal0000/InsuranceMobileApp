@@ -3,38 +3,38 @@
         <!-- Household Info -->
         <ion-accordion value="location">
           <ion-item slot="header" color="light">
-            <ion-label><strong>Household Location</strong></ion-label>
+            <ion-label><strong>{{ t('wizard.household_location') }}</strong></ion-label>
           </ion-item>
           <div slot="content" style="padding:14px">
             <div class="review-section">
               <div class="review-item">
-                <span class="review-label">Province</span>
+                <span class="review-label">{{ t('wizard.province') }}</span>
                 <span class="review-value">{{ enrollment?.province || step1.province || '—' }}</span>
               </div>
               <div class="review-item">
-                <span class="review-label">District</span>
+                <span class="review-label">{{ t('wizard.district') }}</span>
                 <span class="review-value">{{ enrollment?.district || step1.district || '—' }}</span>
               </div>
               <div class="review-item">
-                <span class="review-label">Municipality</span>
+                <span class="review-label">{{ t('wizard.municipality') }}</span>
                 <span class="review-value">{{ enrollment?.municipality || step1.municipality || '—' }}</span>
               </div>
               <div class="review-item">
-                <span class="review-label">Ward Number</span>
+                <span class="review-label">{{ t('wizard.ward_number') }}</span>
                 <span class="review-value">{{ enrollment?.ward_number || step1.ward_number || '—' }}</span>
               </div>
               <div class="review-item">
-                <span class="review-label">Tole / Village</span>
+                <span class="review-label">{{ t('wizard.tole_village') }}</span>
                 <span class="review-value">{{ enrollment?.tole_village || step1.tole_village || '—' }}</span>
               </div>
               <div class="review-item">
-                <span class="review-label">Full Address</span>
+                <span class="review-label">{{ t('wizard.full_address') }}</span>
                 <span class="review-value">{{ enrollment?.full_address || step1.full_address || '—' }}</span>
               </div>
             </div>
             <ion-button size="small" fill="clear" (click)="goToStep(1)" style="margin-top:10px">
               <ion-icon slot="start" name="create-outline"></ion-icon>
-              Edit
+              {{ t('common.edit') }}
             </ion-button>
           </div>
         </ion-accordion>
@@ -42,74 +42,74 @@
         <!-- Household Head -->
         <ion-accordion value="head">
           <ion-item slot="header" color="light">
-            <ion-label><strong>Household Head</strong></ion-label>
+            <ion-label><strong>{{ t('common.household_head') }}</strong></ion-label>
           </ion-item>
           <div slot="content" style="padding:14px">
             <div class="review-section">
               <div class="review-item">
-                <span class="review-label">Full Name</span>
+                <span class="review-label">{{ t('wizard.full_name') }}</span>
                 <span class="review-value">
                   {{ headData.first_name }} {{ headData.last_name }}
                 </span>
               </div>
               <div class="review-item" *ngIf="headData.first_name_ne">
-                <span class="review-label">Nepali Name</span>
+                <span class="review-label">{{ t('wizard.nepali_name') }}</span>
                 <span class="review-value">{{ headData.first_name_ne }} {{ headData.last_name_ne }}</span>
               </div>
               <div class="review-item">
-                <span class="review-label">Gender</span>
+                <span class="review-label">{{ t('policy.gender') }}</span>
                 <span class="review-value">{{ label('gender', headData.gender, t('common.not_available')) }}</span>
               </div>
               <div class="review-item">
-                <span class="review-label">Date of Birth</span>
+                <span class="review-label">{{ t('profile.date_of_birth') }}</span>
                 <span class="review-value">{{ headData.date_of_birth || '—' }}</span>
               </div>
               <div class="review-item">
-                <span class="review-label">Blood Group</span>
+                <span class="review-label">{{ t('wizard.blood_group') }}</span>
                 <span class="review-value">{{ headData.blood_group || '—' }}</span>
               </div>
               <div class="review-item">
-                <span class="review-label">Marital Status</span>
+                <span class="review-label">{{ t('wizard.marital_status') }}</span>
                 <span class="review-value">{{ label('marital', headData.marital_status, t('common.not_available')) }}</span>
               </div>
               <div class="review-item">
-                <span class="review-label">Mobile</span>
+                <span class="review-label">{{ t('wizard.mobile') }}</span>
                 <span class="review-value">{{ headData.mobile_number || '—' }}</span>
               </div>
               <div class="review-item" *ngIf="headData.email">
-                <span class="review-label">Email</span>
+                <span class="review-label">{{ t('wizard.email') }}</span>
                 <span class="review-value">{{ headData.email }}</span>
               </div>
               <div class="review-item" *ngIf="headData.document_type !== 'birth_certificate'">
-                <span class="review-label">Citizenship No.</span>
+                <span class="review-label">{{ t('wizard.citizenship_no') }}</span>
                 <span class="review-value">{{ headData.citizenship_number || '—' }}</span>
               </div>
               <div class="review-item" *ngIf="headData.document_type === 'birth_certificate'">
-                <span class="review-label">Birth Certificate No.</span>
+                <span class="review-label">{{ t('wizard.birth_certificate_no') }}</span>
                 <span class="review-value">{{ headData.birth_certificate_number || '—' }}</span>
               </div>
               <div class="review-item" *ngIf="headData.document_type === 'birth_certificate' && headData.birth_certificate_issue_date">
-                <span class="review-label">Birth Certificate Issue Date</span>
+                <span class="review-label">{{ t('wizard.birth_certificate_issue_date_label') }}</span>
                 <span class="review-value">{{ headData.birth_certificate_issue_date }}</span>
               </div>
               <div class="review-item" *ngIf="headData.document_type !== 'birth_certificate' && headData.citizenship_issue_date">
-                <span class="review-label">Citizenship Issue Date</span>
+                <span class="review-label">{{ t('wizard.citizenship_issue_date_label') }}</span>
                 <span class="review-value">{{ headData.citizenship_issue_date }}</span>
               </div>
               <div class="review-item" *ngIf="headData.document_type !== 'birth_certificate' && headData.citizenship_issue_district">
-                <span class="review-label">Citizenship Issue District</span>
+                <span class="review-label">{{ t('wizard.citizenship_issue_district_label') }}</span>
                 <span class="review-value">{{ headData.citizenship_issue_district }}</span>
               </div>
               <div class="review-item">
-                <span class="review-label">Confirmation Type</span>
-                <span class="review-value">{{ headData.is_target_group ? (getConfirmationLabel(headData.target_group_type) || 'Yes') : 'Normal' }}</span>
+                <span class="review-label">{{ t('wizard.confirmation_type') }}</span>
+                <span class="review-value">{{ headData.is_target_group ? (getConfirmationLabel(headData.target_group_type) || t('common.yes')) : t('wizard.normal') }}</span>
               </div>
               <div class="review-item" *ngIf="headData.occupation">
-                <span class="review-label">Occupation</span>
+                <span class="review-label">{{ t('wizard.occupation') }}</span>
                 <span class="review-value">{{ headData.occupation }}</span>
               </div>
               <div class="review-item" *ngIf="headData.education_level">
-                <span class="review-label">Education</span>
+                <span class="review-label">{{ t('wizard.education') }}</span>
                 <span class="review-value">{{ headData.education_level }}</span>
               </div>
             </div>
@@ -127,7 +127,7 @@
             </div>
             <ion-button size="small" fill="clear" (click)="goToStep(1)" style="margin-top:10px">
               <ion-icon slot="start" name="create-outline"></ion-icon>
-              Edit
+              {{ t('common.edit') }}
             </ion-button>
           </div>
         </ion-accordion>
@@ -135,7 +135,7 @@
         <!-- Family Members -->
         <ion-accordion value="members">
           <ion-item slot="header" color="light">
-            <ion-label><strong>Family Members ({{ (members.length || 0) + 1 }} total)</strong></ion-label>
+            <ion-label><strong>{{ t('wizard.family_members_total').replace(':count', formatNumber((members.length || 0) + 1)) }}</strong></ion-label>
           </ion-item>
           <div slot="content" style="padding:14px">
             <div class="member-list">
@@ -144,9 +144,9 @@
                 <div class="member-avatar">{{ (householdHead.first_name || 'H')[0].toUpperCase() }}</div>
                 <div class="member-info">
                   <strong>{{ householdHead.first_name }} {{ householdHead.last_name }}</strong>
-                  <span>Household Head</span>
+                  <span>{{ t('common.household_head') }}</span>
                 </div>
-                <ion-badge color="primary">Head</ion-badge>
+                <ion-badge color="primary">{{ t('wizard.head') }}</ion-badge>
               </div>
               <!-- Members -->
               <div class="member-row" *ngFor="let m of members">
@@ -159,7 +159,7 @@
             </div>
             <ion-button size="small" fill="clear" (click)="goToStep(2)" style="margin-top:10px">
               <ion-icon slot="start" name="create-outline"></ion-icon>
-              Edit
+              {{ t('common.edit') }}
             </ion-button>
           </div>
         </ion-accordion>
@@ -167,24 +167,24 @@
         <!-- Premium Summary -->
         <ion-accordion value="premium">
           <ion-item slot="header" color="light">
-            <ion-label><strong>Premium Summary</strong></ion-label>
+            <ion-label><strong>{{ t('wizard.premium_summary') }}</strong></ion-label>
           </ion-item>
           <div slot="content" style="padding:14px">
             <div class="review-section">
               <div class="review-item">
-                <span class="review-label">Total Members</span>
-                <span class="review-value">{{ premiumBreakdown.members }}</span>
+                <span class="review-label">{{ t('wizard.total_members') }}</span>
+                <span class="review-value">{{ formatNumber(premiumBreakdown.members) }}</span>
               </div>
               <div class="review-item">
-                <span class="review-label">Base Premium</span>
+                <span class="review-label">{{ t('wizard.base_premium') }}</span>
                 <span class="review-value">{{ formatCurrency(premiumBreakdown.base) }}</span>
               </div>
               <div class="review-item" *ngIf="premiumBreakdown.extra > 0">
-                <span class="review-label">Extra Members Premium</span>
+                <span class="review-label">{{ t('wizard.extra_members_premium') }}</span>
                 <span class="review-value">{{ formatCurrency(premiumBreakdown.extra) }}</span>
               </div>
               <div class="review-item">
-                <span class="review-label" style="font-size:0.8rem;color:#003087;font-weight:700">TOTAL PREMIUM</span>
+                <span class="review-label" style="font-size:0.8rem;color:#003087;font-weight:700">{{ t('wizard.total_premium') }}</span>
                 <span class="review-value" style="font-size:1.1rem;color:#003087;font-weight:700">{{ formatCurrency(premiumBreakdown.total) }}</span>
               </div>
             </div>
@@ -193,7 +193,7 @@
             <div *ngIf="subsidyResults.length > 0" style="margin-top:14px;padding:12px;background:#e8f5e9;border-radius:8px;border:1px solid #a5d6a7">
               <p style="font-weight:700;color:#2e7d32;margin:0 0 8px;font-size:0.85rem">
                 <ion-icon name="checkmark-circle-outline" style="vertical-align:middle;margin-right:4px"></ion-icon>
-                Subsidy Eligibility ({{ subsidyResults.length }} rule(s) matched)
+                {{ t('wizard.subsidy_eligibility') }} ({{ formatNumber(subsidyResults.length) }} {{ t('rule(s) matched') }})
               </p>
               <div *ngFor="let sr of subsidyResults" style="padding:6px 0;border-bottom:1px solid #c8e6c9;font-size:0.82rem">
                 <strong>{{ sr.member_name }}</strong> ({{ formatNumber(sr.member_age) }} {{ t('common.years_short') }})
@@ -205,11 +205,11 @@
               </div>
               <div *ngIf="subsidySummary" style="margin-top:10px;padding-top:8px;border-top:2px solid #66bb6a">
                 <div class="review-item">
-                  <span class="review-label" style="color:#2e7d32;font-weight:600">Subsidy Discount</span>
+                  <span class="review-label" style="color:#2e7d32;font-weight:600">{{ t('renewals.subsidy_discount') }}</span>
                   <span class="review-value" style="color:#2e7d32;font-weight:700">- {{ formatCurrency(subsidySummary.best_discount) }}</span>
                 </div>
                 <div class="review-item">
-                  <span class="review-label" style="font-size:0.85rem;color:#1b5e20;font-weight:700">PAYABLE AMOUNT</span>
+                  <span class="review-label" style="font-size:0.85rem;color:#1b5e20;font-weight:700">{{ t('wizard.payable_amount') }}</span>
                   <span class="review-value" style="font-size:1.1rem;color:#1b5e20;font-weight:700">{{ formatCurrency(subsidySummary.final_premium) }}</span>
                 </div>
               </div>
@@ -226,7 +226,7 @@
           <ion-item lines="none" style="--padding-start:0">
             <ion-checkbox slot="start" [(ngModel)]="confirmed"></ion-checkbox>
             <ion-label class="ion-text-wrap" style="font-size:0.88rem;margin-left:10px">
-              I confirm that all the information provided is accurate and complete to the best of my knowledge.
+              {{ t('wizard.confirm_accuracy') }}
             </ion-label>
           </ion-item>
         </ion-card-content>
@@ -236,7 +236,7 @@
       <div class="nav-buttons">
         <ion-button expand="block" fill="outline" color="medium" (click)="prevStep()">
           <ion-icon slot="start" name="arrow-back-outline"></ion-icon>
-          Back
+          {{ t('common.back') }}
         </ion-button>
         <ion-button *ngIf="!subsidySummary || subsidySummary.final_premium > 0"
                     expand="block" color="success" [disabled]="!confirmed" (click)="payAndSubmit()">

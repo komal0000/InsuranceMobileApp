@@ -172,8 +172,8 @@ interface MemberFormModel {
           </ion-select-option>
         </ion-select>
       </ion-item>
-      <p *ngIf="isHeadSingle" class="helper-text">
-        {{ text('wizard.relationship_single_notice', 'Spouse, son, and daughter options are hidden because household head marital status is single.') }}
+      <p *ngIf="showRelationshipConstraintNotice || isHeadSingle" class="helper-text">
+        {{ text('wizard.relationship_marital_status_notice', 'Some relationships are hidden because they are not valid for the household head marital status.') }}
       </p>
       <ion-item class="form-item">
         <ion-select [label]="text('wizard.blood_group', 'Blood Group')" labelPlacement="stacked" [(ngModel)]="member.blood_group">
@@ -193,6 +193,7 @@ interface MemberFormModel {
           <ion-select-option value="married">{{ text('marital.married', 'Married') }}</ion-select-option>
           <ion-select-option value="divorced">{{ text('marital.divorced', 'Divorced') }}</ion-select-option>
           <ion-select-option value="widowed">{{ text('marital.widowed', 'Widowed') }}</ion-select-option>
+          <ion-select-option value="separated">{{ text('marital.separated', 'Separated') }}</ion-select-option>
         </ion-select>
       </ion-item>
       <ion-item class="form-item">
@@ -284,6 +285,7 @@ export class MemberFormComponent implements OnChanges {
   @Input() relationshipOptions: Array<{ value: string; label: string }> = [];
   @Input() relationshipGenderMap: RelationshipGenderMap = {};
   @Input() isHeadSingle = false;
+  @Input() showRelationshipConstraintNotice = false;
   @Input() isEditing = false;
   @Input() saving = false;
   @Input() showEmail = false;

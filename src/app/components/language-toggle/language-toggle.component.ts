@@ -15,7 +15,7 @@ import { AppLanguage, LanguageService } from '../../services/language.service';
       [class.language-toggle-ne]="(language$ | async) === 'ne'"
       (click)="toggle()"
       [attr.aria-label]="languageService.t('common.switch_language')">
-      <span>{{ (language$ | async) === 'ne' ? 'EN' : 'ने' }}</span>
+      <span>{{ (language$ | async) === 'ne' ? languageService.t('EN') : 'ने' }}</span>
     </button>
   `,
   styles: [`

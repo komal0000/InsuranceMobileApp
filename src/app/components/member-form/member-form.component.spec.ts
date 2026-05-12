@@ -75,6 +75,26 @@ describe('MemberFormComponent', () => {
     expect(component.isGenderLocked).toBeTrue();
   });
 
+  it('sets sibling-in-law gender from the configured relationship map', () => {
+    const fixture = TestBed.createComponent(MemberFormComponent);
+    const component = fixture.componentInstance;
+    component.member = { relationship: '', gender: '' };
+    component.relationshipGenderMap = {
+      brother_in_law: 'male',
+      sister_in_law: 'female',
+    };
+
+    component.onRelationshipChange('brother_in_law');
+
+    expect(component.member.gender).toBe('male');
+    expect(component.isGenderLocked).toBeTrue();
+
+    component.onRelationshipChange('sister_in_law');
+
+    expect(component.member.gender).toBe('female');
+    expect(component.isGenderLocked).toBeTrue();
+  });
+
   it('keeps spouse gender manual and unlocked', () => {
     const fixture = TestBed.createComponent(MemberFormComponent);
     const component = fixture.componentInstance;

@@ -33,11 +33,11 @@
 
       <app-nid-gate *ngIf="showNidGate2"
                     [title]="t('wizard.start_household_head_nid')"
-                    description="Enter the NID number to auto-fill details. Hyphens and Nepali digits are allowed."
+                    [description]="t('wizard.nid_description')"
                     [(nidNumber)]="nidNumber2"
                     [message]="nidMessage2"
                     [looking]="nidLooking2"
-                    skipLabel="Skip &amp; Fill Manually"
+                    [skipLabel]="t('wizard.skip_fill_manually')"
                     [card]="true"
                     (verify)="lookupNid2()"
                     (skip)="skipNidGate2()">
@@ -129,15 +129,15 @@
       <div class="nav-buttons" *ngIf="showHouseholdHeadForm">
         <ion-button expand="block" fill="outline" color="medium" (click)="prevStep()">
           <ion-icon slot="start" name="arrow-back-outline"></ion-icon>
-          Back
+          {{ t('common.back') }}
         </ion-button>
         <ion-button expand="block" fill="outline" color="medium" [disabled]="savingDraft" (click)="saveDraft()">
           <ion-spinner *ngIf="savingDraft" name="crescent"></ion-spinner>
-          <span *ngIf="!savingDraft">Save Draft</span>
+          <span *ngIf="!savingDraft">{{ t('wizard.save_draft') }}</span>
         </ion-button>
         <ion-button expand="block" [disabled]="saving" (click)="nextStep()">
           <ion-spinner *ngIf="saving" name="crescent"></ion-spinner>
-          <span *ngIf="!saving">Next: Family Members</span>
+          <span *ngIf="!saving">{{ t('wizard.next_family_members') }}</span>
           <ion-icon *ngIf="!saving" slot="end" name="arrow-forward-outline"></ion-icon>
         </ion-button>
       </div>
@@ -158,7 +158,7 @@
               <strong>{{ householdHead.first_name }} {{ householdHead.last_name }}</strong>
               <span>{{ t('common.household_head') }} · {{ t('common.age') }} {{ formatNumber(getAge(householdHead.date_of_birth, householdHead.date_of_birth_bs)) }}</span>
             </div>
-            <ion-badge color="primary">Head</ion-badge>
+            <ion-badge color="primary">{{ t('wizard.head') }}</ion-badge>
           </div>
         </ion-card-content>
       </ion-card>
@@ -187,12 +187,12 @@
       <!-- Empty state -->
       <div *ngIf="!members.length && !householdHead" class="empty-text">
         <ion-icon name="people-outline" style="font-size:40px;color:#adb5bd"></ion-icon>
-        <p style="color:#6c757d;font-size:0.85rem">No members added yet. Use the button below to add family members.</p>
+        <p style="color:#6c757d;font-size:0.85rem">{{ t('wizard.no_members_added') }}</p>
       </div>
 
       <ion-button expand="block" fill="outline" (click)="showAddMember()" *ngIf="!showMemberForm" class="ion-margin-top">
         <ion-icon name="add-outline" slot="start"></ion-icon>
-        Add Family Member
+        {{ t('wizard.add_family_member') }}
       </ion-button>
 
       <!-- Add Member Form -->
@@ -202,19 +202,19 @@
             <div class="section-icon" style="background:rgba(0,48,135,0.08)">
               <ion-icon name="person-outline" style="color:#003087"></ion-icon>
             </div>
-            <h3>{{ isEditingMember ? 'Edit Family Member' : 'New Family Member' }}</h3>
+            <h3>{{ isEditingMember ? t('wizard.edit_family_member') : t('wizard.new_family_member') }}</h3>
             <ion-badge *ngIf="nidVerifiedMember && !isEditingMember" color="success" style="margin-left:8px;font-size:0.7rem;vertical-align:middle">
               <ion-icon name="checkmark-circle-outline" style="vertical-align:middle;margin-right:2px"></ion-icon>
-              NID Verified
+              {{ t('wizard.nid_verified_badge') }}
             </ion-badge>
           </div>
 
           <app-nid-gate *ngIf="showNidGateMember && !isEditingMember"
-                        description="Enter NID to auto-fill. Hyphens and Nepali digits are allowed."
+                        [description]="t('wizard.member_nid_description')"
                         [(nidNumber)]="nidNumberMember"
                         [message]="nidMessageMember"
                         [looking]="nidLookingMember"
-                        skipLabel="Skip"
+                        [skipLabel]="t('Skip')"
                         (verify)="lookupNidMember()"
                         (skip)="skipNidGateMember()">
           </app-nid-gate>
@@ -223,7 +223,7 @@
                            [member]="newMember"
                            [relationshipOptions]="availableMemberRelationshipOptions"
                            [relationshipGenderMap]="relationshipGenderMap"
-                           [isHeadSingle]="isHeadSingle"
+                           [showRelationshipConstraintNotice]="hasBlockedRelationshipOptions"
                            [isEditing]="isEditingMember"
                            [saving]="savingMember"
                            [photoPreview]="memberPhotoPreview"
@@ -240,10 +240,10 @@
       <div class="nav-buttons" style="order:3">
         <ion-button expand="block" fill="outline" color="medium" (click)="prevStep()">
           <ion-icon slot="start" name="arrow-back-outline"></ion-icon>
-          Back
+          {{ t('common.back') }}
         </ion-button>
         <ion-button expand="block" [disabled]="saving" (click)="nextStep()">
-          <span>Review &amp; Submit</span>
+          <span>{{ t('wizard.review_submit_action') }}</span>
           <ion-icon slot="end" name="arrow-forward-outline"></ion-icon>
         </ion-button>
       </div>

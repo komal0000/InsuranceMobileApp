@@ -1,5 +1,7 @@
 import { of } from 'rxjs';
 import { Preferences } from '@capacitor/preferences';
+import { EN_TRANSLATIONS } from '../i18n/en';
+import { NE_TRANSLATIONS } from '../i18n/ne';
 import { LanguageService } from './language.service';
 
 describe('LanguageService', () => {
@@ -18,6 +20,21 @@ describe('LanguageService', () => {
     expect(service.t('dashboard.title')).toBe('ड्यासबोर्ड');
     expect(service.t('Dashboard')).toBe('ड्यासबोर्ड');
     expect(service.t('Unmapped phrase')).toBe('Unmapped phrase');
+  });
+
+  it('has Nepali entries for every English translation key', () => {
+    const missingKeys = Object.keys(EN_TRANSLATIONS)
+      .filter(key => !Object.prototype.hasOwnProperty.call(NE_TRANSLATIONS, key));
+
+    expect(missingKeys).toEqual([]);
+  });
+
+  it('uses Nepali-script labels for language names in Nepali mode', async () => {
+    await service.setLocalLanguage('ne');
+
+    expect(service.t('common.english')).toBe('अंग्रेजी');
+    expect(service.t('English')).toBe('अंग्रेजी');
+    expect(service.t('EN')).toBe('अं');
   });
 
   it('translates enrollment search and status filter labels in Nepali mode', async () => {

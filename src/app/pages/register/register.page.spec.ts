@@ -3,13 +3,39 @@ import { RegisterPage } from './register.page';
 
 describe('RegisterPage', () => {
   const createLanguageService = () => ({
+    currentLanguage: 'en',
     t: (key: string) => key,
+    toggleLanguage: jasmine.createSpy().and.returnValue('ne'),
+    setLocalLanguage: jasmine.createSpy().and.resolveTo(),
   });
 
   const createToastController = () => ({
     create: jasmine.createSpy().and.callFake(async () => ({
       present: jasmine.createSpy().and.resolveTo(),
     })),
+  });
+
+  it('toggles the local language using the next language', () => {
+    const authService = jasmine.createSpyObj('AuthService', ['registerBeneficiary']);
+    const router = jasmine.createSpyObj('Router', ['navigate']);
+    const toastCtrl = createToastController();
+    const languageService = createLanguageService();
+
+    const page = new RegisterPage(
+      authService as any,
+      router as any,
+      toastCtrl as any,
+      languageService as any
+    );
+
+    const toggleLang = (page as any).toggleLang;
+    expect(toggleLang).toEqual(jasmine.any(Function));
+    if (typeof toggleLang === 'function') {
+      toggleLang.call(page);
+    }
+
+    expect(languageService.toggleLanguage).toHaveBeenCalled();
+    expect(languageService.setLocalLanguage).toHaveBeenCalledWith('ne');
   });
 
   it('submits beneficiary details and navigates to login setup', async () => {

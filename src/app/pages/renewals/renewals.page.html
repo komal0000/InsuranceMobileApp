@@ -61,7 +61,7 @@
 
               <div class="head-profile" *ngIf="enrollment.household_head">
                 <div class="head-avatar">
-                  <img *ngIf="headPhotoUrl" [src]="headPhotoUrl" alt="Photo" class="head-photo" />
+                  <img *ngIf="headPhotoUrl" [src]="headPhotoUrl" [alt]="t('profile.photo')" class="head-photo" />
                   <div *ngIf="!headPhotoUrl" class="avatar-placeholder">
                     {{ (enrollment.household_head.first_name || enrollment.household_head.name || '').charAt(0).toUpperCase() }}
                   </div>
@@ -200,7 +200,7 @@
               <div class="member-list" *ngIf="enrollment.family_members && enrollment.family_members.length > 0">
                 <div class="member-card" *ngFor="let member of enrollment.family_members">
                   <div class="member-avatar-wrapper">
-                    <img *ngIf="getMemberPhotoUrl(member)" [src]="getMemberPhotoUrl(member)" alt="Photo" class="member-photo" />
+                    <img *ngIf="getMemberPhotoUrl(member)" [src]="getMemberPhotoUrl(member)" [alt]="t('profile.photo')" class="member-photo" />
                     <div *ngIf="!getMemberPhotoUrl(member)" class="avatar-placeholder small">
                       {{ (member.first_name || '').charAt(0).toUpperCase() }}
                     </div>
@@ -292,7 +292,7 @@
                     {{ memberPhotoPreview ? t('common.change') : t('common.capture') }}
                   </ion-button>
                 </div>
-                <img *ngIf="memberPhotoPreview" [src]="memberPhotoPreview" class="preview-img" alt="Photo" />
+                <img *ngIf="memberPhotoPreview" [src]="memberPhotoPreview" class="preview-img" [alt]="t('profile.photo')" />
               </div>
 
               <!-- English Name -->
@@ -336,8 +336,8 @@
                   </ion-select-option>
                 </ion-select>
               </ion-item>
-              <p *ngIf="isHeadSingle" style="margin:2px 4px 8px;color:#6c757d;font-size:0.75rem;">
-                {{ t('wizard.relationship_single_notice') }}
+              <p *ngIf="hasBlockedRelationshipOptions" style="margin:2px 4px 8px;color:#6c757d;font-size:0.75rem;">
+                {{ t('wizard.relationship_marital_status_notice') }}
               </p>
               <ion-item class="form-item">
                 <ion-select [label]="t('wizard.blood_group')" labelPlacement="stacked" [(ngModel)]="newMember.blood_group">
@@ -357,6 +357,7 @@
                   <ion-select-option value="married">{{ t('marital.married') }}</ion-select-option>
                   <ion-select-option value="divorced">{{ t('marital.divorced') }}</ion-select-option>
                   <ion-select-option value="widowed">{{ t('marital.widowed') }}</ion-select-option>
+                  <ion-select-option value="separated">{{ t('marital.separated') }}</ion-select-option>
                 </ion-select>
               </ion-item>
               <ion-item class="form-item">
@@ -389,7 +390,7 @@
                       {{ memberCitizenshipFrontPreview ? t('common.change') : t('common.capture') }}
                     </ion-button>
                   </div>
-                  <img *ngIf="memberCitizenshipFrontPreview" [src]="memberCitizenshipFrontPreview" class="preview-img" alt="Citizenship Front" />
+                  <img *ngIf="memberCitizenshipFrontPreview" [src]="memberCitizenshipFrontPreview" class="preview-img" [alt]="t('wizard.citizenship_front')" />
                 </div>
                 <div class="capture-section">
                   <div class="capture-row">
@@ -399,7 +400,7 @@
                       {{ memberCitizenshipBackPreview ? t('common.change') : t('common.capture') }}
                     </ion-button>
                   </div>
-                  <img *ngIf="memberCitizenshipBackPreview" [src]="memberCitizenshipBackPreview" class="preview-img" alt="Citizenship Back" />
+                  <img *ngIf="memberCitizenshipBackPreview" [src]="memberCitizenshipBackPreview" class="preview-img" [alt]="t('wizard.citizenship_back')" />
                 </div>
               </div>
 
@@ -417,7 +418,7 @@
                       {{ memberBirthCertFrontPreview ? t('common.change') : t('common.capture') }}
                     </ion-button>
                   </div>
-                  <img *ngIf="memberBirthCertFrontPreview" [src]="memberBirthCertFrontPreview" class="preview-img" alt="Birth Certificate Document" />
+                  <img *ngIf="memberBirthCertFrontPreview" [src]="memberBirthCertFrontPreview" class="preview-img" [alt]="t('wizard.birth_certificate_front')" />
                 </div>
               </div>
 
@@ -437,7 +438,7 @@
             <ion-card *ngFor="let r of renewals" button (click)="viewDetail(r)" class="renewal-card">
               <ion-card-content>
                 <div class="card-top-row">
-                  <span class="renewal-number">{{ r.renewal_number || 'Renewal #' + r.id }}</span>
+                  <span class="renewal-number">{{ r.renewal_number || t('renewal_detail.number_prefix') + r.id }}</span>
                   <ion-badge [color]="getStatusColor(r.status)">{{ formatStatus(r.status) }}</ion-badge>
                 </div>
                 <div class="renewal-card-meta">
@@ -466,7 +467,7 @@
           <ion-card *ngFor="let r of renewals" button (click)="viewDetail(r)" class="renewal-card">
             <ion-card-content>
               <div class="card-top-row">
-                <span class="renewal-number">{{ r.enrollment_number || 'Renewal #' + r.id }}</span>
+                <span class="renewal-number">{{ r.enrollment_number || t('renewal_detail.number_prefix') + r.id }}</span>
                 <ion-badge [color]="getStatusColor(r.status)">{{ formatStatus(r.status) }}</ion-badge>
               </div>
               <span class="date-text">{{ displayDate(r.created_at) }}</span>

@@ -198,8 +198,9 @@ export interface EnrollmentConfig {
   base_premium_amount: number;
   base_premium_member_count: number;
   additional_member_premium: number;
-  relationship_types: string[];
+  relationship_types: string[] | Record<string, string>;
   relationship_gender_map?: Record<string, 'male' | 'female'>;
+  relationship_blocked_by_head_marital_status?: Record<string, string[]>;
   target_group_types: string[];
   profession_options?: Record<number, string>;
   qualification_options?: Record<number, string>;

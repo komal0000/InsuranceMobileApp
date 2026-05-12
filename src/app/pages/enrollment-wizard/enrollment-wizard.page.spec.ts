@@ -86,6 +86,24 @@ describe('EnrollmentWizardPage', () => {
     };
   }
 
+  function relationshipOptions() {
+    return [
+      { value: 'spouse', label: 'Spouse' },
+      { value: 'son', label: 'Son' },
+      { value: 'daughter', label: 'Daughter' },
+      { value: 'grandson', label: 'Grandson' },
+      { value: 'granddaughter', label: 'Granddaughter' },
+      { value: 'father', label: 'Father' },
+      { value: 'father_in_law', label: 'Father-in-law' },
+      { value: 'mother_in_law', label: 'Mother-in-law' },
+      { value: 'brother_in_law', label: 'Brother-in-law' },
+      { value: 'sister_in_law', label: 'Sister-in-law' },
+      { value: 'son_in_law', label: 'Son-in-law' },
+      { value: 'daughter_in_law', label: 'Daughter-in-law' },
+      { value: 'other', label: 'Other' },
+    ];
+  }
+
   it('starts new household details behind the NID gate', () => {
     const page = createPage();
 
@@ -788,6 +806,69 @@ describe('EnrollmentWizardPage', () => {
     expect(submitted.get('document_type')).toBe('birth_certificate');
     expect(submitted.has('citizenship_number')).toBeFalse();
     expect((page as any).showToast).not.toHaveBeenCalledWith('wizard.head_age', 'warning');
+  });
+
+  it('hides all configured invalid relationship options when household head is single', () => {
+    const page = createPage();
+    page.relationshipOptions = relationshipOptions();
+    page.headData.marital_status = 'single';
+
+    const values = page.availableMemberRelationshipOptions.map(option => option.value);
+
+    expect(values).not.toContain('spouse');
+    expect(values).not.toContain('son');
+    expect(values).not.toContain('daughter');
+    expect(values).not.toContain('grandson');
+    expect(values).not.toContain('granddaughter');
+    expect(values).not.toContain('father_in_law');
+    expect(values).not.toContain('mother_in_law');
+    expect(values).not.toContain('brother_in_law');
+    expect(values).not.toContain('sister_in_law');
+    expect(values).not.toContain('son_in_law');
+    expect(values).not.toContain('daughter_in_law');
+    expect(values).toContain('father');
+    expect(values).toContain('other');
+  });
+
+  it('hides spouse-side in-laws but allows child-side in-laws for separated heads', () => {
+    const page = createPage();
+    page.relationshipOptions = relationshipOptions();
+    page.headData.marital_status = 'separated';
+
+    const values = page.availableMemberRelationshipOptions.map(option => option.value);
+
+    expect(values).not.toContain('spouse');
+    expect(values).not.toContain('father_in_law');
+    expect(values).not.toContain('mother_in_law');
+    expect(values).not.toContain('brother_in_law');
+    expect(values).not.toContain('sister_in_law');
+    expect(values).toContain('son_in_law');
+    expect(values).toContain('daughter_in_law');
+    expect(values).toContain('father');
+  });
+
+  it('rejects stale relationship selections blocked by household head marital status', async () => {
+    const enrollmentSvc = {
+      addMember: jasmine.createSpy().and.returnValue(of({ success: true, message: 'Saved.', data: { id: 10 } })),
+    };
+    const page = createPage({ enrollmentSvc });
+    spyOn<any>(page, 'showToast').and.returnValue(Promise.resolve());
+    page.enrollmentId = 4;
+    page.relationshipOptions = relationshipOptions();
+    page.headData.marital_status = 'separated';
+    page.newMember = {
+      first_name: 'Suman',
+      last_name: 'Lama',
+      gender: 'male',
+      date_of_birth: '2075-01-01',
+      relationship: 'brother_in_law',
+      document_type: 'birth_certificate',
+    };
+
+    await page.saveMember();
+
+    expect(enrollmentSvc.addMember).not.toHaveBeenCalled();
+    expect(page['showToast']).toHaveBeenCalledWith('wizard.relationship_marital_status_block', 'warning');
   });
 
   it('excludes stale member middle-name fields from add-member payloads', async () => {

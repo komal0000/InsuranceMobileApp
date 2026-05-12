@@ -1,4 +1,9 @@
 <ion-content [fullscreen]="true" [scrollY]="true" class="register-content">
+  <button class="lang-toggle" (click)="toggleLang()" type="button">
+    <ion-icon name="language-outline"></ion-icon>
+    {{ lang === 'en' ? t('common.nepali') : t('common.english') }}
+  </button>
+
   <div class="gradient-section">
     <button class="back-btn" routerLink="/login">
       <ion-icon name="arrow-back-outline"></ion-icon>
