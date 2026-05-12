@@ -69,6 +69,23 @@ describe('EnrollmentWizardPage', () => {
     );
   }
 
+  function parentGrandparentNames() {
+    return {
+      father_first_name: 'Jit Bahadur',
+      father_last_name: 'Lama',
+      father_first_name_ne: 'जित बहादुर',
+      father_last_name_ne: 'लामा',
+      mother_first_name: 'Sharmila Maya',
+      mother_last_name: 'Lama',
+      mother_first_name_ne: 'शर्मिला माया',
+      mother_last_name_ne: 'लामा',
+      grandfather_first_name: 'Kalu Bahadur',
+      grandfather_last_name: 'Lama',
+      grandfather_first_name_ne: 'कालु बहादुर',
+      grandfather_last_name_ne: 'लामा',
+    };
+  }
+
   it('starts new household details behind the NID gate', () => {
     const page = createPage();
 
@@ -297,6 +314,12 @@ describe('EnrollmentWizardPage', () => {
           national_id: '1234567890',
           first_name: 'Komal',
           last_name: 'Shrestha',
+          father_name: 'Jit Bahadur Lama',
+          father_name_ne: 'जित बहादुर लामा',
+          mother_name: 'Sharmila Maya Lama',
+          mother_name_ne: 'शर्मिला माया लामा',
+          grandfather_name: 'Kalu Bahadur Lama',
+          grandfather_name_ne: 'कालु बहादुर लामा',
           citizenship_number: '311022/65843',
           citizenship_issue_date_bs: '2066-08-04',
           citizenship_issue_district: 'Makawanpur',
@@ -339,7 +362,12 @@ describe('EnrollmentWizardPage', () => {
     expect(page.step1.tole_village).toBe('Madanpath');
     expect(page.headData.citizenship_issue_district).toBe('Makawanpur');
     expect(page.headPhotoPreview).toBe('data:image/jpeg;base64,abc123');
+    expect(page.headData.father_first_name).toBe('Jit Bahadur');
+    expect(page.headData.father_last_name).toBe('Lama');
+    expect(page.headData.grandfather_first_name_ne).toBe('कालु बहादुर');
+    expect(page.headData.grandfather_last_name_ne).toBe('लामा');
     expect(page.isHeadFieldReadonly('citizenship_issue_district')).toBeTrue();
+    expect(page.isHeadFieldReadonly('father_first_name')).toBeTrue();
     expect(page.isHeadFieldReadonly('citizenship_issue_date')).toBeTrue();
     expect(page.nidVerifiedHead).toBeTrue();
     const verifiedValues = page.verifiedNidGroups.reduce<string[]>(
@@ -375,6 +403,7 @@ describe('EnrollmentWizardPage', () => {
     };
     page.headData = {
       ...page.headData,
+      ...parentGrandparentNames(),
       national_id: '1234567890',
       first_name: 'Komal',
       last_name: 'Shrestha',
@@ -557,6 +586,90 @@ describe('EnrollmentWizardPage', () => {
     expect(formData.has('first_service_point')).toBeFalse();
   });
 
+  it('includes split parent and grandparent names in the household payload', () => {
+    const page = createPage();
+    page.headData = {
+      ...page.headData,
+      father_first_name: 'Jit Bahadur',
+      father_last_name: 'Lama',
+      father_first_name_ne: 'जित बहादुर',
+      father_last_name_ne: 'लामा',
+      mother_first_name: 'Sharmila Maya',
+      mother_last_name: 'Lama',
+      mother_first_name_ne: 'शर्मिला माया',
+      mother_last_name_ne: 'लामा',
+      grandfather_first_name: 'Kalu Bahadur',
+      grandfather_last_name: 'Lama',
+      grandfather_first_name_ne: 'कालु बहादुर',
+      grandfather_last_name_ne: 'लामा',
+    };
+
+    const formData = (page as any).buildHouseholdHeadFormData() as FormData;
+
+    expect(formData.get('father_first_name')).toBe('Jit Bahadur');
+    expect(formData.get('father_last_name')).toBe('Lama');
+    expect(formData.get('father_name')).toBe('Jit Bahadur Lama');
+    expect(formData.get('mother_first_name_ne')).toBe('शर्मिला माया');
+    expect(formData.get('grandfather_last_name_ne')).toBe('लामा');
+    expect(formData.get('grandfather_name_ne')).toBe('कालु बहादुर लामा');
+  });
+
+  it('blocks household save when split parent and grandparent names are missing', () => {
+    const enrollmentSvc = {
+      saveHouseholdHead: jasmine.createSpy().and.returnValue(of({
+        success: true,
+        message: 'Saved.',
+        data: { id: 4, current_step: 2, household_head: null, family_members: [] },
+      })),
+    };
+    const page = createPage({
+      enrollmentSvc,
+      dateService: {
+        calculateAge: () => 35,
+      },
+    });
+    page.enrollmentId = 4;
+    page.currentStep = 1;
+    page.step1 = {
+      province: 'Bagmati',
+      district: 'Kathmandu',
+      municipality: 'Kathmandu',
+      ward_number: '1',
+      tole_village: '',
+      full_address: '',
+    };
+    page.headData = {
+      ...page.headData,
+      first_name: 'Komal',
+      last_name: 'Shrestha',
+      gender: 'female',
+      date_of_birth: '1990-06-15',
+      mobile_number: '9812345678',
+      marital_status: 'married',
+      citizenship_number: '311022/65843',
+      citizenship_issue_date: '2066-08-04',
+      citizenship_issue_district: 'Kathmandu',
+      father_first_name: '',
+      father_last_name: 'Lama',
+      father_first_name_ne: 'जित',
+      father_last_name_ne: 'लामा',
+      mother_first_name: 'Sharmila',
+      mother_last_name: 'Lama',
+      mother_first_name_ne: 'शर्मिला',
+      mother_last_name_ne: 'लामा',
+      grandfather_first_name: 'Kalu',
+      grandfather_last_name: 'Lama',
+      grandfather_first_name_ne: 'कालु',
+      grandfather_last_name_ne: 'लामा',
+    };
+    spyOn<any>(page, 'showToast');
+
+    page.nextStep();
+
+    expect(enrollmentSvc.saveHouseholdHead).not.toHaveBeenCalled();
+    expect((page as any).showToast).toHaveBeenCalledWith('wizard.required_parent_names', 'warning');
+  });
+
   it('excludes stale household middle-name fields from the household payload', () => {
     const page = createPage();
     page.headData = {
@@ -592,6 +705,7 @@ describe('EnrollmentWizardPage', () => {
     };
     page.headData = {
       ...page.headData,
+      ...parentGrandparentNames(),
       first_name: 'Nabin',
       last_name: 'Shrestha',
       gender: 'male',
@@ -653,6 +767,7 @@ describe('EnrollmentWizardPage', () => {
     };
     page.headData = {
       ...page.headData,
+      ...parentGrandparentNames(),
       first_name: 'Nabin',
       last_name: 'Shrestha',
       gender: 'male',

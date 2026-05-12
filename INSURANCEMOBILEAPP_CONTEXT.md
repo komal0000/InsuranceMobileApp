@@ -1,6 +1,6 @@
 # InsuranceMobileApp Current Context
 
-Last updated: 2026-05-11
+Last updated: 2026-05-12
 
 This file captures the current Ionic/Angular state so future conversations do not need to rediscover the mobile app.
 
@@ -84,7 +84,7 @@ API methods added/used for login-side setup:
 Step 1 includes:
 - household-head NID lookup
 - personal information
-- father/mother/grandfather names in English and Nepali
+- required split father/mother/grandfather first-name and last-name fields in English and Nepali, grouped compactly by Father, Mother, and Grandfather with English first/last fields followed by Nepali first/last fields
 - age-aware identity document fields: citizenship for household heads 16+, birth-certificate number/issue-date/document for household heads under 16
 - permanent address
 - temporary address
@@ -113,6 +113,7 @@ NID behavior:
 - Manual fallback stores the household-head `national_id` as canonical ASCII digits while leaving it as unverified manual data.
 - `headNidLookup(id, nationalId)` calls `POST /api/enrollments/{id}/head/nid-lookup`.
 - On success, returned NID fields are written into `headData` and permanent address state.
+- Returned combined NID parent/grandparent names are split into the required first-name and last-name fields; backend-provided split fields are used directly when available.
 - If NID lookup does not return an email, the wizard preserves the existing/registered household-head email instead of clearing it.
 - Populated NID fields are tracked in `nidLockedHeadFields`.
 - Locked household-head NID fields render as grouped `Verified From NID` label/value rows above Step 1 editable controls; their underlying model values stay in `headData`/address state and continue to be submitted in `FormData`.
@@ -128,7 +129,7 @@ NID behavior:
 Save behavior:
 - `saveHouseholdHead(id, formData)` calls `POST /api/enrollments/{id}/household-head`.
 - Old `saveStep1`, `saveStep2`, and generic `nidLookup` methods remain for compatibility.
-- Step 1 save sends permanent address, temporary address, selected `first_service_point_id`, household-head fields, profession/qualification IDs, target-group fields, and files. The backend resolves the selected ID to the service-point name snapshot.
+- Step 1 save sends permanent address, temporary address, selected `first_service_point_id`, household-head fields, required split parent/grandparent name fields, profession/qualification IDs, target-group fields, and files. Legacy combined parent/grandparent name fields are composed from the split fields before submit for compatibility. The backend resolves the selected ID to the service-point name snapshot.
 - Backend API save/submit endpoints now also accept an enrollment in `rejected` status when the rejection actor was `district_eo` or `province` and the authenticated user is the household head or original enroller. Resubmission returns the enrollment to `pending_verification` and clears stale rejection/verification fields; response shapes are unchanged.
 
 Enrollment PDF behavior:
@@ -191,6 +192,7 @@ Family members:
 - Member target-group UI and payload collection are removed.
 - Relationship selection now auto-fills and locks member gender when the backend `relationship_gender_map` marks the relationship as deterministic. Son/father/brother/grandfather/grandson/father-in-law/son-in-law map to male; daughter/mother/sister/grandmother/granddaughter/mother-in-law/daughter-in-law map to female. Spouse, other, self, and unknown relationships remain manual.
 - Backend enrollment/renewal member saves enforce relationship DOB hierarchy across household members. Mobile remains UI-assistive only and now surfaces backend member-save validation errors, including `date_of_birth` hierarchy failures, in the enrollment wizard toast.
+- Backend enrollment/renewal member saves also enforce English last-name surname matching for bloodline relationships against both the household-head father and grandfather surnames when those surnames are available; mobile surfaces the backend `last_name` validation message.
 - Member removal in enrollment now requires a selected death/removal supporting file. `EnrollmentService.removeMember()` sends multipart `FormData` with `_method=DELETE` and `death_document`.
 - Existing stale keys are skipped in FormData where relevant.
 - The shared `src\app\components\member-form\member-form.component.ts` is used by enrollment member entry and renewal detail member entry.

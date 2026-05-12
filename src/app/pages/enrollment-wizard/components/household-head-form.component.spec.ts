@@ -66,4 +66,27 @@ describe('HouseholdHeadFormComponent', () => {
     expect(labels).not.toContain('Middle Name');
     expect(labels).not.toContain('Middle Name Nepali');
   });
+
+  it('groups split parent and grandparent name controls by relationship', () => {
+    const fixture = TestBed.createComponent(HouseholdHeadFormComponent);
+    fixture.componentInstance.headData = {};
+    fixture.detectChanges();
+
+    const groupTitles = Array.from(
+      fixture.nativeElement.querySelectorAll('[data-parent-name-group-title]') as NodeListOf<HTMLElement>,
+    ).map((element) => element.textContent?.trim());
+    const labels = Array.from(
+      fixture.nativeElement.querySelectorAll('[data-parent-name-group] ion-input') as NodeListOf<HTMLIonInputElement>,
+    ).map((element) => element.label);
+    const groups = Array.from(
+      fixture.nativeElement.querySelectorAll('[data-parent-name-group]') as NodeListOf<HTMLElement>,
+    );
+
+    expect(groupTitles).toEqual(['Father', 'Mother', 'Grandfather']);
+    expect(groups.every((element) => element.classList.contains('parent-name-group--compact'))).toBeTrue();
+    expect(labels.filter((label) => label === 'First Name *').length).toBe(3);
+    expect(labels.filter((label) => label === 'Last Name *').length).toBe(3);
+    expect(labels.filter((label) => label === 'First Name (नेपाली) *').length).toBe(3);
+    expect(labels.filter((label) => label === 'Last Name (नेपाली) *').length).toBe(3);
+  });
 });

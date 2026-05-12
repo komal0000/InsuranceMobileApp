@@ -1,0 +1,40 @@
+.parent-name-groups {
+  gap: 6px;
+}
+
+.parent-name-group {
+  padding: 8px;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.parent-name-group-title {
+  margin: 0 0 6px;
+  color: #003087;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.parent-name-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 6px;
+}
+
+.parent-name-row + .parent-name-row {
+  margin-top: 3px;
+}
+
+.parent-name-row .form-item {
+  --min-height: 50px;
+  --padding-start: 10px;
+  --inner-padding-end: 10px;
+  margin-bottom: 0;
+}
+
+@media (max-width: 380px) {
+  .parent-name-row {
+    grid-template-columns: 1fr;
+  }
+}

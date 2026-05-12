@@ -104,7 +104,7 @@
       </ion-card-content>
     </ion-card>
 
-    <ion-card *ngIf="hasAnyEditable(['father_name', 'father_name_ne', 'mother_name', 'mother_name_ne', 'grandfather_name', 'grandfather_name_ne'])">
+    <ion-card *ngIf="hasAnyEditable(['father_first_name', 'father_last_name', 'father_first_name_ne', 'father_last_name_ne', 'mother_first_name', 'mother_last_name', 'mother_first_name_ne', 'mother_last_name_ne', 'grandfather_first_name', 'grandfather_last_name', 'grandfather_first_name_ne', 'grandfather_last_name_ne'])">
       <ion-card-content>
         <div class="section-title">
           <div class="section-icon" style="background:rgba(0,48,135,0.08)">
@@ -113,25 +113,66 @@
           <h3>{{ text('wizard.parent_grandparent_information', 'Parent and Grandparent Information') }}</h3>
         </div>
 
-        <div class="form-group">
-          <ion-item class="form-item" *ngIf="!isHeadFieldReadonly('father_name')">
-            <ion-input label="Father Name" labelPlacement="stacked" [(ngModel)]="headData.father_name" [readonly]="isHeadFieldReadonly('father_name')"></ion-input>
-          </ion-item>
-          <ion-item class="form-item" *ngIf="!isHeadFieldReadonly('father_name_ne')">
-            <ion-input label="Father Name Nepali" labelPlacement="stacked" appNepaliInput [(ngModel)]="headData.father_name_ne" [readonly]="isHeadFieldReadonly('father_name_ne')"></ion-input>
-          </ion-item>
-          <ion-item class="form-item" *ngIf="!isHeadFieldReadonly('mother_name')">
-            <ion-input label="Mother Name" labelPlacement="stacked" [(ngModel)]="headData.mother_name" [readonly]="isHeadFieldReadonly('mother_name')"></ion-input>
-          </ion-item>
-          <ion-item class="form-item" *ngIf="!isHeadFieldReadonly('mother_name_ne')">
-            <ion-input label="Mother Name Nepali" labelPlacement="stacked" appNepaliInput [(ngModel)]="headData.mother_name_ne" [readonly]="isHeadFieldReadonly('mother_name_ne')"></ion-input>
-          </ion-item>
-          <ion-item class="form-item" *ngIf="!isHeadFieldReadonly('grandfather_name')">
-            <ion-input label="Grandfather Name" labelPlacement="stacked" [(ngModel)]="headData.grandfather_name" [readonly]="isHeadFieldReadonly('grandfather_name')"></ion-input>
-          </ion-item>
-          <ion-item class="form-item" *ngIf="!isHeadFieldReadonly('grandfather_name_ne')">
-            <ion-input label="Grandfather Name Nepali" labelPlacement="stacked" appNepaliInput [(ngModel)]="headData.grandfather_name_ne" [readonly]="isHeadFieldReadonly('grandfather_name_ne')"></ion-input>
-          </ion-item>
+        <div class="form-group parent-name-groups">
+          <div class="parent-name-group parent-name-group--compact" data-parent-name-group="father" *ngIf="hasAnyEditable(['father_first_name', 'father_last_name', 'father_first_name_ne', 'father_last_name_ne'])">
+            <h4 class="parent-name-group-title" data-parent-name-group-title>{{ text('wizard.father', 'Father') }}</h4>
+            <div class="parent-name-row">
+              <ion-item class="form-item" *ngIf="!isHeadFieldReadonly('father_first_name')">
+                <ion-input [label]="text('wizard.parent_first_name_required', 'First Name *')" labelPlacement="stacked" [(ngModel)]="headData.father_first_name" [readonly]="isHeadFieldReadonly('father_first_name')"></ion-input>
+              </ion-item>
+              <ion-item class="form-item" *ngIf="!isHeadFieldReadonly('father_last_name')">
+                <ion-input [label]="text('wizard.parent_last_name_required', 'Last Name *')" labelPlacement="stacked" [(ngModel)]="headData.father_last_name" [readonly]="isHeadFieldReadonly('father_last_name')"></ion-input>
+              </ion-item>
+            </div>
+            <div class="parent-name-row">
+              <ion-item class="form-item" *ngIf="!isHeadFieldReadonly('father_first_name_ne')">
+                <ion-input [label]="text('wizard.parent_first_name_ne_required', 'First Name (नेपाली) *')" labelPlacement="stacked" appNepaliInput [(ngModel)]="headData.father_first_name_ne" [readonly]="isHeadFieldReadonly('father_first_name_ne')"></ion-input>
+              </ion-item>
+              <ion-item class="form-item" *ngIf="!isHeadFieldReadonly('father_last_name_ne')">
+                <ion-input [label]="text('wizard.parent_last_name_ne_required', 'Last Name (नेपाली) *')" labelPlacement="stacked" appNepaliInput [(ngModel)]="headData.father_last_name_ne" [readonly]="isHeadFieldReadonly('father_last_name_ne')"></ion-input>
+              </ion-item>
+            </div>
+          </div>
+
+          <div class="parent-name-group parent-name-group--compact" data-parent-name-group="mother" *ngIf="hasAnyEditable(['mother_first_name', 'mother_last_name', 'mother_first_name_ne', 'mother_last_name_ne'])">
+            <h4 class="parent-name-group-title" data-parent-name-group-title>{{ text('wizard.mother', 'Mother') }}</h4>
+            <div class="parent-name-row">
+              <ion-item class="form-item" *ngIf="!isHeadFieldReadonly('mother_first_name')">
+                <ion-input [label]="text('wizard.parent_first_name_required', 'First Name *')" labelPlacement="stacked" [(ngModel)]="headData.mother_first_name" [readonly]="isHeadFieldReadonly('mother_first_name')"></ion-input>
+              </ion-item>
+              <ion-item class="form-item" *ngIf="!isHeadFieldReadonly('mother_last_name')">
+                <ion-input [label]="text('wizard.parent_last_name_required', 'Last Name *')" labelPlacement="stacked" [(ngModel)]="headData.mother_last_name" [readonly]="isHeadFieldReadonly('mother_last_name')"></ion-input>
+              </ion-item>
+            </div>
+            <div class="parent-name-row">
+              <ion-item class="form-item" *ngIf="!isHeadFieldReadonly('mother_first_name_ne')">
+                <ion-input [label]="text('wizard.parent_first_name_ne_required', 'First Name (नेपाली) *')" labelPlacement="stacked" appNepaliInput [(ngModel)]="headData.mother_first_name_ne" [readonly]="isHeadFieldReadonly('mother_first_name_ne')"></ion-input>
+              </ion-item>
+              <ion-item class="form-item" *ngIf="!isHeadFieldReadonly('mother_last_name_ne')">
+                <ion-input [label]="text('wizard.parent_last_name_ne_required', 'Last Name (नेपाली) *')" labelPlacement="stacked" appNepaliInput [(ngModel)]="headData.mother_last_name_ne" [readonly]="isHeadFieldReadonly('mother_last_name_ne')"></ion-input>
+              </ion-item>
+            </div>
+          </div>
+
+          <div class="parent-name-group parent-name-group--compact" data-parent-name-group="grandfather" *ngIf="hasAnyEditable(['grandfather_first_name', 'grandfather_last_name', 'grandfather_first_name_ne', 'grandfather_last_name_ne'])">
+            <h4 class="parent-name-group-title" data-parent-name-group-title>{{ text('wizard.grandfather', 'Grandfather') }}</h4>
+            <div class="parent-name-row">
+              <ion-item class="form-item" *ngIf="!isHeadFieldReadonly('grandfather_first_name')">
+                <ion-input [label]="text('wizard.parent_first_name_required', 'First Name *')" labelPlacement="stacked" [(ngModel)]="headData.grandfather_first_name" [readonly]="isHeadFieldReadonly('grandfather_first_name')"></ion-input>
+              </ion-item>
+              <ion-item class="form-item" *ngIf="!isHeadFieldReadonly('grandfather_last_name')">
+                <ion-input [label]="text('wizard.parent_last_name_required', 'Last Name *')" labelPlacement="stacked" [(ngModel)]="headData.grandfather_last_name" [readonly]="isHeadFieldReadonly('grandfather_last_name')"></ion-input>
+              </ion-item>
+            </div>
+            <div class="parent-name-row">
+              <ion-item class="form-item" *ngIf="!isHeadFieldReadonly('grandfather_first_name_ne')">
+                <ion-input [label]="text('wizard.parent_first_name_ne_required', 'First Name (नेपाली) *')" labelPlacement="stacked" appNepaliInput [(ngModel)]="headData.grandfather_first_name_ne" [readonly]="isHeadFieldReadonly('grandfather_first_name_ne')"></ion-input>
+              </ion-item>
+              <ion-item class="form-item" *ngIf="!isHeadFieldReadonly('grandfather_last_name_ne')">
+                <ion-input [label]="text('wizard.parent_last_name_ne_required', 'Last Name (नेपाली) *')" labelPlacement="stacked" appNepaliInput [(ngModel)]="headData.grandfather_last_name_ne" [readonly]="isHeadFieldReadonly('grandfather_last_name_ne')"></ion-input>
+              </ion-item>
+            </div>
+          </div>
         </div>
       </ion-card-content>
     </ion-card>

@@ -35,10 +35,22 @@ interface HouseholdHeadFormModel {
   last_name?: string;
   first_name_ne?: string;
   last_name_ne?: string;
+  father_first_name?: string;
+  father_last_name?: string;
+  father_first_name_ne?: string;
+  father_last_name_ne?: string;
   father_name?: string;
   father_name_ne?: string;
+  mother_first_name?: string;
+  mother_last_name?: string;
+  mother_first_name_ne?: string;
+  mother_last_name_ne?: string;
   mother_name?: string;
   mother_name_ne?: string;
+  grandfather_first_name?: string;
+  grandfather_last_name?: string;
+  grandfather_first_name_ne?: string;
+  grandfather_last_name_ne?: string;
   grandfather_name?: string;
   grandfather_name_ne?: string;
   gender?: string;
@@ -81,7 +93,7 @@ interface HouseholdHeadFormModel {
     IonToggle,
   ],
   templateUrl: './household-head-form.component.html',
-  styleUrls: ['../enrollment-wizard.page.scss'],
+  styleUrls: ['../enrollment-wizard.page.scss', './household-head-form.component.scss'],
 })
 export class HouseholdHeadFormComponent {
   private firstServicePointValue = '';

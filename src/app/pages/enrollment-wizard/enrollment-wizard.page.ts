@@ -160,8 +160,14 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
     national_id: '',
     first_name: '', last_name: '',
     first_name_ne: '', last_name_ne: '',
+    father_first_name: '', father_last_name: '',
+    father_first_name_ne: '', father_last_name_ne: '',
     father_name: '', father_name_ne: '',
+    mother_first_name: '', mother_last_name: '',
+    mother_first_name_ne: '', mother_last_name_ne: '',
     mother_name: '', mother_name_ne: '',
+    grandfather_first_name: '', grandfather_last_name: '',
+    grandfather_first_name_ne: '', grandfather_last_name_ne: '',
     grandfather_name: '', grandfather_name_ne: '',
     gender: '', date_of_birth: '', blood_group: '', marital_status: '',
     mobile_number: '', email: '',
@@ -343,10 +349,22 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
         last_name: head.last_name || '',
         first_name_ne: head.first_name_ne || '',
         last_name_ne: head.last_name_ne || '',
+        father_first_name: head.father_first_name || '',
+        father_last_name: head.father_last_name || '',
+        father_first_name_ne: head.father_first_name_ne || '',
+        father_last_name_ne: head.father_last_name_ne || '',
         father_name: head.father_name || '',
         father_name_ne: head.father_name_ne || '',
+        mother_first_name: head.mother_first_name || '',
+        mother_last_name: head.mother_last_name || '',
+        mother_first_name_ne: head.mother_first_name_ne || '',
+        mother_last_name_ne: head.mother_last_name_ne || '',
         mother_name: head.mother_name || '',
         mother_name_ne: head.mother_name_ne || '',
+        grandfather_first_name: head.grandfather_first_name || '',
+        grandfather_last_name: head.grandfather_last_name || '',
+        grandfather_first_name_ne: head.grandfather_first_name_ne || '',
+        grandfather_last_name_ne: head.grandfather_last_name_ne || '',
         grandfather_name: head.grandfather_name || '',
         grandfather_name_ne: head.grandfather_name_ne || '',
         gender: head.gender || '',
@@ -377,6 +395,7 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
         target_group_front_image: null, target_group_back_image: null,
         basai_sarai_front: null, basai_sarai_back: null,
       };
+      this.applyParentNameData(this.headData);
       this.headPhotoPreview = this.getDocUrl(head, 'photo') || '';
       this.citizenshipFrontPreview = this.getDocUrl(head, 'citizenship_front') || '';
       this.citizenshipBackPreview = this.getDocUrl(head, 'citizenship_back') || '';
@@ -586,12 +605,7 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
           this.headData.last_name                  = d.last_name     || '';
           this.headData.first_name_ne              = d.first_name_ne || this.headData.first_name_ne;
           this.headData.last_name_ne               = d.last_name_ne  || this.headData.last_name_ne;
-          this.headData.father_name                = d.father_name || '';
-          this.headData.father_name_ne             = d.father_name_ne || '';
-          this.headData.mother_name                = d.mother_name || '';
-          this.headData.mother_name_ne             = d.mother_name_ne || '';
-          this.headData.grandfather_name           = d.grandfather_name || '';
-          this.headData.grandfather_name_ne        = d.grandfather_name_ne || '';
+          this.applyParentNameData(d);
           this.headData.gender                     = d.gender        || '';
           this.headData.date_of_birth              = this.dateService.formatForDisplay(d.date_of_birth, d.date_of_birth_bs) || '';
           this.headData.mobile_number              = d.mobile_number || this.registeredMobileNumber || this.headData.mobile_number || '';
@@ -677,12 +691,18 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
       {
         title: this.text('wizard.parent_grandparent_information', 'Parent and Grandparent Information'),
         fields: [
-          { key: 'father_name', label: this.text('wizard.father_name', 'Father Name') },
-          { key: 'father_name_ne', label: this.text('wizard.father_name_ne', 'Father Name Nepali') },
-          { key: 'mother_name', label: this.text('wizard.mother_name', 'Mother Name') },
-          { key: 'mother_name_ne', label: this.text('wizard.mother_name_ne', 'Mother Name Nepali') },
-          { key: 'grandfather_name', label: this.text('wizard.grandfather_name', 'Grandfather Name') },
-          { key: 'grandfather_name_ne', label: this.text('wizard.grandfather_name_ne', 'Grandfather Name Nepali') },
+          { key: 'father_first_name', label: this.text('wizard.father_first_name', 'Father First Name') },
+          { key: 'father_last_name', label: this.text('wizard.father_last_name', 'Father Last Name') },
+          { key: 'father_first_name_ne', label: this.text('wizard.father_first_name_ne', 'Father First Name Nepali') },
+          { key: 'father_last_name_ne', label: this.text('wizard.father_last_name_ne', 'Father Last Name Nepali') },
+          { key: 'mother_first_name', label: this.text('wizard.mother_first_name', 'Mother First Name') },
+          { key: 'mother_last_name', label: this.text('wizard.mother_last_name', 'Mother Last Name') },
+          { key: 'mother_first_name_ne', label: this.text('wizard.mother_first_name_ne', 'Mother First Name Nepali') },
+          { key: 'mother_last_name_ne', label: this.text('wizard.mother_last_name_ne', 'Mother Last Name Nepali') },
+          { key: 'grandfather_first_name', label: this.text('wizard.grandfather_first_name', 'Grandfather First Name') },
+          { key: 'grandfather_last_name', label: this.text('wizard.grandfather_last_name', 'Grandfather Last Name') },
+          { key: 'grandfather_first_name_ne', label: this.text('wizard.grandfather_first_name_ne', 'Grandfather First Name Nepali') },
+          { key: 'grandfather_last_name_ne', label: this.text('wizard.grandfather_last_name_ne', 'Grandfather Last Name Nepali') },
         ],
       },
       {
@@ -757,6 +777,62 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
       .join(' ');
   }
 
+  private splitDisplayName(value: unknown): { first: string; last: string } {
+    const normalized = String(value || '').trim().replace(/\s+/g, ' ');
+    if (!normalized) {
+      return { first: '', last: '' };
+    }
+
+    const parts = normalized.split(' ');
+    const last = parts.pop() || '';
+
+    return { first: parts.join(' '), last };
+  }
+
+  private composeDisplayName(first: unknown, last: unknown): string {
+    return [first, last]
+      .map(value => String(value || '').trim())
+      .filter(Boolean)
+      .join(' ');
+  }
+
+  private applyParentNameData(source: Partial<NidLookupData> | Record<string, any>): void {
+    const data = source as Record<string, any>;
+
+    (['father', 'mother', 'grandfather'] as const).forEach(relation => {
+      const english = this.splitDisplayName(data[`${relation}_name`] || '');
+      const nepali = this.splitDisplayName(data[`${relation}_name_ne`] || '');
+      const first = String(data[`${relation}_first_name`] || english.first || '').trim();
+      const last = String(data[`${relation}_last_name`] || english.last || '').trim();
+      const firstNe = String(data[`${relation}_first_name_ne`] || nepali.first || '').trim();
+      const lastNe = String(data[`${relation}_last_name_ne`] || nepali.last || '').trim();
+
+      this.headData[`${relation}_first_name`] = first;
+      this.headData[`${relation}_last_name`] = last;
+      this.headData[`${relation}_first_name_ne`] = firstNe;
+      this.headData[`${relation}_last_name_ne`] = lastNe;
+      this.headData[`${relation}_name`] = this.composeDisplayName(first, last);
+      this.headData[`${relation}_name_ne`] = this.composeDisplayName(firstNe, lastNe);
+    });
+  }
+
+  private hasRequiredParentNames(): boolean {
+    return [
+      'father_first_name',
+      'father_last_name',
+      'father_first_name_ne',
+      'father_last_name_ne',
+      'mother_first_name',
+      'mother_last_name',
+      'mother_first_name_ne',
+      'mother_last_name_ne',
+      'grandfather_first_name',
+      'grandfather_last_name',
+      'grandfather_first_name_ne',
+      'grandfather_last_name_ne',
+    ].every(field => String(this.headData[field] || '').trim() !== '');
+  }
+
   private markLockedHeadFields(d: NidLookupData) {
     const fieldMap: Record<string, Array<keyof NidLookupData>> = {
       national_id: ['national_id', 'nin_loc'],
@@ -764,12 +840,18 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
       last_name: ['last_name'],
       first_name_ne: ['first_name_ne'],
       last_name_ne: ['last_name_ne'],
-      father_name: ['father_name'],
-      father_name_ne: ['father_name_ne'],
-      mother_name: ['mother_name'],
-      mother_name_ne: ['mother_name_ne'],
-      grandfather_name: ['grandfather_name'],
-      grandfather_name_ne: ['grandfather_name_ne'],
+      father_first_name: ['father_first_name', 'father_name'],
+      father_last_name: ['father_last_name', 'father_name'],
+      father_first_name_ne: ['father_first_name_ne', 'father_name_ne'],
+      father_last_name_ne: ['father_last_name_ne', 'father_name_ne'],
+      mother_first_name: ['mother_first_name', 'mother_name'],
+      mother_last_name: ['mother_last_name', 'mother_name'],
+      mother_first_name_ne: ['mother_first_name_ne', 'mother_name_ne'],
+      mother_last_name_ne: ['mother_last_name_ne', 'mother_name_ne'],
+      grandfather_first_name: ['grandfather_first_name', 'grandfather_name'],
+      grandfather_last_name: ['grandfather_last_name', 'grandfather_name'],
+      grandfather_first_name_ne: ['grandfather_first_name_ne', 'grandfather_name_ne'],
+      grandfather_last_name_ne: ['grandfather_last_name_ne', 'grandfather_name_ne'],
       gender: ['gender'],
       date_of_birth: ['date_of_birth', 'date_of_birth_bs', 'dob_loc'],
       mobile_number: ['mobile_number'],
@@ -780,7 +862,9 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
     };
 
     Object.entries(fieldMap).forEach(([field, keys]) => {
-      if (keys.some(key => d[key])) this.nidLockedHeadFields.add(field);
+      if (keys.some(key => d[key]) && String(this.headData[field] || '').trim() !== '') {
+        this.nidLockedHeadFields.add(field);
+      }
     });
     if (d.province) this.nidLockedHeadFields.add('province');
     if (d.district) this.nidLockedHeadFields.add('district');
@@ -907,6 +991,9 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
           !this.headData.date_of_birth || !this.headData.mobile_number || !this.headData.marital_status) {
       this.showToast(this.t('wizard.required_fields'), 'warning'); return;
       }
+      if (!this.hasRequiredParentNames()) {
+        this.showToast(this.t('wizard.required_parent_names'), 'warning'); return;
+      }
       if (!/^\d{10}$/.test(this.headData.mobile_number)) {
         this.showToast(this.t('wizard.mobile_digits'), 'warning'); return;
       }
@@ -952,6 +1039,7 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
       this.copyPermanentToTemporary();
     }
     const usesBirthCertificate = this.syncHouseholdHeadDocumentType();
+    this.applyParentNameData(this.headData);
 
     const fd = new FormData();
     Object.entries({
@@ -994,6 +1082,10 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
           !this.headData.date_of_birth || !this.headData.mobile_number ||
           !this.headData.marital_status) {
       this.showToast(this.t('wizard.required_before_save'), 'warning');
+        this.savingDraft = false; return;
+      }
+      if (!this.hasRequiredParentNames()) {
+        this.showToast(this.t('wizard.required_parent_names'), 'warning');
         this.savingDraft = false; return;
       }
       if (!/^\d{10}$/.test(this.headData.mobile_number)) {
