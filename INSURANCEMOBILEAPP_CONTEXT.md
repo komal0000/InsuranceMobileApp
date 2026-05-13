@@ -1,6 +1,6 @@
 # InsuranceMobileApp Current Context
 
-Last updated: 2026-05-12
+Last updated: 2026-05-13
 
 This file captures the current Ionic/Angular state so future conversations do not need to rediscover the mobile app.
 
@@ -245,6 +245,14 @@ Family members:
   - `src\app\pages\dashboard\dashboard.page.*`
   - `src\app\services\dashboard-data.service.ts`
   - `src\app\interfaces\dashboard.interface.ts`
+
+## Legacy IMIS Integration
+- `LegacyImisService` wraps the new backend proxy endpoints instead of calling `imislegacy.hib.gov.np` directly from mobile.
+- `familyMembers(chfid, nationalId?)` calls `GET /api/legacy-imis/family-members` with `chfid` and optional normalized `national_id`; the backend enforces staff-vs-beneficiary access and returns normalized member rows.
+- `updateKyc(payload)` calls `POST /api/legacy-imis/kyc-update` with `chfid`, optional normalized `national_id`, and allowlisted KYC fields (`firstname`, `lastname`, `phone`). The backend forwards only the approved legacy fields.
+- Relevant files:
+  - `src\app\services\legacy-imis.service.ts`
+  - `src\app\interfaces\legacy-imis.interface.ts`
 
 ## Payment Gateway Flow
 - Payment return handling treats `status=pending` as a first-class result instead of showing a failed payment.
