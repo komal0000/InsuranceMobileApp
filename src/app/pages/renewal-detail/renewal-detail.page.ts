@@ -277,6 +277,11 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
       this.toastCtrl.create({ message: this.t('wizard.member_age_citizenship'), duration: 2200, color: 'warning', position: 'top' }).then(t => t.present());
       return;
     }
+    if (docType === 'citizenship' && this.newMember.date_of_birth && this.newMember.citizenship_issue_date &&
+        !this.dateService.isCitizenshipIssueDateValid(this.newMember.date_of_birth, this.newMember.citizenship_issue_date, 'bs')) {
+      this.toastCtrl.create({ message: this.t('wizard.citizenship_issue_age'), duration: 2200, color: 'warning', position: 'top' }).then(t => t.present());
+      return;
+    }
 
     const fd = new FormData();
     Object.keys(this.newMember).forEach(key => {

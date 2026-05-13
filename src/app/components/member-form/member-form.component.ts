@@ -146,10 +146,10 @@ interface MemberFormModel {
 
       <p class="form-section-title">{{ text('wizard.nepali_name', 'Nepali Name') }}</p>
       <ion-item class="form-item">
-        <ion-input [label]="text('wizard.first_name_ne', 'First Name Nepali')" labelPlacement="stacked" appNepaliInput [(ngModel)]="member.first_name_ne"></ion-input>
+        <ion-input [label]="text('wizard.first_name_ne', 'First Name (नेपाली)')" labelPlacement="stacked" appNepaliInput [(ngModel)]="member.first_name_ne"></ion-input>
       </ion-item>
       <ion-item class="form-item">
-        <ion-input [label]="text('wizard.last_name_ne', 'Last Name Nepali')" labelPlacement="stacked" appNepaliInput [(ngModel)]="member.last_name_ne"></ion-input>
+        <ion-input [label]="text('wizard.last_name_ne', 'Last Name (नेपाली)')" labelPlacement="stacked" appNepaliInput [(ngModel)]="member.last_name_ne"></ion-input>
       </ion-item>
 
       <p class="form-section-title">{{ text('wizard.personal_details', 'Personal Details') }}</p>

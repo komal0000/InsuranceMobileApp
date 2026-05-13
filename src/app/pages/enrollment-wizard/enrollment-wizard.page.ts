@@ -695,8 +695,8 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
           { key: 'national_id', label: this.text('wizard.national_id_number', 'National ID Number') },
           { key: 'first_name', label: this.text('wizard.first_name', 'First Name') },
           { key: 'last_name', label: this.text('wizard.last_name', 'Last Name') },
-          { key: 'first_name_ne', label: this.text('wizard.first_name_ne', 'First Name Nepali') },
-          { key: 'last_name_ne', label: this.text('wizard.last_name_ne', 'Last Name Nepali') },
+          { key: 'first_name_ne', label: this.text('wizard.first_name_ne', 'First Name (नेपाली)') },
+          { key: 'last_name_ne', label: this.text('wizard.last_name_ne', 'Last Name (नेपाली)') },
           { key: 'gender', label: this.text('wizard.gender', 'Gender') },
           { key: 'date_of_birth', label: this.text('wizard.date_of_birth', 'Date of Birth') },
           { key: 'mobile_number', label: this.text('profile.mobile_number', 'Mobile Number') },
@@ -708,16 +708,16 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
         fields: [
           { key: 'father_first_name', label: this.text('wizard.father_first_name', 'Father First Name') },
           { key: 'father_last_name', label: this.text('wizard.father_last_name', 'Father Last Name') },
-          { key: 'father_first_name_ne', label: this.text('wizard.father_first_name_ne', 'Father First Name Nepali') },
-          { key: 'father_last_name_ne', label: this.text('wizard.father_last_name_ne', 'Father Last Name Nepali') },
+          { key: 'father_first_name_ne', label: this.text('wizard.father_first_name_ne', 'Father First Name (नेपाली)') },
+          { key: 'father_last_name_ne', label: this.text('wizard.father_last_name_ne', 'Father Last Name (नेपाली)') },
           { key: 'mother_first_name', label: this.text('wizard.mother_first_name', 'Mother First Name') },
           { key: 'mother_last_name', label: this.text('wizard.mother_last_name', 'Mother Last Name') },
-          { key: 'mother_first_name_ne', label: this.text('wizard.mother_first_name_ne', 'Mother First Name Nepali') },
-          { key: 'mother_last_name_ne', label: this.text('wizard.mother_last_name_ne', 'Mother Last Name Nepali') },
+          { key: 'mother_first_name_ne', label: this.text('wizard.mother_first_name_ne', 'Mother First Name (नेपाली)') },
+          { key: 'mother_last_name_ne', label: this.text('wizard.mother_last_name_ne', 'Mother Last Name (नेपाली)') },
           { key: 'grandfather_first_name', label: this.text('wizard.grandfather_first_name', 'Grandfather First Name') },
           { key: 'grandfather_last_name', label: this.text('wizard.grandfather_last_name', 'Grandfather Last Name') },
-          { key: 'grandfather_first_name_ne', label: this.text('wizard.grandfather_first_name_ne', 'Grandfather First Name Nepali') },
-          { key: 'grandfather_last_name_ne', label: this.text('wizard.grandfather_last_name_ne', 'Grandfather Last Name Nepali') },
+          { key: 'grandfather_first_name_ne', label: this.text('wizard.grandfather_first_name_ne', 'Grandfather First Name (नेपाली)') },
+          { key: 'grandfather_last_name_ne', label: this.text('wizard.grandfather_last_name_ne', 'Grandfather Last Name (नेपाली)') },
         ],
       },
       {
@@ -1027,6 +1027,8 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
       } else if (!this.headData.citizenship_number || !this.headData.citizenship_issue_date ||
           !this.headData.citizenship_issue_district) {
         this.showToast(this.t('wizard.required_fields'), 'warning'); return;
+      } else if (!this.hasValidCitizenshipIssueDate(this.headData.date_of_birth, this.headData.citizenship_issue_date)) {
+        this.showToast(this.t('wizard.citizenship_issue_age'), 'warning'); return;
       }
       this.saving = true;
       const fd = this.buildHouseholdHeadFormData();
@@ -1125,6 +1127,9 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
       } else if (!this.headData.citizenship_number || !this.headData.citizenship_issue_date ||
           !this.headData.citizenship_issue_district) {
         this.showToast(this.t('wizard.required_before_save'), 'warning');
+        this.savingDraft = false; return;
+      } else if (!this.hasValidCitizenshipIssueDate(this.headData.date_of_birth, this.headData.citizenship_issue_date)) {
+        this.showToast(this.t('wizard.citizenship_issue_age'), 'warning');
         this.savingDraft = false; return;
       }
       this.enrollmentSvc.saveHouseholdHead(this.enrollmentId, this.buildHouseholdHeadFormData()).subscribe({
@@ -1265,6 +1270,10 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
     const docType = this.newMember.document_type || null;
     if (docType === 'citizenship' && this.calculateAge(this.newMember.date_of_birth) < 16) {
       this.showToast(this.t('wizard.member_age_citizenship'), 'warning'); return;
+    }
+    if (docType === 'citizenship' && this.newMember.citizenship_issue_date &&
+        !this.hasValidCitizenshipIssueDate(this.newMember.date_of_birth, this.newMember.citizenship_issue_date)) {
+      this.showToast(this.t('wizard.citizenship_issue_age'), 'warning'); return;
     }
 
     this.savingMember = true;
@@ -1779,6 +1788,17 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
     }
 
     return age;
+  }
+
+  private hasValidCitizenshipIssueDate(dateOfBirth?: string, issueDate?: string): boolean {
+    if (!dateOfBirth || !issueDate) {
+      return false;
+    }
+
+    const validator = this.dateService.isCitizenshipIssueDateValid;
+    return typeof validator === 'function'
+      ? validator.call(this.dateService, dateOfBirth, issueDate, 'bs')
+      : true;
   }
 
   private dataUrlToBlob(dataUrl: string): Blob {

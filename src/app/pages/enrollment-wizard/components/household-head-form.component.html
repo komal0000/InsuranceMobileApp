@@ -38,13 +38,13 @@
             </ion-input>
           </ion-item>
           <ion-item class="form-item" *ngIf="!isHeadFieldReadonly('first_name_ne')">
-            <ion-input [label]="text('wizard.first_name_ne', 'First Name Nepali')" labelPlacement="stacked" [placeholder]="text('register.full_name_ne_placeholder', 'Type in English')"
+            <ion-input [label]="text('wizard.first_name_ne', 'First Name (नेपाली)')" labelPlacement="stacked" [placeholder]="text('register.full_name_ne_placeholder', 'Type in English')"
                        appNepaliInput [(ngModel)]="headData.first_name_ne"
                        [readonly]="isHeadFieldReadonly('first_name_ne')">
             </ion-input>
           </ion-item>
           <ion-item class="form-item" *ngIf="!isHeadFieldReadonly('last_name_ne')">
-            <ion-input [label]="text('wizard.last_name_ne', 'Last Name Nepali')" labelPlacement="stacked" [placeholder]="text('register.full_name_ne_placeholder', 'Type in English')"
+            <ion-input [label]="text('wizard.last_name_ne', 'Last Name (नेपाली)')" labelPlacement="stacked" [placeholder]="text('register.full_name_ne_placeholder', 'Type in English')"
                        appNepaliInput [(ngModel)]="headData.last_name_ne"
                        [readonly]="isHeadFieldReadonly('last_name_ne')">
             </ion-input>

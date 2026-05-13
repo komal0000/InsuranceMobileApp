@@ -10,11 +10,11 @@ describe('DashboardPage', () => {
     };
   }
 
-  function makePage(overrides: { dashboardData?: unknown } = {}): DashboardPage {
+  function makePage(overrides: { dashboardData?: unknown; router?: unknown } = {}): DashboardPage {
     return new DashboardPage(
       {} as any,
       {} as any,
-      {} as any,
+      (overrides.router || {}) as any,
       { events$: new Subject() } as any,
       (overrides.dashboardData || {}) as any,
       languageService() as any
@@ -88,5 +88,14 @@ describe('DashboardPage', () => {
     expect(page.insuranceCheckResult).toEqual(checkerResult);
     expect(page.insuranceCheckMessage).toBe('This NID already has active insurance.');
     expect(page.insuranceCheckLoading).toBeFalse();
+  });
+
+  it('navigates to the KYC demo page from the dashboard action', () => {
+    const router = jasmine.createSpyObj('Router', ['navigateByUrl']);
+    const page = makePage({ router });
+
+    page.openKycDemo();
+
+    expect(router.navigateByUrl).toHaveBeenCalledOnceWith('/kyc-demo');
   });
 });

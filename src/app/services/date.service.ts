@@ -149,6 +149,24 @@ export class DateService {
     return this.calculateAgeFromAdDate(adDate);
   }
 
+  isCitizenshipIssueDateValid(
+    dateOfBirth: string | Date | null | undefined,
+    issueDate: string | Date | null | undefined,
+    source: CalendarSource = 'auto'
+  ): boolean {
+    const birthParts = this.extractIsoParts(this.toApiDate(dateOfBirth, source));
+    const issueParts = this.extractIsoParts(this.toApiDate(issueDate, source));
+
+    if (!birthParts || !issueParts) {
+      return false;
+    }
+
+    const minimumIssueDate = Date.UTC(birthParts.year + 16, birthParts.month - 1, birthParts.day);
+    const citizenshipIssueDate = Date.UTC(issueParts.year, issueParts.month - 1, issueParts.day);
+
+    return citizenshipIssueDate >= minimumIssueDate;
+  }
+
   calculateAgeFromDates(adDate?: string | null, bsDate?: string | null): number {
     const normalizedBs = this.normalizeDate(bsDate);
     if (normalizedBs && this.isBsDate(normalizedBs)) {

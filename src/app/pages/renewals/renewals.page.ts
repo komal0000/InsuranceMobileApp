@@ -359,6 +359,11 @@ export class RenewalsPage implements OnInit, OnDestroy {
       this.toastCtrl.create({ message: this.t('wizard.member_age_citizenship'), duration: 2500, color: 'warning', position: 'top' }).then(t => t.present());
       return;
     }
+    if (docType === 'citizenship' && m.citizenship_issue_date &&
+        !this.dateService.isCitizenshipIssueDateValid(m.date_of_birth, m.citizenship_issue_date, 'bs')) {
+      this.toastCtrl.create({ message: this.t('wizard.citizenship_issue_age'), duration: 2500, color: 'warning', position: 'top' }).then(t => t.present());
+      return;
+    }
 
     // Build FormData so images can be uploaded
     const fd = new FormData();

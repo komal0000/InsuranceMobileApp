@@ -308,15 +308,15 @@
               </ion-item>
 
               <!-- Nepali Name -->
-              <p class="field-section-label">नेपाली नाम</p>
+              <p class="field-section-label">{{ t('wizard.nepali_name') }}</p>
               <ion-item class="form-item">
-                <ion-input label="पहिलो नाम" labelPlacement="stacked" [(ngModel)]="newMember.first_name_ne"></ion-input>
+                <ion-input [label]="t('wizard.first_name_ne')" labelPlacement="stacked" [(ngModel)]="newMember.first_name_ne"></ion-input>
               </ion-item>
               <ion-item class="form-item">
-                <ion-input label="बीचको नाम" labelPlacement="stacked" [(ngModel)]="newMember.middle_name_ne"></ion-input>
+                <ion-input [label]="t('wizard.middle_name_ne')" labelPlacement="stacked" [(ngModel)]="newMember.middle_name_ne"></ion-input>
               </ion-item>
               <ion-item class="form-item">
-                <ion-input label="थर" labelPlacement="stacked" [(ngModel)]="newMember.last_name_ne"></ion-input>
+                <ion-input [label]="t('wizard.last_name_ne')" labelPlacement="stacked" [(ngModel)]="newMember.last_name_ne"></ion-input>
               </ion-item>
 
               <!-- Personal Details -->

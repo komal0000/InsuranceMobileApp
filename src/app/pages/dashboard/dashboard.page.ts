@@ -12,7 +12,8 @@ import { addIcons } from 'ionicons';
 import {
   documentTextOutline, shieldCheckmarkOutline, refreshOutline,
   cashOutline, peopleOutline, alertCircleOutline, todayOutline,
-  arrowForwardOutline, walletOutline, receiptOutline, searchOutline
+  arrowForwardOutline, walletOutline, receiptOutline, searchOutline,
+  personCircleOutline
 } from 'ionicons/icons';
 import { ApiService } from '../../services/api.service';
 import { AppSyncEvent, AppSyncService } from '../../services/app-sync.service';
@@ -64,7 +65,8 @@ export class DashboardPage implements OnInit, OnDestroy {
     addIcons({
       documentTextOutline, shieldCheckmarkOutline, refreshOutline,
       cashOutline, peopleOutline, alertCircleOutline, todayOutline,
-      arrowForwardOutline, walletOutline, receiptOutline, searchOutline
+      arrowForwardOutline, walletOutline, receiptOutline, searchOutline,
+      personCircleOutline
     });
   }
 
@@ -176,6 +178,8 @@ export class DashboardPage implements OnInit, OnDestroy {
   }
 
   navigate(path: string) { this.router.navigateByUrl(path); }
+
+  openKycDemo() { this.router.navigateByUrl('/kyc-demo'); }
 
   get showInsuranceChecker(): boolean {
     return this.isBeneficiary;

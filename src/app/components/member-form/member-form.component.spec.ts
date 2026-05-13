@@ -48,7 +48,7 @@ describe('MemberFormComponent', () => {
     ).map((element) => element.label);
 
     expect(labels).not.toContain('Middle Name');
-    expect(labels).not.toContain('Middle Name Nepali');
+    expect(labels).not.toContain('Middle Name (नेपाली)');
   });
 
   it('sets male gender and locks the field when son is selected', () => {

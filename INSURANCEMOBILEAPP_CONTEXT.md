@@ -17,7 +17,7 @@ This file captures the current Ionic/Angular state so future conversations do no
 ## Recent Auth Flow Changes
 - `RegisterPage` is details-only:
   - full name
-  - Nepali full name
+  - full name (नेपाली)
   - mobile number
   - optional email
 - Register shows the language switch as a login-style top-right pill over the blue header. The app-level floating language toggle is no longer shown on `/register`; it remains available on `/forgot-password`.
@@ -127,6 +127,7 @@ NID behavior:
 - NID photo preview is used when `photo_url` is returned.
 - For household-head NID-verified Step 1, citizenship front/back capture controls are hidden and a note explains that citizenship card images are not required. Manual fallback, family-member NID, and renewal member behavior are unchanged.
 - Household-head DOB now drives identity collection. Ages 1 through 100 are accepted; under-16 heads submit `document_type=birth_certificate`, `birth_certificate_number`, `birth_certificate_issue_date`, and `birth_certificate_front_image`, while stale citizenship keys/files are removed from `FormData`. Exactly 16 and older submit `document_type=citizenship` and keep the existing citizenship details/image flow.
+- Mobile pre-submit validation mirrors the backend citizenship issue-date rule: citizenship issue dates are normalized through `DateService` and must be at least 16 years after DOB. The check runs for enrollment wizard household-head save/draft, enrollment member save, renewals-tab add-member, and renewal-detail member add/edit; birth-certificate flows are skipped.
 - If household-head NID lookup fills an under-16 DOB, the wizard still requires birth-certificate details/document while keeping the NID photo behavior.
 - Mobile consumes backend-mapped NID display fields directly: `province`, `district`, `municipality`, `ward_number`, `tole_village`, `citizenship_issue_district`, and JPEG `photo_url`.
 - Household-head NID tests cover Bagamati/Makawanpur/Hetauda mapped address selection, locked citizenship issue/date fields, grouped verified label/value metadata, saved NID payload restoration, and JPEG photo preview.
@@ -201,6 +202,7 @@ Family members:
 - Relationship selection now auto-fills and locks member gender when the backend `relationship_gender_map` marks the relationship as deterministic. Son/father/brother/grandfather/grandson/father-in-law/brother-in-law/son-in-law map to male; daughter/mother/sister/grandmother/granddaughter/mother-in-law/sister-in-law/daughter-in-law map to female. Spouse, other, self, and unknown relationships remain manual.
 - Mobile relationship and marital labels include `brother_in_law`, `sister_in_law`, and `separated`.
 - Backend enrollment/renewal member saves enforce relationship DOB hierarchy across household members. Mobile remains UI-assistive only and now surfaces backend member-save validation errors, including `date_of_birth` hierarchy failures, in the enrollment wizard toast.
+- Backend enrollment/renewal member saves also enforce `citizenship_issue_date` as DOB + 16 years or later. Mobile performs the same pre-submit check for clearer feedback but still treats the backend as authoritative.
 - Backend enrollment/renewal member saves also enforce English last-name surname matching for bloodline relationships against both the household-head father and grandfather surnames when those surnames are available; mobile surfaces the backend `last_name` validation message.
 - Member removal in enrollment now requires a selected death/removal supporting file. `EnrollmentService.removeMember()` sends multipart `FormData` with `_method=DELETE` and `death_document`.
 - Existing stale keys are skipped in FormData where relevant.
@@ -235,6 +237,7 @@ Family members:
   - `DashboardDataService.checkInsurance()` calls `POST /api/insurance-check`.
   - `DashboardPage` validates NID input with `src\app\utils\nid-number.util.ts` before calling the API.
   - The dashboard card shows a minimal result and policy summary; admin/staff/enrollment-assistant dashboards do not show the checker.
+  - A beneficiary-only quick action opens `/kyc-demo` for the legacy IMIS KYC testing workflow.
 - Response data expected from backend:
   - `national_id`
   - `has_active_insurance`
@@ -250,9 +253,11 @@ Family members:
 - `LegacyImisService` wraps the new backend proxy endpoints instead of calling `imislegacy.hib.gov.np` directly from mobile.
 - `familyMembers(chfid, nationalId?)` calls `GET /api/legacy-imis/family-members` with `chfid` and optional normalized `national_id`; the backend enforces staff-vs-beneficiary access and returns normalized member rows.
 - `updateKyc(payload)` calls `POST /api/legacy-imis/kyc-update` with `chfid`, optional normalized `national_id`, and allowlisted KYC fields (`firstname`, `lastname`, `phone`). The backend forwards only the approved legacy fields.
+- `KycDemoPage` at `/kyc-demo` mirrors the web demo: users enter `household_head_chfid` and `member_chfid`, `fetchKycDemoMember()` calls `GET /api/legacy-imis/kyc-demo/member`, the page displays household data separately from the selected member, and `updateKycDemo()` calls `POST /api/legacy-imis/kyc-demo/update` with only `firstname`, `lastname`, and `phone`; the backend updates the selected member's `chfid` and returns refreshed data.
 - Relevant files:
   - `src\app\services\legacy-imis.service.ts`
   - `src\app\interfaces\legacy-imis.interface.ts`
+  - `src\app\pages\kyc-demo\kyc-demo.page.*`
 
 ## Payment Gateway Flow
 - Payment return handling treats `status=pending` as a first-class result instead of showing a failed payment.
@@ -282,11 +287,13 @@ Family members:
 - The toggle persists locally for guest/startup screens and syncs to the backend for authenticated users.
 - The lightweight translation system uses `LanguageService`, `TranslatePipe`, and the dictionaries under `src\app\i18n`.
 - Login, register, dashboard, enrollments, enrollment detail, and enrollment wizard step titles/messages now resolve through `LanguageService`/`TranslatePipe` instead of relying only on DOM phrase replacement.
+- Nepali-name field labels use the mixed-script convention in English UI (`Full Name (नेपाली)`, `First Name (नेपाली)`, `Last Name (नेपाली)`) while Nepali UI keeps natural labels such as `पूरा नाम (नेपाली)`, `पहिलो नाम (नेपाली)`, and `थर (नेपाली)` across registration, profile, enrollment, and renewal/member forms.
 - Enrollments list search and status filter labels have Nepali keyed translations for the title, search placeholder, all/draft/verified/approved/rejected tabs, and related list messages.
 - DOM phrase translation is default-off. Keyed translations and locale helpers are the primary path; legacy DOM translation can be opted in with an explicit container only.
 - `LanguageService` now also provides locale-aware number formatting, digit localization, `translateText()` for backend/display messages, `label()` for enum-like values, and residual DOM attribute translation for `placeholder`, `title`, `aria-label`, `label`, and `alt`.
 - `DateService` display helpers now localize BS dates and time digits in Nepali mode.
 - `DateService` display helpers now show BS dates as numeric `YYYY/MM/DD`; slash-separated typed BS dates are accepted and normalized back to AD `YYYY-MM-DD` for API payloads.
+- `DateService.isCitizenshipIssueDateValid()` converts BS/AD inputs to comparable AD dates and checks DOB + 16 years for citizenship issue-date validation.
 - `BsDatePickerComponent` now uses an editable numeric BS input plus a calendar button. Valid typed `YYYY/MM/DD` input updates the model, invalid input is visibly rejected, and calendar selection still works.
 - Global radio styling gives native radios, Ionic `ion-radio`, and fallback radio inputs a visible green unchecked outline and matching green selected/focus states.
 - Nepali text-entry fields using `appNepaliInput` now use the phonetic `TransliterateService` on committed Ionic input values instead of the `nepalify` keyboard-layout formatter; examples covered include `Komal Shrestha`, `Ram`, and `Shrestha`.
@@ -320,6 +327,7 @@ Important optimization files:
 - `src\app\app.component.ts`
 - `src\app\strategies\selective-preloading.strategy.ts`
 - `src\app\services\api.service.ts`
+- `src\app\services\date.service.ts`
 - `src\app\services\enrollment.service.ts`
 - `src\app\services\language.service.ts`
 - `src\app\pages\enrollment-wizard\enrollment-wizard.page.ts`
@@ -327,8 +335,23 @@ Important optimization files:
 - `src\app\pages\enrollment-wizard\components\*.component.ts`
 - `src\app\pages\enrollment-wizard\components\*.component.html`
 - `src\app\components\member-form\member-form.component.ts`
+- `src\app\pages\renewals\renewals.page.ts`
+- `src\app\pages\renewal-detail\renewal-detail.page.ts`
 
 ## Verification
+Citizenship issue-date verification on 2026-05-13:
+```powershell
+cd C:\Insurance\InsuranceMobileApp
+$env:CHROME_BIN="C:\Path\To\Chrome.exe"; npm test -- --watch=false --browsers=ChromeHeadless
+npm run build
+```
+
+Local macOS result:
+- `CHROME_BIN="/Applications/Brave Browser.app/Contents/MacOS/Brave Browser" npm test -- --watch=false --browsers=ChromeHeadless` passes: `138 SUCCESS`.
+- `npm run build` passes.
+- Plain `ChromeHeadless` without `CHROME_BIN` is unavailable on this Mac because Google Chrome is not installed at `/Applications/Google Chrome.app/...`.
+- Build warning remains: `src/app/components/bs-date-picker/bs-date-picker.component.ts` style budget exceeded by 55 bytes (`4.05 kB` total against `4.00 kB`).
+
 Nepali localization verification on 2026-05-12:
 ```powershell
 cd C:\Insurance\InsuranceMobileApp
@@ -744,10 +767,10 @@ npm run android:release:apk
 npm run android:release:aab
 ```
 - Release npm scripts use `scripts/android-gradle.cjs` to choose the Gradle wrapper by platform: `gradlew.bat` on Windows and `sh ./gradlew` on macOS/Linux.
-- `npm run android:release:apk` runs Gradle `assembleRelease`, so it builds the release APK artifact without requiring a connected device. Use `npm run android:install:release` when building and installing the release APK on a connected Android device.
-- macOS release script verified on 2026-05-12:
-  - `npm run android:release:apk` succeeds and creates `android/app/build/outputs/apk/release/app-release.apk`.
-  - `npm run android:install:release` is the explicit connected-device install command for release APKs.
+- `npm run android:release:apk` runs Gradle `installRelease`, so it builds the release APK artifact and installs it on the connected Android device. Use `npm run android:gradle -- assembleRelease` when only an APK artifact is needed.
+- macOS release script verified on 2026-05-13:
+  - `npm run android:release:apk` succeeds, creates `android/app/build/outputs/apk/release/app-release.apk`, and installs it on connected device `CPH2569 - 15`.
+  - `npm run android:install:release` remains an explicit connected-device install command for release APKs.
   - `npm run android:gradle -- bundleRelease` succeeds and creates the release AAB through the same platform-aware helper.
   - Existing build warning remains: `src/app/components/bs-date-picker/bs-date-picker.component.ts` style budget exceeded by 55 bytes (`4.05 kB` total against `4.00 kB`).
 - Header/status-bar overlap fix verified on 2026-05-12:

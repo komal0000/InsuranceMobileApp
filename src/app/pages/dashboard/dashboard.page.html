@@ -234,6 +234,19 @@
         <ion-icon name="arrow-forward-outline" class="action-arrow"></ion-icon>
       </ion-card-content>
     </ion-card>
+
+    <ion-card button (click)="openKycDemo()" *ngIf="isBeneficiary" class="action-card">
+      <ion-card-content class="action-content">
+        <div class="action-icon-box" style="background: rgba(13,110,253,0.08);">
+          <ion-icon name="person-circle-outline" style="color: #0d6efd;"></ion-icon>
+        </div>
+        <div class="action-text">
+          <strong>{{ t('dashboard.kyc_demo') }}</strong>
+          <span>{{ t('dashboard.kyc_demo_help') }}</span>
+        </div>
+        <ion-icon name="arrow-forward-outline" class="action-arrow"></ion-icon>
+      </ion-card-content>
+    </ion-card>
   </div>
 
   <ng-template #loadingTpl>

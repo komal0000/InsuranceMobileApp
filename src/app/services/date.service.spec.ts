@@ -37,4 +37,17 @@ describe('DateService', () => {
     expect(prepared.get('date_of_birth')).toBe(hyphenApiDate);
     expect(prepared.get('date_of_birth_bs')).toBe('2083-01-15');
   });
+
+  it('requires citizenship issue dates to be at least sixteen AD years after birth', () => {
+    const service = createService('en');
+
+    expect(service.isCitizenshipIssueDateValid('1990-01-01', '2005-12-31', 'ad')).toBeFalse();
+    expect(service.isCitizenshipIssueDateValid('1990-01-01', '2006-01-01', 'ad')).toBeTrue();
+  });
+
+  it('normalizes BS dates before validating citizenship issue dates', () => {
+    const service = createService('en');
+
+    expect(service.isCitizenshipIssueDateValid('2060-01-01', '2076-01-01', 'bs')).toBeTrue();
+  });
 });

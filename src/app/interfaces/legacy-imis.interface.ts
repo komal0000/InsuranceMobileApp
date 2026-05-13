@@ -25,6 +25,21 @@ export interface LegacyImisFamilyMembersResponse {
   members: LegacyImisMember[];
 }
 
+export interface LegacyImisKycDemoHousehold {
+  household_head_chfid: string;
+  family_id: number | null;
+  total_members: number;
+  head_member: LegacyImisMember | null;
+}
+
+export interface LegacyImisKycDemoResponse {
+  household_head_chfid: string;
+  member_chfid: string;
+  household: LegacyImisKycDemoHousehold | null;
+  selected_member: LegacyImisMember | null;
+  members: LegacyImisMember[];
+}
+
 export interface LegacyImisKycUpdatePayload {
   chfid: string;
   national_id?: string | null;
@@ -36,4 +51,12 @@ export interface LegacyImisKycUpdatePayload {
 export interface LegacyImisKycUpdateResponse {
   chfid: string;
   legacy_response: Record<string, unknown>;
+}
+
+export interface LegacyImisKycDemoUpdatePayload {
+  household_head_chfid: string;
+  member_chfid: string;
+  firstname?: string | null;
+  lastname?: string | null;
+  phone?: string | null;
 }

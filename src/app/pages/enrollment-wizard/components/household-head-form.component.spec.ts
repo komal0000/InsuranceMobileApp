@@ -64,7 +64,7 @@ describe('HouseholdHeadFormComponent', () => {
     ).map((element) => element.label);
 
     expect(labels).not.toContain('Middle Name');
-    expect(labels).not.toContain('Middle Name Nepali');
+    expect(labels).not.toContain('Middle Name (नेपाली)');
   });
 
   it('groups split parent and grandparent name controls by relationship', () => {

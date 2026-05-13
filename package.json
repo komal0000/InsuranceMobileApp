@@ -15,7 +15,7 @@
     "android:sync": "npx cap sync android",
     "android:open": "npx cap open android",
     "android:gradle": "node scripts/android-gradle.cjs",
-    "android:release:apk": "npm run build:prod && npm run android:sync && npm run android:gradle -- assembleRelease",
+    "android:release:apk": "npm run build:prod && npm run android:sync && npm run android:gradle -- installRelease",
     "android:install:release": "npm run build:prod && npm run android:sync && npm run android:gradle -- installRelease",
     "android:release:aab": "npm run build:prod && npm run android:sync && npm run android:gradle -- bundleRelease"
   },

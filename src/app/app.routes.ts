@@ -65,6 +65,12 @@ export const routes: Routes = [
       import('./pages/payment-result/payment-result.page').then(m => m.PaymentResultPage),
   },
   {
+    path: 'kyc-demo',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./pages/kyc-demo/kyc-demo.page').then(m => m.KycDemoPage),
+  },
+  {
     path: 'home',
     redirectTo: 'tabs/dashboard',
     pathMatch: 'full',

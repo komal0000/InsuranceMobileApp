@@ -2,7 +2,7 @@ import { EMPTY, of } from 'rxjs';
 import { RenewalDetailPage } from './renewal-detail.page';
 
 describe('RenewalDetailPage', () => {
-  function makePage() {
+  function makePage(overrides: { dateService?: Record<string, unknown> } = {}) {
     const api = jasmine.createSpyObj('ApiService', ['get', 'postFormData']);
     api.get.and.returnValue(of({ success: true, data: {} }));
     api.postFormData.and.returnValue(of({ success: true, data: {} }));
@@ -15,13 +15,20 @@ describe('RenewalDetailPage', () => {
       label: (_namespace: string, value: string) => value,
       translateText: (value?: string) => value || '',
     };
+    const dateService = {
+      getCurrentBs: () => '2083-01-01',
+      calculateAge: () => 30,
+      isCitizenshipIssueDateValid: () => true,
+      prepareFormDataForApi: (fd: FormData) => fd,
+      ...overrides.dateService,
+    };
 
     const page = new RenewalDetailPage(
       { snapshot: { paramMap: { get: () => '12' } } } as any,
       jasmine.createSpyObj('Router', ['navigateByUrl']) as any,
       api,
       { events$: EMPTY } as any,
-      { getCurrentBs: () => '2083-01-01', calculateAge: () => 30, prepareFormDataForApi: (fd: FormData) => fd } as any,
+      dateService as any,
       toastCtrl as any,
       {} as any,
       languageService as any,
@@ -80,6 +87,37 @@ describe('RenewalDetailPage', () => {
     expect(api.postFormData).not.toHaveBeenCalled();
     expect(toastCtrl.create).toHaveBeenCalledWith(jasmine.objectContaining({
       message: 'wizard.relationship_marital_status_block',
+      color: 'warning',
+    }));
+  });
+
+  it('blocks member save when citizenship issue date is before the sixteenth birthday', async () => {
+    const isCitizenshipIssueDateValid = jasmine.createSpy().and.returnValue(false);
+    const { page, api, toastCtrl } = makePage({
+      dateService: { isCitizenshipIssueDateValid },
+    });
+    page.renewalId = 12;
+    page.renewal = { enrollment: { household_head: { marital_status: 'married' } } } as any;
+    page.relationshipOptions = relationshipOptions();
+    page.newMember = {
+      first_name: 'Sita',
+      last_name: 'Lama',
+      gender: 'female',
+      date_of_birth: '2050-01-01',
+      relationship: 'spouse',
+      marital_status: 'married',
+      document_type: 'citizenship',
+      citizenship_number: 'CIT-001',
+      citizenship_issue_date: '2065-12-30',
+      citizenship_issue_district: 'Kathmandu',
+    };
+
+    await page.saveMember();
+
+    expect(api.postFormData).not.toHaveBeenCalled();
+    expect(isCitizenshipIssueDateValid).toHaveBeenCalledWith('2050-01-01', '2065-12-30', 'bs');
+    expect(toastCtrl.create).toHaveBeenCalledWith(jasmine.objectContaining({
+      message: 'wizard.citizenship_issue_age',
       color: 'warning',
     }));
   });

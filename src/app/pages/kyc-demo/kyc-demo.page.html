@@ -1,0 +1,173 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/dashboard"></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ t('kyc_demo.title') }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div class="kyc-demo-content">
+    <section class="page-intro">
+      <h2>{{ t('kyc_demo.heading') }}</h2>
+      <p>{{ t('kyc_demo.subtitle') }}</p>
+    </section>
+
+    <div *ngIf="errorMessage" class="message-box error">
+      <ion-icon name="alert-circle-outline"></ion-icon>
+      <span>{{ errorMessage }}</span>
+    </div>
+
+    <div *ngIf="successMessage" class="message-box success">
+      <ion-icon name="checkmark-circle-outline"></ion-icon>
+      <span>{{ successMessage }}</span>
+    </div>
+
+    <ion-card>
+      <ion-card-content>
+        <div class="section-title">
+          <ion-icon name="search-outline"></ion-icon>
+          <span>{{ t('kyc_demo.fetch_member') }}</span>
+        </div>
+
+        <div class="form-stack">
+          <ion-input
+            fill="outline"
+            label-placement="stacked"
+            [label]="t('kyc_demo.household_head_chfid')"
+            [placeholder]="t('kyc_demo.household_head_placeholder')"
+            name="householdHeadChfid"
+            [(ngModel)]="householdHeadChfid">
+          </ion-input>
+
+          <ion-input
+            fill="outline"
+            label-placement="stacked"
+            [label]="t('kyc_demo.member_chfid')"
+            [placeholder]="t('kyc_demo.member_placeholder')"
+            name="memberChfid"
+            [(ngModel)]="memberChfid">
+          </ion-input>
+
+          <ion-button expand="block" (click)="fetchMember()" [disabled]="loading">
+            <ion-spinner *ngIf="loading" name="crescent" slot="start"></ion-spinner>
+            <ion-icon *ngIf="!loading" name="search-outline" slot="start"></ion-icon>
+            {{ loading ? t('common.loading') : t('kyc_demo.fetch_member') }}
+          </ion-button>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card *ngIf="demoData?.household as household">
+      <ion-card-content>
+        <div class="section-title">
+          <ion-icon name="home-outline"></ion-icon>
+          <span>{{ t('kyc_demo.household_data') }}</span>
+        </div>
+
+        <div class="data-grid">
+          <div>
+            <span>{{ t('kyc_demo.household_head_chfid') }}</span>
+            <strong>{{ household.household_head_chfid }}</strong>
+          </div>
+          <div>
+            <span>{{ t('kyc_demo.family_id') }}</span>
+            <strong>{{ display(household.family_id) }}</strong>
+          </div>
+          <div>
+            <span>{{ t('kyc_demo.total_members') }}</span>
+            <strong>{{ household.total_members }}</strong>
+          </div>
+          <div>
+            <span>{{ t('kyc_demo.household_head_member') }}</span>
+            <strong>{{ memberName(household.head_member) }}</strong>
+          </div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card *ngIf="demoData?.selected_member as member">
+      <ion-card-content>
+        <div class="section-title">
+          <ion-icon name="person-circle-outline"></ion-icon>
+          <span>{{ t('kyc_demo.selected_member_data') }}</span>
+        </div>
+
+        <div class="member-summary">
+          <div>
+            <span>{{ t('kyc_demo.member_chfid') }}</span>
+            <strong>{{ member.chfid }}</strong>
+          </div>
+          <div>
+            <span>{{ t('kyc_demo.name') }}</span>
+            <strong>{{ memberName(member) }}</strong>
+          </div>
+          <div>
+            <span>{{ t('kyc_demo.date_of_birth') }}</span>
+            <strong>{{ display(member.date_of_birth) }}</strong>
+          </div>
+          <div>
+            <span>{{ t('kyc_demo.gender') }}</span>
+            <strong>{{ display(member.gender) }}</strong>
+          </div>
+        </div>
+
+        <div class="update-form">
+          <ion-input
+            fill="outline"
+            label-placement="stacked"
+            [label]="t('kyc_demo.firstname')"
+            name="firstname"
+            [(ngModel)]="kycForm.firstname">
+          </ion-input>
+
+          <ion-input
+            fill="outline"
+            label-placement="stacked"
+            [label]="t('kyc_demo.lastname')"
+            name="lastname"
+            [(ngModel)]="kycForm.lastname">
+          </ion-input>
+
+          <ion-input
+            fill="outline"
+            label-placement="stacked"
+            [label]="t('kyc_demo.phone')"
+            type="tel"
+            name="phone"
+            [(ngModel)]="kycForm.phone">
+          </ion-input>
+
+          <ion-button expand="block" (click)="updateKyc()" [disabled]="updating">
+            <ion-spinner *ngIf="updating" name="crescent" slot="start"></ion-spinner>
+            <ion-icon *ngIf="!updating" name="send-outline" slot="start"></ion-icon>
+            {{ updating ? t('common.saving') : t('kyc_demo.update_kyc') }}
+          </ion-button>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card *ngIf="demoData">
+      <ion-card-content>
+        <div class="section-title">
+          <ion-icon name="people-outline"></ion-icon>
+          <span>{{ t('kyc_demo.family_members') }}</span>
+        </div>
+
+        <ion-list lines="none" class="member-list">
+          <ion-item *ngFor="let member of demoData.members" [class.selected]="member.chfid === demoData.selected_member?.chfid">
+            <ion-label>
+              <h3>{{ memberName(member) }}</h3>
+              <p>{{ t('kyc_demo.member_chfid') }}: {{ member.chfid }}</p>
+              <p>{{ t('kyc_demo.phone') }}: {{ display(member.phone) }}</p>
+            </ion-label>
+          </ion-item>
+          <ion-item *ngIf="demoData.members.length === 0">
+            <ion-label>{{ t('kyc_demo.no_members') }}</ion-label>
+          </ion-item>
+        </ion-list>
+      </ion-card-content>
+    </ion-card>
+  </div>
+</ion-content>

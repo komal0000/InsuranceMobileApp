@@ -3,6 +3,8 @@ import { Observable } from 'rxjs';
 import { ApiResponse } from '../interfaces/api-response.interface';
 import {
   LegacyImisFamilyMembersResponse,
+  LegacyImisKycDemoResponse,
+  LegacyImisKycDemoUpdatePayload,
   LegacyImisKycUpdatePayload,
   LegacyImisKycUpdateResponse,
 } from '../interfaces/legacy-imis.interface';
@@ -32,6 +34,26 @@ export class LegacyImisService {
       lastname: payload.lastname,
       phone: payload.phone,
       ...(payload.national_id ? { national_id: nidLookupValue(payload.national_id) } : {}),
+    });
+  }
+
+  fetchKycDemoMember(
+    householdHeadChfid: string,
+    memberChfid: string,
+  ): Observable<ApiResponse<LegacyImisKycDemoResponse>> {
+    return this.api.get<ApiResponse<LegacyImisKycDemoResponse>>('/legacy-imis/kyc-demo/member', {
+      household_head_chfid: householdHeadChfid.trim(),
+      member_chfid: memberChfid.trim(),
+    });
+  }
+
+  updateKycDemo(payload: LegacyImisKycDemoUpdatePayload): Observable<ApiResponse<LegacyImisKycDemoResponse>> {
+    return this.api.post<ApiResponse<LegacyImisKycDemoResponse>>('/legacy-imis/kyc-demo/update', {
+      household_head_chfid: payload.household_head_chfid.trim(),
+      member_chfid: payload.member_chfid.trim(),
+      firstname: payload.firstname,
+      lastname: payload.lastname,
+      phone: payload.phone,
     });
   }
 }
