@@ -2,7 +2,7 @@ import { EMPTY, of } from 'rxjs';
 import { RenewalDetailPage } from './renewal-detail.page';
 
 describe('RenewalDetailPage', () => {
-  function makePage(overrides: { dateService?: Record<string, unknown> } = {}) {
+  function makePage(overrides: { dateService?: Record<string, unknown>; alertCtrl?: unknown } = {}) {
     const api = jasmine.createSpyObj('ApiService', ['get', 'postFormData']);
     api.get.and.returnValue(of({ success: true, data: {} }));
     api.postFormData.and.returnValue(of({ success: true, data: {} }));
@@ -30,7 +30,7 @@ describe('RenewalDetailPage', () => {
       { events$: EMPTY } as any,
       dateService as any,
       toastCtrl as any,
-      {} as any,
+      (overrides.alertCtrl || {}) as any,
       languageService as any,
     );
 
@@ -120,5 +120,67 @@ describe('RenewalDetailPage', () => {
       message: 'wizard.citizenship_issue_age',
       color: 'warning',
     }));
+  });
+
+  it('removes newly added renewal members without selecting a death/removal document', async () => {
+    const presentedAlert = { present: jasmine.createSpy().and.returnValue(Promise.resolve()) };
+    const alertCtrl = {
+      create: jasmine.createSpy().and.callFake(async (options: any) => {
+        options.buttons[1].handler();
+        return presentedAlert;
+      }),
+    };
+    const { page, api } = makePage({ alertCtrl });
+    page.renewalId = 12;
+    page.renewal = {
+      members_added: [9],
+      enrollment: { status: 'active' },
+    } as any;
+    (page as any).selectRemovalDocument = jasmine.createSpy().and.returnValue(Promise.resolve(null));
+
+    await page.removeMember({
+      id: 9,
+      first_name: 'New',
+      last_name: 'Member',
+      member_status: 'pending_verification',
+    });
+    await Promise.resolve();
+
+    expect((page as any).selectRemovalDocument).not.toHaveBeenCalled();
+    expect(api.postFormData).toHaveBeenCalledWith('/renewals/12/members/9', jasmine.any(FormData));
+    const submitted = api.postFormData.calls.mostRecent().args[1] as FormData;
+    expect(submitted.get('_method')).toBe('DELETE');
+    expect(submitted.has('death_document')).toBeFalse();
+    expect(presentedAlert.present).toHaveBeenCalled();
+  });
+
+  it('requires a death/removal document for approved renewal members', async () => {
+    const deathDocument = new File(['proof'], 'death-proof.pdf', { type: 'application/pdf' });
+    const presentedAlert = { present: jasmine.createSpy().and.returnValue(Promise.resolve()) };
+    const alertCtrl = {
+      create: jasmine.createSpy().and.callFake(async (options: any) => {
+        options.buttons[1].handler();
+        return presentedAlert;
+      }),
+    };
+    const { page, api } = makePage({ alertCtrl });
+    page.renewalId = 12;
+    page.renewal = { enrollment: { status: 'active' } } as any;
+    (page as any).selectRemovalDocument = jasmine.createSpy().and.returnValue(Promise.resolve(deathDocument));
+
+    await page.removeMember({
+      id: 10,
+      first_name: 'Approved',
+      last_name: 'Member',
+      member_status: 'approved',
+    });
+    await Promise.resolve();
+
+    expect((page as any).selectRemovalDocument).toHaveBeenCalled();
+    expect(api.postFormData).toHaveBeenCalledWith('/renewals/12/members/10', jasmine.any(FormData));
+    const submitted = api.postFormData.calls.mostRecent().args[1] as FormData;
+    expect(submitted.get('_method')).toBe('DELETE');
+    expect(submitted.has('death_document')).toBeTrue();
+    expect(presentedAlert.present).toHaveBeenCalled();
   });
 });

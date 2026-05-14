@@ -51,6 +51,21 @@ describe('MemberFormComponent', () => {
     expect(labels).not.toContain('Middle Name (नेपाली)');
   });
 
+  it('does not render the relationship filtering helper text', () => {
+    const fixture = TestBed.createComponent(MemberFormComponent);
+    const component = fixture.componentInstance;
+    component.member = { relationship: '', gender: '' };
+    component.relationshipOptions = [{ value: 'son', label: 'Son' }];
+    component.showRelationshipConstraintNotice = true;
+    component.isHeadSingle = true;
+
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent;
+    expect(text).not.toContain('wizard.relationship_marital_status_notice');
+    expect(text).not.toContain('Some relationships are hidden');
+  });
+
   it('sets male gender and locks the field when son is selected', () => {
     const fixture = TestBed.createComponent(MemberFormComponent);
     const component = fixture.componentInstance;

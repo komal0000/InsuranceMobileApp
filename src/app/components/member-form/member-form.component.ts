@@ -172,9 +172,6 @@ interface MemberFormModel {
           </ion-select-option>
         </ion-select>
       </ion-item>
-      <p *ngIf="showRelationshipConstraintNotice || isHeadSingle" class="helper-text">
-        {{ text('wizard.relationship_marital_status_notice', 'Some relationships are hidden because they are not valid for the household head marital status.') }}
-      </p>
       <ion-item class="form-item">
         <ion-select [label]="text('wizard.blood_group', 'Blood Group')" labelPlacement="stacked" [(ngModel)]="member.blood_group">
           <ion-select-option value="A+">A+</ion-select-option>

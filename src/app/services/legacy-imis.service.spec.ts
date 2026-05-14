@@ -55,7 +55,16 @@ describe('LegacyImisService', () => {
       chfid: '019857364',
       firstname: 'Sita',
       lastname: 'Sharma',
+      date_of_birth: '1980-01-15',
+      gender: 'F',
       phone: '+9779800000000',
+      email: 'sita.updated@example.test',
+      current_address: 'Chitwan Ward 8',
+      geolocation: '27.5291,84.3542',
+      relationship_code: 0,
+      profession_id: 6,
+      education_id: 7,
+      health_facility_id: 25,
       national_id: '१२३-४५६-७८९-०',
     }).subscribe(result => {
       expect(result).toEqual(response);
@@ -65,7 +74,16 @@ describe('LegacyImisService', () => {
       chfid: '019857364',
       firstname: 'Sita',
       lastname: 'Sharma',
+      date_of_birth: '1980-01-15',
+      gender: 'F',
       phone: '+9779800000000',
+      email: 'sita.updated@example.test',
+      current_address: 'Chitwan Ward 8',
+      geolocation: '27.5291,84.3542',
+      relationship_code: 0,
+      profession_id: 6,
+      education_id: 7,
+      health_facility_id: 25,
       national_id: '123-456-789-0',
     });
   });
@@ -118,7 +136,16 @@ describe('LegacyImisService', () => {
       member_chfid: ' M002 ',
       firstname: 'Sita',
       lastname: 'Sharma',
+      date_of_birth: '1992-04-20',
+      gender: 'F',
       phone: '+9779800000000',
+      email: 'sita.updated@example.test',
+      current_address: 'Kathmandu Ward 4',
+      geolocation: '27.7172,85.3240',
+      relationship_code: 2,
+      profession_id: 6,
+      education_id: 7,
+      health_facility_id: 25,
     }).subscribe(result => {
       expect(result).toEqual(response);
     });
@@ -128,7 +155,16 @@ describe('LegacyImisService', () => {
       member_chfid: 'M002',
       firstname: 'Sita',
       lastname: 'Sharma',
+      date_of_birth: '1992-04-20',
+      gender: 'F',
       phone: '+9779800000000',
+      email: 'sita.updated@example.test',
+      current_address: 'Kathmandu Ward 4',
+      geolocation: '27.7172,85.3240',
+      relationship_code: 2,
+      profession_id: 6,
+      education_id: 7,
+      health_facility_id: 25,
     });
   });
 });

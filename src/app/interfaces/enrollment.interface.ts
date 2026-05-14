@@ -38,6 +38,8 @@ export interface Enrollment {
   payment_date: string;
   payment_date_bs?: string;
   rejection_reason?: string;
+  approved_by?: number | null;
+  approved_at?: string | null;
   created_at: string;
   updated_at: string;
   household_head?: HouseholdHead;
@@ -122,6 +124,11 @@ export interface HouseholdHead {
   target_group_front_image?: string;
   target_group_back_image?: string;
   documents?: MemberDocument[];
+  member_status?: string | null;
+  verified_by?: number | null;
+  verified_at?: string | null;
+  approved_by?: number | null;
+  approved_at?: string | null;
   created_at?: string;
   updated_at?: string;
 }

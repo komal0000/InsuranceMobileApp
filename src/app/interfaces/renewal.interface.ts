@@ -20,6 +20,7 @@ export interface Renewal {
   previous_policy_start?: string;
   previous_policy_end?: string;
   is_within_grace_period?: boolean;
+  members_added?: Array<number | string> | null;
   members?: any[];
   imis_data?: any;
   created_at?: string;

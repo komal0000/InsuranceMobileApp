@@ -115,4 +115,16 @@ describe('EnrollmentService', () => {
     expect(submitted.get('_method')).toBe('DELETE');
     expect(submitted.has('death_document')).toBeTrue();
   });
+
+  it('removes unapproved members without sending a death/removal document', () => {
+    const response = { success: true, message: 'Removed.', data: null };
+    api.postFormData.and.returnValue(of(response));
+
+    service.removeMember(25, 9, undefined as unknown as File).subscribe(result => expect(result).toEqual(response));
+
+    expect(api.postFormData).toHaveBeenCalledWith('/enrollments/25/members/9', jasmine.any(FormData));
+    const submitted = api.postFormData.calls.mostRecent().args[1] as FormData;
+    expect(submitted.get('_method')).toBe('DELETE');
+    expect(submitted.has('death_document')).toBeFalse();
+  });
 });

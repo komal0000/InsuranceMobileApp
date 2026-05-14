@@ -40,23 +40,32 @@ export interface LegacyImisKycDemoResponse {
   members: LegacyImisMember[];
 }
 
-export interface LegacyImisKycUpdatePayload {
-  chfid: string;
-  national_id?: string | null;
-  firstname?: string | null;
-  lastname?: string | null;
-  phone?: string | null;
-}
-
 export interface LegacyImisKycUpdateResponse {
   chfid: string;
   legacy_response: Record<string, unknown>;
 }
 
-export interface LegacyImisKycDemoUpdatePayload {
-  household_head_chfid: string;
-  member_chfid: string;
+export interface LegacyImisKycEditableFields {
   firstname?: string | null;
   lastname?: string | null;
+  date_of_birth?: string | null;
+  gender?: string | null;
   phone?: string | null;
+  email?: string | null;
+  current_address?: string | null;
+  geolocation?: string | null;
+  relationship_code?: string | number | null;
+  profession_id?: string | number | null;
+  education_id?: string | number | null;
+  health_facility_id?: string | number | null;
+}
+
+export interface LegacyImisKycUpdatePayload extends LegacyImisKycEditableFields {
+  chfid: string;
+  national_id?: string | null;
+}
+
+export interface LegacyImisKycDemoUpdatePayload extends LegacyImisKycEditableFields {
+  household_head_chfid: string;
+  member_chfid: string;
 }

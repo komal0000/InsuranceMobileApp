@@ -1068,7 +1068,33 @@ describe('EnrollmentWizardPage', () => {
     expect(page.newMember.date_of_birth).toBe('2083-01-01');
   });
 
-  it('requires and submits a death/removal document when removing an enrollment member', async () => {
+  it('removes unapproved enrollment members without selecting a death/removal document', async () => {
+    const enrollmentSvc = {
+      removeMember: jasmine.createSpy().and.returnValue(of({ success: true, message: 'Removed.' })),
+    };
+    const presentedAlert = { present: jasmine.createSpy().and.returnValue(Promise.resolve()) };
+    const alertCtrl = {
+      create: jasmine.createSpy().and.callFake(async (options: any) => {
+        options.buttons[1].handler();
+        return presentedAlert;
+      }),
+    };
+    const page = createPage({ enrollmentSvc, alertCtrl });
+    page.enrollmentId = 4;
+    page.enrollment = { status: 'draft' } as any;
+    page.members = [{ id: 9, first_name: 'Sita', last_name: 'Shrestha', member_status: 'pending_verification' } as any];
+    (page as any).selectRemovalDocument = jasmine.createSpy().and.returnValue(Promise.resolve(null));
+
+    await page.removeMember(page.members[0]);
+    await Promise.resolve();
+
+    expect((page as any).selectRemovalDocument).not.toHaveBeenCalled();
+    expect(enrollmentSvc.removeMember).toHaveBeenCalledWith(4, 9, undefined);
+    expect(page.members).toEqual([]);
+    expect(presentedAlert.present).toHaveBeenCalled();
+  });
+
+  it('requires and submits a death/removal document when removing an approved enrollment member', async () => {
     const deathDocument = new File(['proof'], 'death-proof.pdf', { type: 'application/pdf' });
     const enrollmentSvc = {
       removeMember: jasmine.createSpy().and.returnValue(of({ success: true, message: 'Removed.' })),
@@ -1082,7 +1108,8 @@ describe('EnrollmentWizardPage', () => {
     };
     const page = createPage({ enrollmentSvc, alertCtrl });
     page.enrollmentId = 4;
-    page.members = [{ id: 9, first_name: 'Sita', last_name: 'Shrestha' } as any];
+    page.enrollment = { status: 'active' } as any;
+    page.members = [{ id: 9, first_name: 'Sita', last_name: 'Shrestha', member_status: 'approved' } as any];
     (page as any).selectRemovalDocument = jasmine.createSpy().and.returnValue(Promise.resolve(deathDocument));
 
     await page.removeMember(page.members[0]);

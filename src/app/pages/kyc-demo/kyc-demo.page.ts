@@ -37,6 +37,39 @@ import {
 import { LanguageService } from '../../services/language.service';
 import { LegacyImisService } from '../../services/legacy-imis.service';
 
+type KycForm = {
+  firstname: string;
+  lastname: string;
+  date_of_birth: string;
+  gender: string;
+  phone: string;
+  email: string;
+  current_address: string;
+  geolocation: string;
+  relationship_code: string;
+  profession_id: string;
+  education_id: string;
+  health_facility_id: string;
+};
+
+type KycFormField = keyof KycForm;
+
+interface KycEditableField {
+  key: KycFormField;
+  labelKey: string;
+}
+
+interface KycLockedField {
+  key: keyof LegacyImisMember;
+  labelKey: string;
+}
+
+interface KycDisplayField {
+  key: keyof LegacyImisMember;
+  label: string;
+  value: string;
+}
+
 @Component({
   selector: 'app-kyc-demo',
   standalone: true,
@@ -70,11 +103,32 @@ export class KycDemoPage implements OnDestroy {
   errorMessage = '';
   successMessage = '';
   demoData: LegacyImisKycDemoResponse | null = null;
-  kycForm = {
-    firstname: '',
-    lastname: '',
-    phone: '',
-  };
+  kycForm: KycForm = this.blankKycForm();
+
+  readonly editableMemberFields: KycEditableField[] = [
+    { key: 'firstname', labelKey: 'kyc_demo.firstname' },
+    { key: 'lastname', labelKey: 'kyc_demo.lastname' },
+    { key: 'date_of_birth', labelKey: 'kyc_demo.date_of_birth' },
+    { key: 'gender', labelKey: 'kyc_demo.gender' },
+    { key: 'phone', labelKey: 'kyc_demo.phone' },
+    { key: 'email', labelKey: 'kyc_demo.email' },
+    { key: 'current_address', labelKey: 'kyc_demo.current_address' },
+    { key: 'geolocation', labelKey: 'kyc_demo.geolocation' },
+    { key: 'relationship_code', labelKey: 'kyc_demo.relationship_code' },
+    { key: 'profession_id', labelKey: 'kyc_demo.profession_id' },
+    { key: 'education_id', labelKey: 'kyc_demo.education_id' },
+    { key: 'health_facility_id', labelKey: 'kyc_demo.health_facility_id' },
+  ];
+
+  private readonly lockedMemberFieldConfigs: KycLockedField[] = [
+    { key: 'chfid', labelKey: 'kyc_demo.member_chfid' },
+    { key: 'legacy_id', labelKey: 'kyc_demo.legacy_id' },
+    { key: 'uuid', labelKey: 'kyc_demo.uuid' },
+    { key: 'family_id', labelKey: 'kyc_demo.family_id' },
+    { key: 'is_household_head', labelKey: 'kyc_demo.is_household_head' },
+    { key: 'photo_id', labelKey: 'kyc_demo.photo_id' },
+    { key: 'card_issued', labelKey: 'kyc_demo.card_issued' },
+  ];
 
   private readonly destroy$ = new Subject<void>();
 
@@ -130,9 +184,7 @@ export class KycDemoPage implements OnDestroy {
   updateKyc(): void {
     const householdHeadChfid = this.householdHeadChfid.trim();
     const memberChfid = (this.demoData?.selected_member?.chfid || this.memberChfid).trim();
-    const firstname = this.kycForm.firstname.trim();
-    const lastname = this.kycForm.lastname.trim();
-    const phone = this.kycForm.phone.trim();
+    const editableFields = this.trimmedKycForm();
 
     this.clearMessages();
 
@@ -141,7 +193,7 @@ export class KycDemoPage implements OnDestroy {
       return;
     }
 
-    if (!firstname && !lastname && !phone) {
+    if (!Object.values(editableFields).some(value => value !== '')) {
       this.errorMessage = this.t('kyc_demo.update_required');
       return;
     }
@@ -151,9 +203,7 @@ export class KycDemoPage implements OnDestroy {
     this.legacyImis.updateKycDemo({
       household_head_chfid: householdHeadChfid,
       member_chfid: memberChfid,
-      firstname,
-      lastname,
-      phone,
+      ...editableFields,
     }).pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (res) => {
@@ -178,7 +228,21 @@ export class KycDemoPage implements OnDestroy {
       return this.t('common.not_available');
     }
 
+    if (typeof value === 'boolean') {
+      return this.t(value ? 'common.yes' : 'common.no');
+    }
+
     return String(value);
+  }
+
+  get lockedMemberFields(): KycDisplayField[] {
+    const member = this.demoData?.selected_member;
+
+    return this.lockedMemberFieldConfigs.map(field => ({
+      key: field.key,
+      label: this.t(field.labelKey),
+      value: this.display(member?.[field.key]),
+    }));
   }
 
   t(key: string): string {
@@ -194,11 +258,7 @@ export class KycDemoPage implements OnDestroy {
     this.demoData = data;
     this.householdHeadChfid = data.household_head_chfid || this.householdHeadChfid.trim();
     this.memberChfid = data.selected_member?.chfid || data.member_chfid || this.memberChfid.trim();
-    this.kycForm = {
-      firstname: data.selected_member?.first_name || '',
-      lastname: data.selected_member?.last_name || '',
-      phone: data.selected_member?.phone || '',
-    };
+    this.kycForm = this.formFromMember(data.selected_member);
   }
 
   private clearMessages(): void {
@@ -221,5 +281,64 @@ export class KycDemoPage implements OnDestroy {
     const message = firstValidation || error?.error?.message;
 
     return this.languageService.translateText(message) || this.t(fallbackKey);
+  }
+
+  private blankKycForm(): KycForm {
+    return {
+      firstname: '',
+      lastname: '',
+      date_of_birth: '',
+      gender: '',
+      phone: '',
+      email: '',
+      current_address: '',
+      geolocation: '',
+      relationship_code: '',
+      profession_id: '',
+      education_id: '',
+      health_facility_id: '',
+    };
+  }
+
+  private formFromMember(member?: LegacyImisMember | null): KycForm {
+    return {
+      firstname: this.formValue(member?.first_name),
+      lastname: this.formValue(member?.last_name),
+      date_of_birth: this.formValue(member?.date_of_birth),
+      gender: this.formValue(member?.gender),
+      phone: this.formValue(member?.phone),
+      email: this.formValue(member?.email),
+      current_address: this.formValue(member?.current_address),
+      geolocation: this.formValue(member?.geolocation),
+      relationship_code: this.formValue(member?.relationship_code),
+      profession_id: this.formValue(member?.profession_id),
+      education_id: this.formValue(member?.education_id),
+      health_facility_id: this.formValue(member?.health_facility_id),
+    };
+  }
+
+  private trimmedKycForm(): KycForm {
+    return {
+      firstname: this.kycForm.firstname.trim(),
+      lastname: this.kycForm.lastname.trim(),
+      date_of_birth: this.kycForm.date_of_birth.trim(),
+      gender: this.kycForm.gender.trim(),
+      phone: this.kycForm.phone.trim(),
+      email: this.kycForm.email.trim(),
+      current_address: this.kycForm.current_address.trim(),
+      geolocation: this.kycForm.geolocation.trim(),
+      relationship_code: this.kycForm.relationship_code.trim(),
+      profession_id: this.kycForm.profession_id.trim(),
+      education_id: this.kycForm.education_id.trim(),
+      health_facility_id: this.kycForm.health_facility_id.trim(),
+    };
+  }
+
+  private formValue(value: unknown): string {
+    if (value === null || value === undefined) {
+      return '';
+    }
+
+    return String(value);
   }
 }

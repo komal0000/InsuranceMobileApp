@@ -35,6 +35,7 @@ import {
   isRelationshipBlockedForHeadMaritalStatus,
   normalizeRelationshipBlockMap,
 } from '../../utils/relationship-marital-status.util';
+import { requiresRemovalDocument } from '../../utils/member-removal-document.util';
 
 const DEFAULT_MEMBER_RELATIONSHIPS: Array<{ value: string; label: string }> = [
   { value: 'spouse', label: 'Spouse' },
@@ -401,8 +402,13 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
   }
 
   async removeMember(member: any) {
-    const deathDocument = await this.selectRemovalDocument();
-    if (!deathDocument) {
+    const removalDocumentRequired = requiresRemovalDocument(member, {
+      enrollmentStatus: this.renewal?.enrollment?.status,
+      enrollmentApprovedAt: this.renewal?.enrollment?.approved_at,
+      renewalMembersAdded: this.renewal?.members_added,
+    });
+    const deathDocument = removalDocumentRequired ? await this.selectRemovalDocument() : undefined;
+    if (removalDocumentRequired && !deathDocument) {
       this.toastCtrl.create({
         message: this.t('wizard.death_document_required'),
         duration: 2200,
@@ -422,7 +428,9 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
           handler: () => {
             const formData = new FormData();
             formData.append('_method', 'DELETE');
-            formData.append('death_document', deathDocument, this.fileNameFor(deathDocument, 'death-document'));
+            if (deathDocument) {
+              formData.append('death_document', deathDocument, this.fileNameFor(deathDocument, 'death-document'));
+            }
             this.api.postFormData<ApiResponse>(`/renewals/${this.renewalId}/members/${member.id}`, formData).subscribe({
               next: async () => {
                 this.loadDetail();

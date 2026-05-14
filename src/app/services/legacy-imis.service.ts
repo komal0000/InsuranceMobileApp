@@ -5,6 +5,7 @@ import {
   LegacyImisFamilyMembersResponse,
   LegacyImisKycDemoResponse,
   LegacyImisKycDemoUpdatePayload,
+  LegacyImisKycEditableFields,
   LegacyImisKycUpdatePayload,
   LegacyImisKycUpdateResponse,
 } from '../interfaces/legacy-imis.interface';
@@ -30,9 +31,7 @@ export class LegacyImisService {
   updateKyc(payload: LegacyImisKycUpdatePayload): Observable<ApiResponse<LegacyImisKycUpdateResponse>> {
     return this.api.post<ApiResponse<LegacyImisKycUpdateResponse>>('/legacy-imis/kyc-update', {
       chfid: payload.chfid.trim(),
-      firstname: payload.firstname,
-      lastname: payload.lastname,
-      phone: payload.phone,
+      ...this.kycEditableFields(payload),
       ...(payload.national_id ? { national_id: nidLookupValue(payload.national_id) } : {}),
     });
   }
@@ -51,9 +50,24 @@ export class LegacyImisService {
     return this.api.post<ApiResponse<LegacyImisKycDemoResponse>>('/legacy-imis/kyc-demo/update', {
       household_head_chfid: payload.household_head_chfid.trim(),
       member_chfid: payload.member_chfid.trim(),
+      ...this.kycEditableFields(payload),
+    });
+  }
+
+  private kycEditableFields(payload: LegacyImisKycEditableFields): LegacyImisKycEditableFields {
+    return {
       firstname: payload.firstname,
       lastname: payload.lastname,
+      date_of_birth: payload.date_of_birth,
+      gender: payload.gender,
       phone: payload.phone,
-    });
+      email: payload.email,
+      current_address: payload.current_address,
+      geolocation: payload.geolocation,
+      relationship_code: payload.relationship_code,
+      profession_id: payload.profession_id,
+      education_id: payload.education_id,
+      health_facility_id: payload.health_facility_id,
+    };
   }
 }

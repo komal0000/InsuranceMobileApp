@@ -1,6 +1,6 @@
 # InsuranceMobileApp Current Context
 
-Last updated: 2026-05-13
+Last updated: 2026-05-14
 
 This file captures the current Ionic/Angular state so future conversations do not need to rediscover the mobile app.
 
@@ -198,13 +198,13 @@ Family members:
 - Step 2 and review name displays show first name plus last name only.
 - Member target-group UI and payload collection are removed.
 - Mobile consumes backend `/api/enrollment-config.relationship_blocked_by_head_marital_status` for assistive relationship filtering and stale-value blocking in enrollment wizard, renewals list add-member, and renewal-detail member forms. If config is unavailable, `src\app\utils\relationship-marital-status.util.ts` falls back to the backend matrix: `single` blocks spouse, descendants, and all in-laws; `divorced`/`widowed`/`separated` block spouse plus spouse-side in-laws while allowing child-side in-laws.
-- Relationship option helper text now says relationships are hidden because they are not valid for the household head marital status, not only the old single-head case.
+- Relationship filtering remains active for enrollment, renewals-tab add-member, and renewal-detail member forms, but the visible helper text explaining hidden relationship options has been removed for consistency with the web member forms.
 - Relationship selection now auto-fills and locks member gender when the backend `relationship_gender_map` marks the relationship as deterministic. Son/father/brother/grandfather/grandson/father-in-law/brother-in-law/son-in-law map to male; daughter/mother/sister/grandmother/granddaughter/mother-in-law/sister-in-law/daughter-in-law map to female. Spouse, other, self, and unknown relationships remain manual.
 - Mobile relationship and marital labels include `brother_in_law`, `sister_in_law`, and `separated`.
 - Backend enrollment/renewal member saves enforce relationship DOB hierarchy across household members. Mobile remains UI-assistive only and now surfaces backend member-save validation errors, including `date_of_birth` hierarchy failures, in the enrollment wizard toast.
 - Backend enrollment/renewal member saves also enforce `citizenship_issue_date` as DOB + 16 years or later. Mobile performs the same pre-submit check for clearer feedback but still treats the backend as authoritative.
 - Backend enrollment/renewal member saves also enforce English last-name surname matching for bloodline relationships against both the household-head father and grandfather surnames when those surnames are available; mobile surfaces the backend `last_name` validation message.
-- Member removal in enrollment now requires a selected death/removal supporting file. `EnrollmentService.removeMember()` sends multipart `FormData` with `_method=DELETE` and `death_document`.
+- Member removal in enrollment and renewal detail uses the backend-mirrored `requiresRemovalDocument()` helper. Approved/covered members still require a selected death/removal supporting file, while draft, pending, district-verified, rejected, or current-renewal newly added members can be removed without selecting a file. `EnrollmentService.removeMember()` sends multipart `FormData` with `_method=DELETE` and includes `death_document` only when a file is required/provided.
 - Existing stale keys are skipped in FormData where relevant.
 - The shared `src\app\components\member-form\member-form.component.ts` is used by enrollment member entry and renewal detail member entry.
 - Enrollment member add/update uses mutation response data to update the current in-memory member list when enough state is returned; full enrollment refetches are still used where server-calculated review/subsidy state is needed.
@@ -215,7 +215,7 @@ Family members:
 - Renewal member add/edit no longer collects a birth certificate back image; birth certificate is one document capture.
 - Renewal member add/edit uses the same backend `relationship_gender_map` behavior as enrollment: deterministic relationships auto-fill and lock gender, while spouse/other/custom relationships stay manual.
 - Renewal member relationship pickers and stale-value validation use the same backend-provided marital-status relationship block matrix as enrollment, with the local fallback matrix if config is unavailable.
-- Renewal detail keeps Add Family Member below the member list. Removing a renewal member now requires a death/removal supporting file and posts multipart `_method=DELETE` with `death_document`.
+- Renewal detail keeps Add Family Member below the member list. Removing an approved/covered renewal member requires a death/removal supporting file, while newly added unapproved renewal members skip the file picker and post multipart `_method=DELETE` without `death_document`.
 - Relevant files:
   - `src\app\pages\renewal-detail\renewal-detail.page.ts`
   - `src\app\pages\renewal-detail\renewal-detail.page.html`
@@ -252,8 +252,8 @@ Family members:
 ## Legacy IMIS Integration
 - `LegacyImisService` wraps the new backend proxy endpoints instead of calling `imislegacy.hib.gov.np` directly from mobile.
 - `familyMembers(chfid, nationalId?)` calls `GET /api/legacy-imis/family-members` with `chfid` and optional normalized `national_id`; the backend enforces staff-vs-beneficiary access and returns normalized member rows.
-- `updateKyc(payload)` calls `POST /api/legacy-imis/kyc-update` with `chfid`, optional normalized `national_id`, and allowlisted KYC fields (`firstname`, `lastname`, `phone`). The backend forwards only the approved legacy fields.
-- `KycDemoPage` at `/kyc-demo` mirrors the web demo: users enter `household_head_chfid` and `member_chfid`, `fetchKycDemoMember()` calls `GET /api/legacy-imis/kyc-demo/member`, the page displays household data separately from the selected member, and `updateKycDemo()` calls `POST /api/legacy-imis/kyc-demo/update` with only `firstname`, `lastname`, and `phone`; the backend updates the selected member's `chfid` and returns refreshed data.
+- `updateKyc(payload)` calls `POST /api/legacy-imis/kyc-update` with `chfid`, optional normalized `national_id`, and allowlisted mutable KYC fields: `firstname`, `lastname`, `date_of_birth`, `gender`, `phone`, `email`, `current_address`, `geolocation`, `relationship_code`, `profession_id`, `education_id`, and `health_facility_id`. The backend maps those fields to the legacy update payload and never forwards locked/system fields.
+- `KycDemoPage` at `/kyc-demo` mirrors the web demo: users enter `household_head_chfid` and `member_chfid`, `fetchKycDemoMember()` calls `GET /api/legacy-imis/kyc-demo/member`, the page displays household data separately from the selected member, shows all normalized selected-member fields in input-style controls, keeps `chfid`, `legacy_id`, `uuid`, `family_id`, `is_household_head`, `photo_id`, and `card_issued` readonly, and `updateKycDemo()` calls `POST /api/legacy-imis/kyc-demo/update` with only mutable KYC fields; the backend updates the selected member's `chfid` and returns refreshed data.
 - Relevant files:
   - `src\app\services\legacy-imis.service.ts`
   - `src\app\interfaces\legacy-imis.interface.ts`

@@ -94,49 +94,15 @@
           <span>{{ t('kyc_demo.selected_member_data') }}</span>
         </div>
 
-        <div class="member-summary">
-          <div>
-            <span>{{ t('kyc_demo.member_chfid') }}</span>
-            <strong>{{ member.chfid }}</strong>
-          </div>
-          <div>
-            <span>{{ t('kyc_demo.name') }}</span>
-            <strong>{{ memberName(member) }}</strong>
-          </div>
-          <div>
-            <span>{{ t('kyc_demo.date_of_birth') }}</span>
-            <strong>{{ display(member.date_of_birth) }}</strong>
-          </div>
-          <div>
-            <span>{{ t('kyc_demo.gender') }}</span>
-            <strong>{{ display(member.gender) }}</strong>
-          </div>
-        </div>
-
+        <div class="field-group-title">{{ t('kyc_demo.editable_member_fields') }}</div>
         <div class="update-form">
           <ion-input
+            *ngFor="let field of editableMemberFields"
             fill="outline"
             label-placement="stacked"
-            [label]="t('kyc_demo.firstname')"
-            name="firstname"
-            [(ngModel)]="kycForm.firstname">
-          </ion-input>
-
-          <ion-input
-            fill="outline"
-            label-placement="stacked"
-            [label]="t('kyc_demo.lastname')"
-            name="lastname"
-            [(ngModel)]="kycForm.lastname">
-          </ion-input>
-
-          <ion-input
-            fill="outline"
-            label-placement="stacked"
-            [label]="t('kyc_demo.phone')"
-            type="tel"
-            name="phone"
-            [(ngModel)]="kycForm.phone">
+            [label]="t(field.labelKey)"
+            [name]="field.key"
+            [(ngModel)]="kycForm[field.key]">
           </ion-input>
 
           <ion-button expand="block" (click)="updateKyc()" [disabled]="updating">
@@ -144,6 +110,18 @@
             <ion-icon *ngIf="!updating" name="send-outline" slot="start"></ion-icon>
             {{ updating ? t('common.saving') : t('kyc_demo.update_kyc') }}
           </ion-button>
+        </div>
+
+        <div class="field-group-title locked">{{ t('kyc_demo.locked_member_fields') }}</div>
+        <div class="locked-field-grid">
+          <ion-input
+            *ngFor="let field of lockedMemberFields"
+            fill="outline"
+            label-placement="stacked"
+            [label]="field.label"
+            [value]="field.value"
+            [readonly]="true">
+          </ion-input>
         </div>
       </ion-card-content>
     </ion-card>

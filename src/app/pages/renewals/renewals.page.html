@@ -336,9 +336,6 @@
                   </ion-select-option>
                 </ion-select>
               </ion-item>
-              <p *ngIf="hasBlockedRelationshipOptions" style="margin:2px 4px 8px;color:#6c757d;font-size:0.75rem;">
-                {{ t('wizard.relationship_marital_status_notice') }}
-              </p>
               <ion-item class="form-item">
                 <ion-select [label]="t('wizard.blood_group')" labelPlacement="stacked" [(ngModel)]="newMember.blood_group">
                   <ion-select-option value="A+">A+</ion-select-option>

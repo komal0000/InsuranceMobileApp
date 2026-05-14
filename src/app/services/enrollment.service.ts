@@ -95,10 +95,12 @@ export class EnrollmentService {
     );
   }
 
-  removeMember(enrollmentId: number, memberId: number, deathDocument: File | Blob): Observable<ApiResponse<any>> {
+  removeMember(enrollmentId: number, memberId: number, deathDocument?: File | Blob): Observable<ApiResponse<any>> {
     const formData = new FormData();
     formData.append('_method', 'DELETE');
-    formData.append('death_document', deathDocument, this.fileNameFor(deathDocument, 'death-document'));
+    if (deathDocument) {
+      formData.append('death_document', deathDocument, this.fileNameFor(deathDocument, 'death-document'));
+    }
 
     return this.api.postFormData<ApiResponse<any>>(`/enrollments/${enrollmentId}/members/${memberId}`, formData);
   }

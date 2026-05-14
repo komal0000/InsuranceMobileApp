@@ -46,6 +46,7 @@ import {
   isRelationshipBlockedForHeadMaritalStatus,
   normalizeRelationshipBlockMap,
 } from '../../utils/relationship-marital-status.util';
+import { requiresRemovalDocument } from '../../utils/member-removal-document.util';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
@@ -1323,11 +1324,16 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
   }
 
   async removeMember(member: FamilyMember) {
-    const deathDocument = await this.selectRemovalDocument();
-    if (!deathDocument) {
+    const removalDocumentRequired = requiresRemovalDocument(member, {
+      enrollmentStatus: this.enrollment?.status,
+      enrollmentApprovedAt: this.enrollment?.approved_at,
+    });
+    const deathDocument = removalDocumentRequired ? await this.selectRemovalDocument() : undefined;
+    if (removalDocumentRequired && !deathDocument) {
       this.showToast(this.t('wizard.death_document_required'), 'warning');
       return;
     }
+    const removalDocument = deathDocument ?? undefined;
 
     const alert = await this.alertCtrl.create({
       header: this.t('wizard.remove_member_header'),
@@ -1337,7 +1343,7 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
         {
           text: this.t('common.delete'), cssClass: 'danger',
           handler: () => {
-            this.enrollmentSvc.removeMember(this.enrollmentId, member.id, deathDocument).subscribe({
+            this.enrollmentSvc.removeMember(this.enrollmentId, member.id, removalDocument).subscribe({
               next: () => {
                 this.members = this.members.filter(m => m.id !== member.id);
                 this.showToast(this.t('wizard.member_removed'), 'success');

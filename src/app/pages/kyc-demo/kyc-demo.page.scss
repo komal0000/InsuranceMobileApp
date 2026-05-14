@@ -46,6 +46,34 @@ ion-card {
   gap: 12px;
 }
 
+.field-group-title {
+  margin: 4px 0 10px;
+  color: #6c757d;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+
+  &.locked {
+    margin-top: 16px;
+  }
+}
+
+.locked-field-grid {
+  display: grid;
+  gap: 12px;
+
+  ion-input {
+    --background: #f8f9fa;
+    --color: #495057;
+  }
+}
+
+.update-form {
+  ion-button {
+    margin-top: 2px;
+  }
+}
+
 .message-box {
   display: flex;
   align-items: flex-start;
@@ -144,5 +172,23 @@ ion-card {
   .data-grid,
   .member-summary {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 680px) {
+  .update-form,
+  .locked-field-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .update-form ion-button {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (min-width: 920px) {
+  .update-form,
+  .locked-field-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
