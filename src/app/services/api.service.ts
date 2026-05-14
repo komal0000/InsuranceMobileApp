@@ -4,6 +4,24 @@ import { Observable, throwError } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 
+type BrowserLocationLike = Pick<Location, 'protocol' | 'hostname' | 'port'>;
+
+export function resolveDevelopmentBrowserApiUrl(
+  locationLike: BrowserLocationLike | undefined = typeof location === 'undefined' ? undefined : location
+): string | null {
+  if (!locationLike || locationLike.protocol !== 'http:') {
+    return null;
+  }
+
+  const devServerPorts = new Set(['4200', '8100']);
+  if (!devServerPorts.has(locationLike.port)) {
+    return null;
+  }
+
+  const hostname = locationLike.hostname?.trim();
+  return hostname ? `http://${hostname}:8000/api` : null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ApiService {
   private readonly baseUrls = this.resolveBaseUrls();
@@ -67,14 +85,15 @@ export class ApiService {
       ? environment.apiUrls
       : [environment.apiUrl];
 
-    const normalized = configuredUrls
+    const browserDevApiUrl = environment.production ? null : resolveDevelopmentBrowserApiUrl();
+    const normalized = [browserDevApiUrl, ...configuredUrls]
       .map(url => this.normalizeBaseUrl(url))
       .filter((url): url is string => !!url);
 
     return normalized.length > 0 ? Array.from(new Set(normalized)) : [''];
   }
 
-  private normalizeBaseUrl(url: string | undefined): string | null {
+  private normalizeBaseUrl(url: string | null | undefined): string | null {
     if (!url) {
       return null;
     }

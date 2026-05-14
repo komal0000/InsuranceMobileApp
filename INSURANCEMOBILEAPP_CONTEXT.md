@@ -317,7 +317,7 @@ Family members:
 - `LanguageService.startDomTranslator()` now requires a specific root element/string and does nothing without one. `startLegacyDomTranslator()` is available for legacy containers that still need DOM phrase replacement.
 - `EnrollmentWizardPage` implements `OnDestroy` and uses `destroy$` / `takeUntil()` for the language subscription.
 - Angular router preloading uses `src\app\strategies\selective-preloading.strategy.ts`, preloading only routes with `data.preload = true`; the authenticated tabs shell is marked for preload while heavier enrollment/renewal detail chunks remain lazy.
-- `ApiService` remembers a working development API base URL in `sessionStorage` for the browser session only. Production continues to use the single configured HTTPS API URL.
+- `ApiService` remembers a working development API base URL in `sessionStorage` for the browser session only. When the app is served by `ng serve` on localhost/127.0.0.1 ports 4200 or 8100, it now tries the same browser host on port 8000 first so local Ionic registration/login setup reaches the sibling Laravel dev server before stale LAN URLs. Production continues to use the single configured HTTPS API URL.
 - `EnrollmentService.getConfig()` has in-session `shareReplay` caching with `clearConfigCache()` for invalidation.
 
 Important optimization files:
@@ -339,6 +339,19 @@ Important optimization files:
 - `src\app\pages\renewal-detail\renewal-detail.page.ts`
 
 ## Verification
+Development API URL QA verification on 2026-05-14:
+```powershell
+cd C:\Insurance\InsuranceMobileApp
+$env:CHROME_BIN="C:\Path\To\Chrome.exe"; npm test -- --watch=false --browsers=ChromeHeadless
+npm run build
+```
+
+Local macOS result:
+- Browser QA verified mobile registration -> login setup OTP -> create password -> dashboard against Laravel at `127.0.0.1:8000`.
+- Focused regression passes: `CHROME_BIN="/Applications/Brave Browser.app/Contents/MacOS/Brave Browser" npm test -- --watch=false --browsers=ChromeHeadless --include src/app/services/api.service.regression-1.spec.ts` => `2 SUCCESS`.
+- Full suite passes: `CHROME_BIN="/Applications/Brave Browser.app/Contents/MacOS/Brave Browser" npm test -- --watch=false --browsers=ChromeHeadless` => `145 SUCCESS`.
+- `npm run build` passes; existing SCSS budget warning remains for `src/app/components/bs-date-picker/bs-date-picker.component.ts`.
+
 Citizenship issue-date verification on 2026-05-13:
 ```powershell
 cd C:\Insurance\InsuranceMobileApp
