@@ -68,6 +68,93 @@ describe('RenewalDetailPage', () => {
     expect(values).toContain('father');
   });
 
+  it('loads service point options from the renewal enrollment location', () => {
+    const { page, api } = makePage();
+    page.renewalId = 12;
+    api.get.and.callFake((path: string) => {
+      if (path === '/renewals/12') {
+        return of({
+          success: true,
+          data: {
+            renewal: {
+              id: 12,
+              enrollment: {
+                province: 'Bagamati',
+                district: 'Kathmandu',
+                household_head: { marital_status: 'married' },
+              },
+            },
+          },
+        });
+      }
+
+      if (path === '/geo/service-points/Bagamati/Kathmandu') {
+        return of({
+          success: true,
+          data: [{ id: 7, code: 'H0302000', name: 'Bir Hospital' }],
+        });
+      }
+
+      return of({ success: true, data: {} });
+    });
+
+    page.loadDetail();
+
+    expect(api.get).toHaveBeenCalledWith('/geo/service-points/Bagamati/Kathmandu');
+    expect((page as any).servicePointOptions).toEqual([
+      { id: 7, code: 'H0302000', name: 'Bir Hospital' },
+    ]);
+  });
+
+  it('submits selected first service point for renewal member saves', async () => {
+    const { page, api } = makePage();
+    page.renewalId = 12;
+    page.renewal = { enrollment: { household_head: { marital_status: 'married' } } } as any;
+    page.relationshipOptions = relationshipOptions();
+    page.newMember = {
+      first_name: 'Sita',
+      last_name: 'Lama',
+      gender: 'female',
+      date_of_birth: '2050-01-01',
+      relationship: 'spouse',
+      document_type: 'birth_certificate',
+      first_service_point_id: 7,
+      first_service_point: 'Bir Hospital',
+    };
+
+    await page.saveMember();
+
+    expect(api.postFormData).toHaveBeenCalledWith('/renewals/12/members', jasmine.any(FormData));
+    const submitted = api.postFormData.calls.mostRecent().args[1] as FormData;
+    expect(submitted.get('first_service_point_id')).toBe('7');
+    expect(submitted.has('first_service_point')).toBeFalse();
+  });
+
+  it('submits a blank first service point so renewal edits can clear a saved member value', async () => {
+    const { page, api } = makePage();
+    page.renewalId = 12;
+    page.renewal = { enrollment: { household_head: { marital_status: 'married' } } } as any;
+    page.relationshipOptions = relationshipOptions();
+    page.editingMemberId = 5;
+    page.newMember = {
+      first_name: 'Sita',
+      last_name: 'Lama',
+      gender: 'female',
+      date_of_birth: '2050-01-01',
+      relationship: 'spouse',
+      document_type: 'birth_certificate',
+      first_service_point_id: '',
+      first_service_point: 'Bir Hospital',
+    };
+
+    await page.saveMember();
+
+    expect(api.postFormData).toHaveBeenCalledWith('/renewals/12/members/5', jasmine.any(FormData));
+    const submitted = api.postFormData.calls.mostRecent().args[1] as FormData;
+    expect(submitted.get('first_service_point_id')).toBe('');
+    expect(submitted.has('first_service_point')).toBeFalse();
+  });
+
   it('rejects stale relationship selections blocked by household head marital status', async () => {
     const { page, api, toastCtrl } = makePage();
     page.renewalId = 12;

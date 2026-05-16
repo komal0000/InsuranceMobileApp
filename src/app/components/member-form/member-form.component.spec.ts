@@ -66,6 +66,21 @@ describe('MemberFormComponent', () => {
     expect(text).not.toContain('Some relationships are hidden');
   });
 
+  it('renders optional first service point choices for members', () => {
+    const fixture = TestBed.createComponent(MemberFormComponent);
+    const component = fixture.componentInstance;
+    component.member = { relationship: '', gender: '', first_service_point_id: '' };
+    (component as any).servicePointOptions = [
+      { id: 7, code: 'H0302000', name: 'Bir Hospital' },
+    ];
+
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent;
+
+    expect(text).toContain('Bir Hospital');
+  });
+
   it('sets male gender and locks the field when son is selected', () => {
     const fixture = TestBed.createComponent(MemberFormComponent);
     const component = fixture.componentInstance;

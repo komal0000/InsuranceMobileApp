@@ -220,6 +220,7 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
     first_name_ne: '', last_name_ne: '',
     gender: '', date_of_birth: '', relationship: '',
     blood_group: '', marital_status: '', mobile_number: '',
+    first_service_point_id: '',
     document_type: '',
     citizenship_number: '', citizenship_issue_date: '', citizenship_issue_district: '',
     birth_certificate_number: '', birth_certificate_issue_date: '',
@@ -832,23 +833,6 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
     });
   }
 
-  private hasRequiredParentNames(): boolean {
-    return [
-      'father_first_name',
-      'father_last_name',
-      'father_first_name_ne',
-      'father_last_name_ne',
-      'mother_first_name',
-      'mother_last_name',
-      'mother_first_name_ne',
-      'mother_last_name_ne',
-      'grandfather_first_name',
-      'grandfather_last_name',
-      'grandfather_first_name_ne',
-      'grandfather_last_name_ne',
-    ].every(field => String(this.headData[field] || '').trim() !== '');
-  }
-
   private markLockedHeadFields(d: NidLookupData) {
     const fieldMap: Record<string, Array<keyof NidLookupData>> = {
       national_id: ['national_id', 'nin_loc'],
@@ -1007,9 +991,6 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
           !this.headData.date_of_birth || !this.headData.mobile_number || !this.headData.marital_status) {
       this.showToast(this.t('wizard.required_fields'), 'warning'); return;
       }
-      if (!this.hasRequiredParentNames()) {
-        this.showToast(this.t('wizard.required_parent_names'), 'warning'); return;
-      }
       if (!/^\d{10}$/.test(this.headData.mobile_number)) {
         this.showToast(this.t('wizard.mobile_digits'), 'warning'); return;
       }
@@ -1102,10 +1083,6 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
       this.showToast(this.t('wizard.required_before_save'), 'warning');
         this.savingDraft = false; return;
       }
-      if (!this.hasRequiredParentNames()) {
-        this.showToast(this.t('wizard.required_parent_names'), 'warning');
-        this.savingDraft = false; return;
-      }
       if (!/^\d{10}$/.test(this.headData.mobile_number)) {
       this.showToast(this.t('wizard.mobile_digits'), 'warning');
         this.savingDraft = false; return;
@@ -1162,6 +1139,7 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
       first_name_ne: '', last_name_ne: '',
       gender: '', date_of_birth: currentBs, relationship: '',
       blood_group: '', marital_status: '', mobile_number: '',
+      first_service_point_id: '',
       document_type: '',
       citizenship_number: '', citizenship_issue_date: currentBs, citizenship_issue_district: '',
       birth_certificate_number: '', birth_certificate_issue_date: currentBs,
@@ -1206,6 +1184,8 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
       blood_group: member.blood_group || '',
       marital_status: member.marital_status || '',
       mobile_number: member.mobile_number || '',
+      first_service_point_id: member.first_service_point_id || '',
+      first_service_point: member.first_service_point || '',
       document_type: member.document_type || '',
       citizenship_number: member.citizenship_number || '',
       citizenship_issue_date: this.dateService.formatForDisplay(
@@ -1287,10 +1267,15 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
       'target_group_id_number',
       'target_group_front_image',
       'target_group_back_image',
+      'first_service_point',
     ]);
     Object.keys(this.newMember).forEach(key => {
       if (skippedMemberFields.has(key)) return;
       const val = this.newMember[key];
+      if (key === 'first_service_point_id' && (val === null || val === undefined || val === '')) {
+        fd.append(key, '');
+        return;
+      }
       if (val === null || val === undefined || val === '') return;
       if (typeof val === 'boolean') { fd.append(key, val ? '1' : '0'); return; }
       if (val instanceof Blob) { fd.append(key, val, `${key}.jpg`); return; }

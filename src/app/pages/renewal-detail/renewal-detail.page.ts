@@ -19,6 +19,7 @@ import { ApiService } from '../../services/api.service';
 import { AppSyncEvent, AppSyncService } from '../../services/app-sync.service';
 import { DateService } from '../../services/date.service';
 import { ApiResponse } from '../../interfaces/api-response.interface';
+import { ServicePointOption } from '../../interfaces/enrollment.interface';
 import { Renewal } from '../../interfaces/renewal.interface';
 import { MemberFormComponent } from '../../components/member-form/member-form.component';
 import { LanguageToggleComponent } from '../../components/language-toggle/language-toggle.component';
@@ -81,11 +82,13 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
   relationshipOptions: Array<{ value: string; label: string }> = [...DEFAULT_MEMBER_RELATIONSHIPS];
   relationshipGenderMap: RelationshipGenderMap = {};
   relationshipBlockedByHeadMaritalStatus: RelationshipBlockMap = defaultRelationshipBlockMap();
+  servicePointOptions: ServicePointOption[] = [];
   newMember: any = {
     first_name: '', middle_name: '', last_name: '',
     first_name_ne: '', middle_name_ne: '', last_name_ne: '',
     gender: '', date_of_birth: '', relationship: '',
     blood_group: '', marital_status: '', mobile_number: '', email: '',
+    first_service_point_id: '',
     document_type: '',
     citizenship_number: '', citizenship_issue_date: '', citizenship_issue_district: '',
     birth_certificate_number: '', birth_certificate_issue_date: '',
@@ -162,9 +165,13 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
     this.api.get<ApiResponse<any>>(`/renewals/${this.renewalId}`).subscribe({
       next: (res) => {
         this.renewal = res.data?.renewal ?? res.data;
+        this.loadServicePointOptions();
         this.loading = false;
       },
-      error: () => { this.loading = false; },
+      error: () => {
+        this.servicePointOptions = [];
+        this.loading = false;
+      },
     });
   }
 
@@ -204,6 +211,8 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
       marital_status: member.marital_status || '',
       mobile_number: member.mobile_number || '',
       email: member.email || '',
+      first_service_point_id: member.first_service_point_id || '',
+      first_service_point: member.first_service_point || '',
       document_type: member.document_type || '',
       citizenship_number: member.citizenship_number || '',
       citizenship_issue_date: this.dateService.formatForDisplay(
@@ -287,8 +296,12 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
 
     const fd = new FormData();
     Object.keys(this.newMember).forEach(key => {
-      if (key.startsWith('target_group') || key === 'is_target_group') return;
+      if (key.startsWith('target_group') || key === 'is_target_group' || key === 'first_service_point') return;
       const val = this.newMember[key];
+      if (key === 'first_service_point_id' && (val === null || val === undefined || val === '')) {
+        fd.append(key, '');
+        return;
+      }
       if (val === null || val === undefined || val === '') return;
       if (typeof val === 'boolean') {
         fd.append(key, val ? '1' : '0');
@@ -696,6 +709,27 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
     });
   }
 
+  private loadServicePointOptions(): void {
+    const enrollment = this.renewal?.enrollment;
+    const province = enrollment?.province;
+    const district = enrollment?.district;
+
+    if (!province || !district) {
+      this.servicePointOptions = [];
+      return;
+    }
+
+    this.api.get<ApiResponse<ServicePointOption[]>>(`/geo/service-points/${encodeURIComponent(province)}/${encodeURIComponent(district)}`)
+      .subscribe({
+        next: (res) => {
+          this.servicePointOptions = res.data || [];
+        },
+        error: () => {
+          this.servicePointOptions = [];
+        },
+      });
+  }
+
   private buildRelationshipOptions(raw: unknown): Array<{ value: string; label: string }> {
     if (Array.isArray(raw)) {
       const options = raw
@@ -762,6 +796,7 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
       first_name_ne: '', middle_name_ne: '', last_name_ne: '',
       gender: '', date_of_birth: currentBs, relationship: '',
       blood_group: '', marital_status: '', mobile_number: '', email: '',
+      first_service_point_id: '',
       document_type: '',
       citizenship_number: '', citizenship_issue_date: currentBs, citizenship_issue_district: '',
       birth_certificate_number: '', birth_certificate_issue_date: currentBs,

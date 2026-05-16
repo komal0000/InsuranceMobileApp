@@ -24,6 +24,7 @@ import { AppSyncEvent, AppSyncService } from '../../services/app-sync.service';
 import { AuthService } from '../../services/auth.service';
 import { DateService } from '../../services/date.service';
 import { ApiResponse, PaginatedData } from '../../interfaces/api-response.interface';
+import { ServicePointOption } from '../../interfaces/enrollment.interface';
 import { Renewal } from '../../interfaces/renewal.interface';
 import { BsDatePickerComponent } from '../../components/bs-date-picker/bs-date-picker.component';
 import { LanguageToggleComponent } from '../../components/language-toggle/language-toggle.component';
@@ -98,6 +99,7 @@ export class RenewalsPage implements OnInit, OnDestroy {
   relationshipOptions: Array<{ value: string; label: string }> = [...DEFAULT_MEMBER_RELATIONSHIPS];
   relationshipGenderMap: RelationshipGenderMap = {};
   relationshipBlockedByHeadMaritalStatus: RelationshipBlockMap = defaultRelationshipBlockMap();
+  servicePointOptions: ServicePointOption[] = [];
 
   // Image previews for new member form
   memberPhotoPreview: string | null = null;
@@ -277,6 +279,7 @@ export class RenewalsPage implements OnInit, OnDestroy {
       gender: '', date_of_birth: currentBs, relationship: '',
       blood_group: '', marital_status: '',
       mobile_number: '',
+      first_service_point_id: '',
       document_type: 'citizenship',
       citizenship_number: '', citizenship_issue_date: currentBs, citizenship_issue_district: '',
       birth_certificate_number: '', birth_certificate_issue_date: currentBs,
@@ -285,7 +288,28 @@ export class RenewalsPage implements OnInit, OnDestroy {
     this.memberCitizenshipFrontPreview = null;
     this.memberCitizenshipBackPreview = null;
     this.memberBirthCertFrontPreview = null;
+    this.loadServicePointOptions();
     this.showMemberForm = true;
+  }
+
+  private loadServicePointOptions(): void {
+    const province = this.enrollment?.province;
+    const district = this.enrollment?.district;
+
+    if (!province || !district) {
+      this.servicePointOptions = [];
+      return;
+    }
+
+    this.api.get<ApiResponse<ServicePointOption[]>>(`/geo/service-points/${encodeURIComponent(province)}/${encodeURIComponent(district)}`)
+      .subscribe({
+        next: (res) => {
+          this.servicePointOptions = res.data || [];
+        },
+        error: () => {
+          this.servicePointOptions = [];
+        },
+      });
   }
 
   async captureRenewalMemberImage(
@@ -392,8 +416,12 @@ export class RenewalsPage implements OnInit, OnDestroy {
     // Build FormData so images can be uploaded
     const fd = new FormData();
     Object.keys(m).forEach(key => {
-      if (key.startsWith('target_group') || key === 'is_target_group') return;
+      if (key.startsWith('target_group') || key === 'is_target_group' || key === 'first_service_point') return;
       const val = m[key];
+      if (key === 'first_service_point_id' && (val === null || val === undefined || val === '')) {
+        fd.append(key, '');
+        return;
+      }
       if (val === null || val === undefined || val === '') return;
       if (typeof val === 'boolean') { fd.append(key, val ? '1' : '0'); return; }
       if (val instanceof Blob) { fd.append(key, val, `${key}.jpg`); return; }

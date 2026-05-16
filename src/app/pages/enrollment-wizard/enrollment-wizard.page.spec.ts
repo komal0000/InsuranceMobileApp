@@ -55,13 +55,20 @@ describe('EnrollmentWizardPage', () => {
       wards: jasmine.createSpy().and.returnValue(of(response([]))),
       servicePoints: jasmine.createSpy().and.returnValue(of(servicePointResponse([]))),
     };
+    const defaultDateService = {
+      getCurrentBs: () => '2083-01-01',
+      calculateAge: () => 30,
+      formatForDisplay: (ad?: string, bs?: string) => bs || ad || '',
+      isCitizenshipIssueDateValid: () => true,
+      prepareFormDataForApi: (fd: FormData) => fd,
+    };
 
     return new EnrollmentWizardPage(
       {} as any,
       (overrides.router || {}) as any,
       (overrides.enrollmentSvc || {}) as any,
       ({ ...defaultGeoSvc, ...((overrides.geoSvc || {}) as object) }) as any,
-      (overrides.dateService || {}) as any,
+      ({ ...defaultDateService, ...((overrides.dateService || {}) as object) }) as any,
       (overrides.languageService || languageService()) as any,
       (overrides.authService || { getCurrentUser: () => null }) as any,
       toastController() as any,
@@ -632,11 +639,16 @@ describe('EnrollmentWizardPage', () => {
     expect(formData.get('grandfather_name_ne')).toBe('कालु बहादुर लामा');
   });
 
-  it('blocks household save when split parent and grandparent names are missing', () => {
+  it('allows household save when split parent and grandparent names are missing', () => {
     const enrollmentSvc = {
       saveHouseholdHead: jasmine.createSpy().and.returnValue(of({
         success: true,
         message: 'Saved.',
+        data: { id: 4, current_step: 2, household_head: null, family_members: [] },
+      })),
+      get: jasmine.createSpy().and.returnValue(of({
+        success: true,
+        message: 'Loaded.',
         data: { id: 4, current_step: 2, household_head: null, family_members: [] },
       })),
     };
@@ -684,8 +696,8 @@ describe('EnrollmentWizardPage', () => {
 
     page.nextStep();
 
-    expect(enrollmentSvc.saveHouseholdHead).not.toHaveBeenCalled();
-    expect((page as any).showToast).toHaveBeenCalledWith('wizard.required_parent_names', 'warning');
+    expect(enrollmentSvc.saveHouseholdHead).toHaveBeenCalledWith(4, jasmine.any(FormData));
+    expect((page as any).showToast).not.toHaveBeenCalledWith('wizard.required_parent_names', 'warning');
   });
 
   it('blocks household save when citizenship issue date is before the sixteenth birthday', () => {
@@ -972,6 +984,8 @@ describe('EnrollmentWizardPage', () => {
       gender: 'female',
       date_of_birth: '2050-01-01',
       relationship: 'spouse',
+      first_service_point_id: 7,
+      first_service_point: 'Bir Hospital',
     };
 
     await page.saveMember();
@@ -980,6 +994,8 @@ describe('EnrollmentWizardPage', () => {
     const submitted = enrollmentSvc.addMember.calls.mostRecent().args[1] as FormData;
     expect(submitted.has('first_name')).toBeTrue();
     expect(submitted.has('last_name')).toBeTrue();
+    expect(submitted.get('first_service_point_id')).toBe('7');
+    expect(submitted.has('first_service_point')).toBeFalse();
     expect(submitted.has('middle_name')).toBeFalse();
     expect(submitted.has('middle_name_ne')).toBeFalse();
   });
@@ -1007,14 +1023,69 @@ describe('EnrollmentWizardPage', () => {
       gender: 'female',
       date_of_birth: '2050-01-01',
       relationship: 'spouse',
+      first_service_point_id: 7,
+      first_service_point: 'Bir Hospital',
     };
 
     await page.saveMember();
 
     expect(enrollmentSvc.updateMember).toHaveBeenCalledWith(4, 9, jasmine.any(FormData));
     const submitted = enrollmentSvc.updateMember.calls.mostRecent().args[2] as FormData;
+    expect(submitted.get('first_service_point_id')).toBe('7');
+    expect(submitted.has('first_service_point')).toBeFalse();
     expect(submitted.has('middle_name')).toBeFalse();
     expect(submitted.has('middle_name_ne')).toBeFalse();
+  });
+
+  it('preselects a saved member first service point when editing', () => {
+    const page = createPage({
+      dateService: {
+        getCurrentBs: () => '2083-01-01',
+        formatForDisplay: (ad?: string) => ad || '',
+      },
+    });
+
+    page.editMember({
+      id: 9,
+      enrollment_id: 4,
+      first_name: 'Sita',
+      last_name: 'Shrestha',
+      gender: 'female',
+      date_of_birth: '2050-01-01',
+      relationship: 'spouse',
+      is_target_group: false,
+      first_service_point_id: 7,
+      first_service_point: 'Bir Hospital',
+    } as any);
+
+    expect(page.newMember.first_service_point_id).toBe(7);
+  });
+
+  it('submits a blank first service point so edits can clear a saved member value', async () => {
+    const enrollmentSvc = {
+      updateMember: jasmine.createSpy().and.returnValue(of({
+        success: true,
+        data: { id: 9, first_name: 'Sita', last_name: 'Shrestha' },
+      })),
+    };
+    const page = createPage({ enrollmentSvc });
+    page.enrollmentId = 4;
+    page.editingMemberId = 9;
+    page.newMember = {
+      first_name: 'Sita',
+      last_name: 'Shrestha',
+      gender: 'female',
+      date_of_birth: '2050-01-01',
+      relationship: 'spouse',
+      first_service_point_id: '',
+      first_service_point: 'Bir Hospital',
+    };
+
+    await page.saveMember();
+
+    const submitted = enrollmentSvc.updateMember.calls.mostRecent().args[2] as FormData;
+    expect(submitted.get('first_service_point_id')).toBe('');
+    expect(submitted.has('first_service_point')).toBeFalse();
   });
 
   it('shows backend validation messages when member save fails', async () => {

@@ -75,6 +75,35 @@ describe('RenewalsPage', () => {
     expect(router.navigateByUrl).toHaveBeenCalledWith('/renewal-search');
   });
 
+  it('loads service point options when opening the direct add-member form', () => {
+    const { page, api } = makePage('beneficiary');
+    api.get.and.callFake((path: string) => {
+      if (path === '/geo/service-points/Bagamati/Kathmandu') {
+        return of({
+          success: true,
+          data: [{ id: 7, code: 'H0302000', name: 'Bir Hospital' }],
+        });
+      }
+
+      return of({ success: true, data: { data: [], last_page: 1 } });
+    });
+    page.canInitiateRenewal = true;
+    page.enrollment = {
+      id: 7,
+      status: 'active',
+      province: 'Bagamati',
+      district: 'Kathmandu',
+      household_head: { marital_status: 'married' },
+    } as any;
+
+    page.showAddMemberForm();
+
+    expect(api.get).toHaveBeenCalledWith('/geo/service-points/Bagamati/Kathmandu');
+    expect((page as any).servicePointOptions).toEqual([
+      { id: 7, code: 'H0302000', name: 'Bir Hospital' },
+    ]);
+  });
+
   it('initiates beneficiary renewal only after consent is accepted', async () => {
     const { page, api, toastCtrl, router } = makePage('beneficiary');
     api.post.and.returnValue(of({ success: true, data: { id: 42 } }));
@@ -222,6 +251,57 @@ describe('RenewalsPage', () => {
       message: 'wizard.relationship_marital_status_block',
       color: 'warning',
     }));
+  });
+
+  it('submits selected first service point from the direct add-member form', async () => {
+    const { page, api } = makePage('beneficiary');
+    api.postFormData.and.returnValue(of({ success: true, data: {} }));
+    page.canInitiateRenewal = true;
+    page.consentAccepted = true;
+    page.enrollment = { id: 7, status: 'active', household_head: { marital_status: 'married' } };
+    page.renewals = [{ id: 42, status: 'draft' }] as any;
+    page.relationshipOptions = relationshipOptions();
+    page.newMember = {
+      first_name: 'Sita',
+      last_name: 'Lama',
+      gender: 'female',
+      date_of_birth: '2050-01-01',
+      relationship: 'spouse',
+      document_type: 'birth_certificate',
+      first_service_point_id: 7,
+      first_service_point: 'Bir Hospital',
+    };
+
+    await page.addNewMember();
+
+    expect(api.postFormData).toHaveBeenCalledWith('/renewals/42/members', jasmine.any(FormData));
+    const submitted = api.postFormData.calls.mostRecent().args[1] as FormData;
+    expect(submitted.get('first_service_point_id')).toBe('7');
+    expect(submitted.has('first_service_point')).toBeFalse();
+  });
+
+  it('submits a blank first service point from direct add-member form when none is selected', async () => {
+    const { page, api } = makePage('beneficiary');
+    api.postFormData.and.returnValue(of({ success: true, data: {} }));
+    page.canInitiateRenewal = true;
+    page.consentAccepted = true;
+    page.enrollment = { id: 7, status: 'active', household_head: { marital_status: 'married' } };
+    page.renewals = [{ id: 42, status: 'draft' }] as any;
+    page.relationshipOptions = relationshipOptions();
+    page.newMember = {
+      first_name: 'Sita',
+      last_name: 'Lama',
+      gender: 'female',
+      date_of_birth: '2050-01-01',
+      relationship: 'spouse',
+      document_type: 'birth_certificate',
+      first_service_point_id: '',
+    };
+
+    await page.addNewMember();
+
+    const submitted = api.postFormData.calls.mostRecent().args[1] as FormData;
+    expect(submitted.get('first_service_point_id')).toBe('');
   });
 
   it('blocks add-member when citizenship issue date is before the sixteenth birthday', async () => {

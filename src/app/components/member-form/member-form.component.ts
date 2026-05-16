@@ -12,6 +12,7 @@ import {
 } from '@ionic/angular/standalone';
 import { BsDatePickerComponent } from '../bs-date-picker/bs-date-picker.component';
 import { NepaliInputDirective } from '../../directives/nepali-input.directive';
+import { ServicePointOption } from '../../interfaces/enrollment.interface';
 import { LanguageService } from '../../services/language.service';
 import { RelationshipGenderMap, genderForRelationship } from '../../utils/relationship-gender.util';
 
@@ -34,6 +35,8 @@ interface MemberFormModel {
   marital_status?: string;
   mobile_number?: string;
   email?: string;
+  first_service_point_id?: number | string | null;
+  first_service_point?: string | null;
   document_type?: string;
   citizenship_number?: string;
   citizenship_issue_date?: string;
@@ -199,6 +202,15 @@ interface MemberFormModel {
       <ion-item class="form-item" *ngIf="showEmail">
         <ion-input [label]="text('profile.email', 'Email')" labelPlacement="stacked" type="email" [(ngModel)]="member.email"></ion-input>
       </ion-item>
+      <ion-item class="form-item">
+        <ion-select [label]="text('wizard.first_service_point', 'First Service Point')" labelPlacement="stacked"
+                    [placeholder]="text('wizard.select_service_point', 'Select Service Point')"
+                    [(ngModel)]="member.first_service_point_id"
+                    [disabled]="!servicePointOptions.length">
+          <ion-select-option value="">{{ text('common.not_available', 'Not available') }}</ion-select-option>
+          <ion-select-option *ngFor="let option of servicePointOptions" [value]="option.id">{{ option.name }}</ion-select-option>
+        </ion-select>
+      </ion-item>
 
       <p class="form-section-title">{{ text('wizard.identity_document', 'Identity Document') }}</p>
       <ion-item class="form-item">
@@ -287,6 +299,7 @@ export class MemberFormComponent implements OnChanges {
   @Input() saving = false;
   @Input() showEmail = false;
   @Input() disableSaveWhenInvalid = false;
+  @Input() servicePointOptions: ServicePointOption[] = [];
   @Input() photoPreview = '';
   @Input() citizenshipFrontPreview = '';
   @Input() citizenshipBackPreview = '';

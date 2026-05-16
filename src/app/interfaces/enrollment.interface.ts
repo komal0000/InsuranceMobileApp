@@ -154,6 +154,8 @@ export interface FamilyMember {
   relationship_type?: string;
   mobile_number?: string;
   email?: string;
+  first_service_point_id?: number | null;
+  first_service_point?: string | null;
   document_type?: 'citizenship' | 'birth_certificate';
   citizenship_number?: string;
   citizenship_issue_date?: string;

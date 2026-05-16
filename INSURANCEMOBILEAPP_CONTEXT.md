@@ -115,7 +115,7 @@ API methods added/used for login-side setup:
 Step 1 includes:
 - household-head NID lookup
 - personal information
-- required split father/mother/grandfather first-name and last-name fields in English and Nepali, grouped compactly by Father, Mother, and Grandfather with English first/last fields followed by Nepali first/last fields
+- optional split father/mother/grandfather first-name and last-name fields in English and Nepali, grouped compactly by Father, Mother, and Grandfather with English first/last fields followed by Nepali first/last fields
 - age-aware identity document fields: citizenship for household heads 16+, birth-certificate number/issue-date/document for household heads under 16
 - permanent address
 - temporary address
@@ -144,7 +144,7 @@ NID behavior:
 - Manual fallback stores the household-head `national_id` as canonical ASCII digits while leaving it as unverified manual data.
 - `headNidLookup(id, nationalId)` calls `POST /api/enrollments/{id}/head/nid-lookup`.
 - On success, returned NID fields are written into `headData` and permanent address state.
-- Returned combined NID parent/grandparent names are split into the required first-name and last-name fields; backend-provided split fields are used directly when available.
+- Returned combined NID parent/grandparent names are split into the optional first-name and last-name fields; backend-provided split fields are used directly when available.
 - If NID lookup does not return an email, the wizard preserves the existing/registered household-head email instead of clearing it.
 - Populated NID fields are tracked in `nidLockedHeadFields`.
 - Locked household-head NID fields render as grouped `Verified From NID` label/value rows above Step 1 editable controls; their underlying model values stay in `headData`/address state and continue to be submitted in `FormData`.
@@ -161,7 +161,7 @@ NID behavior:
 Save behavior:
 - `saveHouseholdHead(id, formData)` calls `POST /api/enrollments/{id}/household-head`.
 - Old `saveStep1`, `saveStep2`, and generic `nidLookup` methods remain for compatibility.
-- Step 1 save sends permanent address, temporary address, selected `first_service_point_id`, household-head fields, required split parent/grandparent name fields, profession/qualification IDs, target-group fields, and files. Legacy combined parent/grandparent name fields are composed from the split fields before submit for compatibility. The backend resolves the selected ID to the service-point name snapshot.
+- Step 1 save sends permanent address, temporary address, selected household `first_service_point_id`, household-head fields, optional split parent/grandparent name fields, profession/qualification IDs, target-group fields, and files. Legacy combined parent/grandparent name fields are composed from the split fields before submit for compatibility when values are provided. The backend resolves the selected household service-point ID to the service-point name snapshot.
 - Backend API save/submit endpoints now also accept an enrollment in `rejected` status when the rejection actor was `district_eo` or `province` and the authenticated user is the household head or original enroller. Resubmission returns the enrollment to `pending_verification` and clears stale rejection/verification fields; response shapes are unchanged.
 
 Enrollment PDF behavior:
@@ -220,6 +220,7 @@ Household target group:
 Family members:
 - Family-member NID lookup still exists.
 - Enrollment Step 2 shows the household head and existing members first. The Add Family Member button/form is below the list and the form is hidden until the user chooses to add or edit a member.
+- Enrollment member add/edit uses the shared member form's optional `First Service Point` select populated from the enrollment's permanent province/district service-point options. Selected member values are submitted as `first_service_point_id`, blank values are submitted as an empty `first_service_point_id` so the backend can clear a saved member-level service point, and editing an existing member preselects the saved member-level service point.
 - Member birth certificate capture now collects a single `birth_certificate_front_image` document labeled as the birth certificate document. Active enrollment and renewal member UI/FormData paths no longer collect `birth_certificate_back_image`; the optional interface field remains only for legacy backend payload compatibility.
 - Member English and Nepali middle-name inputs are not rendered in enrollment member entry, not copied into edit form state, and not submitted in member add/update FormData even if stale keys exist locally.
 - Step 2 and review name displays show first name plus last name only.
@@ -239,6 +240,7 @@ Family members:
 
 ## Renewal Mobile Changes
 - Renewal member add/edit no longer collects target-group fields.
+- Renewal detail and the Renewals tab direct-add member form load first-service-point options from the renewal enrollment province/district and submit optional `first_service_point_id` for member add/edit, including an empty `first_service_point_id` when the user clears the optional member service point.
 - Renewal member add/edit no longer collects a birth certificate back image; birth certificate is one document capture.
 - Renewal member add/edit uses the same backend `relationship_gender_map` behavior as enrollment: deterministic relationships auto-fill and lock gender, while spouse/other/custom relationships stay manual.
 - Renewal member relationship pickers and stale-value validation use the same backend-provided marital-status relationship block matrix as enrollment, with the local fallback matrix if config is unavailable.
@@ -338,6 +340,7 @@ Family members:
   - municipality
   - wards
 - `GeoService.servicePoints(province, district)` calls `/geo/service-points/{province}/{district}` and caches the in-session response; the enrollment wizard clears and reloads service-point options whenever the permanent province/district changes.
+- Renewal detail and Renewals direct-add load member service-point options through the API service from `/geo/service-points/{province}/{district}` using the enrollment's stored province/district.
 
 ## Runtime And Bundle Optimization
 - Global jQuery and `nepali-date-picker` assets were removed from `angular.json`; the existing Angular `BsDatePickerComponent` remains the active date-picker path.
