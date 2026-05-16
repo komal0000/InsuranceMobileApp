@@ -329,6 +329,7 @@ Family members:
 - As of 2026-05-01, the remaining high-traffic mobile UI was moved to keyed translations or locale helpers: home, tabs, login/register/forgot password, profile, dashboard labels, enrollment list/detail/wizard, policy, payments, payment result, notifications, subsidies, renewal search, renewals, and renewal detail.
 - A static scan of mobile HTML templates on 2026-05-01 found no unmatched static user-facing English text/placeholder/title/aria-label/alt strings outside keyed translation bindings or dictionary-backed residual translations.
 - On 2026-05-12, Nepali mode was tightened to strict keyed UI coverage: every English dictionary key has a Nepali dictionary entry, the language toggle no longer shows raw `English`/`EN` while Nepali is active, login derived placeholders recompute from `language$`, and `AppComponent` schedules a root change-detection pass on language changes so cached tab/page views re-render.
+- On 2026-05-16, `src\app\i18n\ne.ts` was refreshed from `/Users/rahkehs/Downloads/nepali_translations.json` by applying exact flat-key matches, phrase-key matches, English-source phrase matches, and the verified `My Enrollments` plural alias while preserving all existing mobile-only keys. JSON phrases that were not already keys were added as phrase fallbacks for `LanguageService.translateString()`, and every English dictionary key remains covered by Nepali.
 - `scripts/check-localized-templates.cjs` and `npm run check:i18n` guard against new hardcoded English text/label/placeholder/alt/title/aria-label values in mobile HTML templates, with expected exceptions for technical notation such as blood groups and IDs.
 
 ## Geo Loading Cache
@@ -369,6 +370,17 @@ Important optimization files:
 - `src\app\pages\renewal-detail\renewal-detail.page.ts`
 
 ## Verification
+Nepali translation refresh verification on 2026-05-16:
+```powershell
+cd C:\Insurance\InsuranceMobileApp
+$env:CHROME_BIN="C:\Path\To\Chrome.exe"; npm test -- --watch=false --browsers=ChromeHeadless --include=src/app/services/language.service.spec.ts
+npm run build
+```
+
+Local macOS result:
+- Focused language-service suite passes with Brave as `CHROME_BIN`: `7 SUCCESS`.
+- `npm run build` passes and writes to `www`; the existing BS date-picker SCSS budget warning remains (`4.05 kB` total against `4.00 kB`).
+
 Consent gate verification on 2026-05-16:
 ```powershell
 cd C:\Insurance\InsuranceMobileApp
