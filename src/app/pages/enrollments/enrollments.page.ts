@@ -9,7 +9,8 @@ import {
   IonBadge, IonSearchbar, IonSegment, IonSegmentButton,
   IonRefresher, IonRefresherContent, IonInfiniteScroll,
   IonInfiniteScrollContent, IonFab, IonFabButton, IonIcon,
-  IonSpinner, IonCard, IonCardContent, IonButton
+  IonSpinner, IonCard, IonCardContent, IonButton, IonCheckbox,
+  IonItem, IonLabel
 } from '@ionic/angular/standalone';
 import { ToastController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -32,7 +33,8 @@ import { LanguageToggleComponent } from '../../components/language-toggle/langua
     IonBadge, IonSearchbar, IonSegment, IonSegmentButton,
     IonRefresher, IonRefresherContent, IonInfiniteScroll,
     IonInfiniteScrollContent, IonFab, IonFabButton, IonIcon,
-    IonSpinner, IonCard, IonCardContent, IonButton,
+    IonSpinner, IonCard, IonCardContent, IonButton, IonCheckbox,
+    IonItem, IonLabel,
     LanguageToggleComponent
   ],
   templateUrl: './enrollments.page.html',
@@ -47,6 +49,7 @@ export class EnrollmentsPage implements OnInit, OnDestroy {
   loading = false;
   canCreate = true;
   isBeneficiary = false;
+  consentAccepted = false;
   private readonly destroy$ = new Subject<void>();
   private hasEnteredView = false;
 
@@ -167,7 +170,21 @@ export class EnrollmentsPage implements OnInit, OnDestroy {
   }
 
   async createNew() {
-    this.api.post<ApiResponse<Enrollment>>('/enrollments', { enrollment_type: 'new' }).subscribe({
+    if (!this.consentAccepted) {
+      const toast = await this.toastCtrl.create({
+        message: this.t('consent.required'),
+        duration: 2500,
+        color: 'warning',
+        position: 'top',
+      });
+      await toast.present();
+      return;
+    }
+
+    this.api.post<ApiResponse<Enrollment>>('/enrollments', {
+      enrollment_type: 'new',
+      consent_accepted: true,
+    }).subscribe({
       next: (res) => {
         if (res.success) {
           this.router.navigateByUrl(`/enrollment-wizard/${res.data.id}`);

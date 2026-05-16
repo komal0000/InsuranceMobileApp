@@ -94,13 +94,25 @@
       </div>
     </div>
 
+    <ion-card>
+      <ion-card-content>
+        <ion-item lines="none" style="--padding-start:0">
+          <ion-checkbox slot="start" [(ngModel)]="consentAccepted"></ion-checkbox>
+          <ion-label class="ion-text-wrap">
+            <strong>{{ t('consent.title') }}</strong>
+            <p>{{ t('consent.body') }}</p>
+          </ion-label>
+        </ion-item>
+      </ion-card-content>
+    </ion-card>
+
     <!-- Proceed Button -->
     <ion-button
       expand="block"
       color="success"
       size="large"
       style="margin-top:28px"
-      [disabled]="!selectedGateway || loading"
+      [disabled]="!selectedGateway || !consentAccepted || loading"
       (click)="proceedToPay()"
     >
       <ion-spinner *ngIf="loading" name="crescent" style="margin-right:8px"></ion-spinner>

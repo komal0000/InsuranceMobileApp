@@ -98,16 +98,40 @@
             </div>
 
             <ion-item class="form-item">
-              <ion-input [label]="t('profile.current_password')" labelPlacement="stacked" type="password"
+              <ion-input [label]="t('profile.current_password')" labelPlacement="stacked" [type]="passwordInputType('current')"
                 [(ngModel)]="passwordData.current_password"></ion-input>
+              <button
+                slot="end"
+                class="eye-btn"
+                type="button"
+                (click)="togglePasswordVisibility('current')"
+                [attr.aria-label]="passwordInputType('current') === 'password' ? 'Show password' : 'Hide password'">
+                <ion-icon [name]="passwordIcon('current')"></ion-icon>
+              </button>
             </ion-item>
             <ion-item class="form-item">
-              <ion-input [label]="t('profile.new_password')" labelPlacement="stacked" type="password"
+              <ion-input [label]="t('profile.new_password')" labelPlacement="stacked" [type]="passwordInputType('new')"
                 [(ngModel)]="passwordData.password"></ion-input>
+              <button
+                slot="end"
+                class="eye-btn"
+                type="button"
+                (click)="togglePasswordVisibility('new')"
+                [attr.aria-label]="passwordInputType('new') === 'password' ? 'Show password' : 'Hide password'">
+                <ion-icon [name]="passwordIcon('new')"></ion-icon>
+              </button>
             </ion-item>
             <ion-item class="form-item">
-              <ion-input [label]="t('profile.confirm_password')" labelPlacement="stacked" type="password"
+              <ion-input [label]="t('profile.confirm_password')" labelPlacement="stacked" [type]="passwordInputType('confirmation')"
                 [(ngModel)]="passwordData.password_confirmation"></ion-input>
+              <button
+                slot="end"
+                class="eye-btn"
+                type="button"
+                (click)="togglePasswordVisibility('confirmation')"
+                [attr.aria-label]="passwordInputType('confirmation') === 'password' ? 'Show password' : 'Hide password'">
+                <ion-icon [name]="passwordIcon('confirmation')"></ion-icon>
+              </button>
             </ion-item>
 
             <div class="btn-row">

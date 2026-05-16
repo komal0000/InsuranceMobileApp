@@ -93,10 +93,18 @@
           <ion-item lines="none" class="form-item">
             <ion-icon name="lock-closed-outline" slot="start" class="input-icon"></ion-icon>
             <ion-input
-              type="password"
+              [type]="passwordInputType('setup')"
               [placeholder]="t('login.password_requirement')"
               [(ngModel)]="setupPassword">
             </ion-input>
+            <button
+              slot="end"
+              class="eye-btn"
+              type="button"
+              (click)="togglePasswordVisibility('setup')"
+              [attr.aria-label]="passwordInputType('setup') === 'password' ? 'Show password' : 'Hide password'">
+              <ion-icon [name]="passwordIcon('setup')"></ion-icon>
+            </button>
           </ion-item>
         </div>
 
@@ -105,10 +113,18 @@
           <ion-item lines="none" class="form-item">
             <ion-icon name="lock-closed-outline" slot="start" class="input-icon"></ion-icon>
             <ion-input
-              type="password"
+              [type]="passwordInputType('setupConfirmation')"
               [placeholder]="t('login.reenter_password')"
               [(ngModel)]="setupPasswordConfirmation">
             </ion-input>
+            <button
+              slot="end"
+              class="eye-btn"
+              type="button"
+              (click)="togglePasswordVisibility('setupConfirmation')"
+              [attr.aria-label]="passwordInputType('setupConfirmation') === 'password' ? 'Show password' : 'Hide password'">
+              <ion-icon [name]="passwordIcon('setupConfirmation')"></ion-icon>
+            </button>
           </ion-item>
         </div>
 
@@ -128,13 +144,18 @@
           <ion-item lines="none" class="form-item">
             <ion-icon name="lock-closed-outline" slot="start" class="input-icon"></ion-icon>
             <ion-input
-              [type]="showPassword ? 'text' : 'password'"
+              [type]="passwordInputType('login')"
               [placeholder]="t('login.enter_password')"
               [(ngModel)]="loginData.password"
               required>
             </ion-input>
-            <button slot="end" class="eye-btn" (click)="showPassword = !showPassword" type="button">
-              <ion-icon [name]="showPassword ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
+            <button
+              slot="end"
+              class="eye-btn"
+              (click)="togglePasswordVisibility('login')"
+              type="button"
+              [attr.aria-label]="passwordInputType('login') === 'password' ? 'Show password' : 'Hide password'">
+              <ion-icon [name]="passwordIcon('login')"></ion-icon>
             </button>
           </ion-item>
         </div>

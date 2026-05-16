@@ -6,7 +6,7 @@ import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import {
   IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton,
-  IonCard, IonCardContent, IonBadge, IonIcon, IonButton, IonSpinner,
+  IonCard, IonCardContent, IonBadge, IonCheckbox, IonIcon, IonButton, IonItem, IonLabel, IonSpinner,
 } from '@ionic/angular/standalone';
 import { ToastController, AlertController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -64,7 +64,7 @@ const DEFAULT_MEMBER_RELATIONSHIPS: Array<{ value: string; label: string }> = [
   imports: [
     CommonModule, FormsModule, MemberFormComponent, LanguageToggleComponent,
     IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton,
-    IonCard, IonCardContent, IonBadge, IonIcon, IonButton, IonSpinner,
+    IonCard, IonCardContent, IonBadge, IonCheckbox, IonIcon, IonButton, IonItem, IonLabel, IonSpinner,
   ],
   templateUrl: './renewal-detail.page.html',
   styleUrls: ['./renewal-detail.page.scss'],
@@ -73,6 +73,7 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
   renewal: Renewal | null = null;
   loading = true;
   submitting = false;
+  consentAccepted = false;
   renewalId!: number;
   showMemberForm = false;
   editingMemberId: number | null = null;
@@ -512,8 +513,21 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
   }
 
   async submitRenewal() {
+    if (!this.consentAccepted) {
+      const toast = await this.toastCtrl.create({
+        message: this.t('consent.required'),
+        duration: 2500,
+        color: 'warning',
+        position: 'top',
+      });
+      await toast.present();
+      return;
+    }
+
     this.submitting = true;
-    this.api.post<ApiResponse<any>>(`/renewals/${this.renewalId}/submit`, {}).subscribe({
+    this.api.post<ApiResponse<any>>(`/renewals/${this.renewalId}/submit`, {
+      consent_accepted: true,
+    }).subscribe({
       next: async (res: any) => {
         this.submitting = false;
 
@@ -547,6 +561,16 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
   }
 
   goToPay() {
+    if (!this.consentAccepted) {
+      this.toastCtrl.create({
+        message: this.t('consent.required'),
+        duration: 2500,
+        color: 'warning',
+        position: 'top',
+      }).then(toast => toast.present());
+      return;
+    }
+
     this.router.navigate(['/payment'], {
       queryParams: {
         renewalId: this.renewalId,

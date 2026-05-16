@@ -47,6 +47,7 @@ describe('PaymentPage', () => {
       languageService as any,
     );
     page.ngOnInit();
+    page.consentAccepted = true;
 
     return { page, router, paymentSvc };
   }
@@ -91,6 +92,7 @@ describe('PaymentPage', () => {
 
     expect(paymentSvc.createPayment).toHaveBeenCalledOnceWith('khalti', 'renewal', {
       renewal_id: 42,
+      consent_accepted: true,
     });
     expect(router.navigate).toHaveBeenCalledWith(['/payment-result'], {
       queryParams: {

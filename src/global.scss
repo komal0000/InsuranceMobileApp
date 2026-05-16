@@ -90,6 +90,79 @@ ion-fab-button {
   --box-shadow: 0 4px 12px rgba(0, 48, 135, 0.35);
 }
 
+/* Beneficiary dashboard household profile */
+.profile-card { margin: 0 0 18px !important; }
+.profile-card ion-card-content { padding: 18px; }
+.profile-head,
+.profile-member-row,
+.member-section-head { display: flex; gap: 12px; align-items: flex-start; }
+.profile-photo,
+.member-photo,
+.profile-empty-icon {
+  display: flex; align-items: center; justify-content: center;
+  border: 1px solid rgba(0, 48, 135, 0.12); border-radius: 8px;
+  background: #eef4ff; color: #003087; overflow: hidden; font-weight: 800;
+}
+.profile-photo { width: 74px; height: 74px; flex: 0 0 74px; }
+.member-photo { width: 44px; height: 44px; flex: 0 0 44px; }
+.profile-photo img,
+.member-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.profile-main,
+.member-text { min-width: 0; flex: 1; }
+.profile-main h3,
+.member-section-head h4,
+.profile-empty h3 { margin: 0 0 3px; color: #212529; font-weight: 800; }
+.profile-main h3 { font-size: 1.08rem; line-height: 1.2; }
+.profile-kicker,
+.profile-name-ne,
+.profile-detail-grid span,
+.member-section-head p,
+.member-text span,
+.member-text small,
+.empty-member-copy,
+.profile-empty p { color: #6c757d; font-size: 0.72rem; line-height: 1.35; }
+.profile-kicker { display: block; font-size: 0.68rem; font-weight: 700; text-transform: uppercase; }
+.profile-name-ne { display: block; margin-bottom: 8px; }
+.profile-badges { display: flex; flex-wrap: wrap; gap: 6px; }
+.profile-badges span,
+.member-section-head > span {
+  border-radius: 6px; padding: 4px 8px; background: rgba(0, 48, 135, 0.08);
+  color: #003087; font-size: 0.68rem; font-weight: 700; overflow-wrap: anywhere;
+}
+.profile-badges span + span { background: rgba(25, 135, 84, 0.1); color: #146c43; }
+.profile-detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 16px; }
+.profile-detail-grid div,
+.profile-member-row {
+  min-width: 0; border: 1px solid rgba(15, 23, 42, 0.08); border-radius: 8px;
+  background: #fff; padding: 10px;
+}
+.profile-detail-grid div { background: #f8fafc; }
+.profile-detail-grid span,
+.profile-detail-grid strong { display: block; }
+.profile-detail-grid strong,
+.member-text strong,
+.member-text em { color: #212529; font-size: 0.78rem; overflow-wrap: anywhere; }
+.member-section { margin-top: 18px; padding-top: 16px; border-top: 1px solid rgba(15, 23, 42, 0.08); }
+.member-section-head { justify-content: space-between; margin-bottom: 10px; }
+.member-section-head p,
+.empty-member-copy,
+.profile-empty p { margin: 0; }
+.profile-member-list { display: grid; gap: 8px; }
+.member-text { display: grid; gap: 1px; }
+.member-text strong,
+.member-text span,
+.member-text small,
+.member-text em { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.member-text em { color: #003087; font-style: normal; font-weight: 700; }
+.profile-empty { text-align: center; padding: 24px 8px; }
+.profile-empty p { max-width: 28rem; margin: 0 auto; }
+.profile-empty-icon { width: 58px; height: 58px; margin: 0 auto 10px; }
+.profile-empty-icon ion-icon { font-size: 28px; }
+
+@media (max-width: 360px) {
+  .profile-detail-grid { grid-template-columns: 1fr; }
+}
+
 /* ── Item input ── */
 ion-item {
   --border-radius: 8px;

@@ -94,4 +94,24 @@ describe('ForgotPasswordPage', () => {
       color: 'warning',
     }));
   });
+
+  it('toggles reset password fields independently', () => {
+    const authService = jasmine.createSpyObj('AuthService', [
+      'sendPasswordOtp',
+      'verifyPasswordOtp',
+      'resetPasswordWithOtp',
+      'sendPasswordResetEmail',
+    ]);
+    const router = jasmine.createSpyObj('Router', ['navigateByUrl']);
+    const toastCtrl = createToastController();
+    const page = new ForgotPasswordPage(authService as any, router as any, toastCtrl as any, languageService as any);
+
+    expect(page.passwordInputType('password')).toBe('password');
+    expect(page.passwordInputType('confirmation')).toBe('password');
+
+    page.togglePasswordVisibility('confirmation');
+
+    expect(page.passwordInputType('password')).toBe('password');
+    expect(page.passwordInputType('confirmation')).toBe('text');
+  });
 });

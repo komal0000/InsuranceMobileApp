@@ -50,7 +50,10 @@ export class EnrollmentService {
   }
 
   create(): Observable<ApiResponse<Enrollment>> {
-    return this.api.post<ApiResponse<Enrollment>>('/enrollments', { enrollment_type: 'new' });
+    return this.api.post<ApiResponse<Enrollment>>('/enrollments', {
+      enrollment_type: 'new',
+      consent_accepted: true,
+    });
   }
 
   // ── Step saves ──────────────────────────────────────────────
@@ -108,7 +111,9 @@ export class EnrollmentService {
   // ── Submit ──────────────────────────────────────────────────
 
   submit(id: number): Observable<EnrollmentSubmitResponse> {
-    return this.api.post<EnrollmentSubmitResponse>(`/enrollments/${id}/submit`, {});
+    return this.api.post<EnrollmentSubmitResponse>(`/enrollments/${id}/submit`, {
+      consent_accepted: true,
+    });
   }
 
   getPdfUrl(id: number): Observable<ApiResponse<{ pdf_download_url: string | null; pdf_generated: boolean }>> {

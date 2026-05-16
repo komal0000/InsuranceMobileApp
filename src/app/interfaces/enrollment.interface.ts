@@ -2,6 +2,7 @@ import { ApiResponse } from './api-response.interface';
 
 export interface Enrollment {
   id: number;
+  consent_acceptance_id?: number | null;
   enrollment_number: string;
   household_head_id: number;
   enrolled_by: number;

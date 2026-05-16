@@ -33,16 +33,19 @@ export class LegacyImisService {
       chfid: payload.chfid.trim(),
       ...this.kycEditableFields(payload),
       ...(payload.national_id ? { national_id: nidLookupValue(payload.national_id) } : {}),
+      ...this.consentPayload(payload),
     });
   }
 
   fetchKycDemoMember(
     householdHeadChfid: string,
     memberChfid: string,
+    consentAcceptanceId?: number | null,
   ): Observable<ApiResponse<LegacyImisKycDemoResponse>> {
     return this.api.get<ApiResponse<LegacyImisKycDemoResponse>>('/legacy-imis/kyc-demo/member', {
       household_head_chfid: householdHeadChfid.trim(),
       member_chfid: memberChfid.trim(),
+      ...this.consentPayload({ consent_acceptance_id: consentAcceptanceId }),
     });
   }
 
@@ -51,7 +54,16 @@ export class LegacyImisService {
       household_head_chfid: payload.household_head_chfid.trim(),
       member_chfid: payload.member_chfid.trim(),
       ...this.kycEditableFields(payload),
+      ...this.consentPayload(payload),
     });
+  }
+
+  private consentPayload(payload: { consent_accepted?: boolean; consent_acceptance_id?: number | null }): Record<string, boolean | number> {
+    if (payload.consent_acceptance_id) {
+      return { consent_acceptance_id: payload.consent_acceptance_id };
+    }
+
+    return { consent_accepted: payload.consent_accepted ?? true };
   }
 
   private kycEditableFields(payload: LegacyImisKycEditableFields): LegacyImisKycEditableFields {

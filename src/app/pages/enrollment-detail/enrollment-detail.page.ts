@@ -1,12 +1,13 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { Browser } from '@capacitor/browser';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import {
   IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton,
-  IonCard, IonCardContent, IonBadge, IonIcon, IonButton, IonSpinner,
+  IonCard, IonCardContent, IonBadge, IonCheckbox, IonIcon, IonButton, IonItem, IonLabel, IonSpinner,
   IonImg
 } from '@ionic/angular/standalone';
 import { ToastController, AlertController } from '@ionic/angular/standalone';
@@ -30,9 +31,9 @@ import { LanguageToggleComponent } from '../../components/language-toggle/langua
   selector: 'app-enrollment-detail',
   standalone: true,
   imports: [
-    CommonModule,
+    CommonModule, FormsModule,
     IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton,
-    IonCard, IonCardContent, IonBadge, IonIcon, IonButton, IonSpinner,
+    IonCard, IonCardContent, IonBadge, IonCheckbox, IonIcon, IonButton, IonItem, IonLabel, IonSpinner,
     IonImg,
     LanguageToggleComponent
   ],
@@ -46,6 +47,7 @@ export class EnrollmentDetailPage implements OnInit, OnDestroy {
   canVerify = false;
   canApprove = false;
   canReject = false;
+  consentAccepted = false;
   private readonly destroy$ = new Subject<void>();
   private hasEnteredView = false;
 
@@ -104,6 +106,7 @@ export class EnrollmentDetailPage implements OnInit, OnDestroy {
     this.api.get<ApiResponse<Enrollment>>(`/enrollments/${this.enrollmentId}`).subscribe({
       next: (res) => {
         this.enrollment = res.data;
+        this.consentAccepted = Boolean(this.enrollment?.consent_acceptance_id);
         if ((res as any).pdf_download_url) {
           this.enrollment.pdf_download_url = (res as any).pdf_download_url;
         }
@@ -121,7 +124,20 @@ export class EnrollmentDetailPage implements OnInit, OnDestroy {
   }
 
   async submitEnrollment() {
-    this.api.post<ApiResponse>(`/enrollments/${this.enrollmentId}/submit`, {}).subscribe({
+    if (!this.enrollment?.consent_acceptance_id && !this.consentAccepted) {
+      const toast = await this.toastCtrl.create({
+        message: this.t('consent.required'),
+        duration: 2500,
+        color: 'warning',
+        position: 'top',
+      });
+      await toast.present();
+      return;
+    }
+
+    const payload = this.enrollment?.consent_acceptance_id ? {} : { consent_accepted: true };
+
+    this.api.post<ApiResponse>(`/enrollments/${this.enrollmentId}/submit`, payload).subscribe({
       next: async (res) => {
         await this.openEnrollmentPdf((res as any).pdf_download_url || (res.data as any)?.pdf_download_url || null);
         const toast = await this.toastCtrl.create({

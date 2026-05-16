@@ -9,7 +9,7 @@ import {
   IonSegment, IonSegmentButton, IonRefresher, IonRefresherContent,
   IonInfiniteScroll, IonInfiniteScrollContent, IonFab, IonFabButton,
   IonIcon, IonSpinner, IonCard, IonCardContent, IonButton, IonButtons,
-  IonInput, IonItem, IonSelect, IonSelectOption
+  IonCheckbox, IonInput, IonItem, IonLabel, IonSelect, IonSelectOption
 } from '@ionic/angular/standalone';
 import { ToastController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -71,7 +71,7 @@ const DEFAULT_MEMBER_RELATIONSHIPS: Array<{ value: string; label: string }> = [
     IonSegment, IonSegmentButton, IonRefresher, IonRefresherContent,
     IonInfiniteScroll, IonInfiniteScrollContent, IonFab, IonFabButton,
     IonIcon, IonSpinner, IonCard, IonCardContent, IonButton, IonButtons,
-    IonInput, IonItem, IonSelect, IonSelectOption
+    IonCheckbox, IonInput, IonItem, IonLabel, IonSelect, IonSelectOption
   ],
   templateUrl: './renewals.page.html',
   styleUrls: ['./renewals.page.scss'],
@@ -83,6 +83,7 @@ export class RenewalsPage implements OnInit, OnDestroy {
   page = 1;
   lastPage = 1;
   loading = false;
+  consentAccepted = false;
   isBeneficiary = false;
   canInitiateRenewal = false;
   enrollment: any = null;
@@ -232,8 +233,20 @@ export class RenewalsPage implements OnInit, OnDestroy {
 
   initiateRenewal() {
     if (!this.canInitiateRenewal || !this.enrollment) return;
+    if (!this.consentAccepted) {
+      this.toastCtrl.create({
+        message: this.t('consent.required'),
+        duration: 2500,
+        color: 'warning',
+        position: 'top',
+      }).then(toast => toast.present());
+      return;
+    }
     this.initiating = true;
-    this.api.post<ApiResponse<any>>('/renewals/initiate', { enrollment_id: this.enrollment.id }).subscribe({
+    this.api.post<ApiResponse<any>>('/renewals/initiate', {
+      enrollment_id: this.enrollment.id,
+      consent_accepted: true,
+    }).subscribe({
       next: async (res) => {
         this.initiating = false;
         if (res.success) {
@@ -328,6 +341,17 @@ export class RenewalsPage implements OnInit, OnDestroy {
 
   async addNewMember() {
     if (!this.canInitiateRenewal || !this.enrollment) return;
+    if (!this.consentAccepted) {
+      const toast = await this.toastCtrl.create({
+        message: this.t('consent.required'),
+        duration: 2500,
+        color: 'warning',
+        position: 'top',
+      });
+      await toast.present();
+      return;
+    }
+
     const m = this.newMember;
     this.applyNewMemberRelationshipGender(m.relationship);
 
@@ -427,7 +451,10 @@ export class RenewalsPage implements OnInit, OnDestroy {
         },
       });
     } else {
-      this.api.post<ApiResponse<any>>('/renewals/initiate', { enrollment_id: this.enrollment.id }).subscribe({
+      this.api.post<ApiResponse<any>>('/renewals/initiate', {
+        enrollment_id: this.enrollment.id,
+        consent_accepted: true,
+      }).subscribe({
         next: (res) => {
           if (res.success) {
             addToRenewal(res.data.id).subscribe({

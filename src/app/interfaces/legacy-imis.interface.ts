@@ -33,6 +33,7 @@ export interface LegacyImisKycDemoHousehold {
 }
 
 export interface LegacyImisKycDemoResponse {
+  consent_acceptance_id?: number | null;
   household_head_chfid: string;
   member_chfid: string;
   household: LegacyImisKycDemoHousehold | null;
@@ -42,6 +43,7 @@ export interface LegacyImisKycDemoResponse {
 
 export interface LegacyImisKycUpdateResponse {
   chfid: string;
+  consent_acceptance_id?: number | null;
   legacy_response: Record<string, unknown>;
 }
 
@@ -63,9 +65,13 @@ export interface LegacyImisKycEditableFields {
 export interface LegacyImisKycUpdatePayload extends LegacyImisKycEditableFields {
   chfid: string;
   national_id?: string | null;
+  consent_accepted?: boolean;
+  consent_acceptance_id?: number | null;
 }
 
 export interface LegacyImisKycDemoUpdatePayload extends LegacyImisKycEditableFields {
   household_head_chfid: string;
   member_chfid: string;
+  consent_accepted?: boolean;
+  consent_acceptance_id?: number | null;
 }

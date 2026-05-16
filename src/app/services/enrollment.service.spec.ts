@@ -51,6 +51,18 @@ describe('EnrollmentService', () => {
     expect(api.get).toHaveBeenCalledTimes(2);
   });
 
+  it('creates enrollment drafts with consent accepted', () => {
+    const response = { success: true, message: 'Created.', data: { id: 25 } };
+    api.post.and.returnValue(of(response));
+
+    service.create().subscribe(result => expect(result).toEqual(response as any));
+
+    expect(api.post).toHaveBeenCalledWith('/enrollments', {
+      enrollment_type: 'new',
+      consent_accepted: true,
+    });
+  });
+
   it('submits enrollment and exposes PDF metadata from the API response', () => {
     const response = {
       success: true,
@@ -66,7 +78,9 @@ describe('EnrollmentService', () => {
       expect(result.pdf_download_url).toBe('https://example.test/enrollment.pdf');
     });
 
-    expect(api.post).toHaveBeenCalledWith('/enrollments/25/submit', {});
+    expect(api.post).toHaveBeenCalledWith('/enrollments/25/submit', {
+      consent_accepted: true,
+    });
   });
 
   it('requests a fresh enrollment PDF URL for detail fallback download', () => {

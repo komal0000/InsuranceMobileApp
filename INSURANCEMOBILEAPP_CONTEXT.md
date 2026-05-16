@@ -1,6 +1,6 @@
 # InsuranceMobileApp Current Context
 
-Last updated: 2026-05-14
+Last updated: 2026-05-16
 
 This file captures the current Ionic/Angular state so future conversations do not need to rediscover the mobile app.
 
@@ -13,6 +13,29 @@ This file captures the current Ionic/Angular state so future conversations do no
 - API services live under `src\app\services`.
 - Shared interfaces live under `src\app\interfaces`.
 - Backend API is Laravel in `C:\Insurance\InsuranceApp`.
+
+## Beneficiary Dashboard Profile
+- The beneficiary dashboard is profile-first. It consumes optional `profile` data from `GET /api/dashboard` and shows the household head photo/avatar, HIB number, enrollment/status/policy/address details, plus compact rows for all other members with HIB/member numbers.
+- `src\app\interfaces\dashboard.interface.ts` defines `BeneficiaryDashboardProfile`, `BeneficiaryDashboardProfileEnrollment`, and person/member shapes. Missing profile data renders a safe empty state.
+- The mobile Renewals tab remains unchanged. Dashboard quick actions now label the KYC action as `KYC` / `Update household KYC details` while continuing to open the existing `/kyc-demo` route.
+- Existing beneficiary insurance checker remains below the profile card.
+- Verification includes `npm test -- --watch=false --browsers=ChromeHeadless --include=src/app/pages/dashboard/dashboard.page.spec.ts`, full `npm test -- --watch=false --browsers=ChromeHeadless`, and `npm run build`.
+- Important files:
+  - `src\app\pages\dashboard\dashboard.page.ts`
+  - `src\app\pages\dashboard\dashboard.page.html`
+  - `src\app\pages\dashboard\dashboard.page.scss`
+  - `src\global.scss`
+  - `src\app\interfaces\dashboard.interface.ts`
+  - `src\app\i18n\en.ts`
+  - `src\app\i18n\ne.ts`
+
+## Consent Gate
+- Mobile now blocks sensitive enrollment, renewal, payment, and KYC actions until the user accepts the shared consent copy. API payloads send `consent_accepted=true` for a fresh acceptance or reuse `consent_acceptance_id` when the backend returns one.
+- Enrollment list/new-enrollment creation shows a consent checkbox before creating the backend draft. `EnrollmentService.create()` includes `consent_accepted=true`; enrollment detail shows a fallback consent checkbox before direct draft submit only when the loaded draft has no linked `consent_acceptance_id`.
+- Renewal search/initiation includes consent. `RenewalSearchPage` sends `consent_accepted=true` on search, stores `data.consent_acceptance_id`, and passes it to initiation. The renewals tab and renewal detail also require the checkbox before initiation, submit, or payment fallback actions.
+- KYC demo lookup/update requires consent. `LegacyImisService.fetchKycDemoMember()` and `updateKycDemo()` include `consent_accepted=true` or the returned `consent_acceptance_id`; direct `updateKyc()` also sends consent.
+- Payment fallback includes `consent_accepted=true` in `PaymentService.createPayment()` options so existing enrollment/renewal records without linked consent can be linked before gateway initiation.
+- Consent translations live under `consent.title`, `consent.body`, and `consent.required` in `src\app\i18n\en.ts` and `src\app\i18n\ne.ts`.
 
 ## Recent Auth Flow Changes
 - `RegisterPage` is details-only:
@@ -37,6 +60,7 @@ This file captures the current Ionic/Angular state so future conversations do no
 - During registration handoff, the normal direct-login password, remember-me, forgot-password, and Sign In controls are hidden until the OTP setup path reaches its own Create Password step.
 - Final setup-password and password-reset requests send the OTP code again because the backend re-checks it before changing passwords.
 - Login setup-password, forgot-password reset, and profile change-password now use the backend-aligned strong-password rule: 8+ characters with uppercase, lowercase, number, and symbol. The mobile validator counts Unicode code points, not JavaScript UTF-16 code units, to match Laravel `Str::length()`.
+- Password inputs on normal login, login setup-password, forgot-password OTP reset, and profile change-password have per-field `eye-outline` / `eye-off-outline` reveal buttons. Each page keeps independent visibility state per input and leaves the existing form models/API payloads unchanged.
 - Backend password reset and profile change-password now reject matching the current password or the immediately previous password tracked from the next successful change onward. API validation messages are surfaced from the backend; request payloads are unchanged.
 - Existing user login remains password-based by mobile or HIB number.
 - Authenticated user payloads now include `preferred_language`.
@@ -70,6 +94,7 @@ API methods added/used for login-side setup:
   - `POST /api/login/otp/verify`
   - `POST /api/login/password/create`
 - Final password creation payload includes `otp`, `password`, and `password_confirmation`.
+- Password visibility verification includes `npm test -- --watch=false --browsers=ChromeHeadless --include=src/app/pages/login/login.page.spec.ts --include=src/app/pages/forgot-password/forgot-password.page.spec.ts --include=src/app/pages/profile/profile.page.spec.ts`, plus the full app build/test commands in the Verification section.
 
 ## Enrollment Wizard Redesign
 - Current wizard has 3 steps:
@@ -339,6 +364,18 @@ Important optimization files:
 - `src\app\pages\renewal-detail\renewal-detail.page.ts`
 
 ## Verification
+Consent gate verification on 2026-05-16:
+```powershell
+cd C:\Insurance\InsuranceMobileApp
+npm run build
+npm test -- --watch=false --browsers=ChromeHeadless
+```
+
+Local macOS result:
+- `npm run build` passes and writes to `www`.
+- Full mobile Karma suite passes: `152 SUCCESS`.
+- Existing SCSS budget warning remains for `src/app/components/bs-date-picker/bs-date-picker.component.ts` (`4.05 kB` total against `4.00 kB`).
+
 Development API URL QA verification on 2026-05-14:
 ```powershell
 cd C:\Insurance\InsuranceMobileApp

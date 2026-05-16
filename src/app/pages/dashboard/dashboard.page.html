@@ -18,48 +18,102 @@
       <span class="role-pill">{{ formatRole(user?.role) }}</span>
     </div>
 
-    <!-- Beneficiary Stats -->
-    <div class="stats-grid" *ngIf="isBeneficiary">
-      <div class="stat-card" (click)="navigate('/tabs/enrollments')" *ngIf="canCreateEnrollment">
-        <div class="stat-icon-box" style="background: rgba(0,48,135,0.08);">
-          <ion-icon name="document-text-outline" style="color: #003087;"></ion-icon>
-        </div>
-        <div class="stat-info">
-          <span class="stat-value">{{ formatCount(stats?.my_enrollments) }}</span>
-          <span class="stat-label">{{ t('dashboard.my_enrollments') }}</span>
-        </div>
-      </div>
+    <!-- Beneficiary Profile -->
+    <ion-card *ngIf="isBeneficiary" class="profile-card">
+      <ion-card-content>
+        <ng-container *ngIf="profileHead as head; else profileEmpty">
+          <div class="profile-head">
+            <div class="profile-photo">
+              <img *ngIf="head.photo_url; else profileInitialTpl" [src]="head.photo_url" [alt]="head.name || t('common.household_head')">
+              <ng-template #profileInitialTpl>
+                <span>{{ profileInitial(head.name) }}</span>
+              </ng-template>
+            </div>
+            <div class="profile-main">
+              <span class="profile-kicker">{{ t('dashboard.household_head_profile') }}</span>
+              <h3>{{ head.name || t('common.household_head') }}</h3>
+              <span class="profile-name-ne" *ngIf="head.name_ne">{{ head.name_ne }}</span>
+              <div class="profile-badges">
+                <span>{{ t('dashboard.hib_number') }}: {{ head.hib_number || t('common.not_available') }}</span>
+                <span *ngIf="beneficiaryProfile?.enrollment?.status">{{ formatStatus(beneficiaryProfile?.enrollment?.status || '') }}</span>
+              </div>
+            </div>
+          </div>
 
-      <div class="stat-card" (click)="navigate('/tabs/my-policy')">
-        <div class="stat-icon-box" style="background: rgba(25,135,84,0.1);">
-          <ion-icon name="shield-checkmark-outline" style="color: #198754;"></ion-icon>
-        </div>
-        <div class="stat-info">
-          <span class="stat-value">{{ formatCount(stats?.active_policies) }}</span>
-          <span class="stat-label">{{ t('dashboard.active_policies') }}</span>
-        </div>
-      </div>
+          <div class="profile-detail-grid">
+            <div>
+              <span>{{ t('policy.gender') }}</span>
+              <strong>{{ label('gender', head.gender, t('common.not_available')) }}</strong>
+            </div>
+            <div>
+              <span>{{ t('profile.date_of_birth') }}</span>
+              <strong>{{ profileDate(head) }}</strong>
+            </div>
+            <div>
+              <span>{{ t('profile.mobile_number') }}</span>
+              <strong>{{ head.mobile_number || t('common.not_available') }}</strong>
+            </div>
+            <div>
+              <span>{{ t('dashboard.policy_period') }}</span>
+              <strong>{{ enrollmentPolicyPeriod() }}</strong>
+            </div>
+            <div>
+              <span>{{ t('dashboard.enrollment_number') }}</span>
+              <strong>{{ beneficiaryProfile?.enrollment?.enrollment_number || t('common.not_available') }}</strong>
+            </div>
+            <div>
+              <span>{{ t('dashboard.address') }}</span>
+              <strong>{{ profileAddress() }}</strong>
+            </div>
+          </div>
 
-      <div class="stat-card" (click)="navigate('/tabs/renewals')">
-        <div class="stat-icon-box" style="background: rgba(253,126,20,0.1);">
-          <ion-icon name="refresh-outline" style="color: #fd7e14;"></ion-icon>
-        </div>
-        <div class="stat-info">
-          <span class="stat-value">{{ formatCount(stats?.my_renewals) }}</span>
-          <span class="stat-label">{{ t('dashboard.my_renewals') }}</span>
-        </div>
-      </div>
+          <div class="member-section">
+            <div class="member-section-head">
+              <div>
+                <h4>{{ t('dashboard.other_members') }}</h4>
+                <p>{{ t('dashboard.other_members_help') }}</p>
+              </div>
+              <span>{{ formatCount(profileMembers.length) }}</span>
+            </div>
 
-      <div class="stat-card" (click)="navigate('/tabs/subsidies')">
-        <div class="stat-icon-box" style="background: rgba(255,193,7,0.12);">
-          <ion-icon name="cash-outline" style="color: #ffc107;"></ion-icon>
-        </div>
-        <div class="stat-info">
-          <span class="stat-value">{{ formatCount(stats?.my_subsidies) }}</span>
-          <span class="stat-label">{{ t('dashboard.my_subsidies') }}</span>
-        </div>
-      </div>
-    </div>
+            <div class="profile-member-list" *ngIf="profileMembers.length > 0; else noOtherMembers">
+              <div class="profile-member-row" *ngFor="let member of profileMembers">
+                <div class="member-photo">
+                  <img *ngIf="member.photo_url; else memberInitialTpl" [src]="member.photo_url" [alt]="member.name || t('common.member')">
+                  <ng-template #memberInitialTpl>
+                    <span>{{ profileInitial(member.name || member.first_name) }}</span>
+                  </ng-template>
+                </div>
+                <div class="member-text">
+                  <strong>{{ member.name || t('common.member') }}</strong>
+                  <span *ngIf="member.name_ne">{{ member.name_ne }}</span>
+                  <small>
+                    {{ label('relation', member.relationship, t('common.member')) }}
+                    <ng-container *ngIf="member.gender"> &middot; {{ label('gender', member.gender) }}</ng-container>
+                    <ng-container *ngIf="member.date_of_birth || member.date_of_birth_bs"> &middot; {{ profileDate(member) }}</ng-container>
+                  </small>
+                  <em>{{ t('dashboard.member_hib_number') }}: {{ memberHibNumber(member) }}</em>
+                </div>
+              </div>
+            </div>
+
+            <ng-template #noOtherMembers>
+              <p class="empty-member-copy">{{ t('dashboard.no_other_members') }}</p>
+            </ng-template>
+          </div>
+        </ng-container>
+
+        <ng-template #profileEmpty>
+          <div class="profile-empty">
+            <div class="profile-empty-icon">
+              <ion-icon name="people-outline"></ion-icon>
+            </div>
+            <h3>{{ t('dashboard.profile_empty_title') }}</h3>
+            <p>{{ t('dashboard.profile_empty_body') }}</p>
+          </div>
+        </ng-template>
+      </ion-card-content>
+    </ion-card>
 
     <!-- Admin/Staff Stats -->
     <div class="stats-grid" *ngIf="!isBeneficiary && !isEnrollmentAssistant">
@@ -241,8 +295,8 @@
           <ion-icon name="person-circle-outline" style="color: #0d6efd;"></ion-icon>
         </div>
         <div class="action-text">
-          <strong>{{ t('dashboard.kyc_demo') }}</strong>
-          <span>{{ t('dashboard.kyc_demo_help') }}</span>
+          <strong>{{ t(kycActionTitleKey) }}</strong>
+          <span>{{ t(kycActionHelpKey) }}</span>
         </div>
         <ion-icon name="arrow-forward-outline" class="action-arrow"></ion-icon>
       </ion-card-content>

@@ -50,7 +50,15 @@
             [(ngModel)]="memberChfid">
           </ion-input>
 
-          <ion-button expand="block" (click)="fetchMember()" [disabled]="loading">
+          <ion-item lines="none">
+            <ion-checkbox slot="start" [(ngModel)]="consentAccepted"></ion-checkbox>
+            <ion-label class="ion-text-wrap">
+              <strong>{{ t('consent.title') }}</strong>
+              <p>{{ t('consent.body') }}</p>
+            </ion-label>
+          </ion-item>
+
+          <ion-button expand="block" (click)="fetchMember()" [disabled]="loading || !consentAccepted">
             <ion-spinner *ngIf="loading" name="crescent" slot="start"></ion-spinner>
             <ion-icon *ngIf="!loading" name="search-outline" slot="start"></ion-icon>
             {{ loading ? t('common.loading') : t('kyc_demo.fetch_member') }}
@@ -105,7 +113,7 @@
             [(ngModel)]="kycForm[field.key]">
           </ion-input>
 
-          <ion-button expand="block" (click)="updateKyc()" [disabled]="updating">
+          <ion-button expand="block" (click)="updateKyc()" [disabled]="updating || !consentAccepted">
             <ion-spinner *ngIf="updating" name="crescent" slot="start"></ion-spinner>
             <ion-icon *ngIf="!updating" name="send-outline" slot="start"></ion-icon>
             {{ updating ? t('common.saving') : t('kyc_demo.update_kyc') }}

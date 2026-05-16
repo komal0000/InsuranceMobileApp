@@ -11,7 +11,8 @@ import { ToastController, AlertController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
   personCircleOutline, logOutOutline, keyOutline, createOutline,
-  callOutline, mailOutline, calendarOutline, cameraOutline, imageOutline
+  callOutline, mailOutline, calendarOutline, cameraOutline, imageOutline,
+  eyeOutline, eyeOffOutline
 } from 'ionicons/icons';
 import { AuthService } from '../../services/auth.service';
 import { ApiService } from '../../services/api.service';
@@ -22,6 +23,8 @@ import { BsDatePickerComponent } from '../../components/bs-date-picker/bs-date-p
 import { LanguageToggleComponent } from '../../components/language-toggle/language-toggle.component';
 import { LanguageService } from '../../services/language.service';
 import { isStrongPassword } from '../../utils/auth-validation';
+
+type ProfilePasswordField = 'current' | 'new' | 'confirmation';
 
 @Component({
   selector: 'app-profile',
@@ -46,6 +49,11 @@ export class ProfilePage implements OnInit {
   passwordData: ChangePasswordRequest = {
     current_password: '', password: '', password_confirmation: '',
   };
+  passwordVisibility: Record<ProfilePasswordField, boolean> = {
+    current: false,
+    new: false,
+    confirmation: false,
+  };
 
   constructor(
     private authService: AuthService,
@@ -59,7 +67,8 @@ export class ProfilePage implements OnInit {
   ) {
     addIcons({
       personCircleOutline, logOutOutline, keyOutline, createOutline,
-      callOutline, mailOutline, calendarOutline, cameraOutline, imageOutline
+      callOutline, mailOutline, calendarOutline, cameraOutline, imageOutline,
+      eyeOutline, eyeOffOutline
     });
   }
 
@@ -197,6 +206,7 @@ export class ProfilePage implements OnInit {
       next: async (res) => {
         this.changingPassword = false;
         this.passwordData = { current_password: '', password: '', password_confirmation: '' };
+        this.passwordVisibility = { current: false, new: false, confirmation: false };
         const toast = await this.toastCtrl.create({
           message: this.languageService.translateText(res.message) || this.t('profile.password_changed'), duration: 2000, color: 'success', position: 'top',
         });
@@ -235,6 +245,18 @@ export class ProfilePage implements OnInit {
 
   displayDate(adDate?: string | null, bsDate?: string | null): string {
     return this.dateService.formatForDisplay(adDate, bsDate) || '';
+  }
+
+  passwordInputType(field: ProfilePasswordField): 'text' | 'password' {
+    return this.passwordVisibility[field] ? 'text' : 'password';
+  }
+
+  passwordIcon(field: ProfilePasswordField): string {
+    return this.passwordVisibility[field] ? 'eye-off-outline' : 'eye-outline';
+  }
+
+  togglePasswordVisibility(field: ProfilePasswordField): void {
+    this.passwordVisibility[field] = !this.passwordVisibility[field];
   }
 
   t(key: string): string {

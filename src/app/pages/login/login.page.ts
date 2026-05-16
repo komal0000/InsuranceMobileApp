@@ -20,6 +20,7 @@ import {
 } from 'ionicons/icons';
 
 type SetupLoadingAction = 'sendOtp' | 'verifyOtp' | 'createPassword' | null;
+type LoginPasswordField = 'login' | 'setup' | 'setupConfirmation';
 
 @Component({
   selector: 'app-login',
@@ -40,7 +41,11 @@ export class LoginPage implements OnDestroy {
   };
   rememberMe = false;
   loading = false;
-  showPassword = false;
+  passwordVisibility: Record<LoginPasswordField, boolean> = {
+    login: false,
+    setup: false,
+    setupConfirmation: false,
+  };
   showRegistrationSetup = false;
   otpSent = false;
   otpVerified = false;
@@ -98,6 +103,18 @@ export class LoginPage implements OnDestroy {
 
   toggleLang() {
     void this.languageService.setLocalLanguage(this.languageService.toggleLanguage());
+  }
+
+  passwordInputType(field: LoginPasswordField): 'text' | 'password' {
+    return this.passwordVisibility[field] ? 'text' : 'password';
+  }
+
+  passwordIcon(field: LoginPasswordField): string {
+    return this.passwordVisibility[field] ? 'eye-off-outline' : 'eye-outline';
+  }
+
+  togglePasswordVisibility(field: LoginPasswordField): void {
+    this.passwordVisibility[field] = !this.passwordVisibility[field];
   }
 
   ngOnDestroy() {
@@ -247,6 +264,8 @@ export class LoginPage implements OnDestroy {
     this.setupOtp = '';
     this.setupPassword = '';
     this.setupPasswordConfirmation = '';
+    this.passwordVisibility.setup = false;
+    this.passwordVisibility.setupConfirmation = false;
   }
 
   private async presentToast(message: string, color: 'success' | 'warning' | 'danger') {

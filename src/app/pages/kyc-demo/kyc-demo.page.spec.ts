@@ -95,10 +95,11 @@ describe('KycDemoPage', () => {
     const { legacyImis, page } = makePage();
     page.householdHeadChfid = 'HH001';
     page.memberChfid = 'M002';
+    page.consentAccepted = true;
 
     page.fetchMember();
 
-    expect(legacyImis.fetchKycDemoMember).toHaveBeenCalledWith('HH001', 'M002');
+    expect(legacyImis.fetchKycDemoMember).toHaveBeenCalledWith('HH001', 'M002', null);
     expect(page.demoData?.household?.total_members).toBe(2);
     expect(page.demoData?.selected_member?.chfid).toBe('M002');
     expect(page.kycForm).toEqual({
@@ -131,6 +132,8 @@ describe('KycDemoPage', () => {
     const { legacyImis, page } = makePage();
     page.householdHeadChfid = 'HH001';
     page.memberChfid = 'M002';
+    page.consentAccepted = true;
+    page.consentAcceptanceId = 44;
     page.demoData = demoResponse();
     page.kycForm = {
       firstname: 'Sita',
@@ -152,6 +155,7 @@ describe('KycDemoPage', () => {
     expect(legacyImis.updateKycDemo).toHaveBeenCalledWith({
       household_head_chfid: 'HH001',
       member_chfid: 'M002',
+      consent_acceptance_id: 44,
       firstname: 'Sita',
       lastname: 'Sharma',
       date_of_birth: '1992-04-20',
@@ -182,10 +186,22 @@ describe('KycDemoPage', () => {
     });
     page.householdHeadChfid = 'HH001';
     page.memberChfid = 'UNKNOWN';
+    page.consentAccepted = true;
 
     page.fetchMember();
 
     expect(page.errorMessage).toBe('No member was found for the entered member CHFID.');
     expect(page.demoData).toBeNull();
+  });
+
+  it('blocks fetch until consent is accepted', () => {
+    const { legacyImis, page } = makePage();
+    page.householdHeadChfid = 'HH001';
+    page.memberChfid = 'M002';
+
+    page.fetchMember();
+
+    expect(legacyImis.fetchKycDemoMember).not.toHaveBeenCalled();
+    expect(page.errorMessage).toBe('consent.required');
   });
 });

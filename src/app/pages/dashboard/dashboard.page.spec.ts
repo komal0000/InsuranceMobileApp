@@ -5,6 +5,7 @@ describe('DashboardPage', () => {
   function languageService() {
     return {
       t: (key: string) => key,
+      label: (_namespace: string, value?: string) => value || '',
       formatNumber: (value: number) => String(value),
       translateText: (value?: string) => value || '',
     };
@@ -93,6 +94,49 @@ describe('DashboardPage', () => {
   it('navigates to the KYC demo page from the dashboard action', () => {
     const router = jasmine.createSpyObj('Router', ['navigateByUrl']);
     const page = makePage({ router });
+
+    page.openKycDemo();
+
+    expect(router.navigateByUrl).toHaveBeenCalledOnceWith('/kyc-demo');
+  });
+
+  it('exposes beneficiary profile details for the dashboard template', () => {
+    const page = makePage();
+    page.stats = {
+      profile: {
+        enrollment: {
+          id: 10,
+          enrollment_number: 'HIB-DASH-000001',
+        },
+        household_head: {
+          id: 1,
+          name: 'Sunita Lama',
+          hib_number: 'HIB-HH-001',
+          photo_url: null,
+        },
+        members: [
+          {
+            id: 2,
+            name: 'Amit Lama',
+            relationship: 'son',
+            member_number: 'HIB-DASH-000001-02',
+          },
+        ],
+      },
+    };
+
+    expect(page.beneficiaryProfile?.household_head?.hib_number).toBe('HIB-HH-001');
+    expect(page.profileMembers.length).toBe(1);
+    expect(page.memberHibNumber(page.profileMembers[0])).toBe('HIB-DASH-000001-02');
+    expect(page.profileInitial('Sunita Lama')).toBe('S');
+  });
+
+  it('uses KYC quick action labels while keeping the existing KYC route', () => {
+    const router = jasmine.createSpyObj('Router', ['navigateByUrl']);
+    const page = makePage({ router });
+
+    expect(page.kycActionTitleKey).toBe('dashboard.kyc');
+    expect(page.kycActionHelpKey).toBe('dashboard.kyc_help');
 
     page.openKycDemo();
 

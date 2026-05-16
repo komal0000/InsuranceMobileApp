@@ -251,6 +251,34 @@ describe('LoginPage', () => {
     }));
   });
 
+  it('toggles each login password field independently', () => {
+    const authService = createAuthService();
+    const router = jasmine.createSpyObj('Router', ['navigateByUrl']);
+    const page = new LoginPage(
+      authService as any,
+      router as any,
+      createRoute() as any,
+      createToastController() as any,
+      createLanguageService() as any
+    );
+
+    expect(page.passwordInputType('login')).toBe('password');
+    expect(page.passwordInputType('setup')).toBe('password');
+    expect(page.passwordInputType('setupConfirmation')).toBe('password');
+
+    page.togglePasswordVisibility('setup');
+
+    expect(page.passwordInputType('login')).toBe('password');
+    expect(page.passwordInputType('setup')).toBe('text');
+    expect(page.passwordInputType('setupConfirmation')).toBe('password');
+
+    page.togglePasswordVisibility('login');
+
+    expect(page.passwordInputType('login')).toBe('text');
+    expect(page.passwordInputType('setup')).toBe('text');
+    expect(page.passwordInputType('setupConfirmation')).toBe('password');
+  });
+
   it('renders normal password login controls on direct login', async () => {
     const fixture = await renderPage();
     const element: HTMLElement = fixture.nativeElement;

@@ -1,10 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import {
   IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton,
-  IonButton, IonCard, IonCardContent,
-  IonIcon, IonSpinner, IonBadge
+  IonButton, IonCard, IonCardContent, IonCheckbox,
+  IonIcon, IonSpinner, IonBadge, IonItem, IonLabel
 } from '@ionic/angular/standalone';
 import { ToastController, AlertController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -31,10 +32,10 @@ interface GatewayOption {
   selector: 'app-payment',
   standalone: true,
   imports: [
-    CommonModule,
+    CommonModule, FormsModule,
     IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton,
-    IonButton, IonCard, IonCardContent,
-    IonIcon, IonSpinner, IonBadge,
+    IonButton, IonCard, IonCardContent, IonCheckbox,
+    IonIcon, IonSpinner, IonBadge, IonItem, IonLabel,
     LanguageToggleComponent
   ],
   templateUrl: './payment.page.html',
@@ -64,6 +65,7 @@ export class PaymentPage implements OnInit {
   maxPolls = 10;
   paymentStatus: string | null = null;
   activeReferenceId: string | null = null;
+  consentAccepted = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -95,11 +97,23 @@ export class PaymentPage implements OnInit {
 
   async proceedToPay() {
     if (!this.selectedGateway) return;
+    if (!this.consentAccepted) {
+      const toast = await this.toastCtrl.create({
+        message: this.t('consent.required'),
+        duration: 2500,
+        color: 'warning',
+        position: 'top',
+      });
+      await toast.present();
+      return;
+    }
 
     this.loading = true;
     this.paymentStatus = null;
 
-    const options: { policy_id?: number; enrollment_id?: number; renewal_id?: number } = {};
+    const options: { policy_id?: number; enrollment_id?: number; renewal_id?: number; consent_accepted: boolean } = {
+      consent_accepted: true,
+    };
     if (this.renewalId) {
       options.renewal_id = this.renewalId;
     } else if (this.policyId) {

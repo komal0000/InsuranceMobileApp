@@ -7,6 +7,7 @@ import {
   IonButtons,
   IonCard,
   IonCardContent,
+  IonCheckbox,
   IonContent,
   IonHeader,
   IonIcon,
@@ -81,6 +82,7 @@ interface KycDisplayField {
     IonButtons,
     IonCard,
     IonCardContent,
+    IonCheckbox,
     IonContent,
     IonHeader,
     IonIcon,
@@ -102,6 +104,8 @@ export class KycDemoPage implements OnDestroy {
   updating = false;
   errorMessage = '';
   successMessage = '';
+  consentAccepted = false;
+  consentAcceptanceId: number | null = null;
   demoData: LegacyImisKycDemoResponse | null = null;
   kycForm: KycForm = this.blankKycForm();
 
@@ -163,10 +167,15 @@ export class KycDemoPage implements OnDestroy {
       return;
     }
 
+    if (!this.consentAccepted) {
+      this.errorMessage = this.t('consent.required');
+      return;
+    }
+
     this.loading = true;
     this.demoData = null;
 
-    this.legacyImis.fetchKycDemoMember(householdHeadChfid, memberChfid)
+    this.legacyImis.fetchKycDemoMember(householdHeadChfid, memberChfid, this.consentAcceptanceId)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (res) => {
@@ -193,6 +202,11 @@ export class KycDemoPage implements OnDestroy {
       return;
     }
 
+    if (!this.consentAccepted) {
+      this.errorMessage = this.t('consent.required');
+      return;
+    }
+
     if (!Object.values(editableFields).some(value => value !== '')) {
       this.errorMessage = this.t('kyc_demo.update_required');
       return;
@@ -203,6 +217,7 @@ export class KycDemoPage implements OnDestroy {
     this.legacyImis.updateKycDemo({
       household_head_chfid: householdHeadChfid,
       member_chfid: memberChfid,
+      ...(this.consentAcceptanceId ? { consent_acceptance_id: this.consentAcceptanceId } : { consent_accepted: true }),
       ...editableFields,
     }).pipe(takeUntil(this.destroy$))
       .subscribe({
@@ -256,6 +271,7 @@ export class KycDemoPage implements OnDestroy {
     }
 
     this.demoData = data;
+    this.consentAcceptanceId = data.consent_acceptance_id ?? this.consentAcceptanceId;
     this.householdHeadChfid = data.household_head_chfid || this.householdHeadChfid.trim();
     this.memberChfid = data.selected_member?.chfid || data.member_chfid || this.memberChfid.trim();
     this.kycForm = this.formFromMember(data.selected_member);

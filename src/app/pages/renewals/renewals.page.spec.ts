@@ -75,6 +75,33 @@ describe('RenewalsPage', () => {
     expect(router.navigateByUrl).toHaveBeenCalledWith('/renewal-search');
   });
 
+  it('initiates beneficiary renewal only after consent is accepted', async () => {
+    const { page, api, toastCtrl, router } = makePage('beneficiary');
+    api.post.and.returnValue(of({ success: true, data: { id: 42 } }));
+    page.canInitiateRenewal = true;
+    page.enrollment = { id: 7, status: 'active' };
+
+    page.initiateRenewal();
+
+    expect(api.post).not.toHaveBeenCalled();
+    expect(toastCtrl.create).toHaveBeenCalledWith(jasmine.objectContaining({
+      message: 'consent.required',
+      color: 'warning',
+    }));
+
+    page.consentAccepted = true;
+    page.initiateRenewal();
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(api.post).toHaveBeenCalledWith('/renewals/initiate', {
+      enrollment_id: 7,
+      consent_accepted: true,
+    });
+    expect(router.navigateByUrl).toHaveBeenCalledWith('/renewal-detail/42');
+  });
+
   it('shows full loading during the first renewal list load', () => {
     const { page, api } = makePage('admin');
     const pending = new Subject<any>();
@@ -175,6 +202,7 @@ describe('RenewalsPage', () => {
   it('rejects stale relationship selections blocked by household head marital status', async () => {
     const { page, api, toastCtrl } = makePage('beneficiary');
     page.canInitiateRenewal = true;
+    page.consentAccepted = true;
     page.enrollment = { id: 7, status: 'active', household_head: { marital_status: 'separated' } };
     page.relationshipOptions = relationshipOptions();
     page.newMember = {
@@ -202,6 +230,7 @@ describe('RenewalsPage', () => {
       dateService: { isCitizenshipIssueDateValid },
     });
     page.canInitiateRenewal = true;
+    page.consentAccepted = true;
     page.enrollment = { id: 7, status: 'active', household_head: { marital_status: 'married' } };
     page.relationshipOptions = relationshipOptions();
     page.newMember = {

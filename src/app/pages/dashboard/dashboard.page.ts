@@ -24,7 +24,13 @@ import { User } from '../../interfaces/user.interface';
 import { LanguageToggleComponent } from '../../components/language-toggle/language-toggle.component';
 import { DashboardDataService } from '../../services/dashboard-data.service';
 import { LanguageService } from '../../services/language.service';
-import { InsuranceCheckResult } from '../../interfaces/dashboard.interface';
+import {
+  BeneficiaryDashboardProfile,
+  BeneficiaryDashboardProfileMember,
+  BeneficiaryDashboardProfilePerson,
+  DashboardData,
+  InsuranceCheckResult,
+} from '../../interfaces/dashboard.interface';
 import { isValidNidInput } from '../../utils/nid-number.util';
 
 @Component({
@@ -41,11 +47,13 @@ import { isValidNidInput } from '../../utils/nid-number.util';
 })
 export class DashboardPage implements OnInit, OnDestroy {
   user: User | null = null;
-  stats: any = {};
+  stats: DashboardData | null = {};
   loading = true;
   isBeneficiary = true;
   isEnrollmentAssistant = false;
   canCreateEnrollment = true;
+  readonly kycActionTitleKey = 'dashboard.kyc';
+  readonly kycActionHelpKey = 'dashboard.kyc_help';
   insuranceCheckNid = '';
   insuranceCheckLoading = false;
   insuranceCheckMessage = '';
@@ -123,7 +131,7 @@ export class DashboardPage implements OnInit, OnDestroy {
           this.canCreateEnrollment = baseCanCreateEnrollment;
 
           // Hide "New Enrollment" only when the beneficiary has an active policy.
-          if (this.isBeneficiary && (this.stats.active_policies ?? 0) > 0) {
+          if (this.isBeneficiary && (this.stats?.active_policies ?? 0) > 0) {
             this.canCreateEnrollment = false;
           }
         },
@@ -159,7 +167,7 @@ export class DashboardPage implements OnInit, OnDestroy {
           this.stats = res.data || {};
           this.canCreateEnrollment = baseCanCreateEnrollment;
 
-          if (this.isBeneficiary && (this.stats.active_policies ?? 0) > 0) {
+          if (this.isBeneficiary && (this.stats?.active_policies ?? 0) > 0) {
             this.canCreateEnrollment = false;
           }
 
@@ -180,6 +188,18 @@ export class DashboardPage implements OnInit, OnDestroy {
   navigate(path: string) { this.router.navigateByUrl(path); }
 
   openKycDemo() { this.router.navigateByUrl('/kyc-demo'); }
+
+  get beneficiaryProfile(): BeneficiaryDashboardProfile | null {
+    return this.isBeneficiary ? this.stats?.profile ?? null : null;
+  }
+
+  get profileHead(): BeneficiaryDashboardProfilePerson | null {
+    return this.beneficiaryProfile?.household_head ?? null;
+  }
+
+  get profileMembers(): BeneficiaryDashboardProfileMember[] {
+    return this.beneficiaryProfile?.members ?? [];
+  }
 
   get showInsuranceChecker(): boolean {
     return this.isBeneficiary;
@@ -233,12 +253,55 @@ export class DashboardPage implements OnInit, OnDestroy {
     return this.languageService.label('roles', role);
   }
 
+  formatStatus(status?: string): string {
+    return this.languageService.label('status', status);
+  }
+
   t(key: string): string {
     return this.languageService.t(key);
   }
 
+  label(namespace: string, value: string | null | undefined, fallback?: string): string {
+    return this.languageService.label(namespace, value, fallback);
+  }
+
   formatCount(value: unknown): string {
     return this.languageService.formatNumber(Number(value ?? 0), 0);
+  }
+
+  profileInitial(name: string | null | undefined): string {
+    const trimmed = (name || '').trim();
+    return Array.from(trimmed || '?')[0]?.toUpperCase() || '?';
+  }
+
+  memberHibNumber(member: BeneficiaryDashboardProfileMember | null | undefined): string {
+    return member?.member_number || member?.hib_number || this.t('common.not_available');
+  }
+
+  profileDate(person: BeneficiaryDashboardProfilePerson | null | undefined): string {
+    return person?.date_of_birth_bs || person?.date_of_birth || this.t('common.not_available');
+  }
+
+  profileAddress(): string {
+    const enrollment = this.beneficiaryProfile?.enrollment;
+    if (!enrollment) return this.t('common.not_available');
+
+    return enrollment.full_address
+      || [enrollment.tole_village, enrollment.municipality, enrollment.district]
+        .filter(Boolean)
+        .join(', ')
+      || this.t('common.not_available');
+  }
+
+  enrollmentPolicyPeriod(): string {
+    const enrollment = this.beneficiaryProfile?.enrollment;
+    if (!enrollment) return this.t('common.not_available');
+
+    const start = enrollment.policy_start_date_bs || enrollment.policy_start_date;
+    const end = enrollment.policy_end_date_bs || enrollment.policy_end_date;
+
+    if (!start && !end) return this.t('common.not_available');
+    return [start, end].filter(Boolean).join(' - ');
   }
 
   formatPolicyPeriod(result: InsuranceCheckResult | null): string {

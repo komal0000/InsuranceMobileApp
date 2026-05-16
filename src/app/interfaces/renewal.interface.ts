@@ -1,5 +1,6 @@
 export interface Renewal {
   id: number;
+  consent_acceptance_id?: number | null;
   renewal_number?: string;
   enrollment_id: number;
   enrollment_number?: string;
@@ -32,4 +33,5 @@ export interface Renewal {
 export interface RenewalSearchRequest {
   search_type: 'enrollment_number' | 'mobile_number' | 'hib_number' | 'national_id';
   search_value: string;
+  consent_accepted?: boolean;
 }

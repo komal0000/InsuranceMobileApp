@@ -85,6 +85,7 @@ describe('LegacyImisService', () => {
       education_id: 7,
       health_facility_id: 25,
       national_id: '123-456-789-0',
+      consent_accepted: true,
     });
   });
 
@@ -114,6 +115,7 @@ describe('LegacyImisService', () => {
     expect(api.get).toHaveBeenCalledOnceWith('/legacy-imis/kyc-demo/member', {
       household_head_chfid: 'HH001',
       member_chfid: 'M002',
+      consent_accepted: true,
     });
   });
 
@@ -165,6 +167,37 @@ describe('LegacyImisService', () => {
       profession_id: 6,
       education_id: 7,
       health_facility_id: 25,
+      consent_accepted: true,
     });
+  });
+
+  it('reuses a KYC demo consent acceptance id when updating', () => {
+    const response: ApiResponse<LegacyImisKycDemoResponse> = {
+      success: true,
+      message: 'Updated',
+      data: {
+        consent_acceptance_id: 44,
+        household_head_chfid: 'HH001',
+        member_chfid: 'M002',
+        household: null,
+        selected_member: null,
+        members: [],
+      },
+    };
+    api.post.and.returnValue(of(response));
+
+    service.updateKycDemo({
+      household_head_chfid: 'HH001',
+      member_chfid: 'M002',
+      phone: '+9779800000000',
+      consent_acceptance_id: 44,
+    }).subscribe(result => expect(result).toEqual(response));
+
+    expect(api.post).toHaveBeenCalledOnceWith('/legacy-imis/kyc-demo/update', jasmine.objectContaining({
+      household_head_chfid: 'HH001',
+      member_chfid: 'M002',
+      phone: '+9779800000000',
+      consent_acceptance_id: 44,
+    }));
   });
 });

@@ -5,7 +5,7 @@ import { Router } from '@angular/router';
 import {
   IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton,
   IonButton, IonItem, IonInput, IonSelect, IonSelectOption,
-  IonCard, IonCardContent, IonIcon, IonSpinner, IonText
+  IonCard, IonCardContent, IonCheckbox, IonIcon, IonLabel, IonSpinner, IonText
 } from '@ionic/angular/standalone';
 import { ToastController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -24,7 +24,7 @@ import { isValidNidInput, nidLookupValue } from '../../utils/nid-number.util';
     CommonModule, FormsModule, LanguageToggleComponent,
     IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton,
     IonButton, IonItem, IonInput, IonSelect, IonSelectOption,
-    IonCard, IonCardContent, IonIcon, IonSpinner, IonText
+    IonCard, IonCardContent, IonCheckbox, IonIcon, IonLabel, IonSpinner, IonText
   ],
   templateUrl: './renewal-search.page.html',
   styleUrls: ['./renewal-search.page.scss'],
@@ -35,6 +35,8 @@ export class RenewalSearchPage {
   searching = false;
   results: any[] | null = null;
   canInitiateRenewal = false;
+  consentAccepted = false;
+  consentAcceptanceId: number | null = null;
 
   constructor(
     private api: ApiService,
@@ -51,6 +53,16 @@ export class RenewalSearchPage {
   async searchPolicy() {
     const value = this.searchValue.trim();
     if (!this.canInitiateRenewal || !value) return;
+    if (!this.consentAccepted) {
+      const toast = await this.toastCtrl.create({
+        message: this.t('consent.required'),
+        duration: 2500,
+        color: 'warning',
+        position: 'top',
+      });
+      await toast.present();
+      return;
+    }
     if (this.searchType === 'national_id' && !isValidNidInput(value)) {
       const toast = await this.toastCtrl.create({
         message: this.t('wizard.nid_invalid_length'),
@@ -66,10 +78,14 @@ export class RenewalSearchPage {
     this.api.post<ApiResponse>('/renewals/search', {
       search_type: this.searchType,
       search_value: this.searchType === 'national_id' ? nidLookupValue(value) : value,
+      consent_accepted: true,
     }).subscribe({
       next: (res) => {
         this.searching = false;
-        this.results = Array.isArray(res.data) ? res.data : [res.data];
+        const data = res.data as any;
+        this.consentAcceptanceId = data?.consent_acceptance_id ?? null;
+        const enrollment = data?.enrollment ?? data;
+        this.results = Array.isArray(enrollment) ? enrollment : [enrollment];
       },
       error: () => { this.searching = false; },
     });
@@ -78,7 +94,10 @@ export class RenewalSearchPage {
   async initiateRenewal(enrollment: any) {
     if (!this.canInitiateRenewal) return;
 
-    this.api.post<ApiResponse>('/renewals/initiate', { enrollment_id: enrollment.id }).subscribe({
+    this.api.post<ApiResponse>('/renewals/initiate', {
+      enrollment_id: enrollment.id,
+      ...(this.consentAcceptanceId ? { consent_acceptance_id: this.consentAcceptanceId } : { consent_accepted: true }),
+    }).subscribe({
       next: async (res) => {
         if (res.success) {
           const toast = await this.toastCtrl.create({

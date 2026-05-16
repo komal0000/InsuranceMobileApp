@@ -172,11 +172,18 @@
 
         <!-- Action Buttons -->
         <div class="action-section">
+          <ion-item lines="none" *ngIf="enrollment.status === 'draft' && !enrollment.consent_acceptance_id">
+            <ion-checkbox slot="start" [(ngModel)]="consentAccepted"></ion-checkbox>
+            <ion-label class="ion-text-wrap">
+              <strong>{{ t('consent.title') }}</strong>
+              <p>{{ t('consent.body') }}</p>
+            </ion-label>
+          </ion-item>
           <ion-button expand="block" (click)="editEnrollment()" *ngIf="enrollment.status === 'draft'">
             <ion-icon name="create-outline" slot="start"></ion-icon>
             {{ t('enrollment_detail.continue_editing') }}
           </ion-button>
-          <ion-button expand="block" color="success" (click)="submitEnrollment()" *ngIf="enrollment.status === 'draft'">
+          <ion-button expand="block" color="success" (click)="submitEnrollment()" [disabled]="!enrollment.consent_acceptance_id && !consentAccepted" *ngIf="enrollment.status === 'draft'">
             <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
             {{ t('enrollment_detail.submit_verification') }}
           </ion-button>

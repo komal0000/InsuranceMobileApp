@@ -9,7 +9,7 @@ import { ToastController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
   arrowBackOutline, shieldCheckmarkOutline, callOutline, keyOutline,
-  lockClosedOutline, mailOutline
+  lockClosedOutline, mailOutline, eyeOutline, eyeOffOutline
 } from 'ionicons/icons';
 import { AuthService } from '../../services/auth.service';
 import { LanguageService } from '../../services/language.service';
@@ -17,6 +17,7 @@ import { isStrongPassword } from '../../utils/auth-validation';
 
 type RecoveryMethod = 'otp' | 'email';
 type OtpStep = 1 | 2 | 3;
+type ForgotPasswordField = 'password' | 'confirmation';
 
 @Component({
   selector: 'app-forgot-password',
@@ -35,6 +36,10 @@ export class ForgotPasswordPage {
   otp = '';
   password = '';
   passwordConfirmation = '';
+  passwordVisibility: Record<ForgotPasswordField, boolean> = {
+    password: false,
+    confirmation: false,
+  };
   loadingAction: 'sendOtp' | 'verifyOtp' | 'resetPassword' | 'sendEmail' | null = null;
 
   constructor(
@@ -45,7 +50,7 @@ export class ForgotPasswordPage {
   ) {
     addIcons({
       arrowBackOutline, shieldCheckmarkOutline, callOutline, keyOutline,
-      lockClosedOutline, mailOutline,
+      lockClosedOutline, mailOutline, eyeOutline, eyeOffOutline,
     });
   }
 
@@ -164,11 +169,25 @@ export class ForgotPasswordPage {
     return labels[this.otpStep];
   }
 
+  passwordInputType(field: ForgotPasswordField): 'text' | 'password' {
+    return this.passwordVisibility[field] ? 'text' : 'password';
+  }
+
+  passwordIcon(field: ForgotPasswordField): string {
+    return this.passwordVisibility[field] ? 'eye-off-outline' : 'eye-outline';
+  }
+
+  togglePasswordVisibility(field: ForgotPasswordField): void {
+    this.passwordVisibility[field] = !this.passwordVisibility[field];
+  }
+
   private resetOtpFlow() {
     this.otpStep = 1;
     this.otp = '';
     this.password = '';
     this.passwordConfirmation = '';
+    this.passwordVisibility.password = false;
+    this.passwordVisibility.confirmation = false;
   }
 
   private ensureValidMobileNumber(): boolean {

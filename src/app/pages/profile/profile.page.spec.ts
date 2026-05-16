@@ -55,4 +55,19 @@ describe('ProfilePage', () => {
       color: 'warning',
     }));
   });
+
+  it('toggles profile password fields independently', () => {
+    const { page } = createPage();
+
+    expect(page.passwordInputType('current')).toBe('password');
+    expect(page.passwordInputType('new')).toBe('password');
+    expect(page.passwordInputType('confirmation')).toBe('password');
+
+    page.togglePasswordVisibility('current');
+    page.togglePasswordVisibility('confirmation');
+
+    expect(page.passwordInputType('current')).toBe('text');
+    expect(page.passwordInputType('new')).toBe('password');
+    expect(page.passwordInputType('confirmation')).toBe('text');
+  });
 });

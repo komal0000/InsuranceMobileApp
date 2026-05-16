@@ -151,15 +151,23 @@
 
         <!-- Action Buttons -->
         <div class="action-section" *ngIf="canSubmit">
+          <ion-item lines="none">
+            <ion-checkbox slot="start" [(ngModel)]="consentAccepted"></ion-checkbox>
+            <ion-label class="ion-text-wrap">
+              <strong>{{ t('consent.title') }}</strong>
+              <p>{{ t('consent.body') }}</p>
+            </ion-label>
+          </ion-item>
+
           <!-- Free Renewal (Targeted Group) -->
-          <ion-button expand="block" color="success" (click)="submitRenewal()" *ngIf="isFreeRenewal" [disabled]="submitting">
+          <ion-button expand="block" color="success" (click)="submitRenewal()" *ngIf="isFreeRenewal" [disabled]="submitting || !consentAccepted">
             <ion-spinner *ngIf="submitting" name="crescent" slot="start"></ion-spinner>
             <ion-icon name="shield-checkmark-outline" slot="start" *ngIf="!submitting"></ion-icon>
             {{ submitting ? t('payment.processing') : t('renewal_detail.complete_free') }}
           </ion-button>
 
           <!-- Paid Renewal -->
-          <ion-button expand="block" color="success" (click)="submitRenewal()" *ngIf="!isFreeRenewal" [disabled]="submitting">
+          <ion-button expand="block" color="success" (click)="submitRenewal()" *ngIf="!isFreeRenewal" [disabled]="submitting || !consentAccepted">
             <ion-spinner *ngIf="submitting" name="crescent" slot="start"></ion-spinner>
             <ion-icon name="wallet-outline" slot="start" *ngIf="!submitting"></ion-icon>
             {{ submitting ? t('payment.processing') : paySubmitLabel(renewal.final_amount || 0) }}
@@ -168,7 +176,14 @@
 
         <!-- Pending Payment Action (returned from submit) -->
         <div class="action-section" *ngIf="canPay">
-          <ion-button expand="block" color="warning" (click)="goToPay()">
+          <ion-item lines="none">
+            <ion-checkbox slot="start" [(ngModel)]="consentAccepted"></ion-checkbox>
+            <ion-label class="ion-text-wrap">
+              <strong>{{ t('consent.title') }}</strong>
+              <p>{{ t('consent.body') }}</p>
+            </ion-label>
+          </ion-item>
+          <ion-button expand="block" color="warning" (click)="goToPay()" [disabled]="!consentAccepted">
             <ion-icon name="wallet-outline" slot="start"></ion-icon>
             {{ payCompleteLabel(renewal.final_amount || 0) }}
           </ion-button>

@@ -82,6 +82,18 @@
     </p>
   </div>
 
+  <ion-card *ngIf="canCreate && !loading" class="ion-margin">
+    <ion-card-content>
+      <ion-item lines="none" style="--padding-start:0">
+        <ion-checkbox slot="start" [(ngModel)]="consentAccepted"></ion-checkbox>
+        <ion-label class="ion-text-wrap">
+          <strong>{{ t('consent.title') }}</strong>
+          <p>{{ t('consent.body') }}</p>
+        </ion-label>
+      </ion-item>
+    </ion-card-content>
+  </ion-card>
+
   <ion-infinite-scroll (ionInfinite)="loadMore($event)" [disabled]="page >= lastPage">
     <ion-infinite-scroll-content loadingSpinner="crescent"></ion-infinite-scroll-content>
   </ion-infinite-scroll>
