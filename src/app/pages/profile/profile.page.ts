@@ -12,7 +12,7 @@ import { addIcons } from 'ionicons';
 import {
   personCircleOutline, logOutOutline, keyOutline, createOutline,
   callOutline, mailOutline, calendarOutline, cameraOutline, imageOutline,
-  eyeOutline, eyeOffOutline
+  eyeOutline, eyeOffOutline, arrowForwardOutline, idCardOutline
 } from 'ionicons/icons';
 import { AuthService } from '../../services/auth.service';
 import { ApiService } from '../../services/api.service';
@@ -68,7 +68,7 @@ export class ProfilePage implements OnInit {
     addIcons({
       personCircleOutline, logOutOutline, keyOutline, createOutline,
       callOutline, mailOutline, calendarOutline, cameraOutline, imageOutline,
-      eyeOutline, eyeOffOutline
+      eyeOutline, eyeOffOutline, arrowForwardOutline, idCardOutline
     });
   }
 
@@ -245,6 +245,22 @@ export class ProfilePage implements OnInit {
 
   displayDate(adDate?: string | null, bsDate?: string | null): string {
     return this.dateService.formatForDisplay(adDate, bsDate) || '';
+  }
+
+  get showKycShortcut(): boolean {
+    return this.user?.role === 'beneficiary';
+  }
+
+  get showHibProfileShortcut(): boolean {
+    return this.user?.role === 'beneficiary';
+  }
+
+  openKyc(): void {
+    this.router.navigateByUrl('/kyc');
+  }
+
+  openHibProfile(): void {
+    this.router.navigateByUrl('/tabs/hib-profile');
   }
 
   passwordInputType(field: ProfilePasswordField): 'text' | 'password' {

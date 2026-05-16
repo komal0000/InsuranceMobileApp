@@ -1,0 +1,128 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>{{ t('hib_profile.title') }}</ion-title>
+    <app-language-toggle slot="end" placement="toolbar"></app-language-toggle>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-refresher slot="fixed" (ionRefresh)="refresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <div *ngIf="loading" class="loading-center">
+    <ion-spinner name="crescent" color="primary"></ion-spinner>
+  </div>
+
+  <div *ngIf="!loading" class="hib-profile-content">
+    <ng-container *ngIf="policy; else noPolicy">
+      <section class="profile-summary">
+        <div class="summary-icon">
+          <ion-icon name="id-card-outline"></ion-icon>
+        </div>
+        <div class="summary-main">
+          <span>{{ t('hib_profile.subtitle') }}</span>
+          <h2>{{ policy.policy_number || policy.enrollment_number || t('hib_profile.title') }}</h2>
+          <ion-badge [color]="getStatusColor(policy.status)">{{ formatStatus(policy.status) }}</ion-badge>
+        </div>
+      </section>
+
+      <div class="summary-grid">
+        <div>
+          <span>{{ t('dashboard.enrollment_number') }}</span>
+          <strong>{{ policy.enrollment_number || t('common.not_available') }}</strong>
+        </div>
+        <div>
+          <span>{{ t('policy.members') }}</span>
+          <strong>{{ policy.total_members ? formatNumber(policy.total_members) : t('common.not_available') }}</strong>
+        </div>
+        <div>
+          <span>{{ t('dashboard.policy_period') }}</span>
+          <strong>{{ policyPeriod() }}</strong>
+        </div>
+        <div>
+          <span>{{ t('dashboard.address') }}</span>
+          <strong>{{ policyAddress() }}</strong>
+        </div>
+      </div>
+
+      <ion-button *ngIf="canLoadCards" expand="block" color="primary" (click)="downloadAllCards()" [disabled]="exportingAll">
+        <ion-icon name="download-outline" slot="start"></ion-icon>
+        {{ exportingAll ? t('common.loading') : t('hib_profile.export_all_cards') }}
+      </ion-button>
+
+      <div *ngIf="!canLoadCards" class="empty-state">
+        <ion-icon name="shield-checkmark-outline"></ion-icon>
+        <h3>{{ t('hib_profile.cards_unavailable') }}</h3>
+        <p>{{ t('hib_profile.cards_unavailable_message') }}</p>
+        <span *ngIf="policy.status">{{ t('hib_profile.current_status') }}: {{ formatStatus(policy.status) }}</span>
+      </div>
+
+      <div *ngIf="canLoadCards" class="holder-sections">
+        <div *ngIf="cardsLoading" class="loading-inline">
+          <ion-spinner name="crescent" color="primary"></ion-spinner>
+        </div>
+
+        <ng-container *ngIf="!cardsLoading">
+          <section *ngIf="householdHead as head" class="holder-section">
+            <div class="section-heading">
+              <ion-icon name="person-outline"></ion-icon>
+              <h3>{{ t('hib_profile.household_head_card') }}</h3>
+            </div>
+
+            <ion-card button class="holder-card head-holder" (click)="openHolder(head)">
+              <ion-card-content>
+                <div class="holder-row">
+                  <div class="holder-avatar">{{ holderInitial(head) }}</div>
+                  <div class="holder-main">
+                    <strong>{{ head.name }}</strong>
+                    <span *ngIf="head.name_ne">{{ head.name_ne }}</span>
+                    <small>{{ holderLabel(head) }} · {{ genderLabel(head.gender) }} · {{ holderDate(head) }}</small>
+                    <em>{{ t('hib_profile.member_number') }}: {{ head.member_number || t('common.not_available') }}</em>
+                  </div>
+                  <ion-icon name="arrow-forward-outline" class="row-arrow"></ion-icon>
+                </div>
+              </ion-card-content>
+            </ion-card>
+          </section>
+
+          <section class="holder-section">
+            <div class="section-heading">
+              <ion-icon name="people-outline"></ion-icon>
+              <h3>{{ t('hib_profile.family_member_cards') }} ({{ formatNumber(familyMembers.length) }})</h3>
+            </div>
+
+            <div *ngIf="familyMembers.length; else noMembers" class="member-card-list">
+              <ion-card button class="holder-card" *ngFor="let member of familyMembers" (click)="openHolder(member)">
+                <ion-card-content>
+                  <div class="holder-row">
+                    <div class="holder-avatar">{{ holderInitial(member) }}</div>
+                    <div class="holder-main">
+                      <strong>{{ member.name }}</strong>
+                      <span *ngIf="member.name_ne">{{ member.name_ne }}</span>
+                      <small>{{ holderLabel(member) }} · {{ genderLabel(member.gender) }} · {{ holderDate(member) }}</small>
+                      <em>{{ t('hib_profile.member_number') }}: {{ member.member_number || t('common.not_available') }}</em>
+                    </div>
+                    <ion-icon name="arrow-forward-outline" class="row-arrow"></ion-icon>
+                  </div>
+                </ion-card-content>
+              </ion-card>
+            </div>
+
+            <ng-template #noMembers>
+              <p class="empty-copy">{{ t('hib_profile.no_members') }}</p>
+            </ng-template>
+          </section>
+        </ng-container>
+      </div>
+    </ng-container>
+
+    <ng-template #noPolicy>
+      <div class="empty-state">
+        <ion-icon name="shield-checkmark-outline"></ion-icon>
+        <h3>{{ t('hib_profile.cards_unavailable') }}</h3>
+        <p>{{ t('hib_profile.cards_unavailable_message') }}</p>
+      </div>
+    </ng-template>
+  </div>
+</ion-content>

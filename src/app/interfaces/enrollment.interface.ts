@@ -289,8 +289,22 @@ export interface EnrollmentCardHolder {
   label: string;
   name: string;
   name_ne?: string | null;
+  date_of_birth?: string | null;
+  date_of_birth_bs?: string | null;
+  gender?: string | null;
   member_number: string;
   insurance_number: string;
+  address?: string | null;
+  province?: string | null;
+  district?: string | null;
+  municipality?: string | null;
+  ward_number?: string | number | null;
+  tole_village?: string | null;
+  service_point?: string | null;
+  issue_date?: string | null;
+  issue_date_bs?: string | null;
+  contact_number?: string | null;
+  verification_url?: string | null;
   pdf_url: string;
 }
 

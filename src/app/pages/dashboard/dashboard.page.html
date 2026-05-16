@@ -276,6 +276,19 @@
       </ion-card-content>
     </ion-card>
 
+    <ion-card button (click)="openHibProfile()" *ngIf="isBeneficiary" class="action-card">
+      <ion-card-content class="action-content">
+        <div class="action-icon-box" style="background: rgba(13,110,253,0.08);">
+          <ion-icon name="id-card-outline" style="color: #0d6efd;"></ion-icon>
+        </div>
+        <div class="action-text">
+          <strong>{{ t('dashboard.hib_profile') }}</strong>
+          <span>{{ t('dashboard.hib_profile_help') }}</span>
+        </div>
+        <ion-icon name="arrow-forward-outline" class="action-arrow"></ion-icon>
+      </ion-card-content>
+    </ion-card>
+
     <ion-card button (click)="navigate('/tabs/my-payments')" *ngIf="isBeneficiary" class="action-card">
       <ion-card-content class="action-content">
         <div class="action-icon-box" style="background: rgba(102,16,242,0.08);">

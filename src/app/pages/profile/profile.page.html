@@ -38,6 +38,36 @@
           </div>
         </div>
 
+        <ion-card button *ngIf="showKycShortcut" class="profile-action-card" (click)="openKyc()">
+          <ion-card-content>
+            <div class="profile-action-content">
+              <div class="section-icon blue">
+                <ion-icon name="person-circle-outline"></ion-icon>
+              </div>
+              <div class="profile-action-text">
+                <strong>{{ t('dashboard.kyc') }}</strong>
+                <span>{{ t('dashboard.kyc_help') }}</span>
+              </div>
+              <ion-icon name="arrow-forward-outline" class="profile-action-arrow"></ion-icon>
+            </div>
+          </ion-card-content>
+        </ion-card>
+
+        <ion-card button *ngIf="showHibProfileShortcut" class="profile-action-card" (click)="openHibProfile()">
+          <ion-card-content>
+            <div class="profile-action-content">
+              <div class="section-icon blue">
+                <ion-icon name="id-card-outline"></ion-icon>
+              </div>
+              <div class="profile-action-text">
+                <strong>{{ t('profile.hib_profile') }}</strong>
+                <span>{{ t('profile.hib_profile_help') }}</span>
+              </div>
+              <ion-icon name="arrow-forward-outline" class="profile-action-arrow"></ion-icon>
+            </div>
+          </ion-card-content>
+        </ion-card>
+
         <!-- Personal Information -->
         <ion-card>
           <ion-card-content>

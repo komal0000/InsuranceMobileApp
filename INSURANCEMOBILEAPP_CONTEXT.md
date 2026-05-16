@@ -17,7 +17,7 @@ This file captures the current Ionic/Angular state so future conversations do no
 ## Beneficiary Dashboard Profile
 - The beneficiary dashboard is profile-first. It consumes optional `profile` data from `GET /api/dashboard` and shows the household head photo/avatar, HIB number, enrollment/status/policy/address details, plus compact rows for all other members with HIB/member numbers.
 - `src\app\interfaces\dashboard.interface.ts` defines `BeneficiaryDashboardProfile`, `BeneficiaryDashboardProfileEnrollment`, and person/member shapes. Missing profile data renders a safe empty state.
-- The mobile Renewals tab remains unchanged. Dashboard quick actions now label the KYC action as `KYC` / `Update household KYC details` while continuing to open the existing `/kyc-demo` route.
+- The mobile Renewals tab remains unchanged. Dashboard quick actions label the KYC action as `KYC` / `Update household KYC details` and open the primary `/kyc` route. Beneficiary quick actions also expose HIB Profile at `/tabs/hib-profile`.
 - Existing beneficiary insurance checker remains below the profile card.
 - Verification includes `npm test -- --watch=false --browsers=ChromeHeadless --include=src/app/pages/dashboard/dashboard.page.spec.ts`, full `npm test -- --watch=false --browsers=ChromeHeadless`, and `npm run build`.
 - Important files:
@@ -33,7 +33,7 @@ This file captures the current Ionic/Angular state so future conversations do no
 - Mobile now blocks sensitive enrollment, renewal, payment, and KYC actions until the user accepts the shared consent copy. API payloads send `consent_accepted=true` for a fresh acceptance or reuse `consent_acceptance_id` when the backend returns one.
 - Enrollment list/new-enrollment creation shows a consent checkbox before creating the backend draft. `EnrollmentService.create()` includes `consent_accepted=true`; enrollment detail shows a fallback consent checkbox before direct draft submit only when the loaded draft has no linked `consent_acceptance_id`.
 - Renewal search/initiation includes consent. `RenewalSearchPage` sends `consent_accepted=true` on search, stores `data.consent_acceptance_id`, and passes it to initiation. The renewals tab and renewal detail also require the checkbox before initiation, submit, or payment fallback actions.
-- KYC demo lookup/update requires consent. `LegacyImisService.fetchKycDemoMember()` and `updateKycDemo()` include `consent_accepted=true` or the returned `consent_acceptance_id`; direct `updateKyc()` also sends consent.
+- Mobile KYC lookup/update requires consent. `LegacyImisService.fetchKycDemoMember()` and `updateKycDemo()` include `consent_accepted=true` or the returned `consent_acceptance_id`; direct `updateKyc()` also sends consent.
 - Payment fallback includes `consent_accepted=true` in `PaymentService.createPayment()` options so existing enrollment/renewal records without linked consent can be linked before gateway initiation.
 - Consent translations live under `consent.title`, `consent.body`, and `consent.required` in `src\app\i18n\en.ts` and `src\app\i18n\ne.ts`.
 
@@ -180,10 +180,12 @@ Member card export behavior:
   - `getMemberCardPdfUrl(enrollmentId, memberId)`
 - Enrollment detail attaches `card_download_url` from the show response and shows `Export Member Cards` only for active enrollments.
 - Enrollment detail bulk card export always requests a fresh signed card URL before opening because cached detail URLs expire.
-- My Policy uses the backend `enrollment_id` and active-card URL fields to show:
-  - `Export All Member Cards`
-  - household-head `Export Card PDF`
-  - per-family-member `Export Card PDF`
+- My Policy no longer exposes card export controls. It keeps policy details, household head details, covered members, renewal, and history only.
+- HIB Profile is the mobile card export surface:
+  - `/tabs/hib-profile` loads `/my-policy`, then calls `EnrollmentService.getCards(enrollment_id)` only when the policy is `active`.
+  - The page shows the household head card first, then family member card rows. Dashboard and Profile expose beneficiary-only HIB Profile shortcuts; the bottom tab bar is unchanged.
+  - `Export All Cards PDF` uses `getAllCardsPdfUrl(enrollment_id)` for a fresh signed URL.
+  - Tapping a holder opens `/hib-profile/member/:type/:id`, reloads the active enrollment cards, shows that holder's card/profile details, and exports via `getHeadCardPdfUrl(enrollment_id)` or `getMemberCardPdfUrl(enrollmentId, memberId)`.
 - Card PDFs open with Capacitor Browser using fresh signed URLs from the backend.
 
 Temporary address:
@@ -262,7 +264,7 @@ Family members:
   - `DashboardDataService.checkInsurance()` calls `POST /api/insurance-check`.
   - `DashboardPage` validates NID input with `src\app\utils\nid-number.util.ts` before calling the API.
   - The dashboard card shows a minimal result and policy summary; admin/staff/enrollment-assistant dashboards do not show the checker.
-  - A beneficiary-only quick action opens `/kyc-demo` for the legacy IMIS KYC testing workflow.
+  - A beneficiary-only quick action opens `/kyc` for the KYC update workflow.
 - Response data expected from backend:
   - `national_id`
   - `has_active_insurance`
@@ -278,7 +280,7 @@ Family members:
 - `LegacyImisService` wraps the new backend proxy endpoints instead of calling `imislegacy.hib.gov.np` directly from mobile.
 - `familyMembers(chfid, nationalId?)` calls `GET /api/legacy-imis/family-members` with `chfid` and optional normalized `national_id`; the backend enforces staff-vs-beneficiary access and returns normalized member rows.
 - `updateKyc(payload)` calls `POST /api/legacy-imis/kyc-update` with `chfid`, optional normalized `national_id`, and allowlisted mutable KYC fields: `firstname`, `lastname`, `date_of_birth`, `gender`, `phone`, `email`, `current_address`, `geolocation`, `relationship_code`, `profession_id`, `education_id`, and `health_facility_id`. The backend maps those fields to the legacy update payload and never forwards locked/system fields.
-- `KycDemoPage` at `/kyc-demo` mirrors the web demo: users enter `household_head_chfid` and `member_chfid`, `fetchKycDemoMember()` calls `GET /api/legacy-imis/kyc-demo/member`, the page displays household data separately from the selected member, shows all normalized selected-member fields in input-style controls, keeps `chfid`, `legacy_id`, `uuid`, `family_id`, `is_household_head`, `photo_id`, and `card_issued` readonly, and `updateKycDemo()` calls `POST /api/legacy-imis/kyc-demo/update` with only mutable KYC fields; the backend updates the selected member's `chfid` and returns refreshed data.
+- `KycDemoPage` is the user-facing mobile KYC page at `/kyc`; `/kyc-demo` redirects to `/kyc` for compatibility. Beneficiaries can open KYC from the dashboard quick action or the Profile shortcut. Users enter `household_head_chfid` and `member_chfid`, `fetchKycDemoMember()` calls `GET /api/legacy-imis/kyc-demo/member`, the page displays household data separately from the selected member, shows all normalized selected-member fields in input-style controls, keeps `chfid`, `legacy_id`, `uuid`, `family_id`, `is_household_head`, `photo_id`, and `card_issued` readonly, and `updateKycDemo()` calls `POST /api/legacy-imis/kyc-demo/update` with only mutable KYC fields; the backend updates the selected member's `chfid` and returns refreshed data.
 - Relevant files:
   - `src\app\services\legacy-imis.service.ts`
   - `src\app\interfaces\legacy-imis.interface.ts`
@@ -373,7 +375,7 @@ npm test -- --watch=false --browsers=ChromeHeadless
 
 Local macOS result:
 - `npm run build` passes and writes to `www`.
-- Full mobile Karma suite passes: `152 SUCCESS`.
+- Full mobile Karma suite passes: `166 SUCCESS`.
 - Existing SCSS budget warning remains for `src/app/components/bs-date-picker/bs-date-picker.component.ts` (`4.05 kB` total against `4.00 kB`).
 
 Development API URL QA verification on 2026-05-14:

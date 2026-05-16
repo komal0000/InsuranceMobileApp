@@ -65,10 +65,21 @@ export const routes: Routes = [
       import('./pages/payment-result/payment-result.page').then(m => m.PaymentResultPage),
   },
   {
-    path: 'kyc-demo',
+    path: 'hib-profile/member/:type/:id',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./pages/hib-profile-member/hib-profile-member.page').then(m => m.HibProfileMemberPage),
+  },
+  {
+    path: 'kyc',
     canActivate: [authGuard],
     loadComponent: () =>
       import('./pages/kyc-demo/kyc-demo.page').then(m => m.KycDemoPage),
+  },
+  {
+    path: 'kyc-demo',
+    redirectTo: 'kyc',
+    pathMatch: 'full',
   },
   {
     path: 'home',

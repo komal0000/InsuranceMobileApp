@@ -8,7 +8,7 @@ describe('ProfilePage', () => {
     })),
   });
 
-  const createPage = () => {
+  const createPage = (user: Record<string, unknown> | null = null) => {
     const authService = jasmine.createSpyObj('AuthService', ['getCurrentUser', 'fetchProfile']);
     const api = jasmine.createSpyObj('ApiService', ['put']);
     const dateService = jasmine.createSpyObj('DateService', ['getCurrentBs', 'formatForDisplay']);
@@ -21,7 +21,8 @@ describe('ProfilePage', () => {
       translateText: (value?: string) => value || '',
     };
 
-    authService.fetchProfile.and.returnValue(of(null));
+    authService.getCurrentUser.and.returnValue(user);
+    authService.fetchProfile.and.returnValue(of(user));
     api.put.and.returnValue(of({ success: true, message: 'Password changed successfully' }));
 
     const page = new ProfilePage(
@@ -35,7 +36,7 @@ describe('ProfilePage', () => {
       languageService as any
     );
 
-    return { page, api, toastCtrl };
+    return { page, api, router, toastCtrl };
   };
 
   it('blocks weak passwords before calling change-password API', async () => {
@@ -69,5 +70,43 @@ describe('ProfilePage', () => {
     expect(page.passwordInputType('current')).toBe('text');
     expect(page.passwordInputType('new')).toBe('password');
     expect(page.passwordInputType('confirmation')).toBe('text');
+  });
+
+  it('shows the KYC shortcut only for beneficiary users', () => {
+    const { page } = createPage({ role: 'beneficiary', name: 'Sunita Lama' });
+    page.user = { role: 'beneficiary', name: 'Sunita Lama' } as any;
+
+    expect(page.showKycShortcut).toBeTrue();
+
+    page.user = { role: 'enrollment_assistant', name: 'EA User' } as any;
+
+    expect(page.showKycShortcut).toBeFalse();
+  });
+
+  it('shows the HIB Profile shortcut only for beneficiary users', () => {
+    const { page } = createPage({ role: 'beneficiary', name: 'Sunita Lama' });
+    page.user = { role: 'beneficiary', name: 'Sunita Lama' } as any;
+
+    expect(page.showHibProfileShortcut).toBeTrue();
+
+    page.user = { role: 'enrollment_assistant', name: 'EA User' } as any;
+
+    expect(page.showHibProfileShortcut).toBeFalse();
+  });
+
+  it('navigates to the KYC page from the profile shortcut', () => {
+    const { page, router } = createPage({ role: 'beneficiary', name: 'Sunita Lama' });
+
+    page.openKyc();
+
+    expect(router.navigateByUrl).toHaveBeenCalledOnceWith('/kyc');
+  });
+
+  it('navigates to the HIB Profile page from the profile shortcut', () => {
+    const { page, router } = createPage({ role: 'beneficiary', name: 'Sunita Lama' });
+
+    page.openHibProfile();
+
+    expect(router.navigateByUrl).toHaveBeenCalledOnceWith('/tabs/hib-profile');
   });
 });

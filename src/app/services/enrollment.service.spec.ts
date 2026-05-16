@@ -117,6 +117,40 @@ describe('EnrollmentService', () => {
     expect(api.get).toHaveBeenCalledWith('/enrollments/25/cards/members/9/pdf-url');
   });
 
+  it('loads HIB card holders for an active enrollment', () => {
+    api.get.and.returnValue(of({
+      success: true,
+      data: {
+        cards: [
+          {
+            type: 'head',
+            id: 1,
+            label: 'Household Head',
+            name: 'Sunita Lama',
+            name_ne: 'सुनिता लामा',
+            date_of_birth: '1990-01-01',
+            gender: 'female',
+            member_number: 'HIB-2026-000001-01',
+            insurance_number: 'INS-HEAD',
+            address: 'Hetauda',
+            service_point: 'Hetauda HP',
+            issue_date: '2026-05-10',
+            contact_number: '9800000000',
+            pdf_url: 'https://example.test/head-card.pdf',
+          },
+        ],
+        all_cards_pdf_url: 'https://example.test/all-cards.pdf',
+      },
+    }));
+
+    service.getCards(25).subscribe(result => {
+      expect(result.data.cards[0].service_point).toBe('Hetauda HP');
+      expect(result.data.all_cards_pdf_url).toBe('https://example.test/all-cards.pdf');
+    });
+
+    expect(api.get).toHaveBeenCalledWith('/enrollments/25/cards');
+  });
+
   it('removes members with a required death/removal supporting document', () => {
     const response = { success: true, message: 'Removed.', data: null };
     const file = new Blob(['proof'], { type: 'application/pdf' });

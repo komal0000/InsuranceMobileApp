@@ -1,0 +1,91 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/hib-profile" [text]="t('common.back')"></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ t('hib_profile.member_profile') }}</ion-title>
+    <app-language-toggle slot="end" placement="toolbar"></app-language-toggle>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div *ngIf="loading" class="loading-center">
+    <ion-spinner name="crescent" color="primary"></ion-spinner>
+  </div>
+
+  <div *ngIf="!loading" class="member-detail-content">
+    <ng-container *ngIf="holder; else unavailable">
+      <section class="member-hero">
+        <div class="member-avatar">{{ holderInitial(holder) }}</div>
+        <div class="member-title">
+          <span>{{ holderLabel(holder) }}</span>
+          <h2>{{ holder.name }}</h2>
+          <p *ngIf="holder.name_ne">{{ holder.name_ne }}</p>
+          <ion-badge [color]="getStatusColor(policy?.status)">{{ formatStatus(policy?.status) }}</ion-badge>
+        </div>
+      </section>
+
+      <ion-card class="card-preview">
+        <ion-card-content>
+          <div class="preview-top">
+            <div>
+              <span>{{ t('hib_profile.card_preview') }}</span>
+              <strong>{{ holder.name }}</strong>
+            </div>
+            <ion-icon name="id-card-outline"></ion-icon>
+          </div>
+          <div class="preview-grid">
+            <div>
+              <span>{{ t('hib_profile.member_number') }}</span>
+              <strong>{{ holder.member_number || t('common.not_available') }}</strong>
+            </div>
+            <div>
+              <span>{{ t('hib_profile.insurance_number') }}</span>
+              <strong>{{ holder.insurance_number || t('common.not_available') }}</strong>
+            </div>
+            <div>
+              <span>{{ t('hib_profile.service_point') }}</span>
+              <strong>{{ holder.service_point || t('common.not_available') }}</strong>
+            </div>
+            <div>
+              <span>{{ t('hib_profile.issue_date') }}</span>
+              <strong>{{ displayDate(holder.issue_date, holder.issue_date_bs) || t('common.not_available') }}</strong>
+            </div>
+          </div>
+        </ion-card-content>
+      </ion-card>
+
+      <ion-button expand="block" color="primary" (click)="downloadCard()" [disabled]="exporting">
+        <ion-icon name="download-outline" slot="start"></ion-icon>
+        {{ exporting ? t('common.loading') : t('hib_profile.export_card_pdf') }}
+      </ion-button>
+
+      <ion-card class="details-card">
+        <ion-card-content>
+          <div class="section-title">
+            <ion-icon name="person-outline"></ion-icon>
+            <span>{{ t('hib_profile.member_details') }}</span>
+          </div>
+
+          <div class="detail-list">
+            <div class="detail-row" *ngFor="let row of detailRows">
+              <span>{{ row.label }}</span>
+              <strong>{{ row.value }}</strong>
+            </div>
+          </div>
+        </ion-card-content>
+      </ion-card>
+    </ng-container>
+
+    <ng-template #unavailable>
+      <div class="empty-state">
+        <ion-icon name="shield-checkmark-outline"></ion-icon>
+        <h3>{{ t('hib_profile.member_not_found') }}</h3>
+        <p>{{ t('hib_profile.member_not_found_message') }}</p>
+        <ion-button fill="outline" color="primary" (click)="backToProfile()">
+          {{ t('hib_profile.back_to_profile') }}
+        </ion-button>
+      </div>
+    </ng-template>
+  </div>
+</ion-content>

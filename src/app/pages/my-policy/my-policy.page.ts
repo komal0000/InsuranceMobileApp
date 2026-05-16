@@ -1,20 +1,17 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Browser } from '@capacitor/browser';
 import {
   IonContent, IonHeader, IonToolbar, IonTitle, IonCard, IonCardContent,
-  IonBadge, IonButton, IonIcon, IonSpinner, IonRefresher, IonRefresherContent
+  IonBadge, IonIcon, IonSpinner, IonRefresher, IonRefresherContent
 } from '@ionic/angular/standalone';
-import { ToastController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
   shieldCheckmarkOutline, documentTextOutline, calendarOutline,
   peopleOutline, personOutline, locationOutline, cashOutline,
-  refreshOutline, downloadOutline
+  refreshOutline
 } from 'ionicons/icons';
 import { ApiService } from '../../services/api.service';
 import { DateService } from '../../services/date.service';
-import { EnrollmentService } from '../../services/enrollment.service';
 import { ApiResponse } from '../../interfaces/api-response.interface';
 import { LanguageToggleComponent } from '../../components/language-toggle/language-toggle.component';
 import { LanguageService } from '../../services/language.service';
@@ -25,7 +22,7 @@ import { LanguageService } from '../../services/language.service';
   imports: [
     CommonModule,
     IonContent, IonHeader, IonToolbar, IonTitle, IonCard, IonCardContent,
-    IonBadge, IonButton, IonIcon, IonSpinner, IonRefresher, IonRefresherContent,
+    IonBadge, IonIcon, IonSpinner, IonRefresher, IonRefresherContent,
     LanguageToggleComponent
   ],
   templateUrl: './my-policy.page.html',
@@ -39,14 +36,12 @@ export class MyPolicyPage implements OnInit {
   constructor(
     private api: ApiService,
     private dateService: DateService,
-    private enrollmentService: EnrollmentService,
-    private toastCtrl: ToastController,
     private languageService: LanguageService
   ) {
     addIcons({
       shieldCheckmarkOutline, documentTextOutline, calendarOutline,
       peopleOutline, personOutline, locationOutline, cashOutline,
-      refreshOutline, downloadOutline
+      refreshOutline
     });
   }
 
@@ -132,59 +127,5 @@ export class MyPolicyPage implements OnInit {
     }
 
     return this.languageText(value ? value.replace(/_/g, ' ') : '');
-  }
-
-  get canExportCards(): boolean {
-    return this.policy?.status === 'active' && !!this.policy?.enrollment_id;
-  }
-
-  downloadAllCards(): void {
-    if (!this.canExportCards) return;
-
-    this.enrollmentService.getAllCardsPdfUrl(this.policy.enrollment_id).subscribe({
-      next: (res) => this.openCardPdf(res.data?.card_download_url || this.policy?.all_cards_pdf_url || null),
-      error: () => this.showCardError(),
-    });
-  }
-
-  downloadHeadCard(): void {
-    if (!this.canExportCards) return;
-
-    this.enrollmentService.getHeadCardPdfUrl(this.policy.enrollment_id).subscribe({
-      next: (res) => this.openCardPdf(res.data?.card_download_url || this.policy?.household_head?.card_pdf_url || null),
-      error: () => this.showCardError(),
-    });
-  }
-
-  downloadMemberCard(memberId: number): void {
-    if (!this.canExportCards) return;
-
-    this.enrollmentService.getMemberCardPdfUrl(this.policy.enrollment_id, memberId).subscribe({
-      next: (res) => this.openCardPdf(res.data?.card_download_url || null),
-      error: () => this.showCardError(),
-    });
-  }
-
-  private async openCardPdf(url?: string | null): Promise<void> {
-    if (!url) {
-      await this.showCardError();
-      return;
-    }
-
-    try {
-      await Browser.open({ url });
-    } catch {
-      await this.showCardError();
-    }
-  }
-
-  private async showCardError(): Promise<void> {
-    const toast = await this.toastCtrl.create({
-      message: this.t('policy.card_open_failed'),
-      duration: 2000,
-      color: 'warning',
-      position: 'top',
-    });
-    await toast.present();
   }
 }

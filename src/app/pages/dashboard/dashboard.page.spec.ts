@@ -91,13 +91,22 @@ describe('DashboardPage', () => {
     expect(page.insuranceCheckLoading).toBeFalse();
   });
 
-  it('navigates to the KYC demo page from the dashboard action', () => {
+  it('navigates to the KYC page from the dashboard action', () => {
     const router = jasmine.createSpyObj('Router', ['navigateByUrl']);
     const page = makePage({ router });
 
     page.openKycDemo();
 
-    expect(router.navigateByUrl).toHaveBeenCalledOnceWith('/kyc-demo');
+    expect(router.navigateByUrl).toHaveBeenCalledOnceWith('/kyc');
+  });
+
+  it('navigates to the HIB Profile page from the dashboard action', () => {
+    const router = jasmine.createSpyObj('Router', ['navigateByUrl']);
+    const page = makePage({ router });
+
+    page.openHibProfile();
+
+    expect(router.navigateByUrl).toHaveBeenCalledOnceWith('/tabs/hib-profile');
   });
 
   it('exposes beneficiary profile details for the dashboard template', () => {
@@ -131,7 +140,7 @@ describe('DashboardPage', () => {
     expect(page.profileInitial('Sunita Lama')).toBe('S');
   });
 
-  it('uses KYC quick action labels while keeping the existing KYC route', () => {
+  it('uses KYC quick action labels while keeping the primary KYC route', () => {
     const router = jasmine.createSpyObj('Router', ['navigateByUrl']);
     const page = makePage({ router });
 
@@ -140,6 +149,6 @@ describe('DashboardPage', () => {
 
     page.openKycDemo();
 
-    expect(router.navigateByUrl).toHaveBeenCalledOnceWith('/kyc-demo');
+    expect(router.navigateByUrl).toHaveBeenCalledOnceWith('/kyc');
   });
 });

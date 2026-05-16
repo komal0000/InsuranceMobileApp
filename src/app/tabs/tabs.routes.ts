@@ -37,6 +37,11 @@ export const tabsRoutes: Routes = [
           import('../pages/my-policy/my-policy.page').then(m => m.MyPolicyPage),
       },
       {
+        path: 'hib-profile',
+        loadComponent: () =>
+          import('../pages/hib-profile/hib-profile.page').then(m => m.HibProfilePage),
+      },
+      {
         path: 'my-payments',
         loadComponent: () =>
           import('../pages/my-payments/my-payments.page').then(m => m.MyPaymentsPage),

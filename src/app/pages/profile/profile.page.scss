@@ -129,6 +129,43 @@
       &.orange { background: rgba(253,126,20,0.08); ion-icon { color: #fd7e14; } }
     }
 
+    .profile-action-card {
+      margin: 0 0 12px;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+
+    .profile-action-content {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .profile-action-text {
+      display: flex;
+      flex: 1;
+      min-width: 0;
+      flex-direction: column;
+      gap: 3px;
+
+      strong {
+        color: #212529;
+        font-size: 0.95rem;
+      }
+
+      span {
+        color: #6c757d;
+        font-size: 0.82rem;
+        line-height: 1.35;
+      }
+    }
+
+    .profile-action-arrow {
+      color: #6c757d;
+      flex-shrink: 0;
+      font-size: 18px;
+    }
+
     .form-item {
       --background: #f8f9fa;
       --border-radius: 8px;

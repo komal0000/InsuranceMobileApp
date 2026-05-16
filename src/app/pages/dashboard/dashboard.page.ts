@@ -13,7 +13,7 @@ import {
   documentTextOutline, shieldCheckmarkOutline, refreshOutline,
   cashOutline, peopleOutline, alertCircleOutline, todayOutline,
   arrowForwardOutline, walletOutline, receiptOutline, searchOutline,
-  personCircleOutline
+  personCircleOutline, idCardOutline
 } from 'ionicons/icons';
 import { ApiService } from '../../services/api.service';
 import { AppSyncEvent, AppSyncService } from '../../services/app-sync.service';
@@ -74,7 +74,7 @@ export class DashboardPage implements OnInit, OnDestroy {
       documentTextOutline, shieldCheckmarkOutline, refreshOutline,
       cashOutline, peopleOutline, alertCircleOutline, todayOutline,
       arrowForwardOutline, walletOutline, receiptOutline, searchOutline,
-      personCircleOutline
+      personCircleOutline, idCardOutline
     });
   }
 
@@ -187,7 +187,9 @@ export class DashboardPage implements OnInit, OnDestroy {
 
   navigate(path: string) { this.router.navigateByUrl(path); }
 
-  openKycDemo() { this.router.navigateByUrl('/kyc-demo'); }
+  openKycDemo() { this.router.navigateByUrl('/kyc'); }
+
+  openHibProfile() { this.router.navigateByUrl('/tabs/hib-profile'); }
 
   get beneficiaryProfile(): BeneficiaryDashboardProfile | null {
     return this.isBeneficiary ? this.stats?.profile ?? null : null;
