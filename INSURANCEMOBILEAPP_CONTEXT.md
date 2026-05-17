@@ -1,6 +1,6 @@
 # InsuranceMobileApp Current Context
 
-Last updated: 2026-05-17
+Last updated: 2026-05-18
 
 This file captures the current Ionic/Angular state so future conversations do not need to rediscover the mobile app.
 
@@ -14,6 +14,16 @@ This file captures the current Ionic/Angular state so future conversations do no
 - API services live under `src\app\services`.
 - Shared interfaces live under `src\app\interfaces`.
 - Backend API is Laravel in `C:\Insurance\InsuranceApp`.
+
+## Backend Authorization Impact
+- Backend API review decisions are now officer-only: `super_admin` and `admin` are view-only for enrollment, renewal, and KYC official decisions.
+- Enrollment verify/approve/reject, renewal verify/approve/reject, KYC approve/reject/retry-sync, member-level verify/approve/reject, and subsidy management API routes return `403` for admin/super-admin clients. District EO keeps verification/KYC decision access; province keeps approval access.
+- Admin/super-admin API enrollment visibility now excludes draft enrollments: `/api/enrollments?status=draft` returns no draft rows and `/api/enrollments/{draftId}` returns `403`; non-draft enrollment response shapes are unchanged.
+- No mobile interface shape changed, but any staff/official mobile workflow should hide decision controls when these endpoints return `403`.
+
+## Backend Policy Period Impact
+- Backend policy and renewal period dates now use BS-calendar anniversaries minus one day. Example: BS start `2084/02/03` returns BS end `2085/02/02`, not `2085/02/03`.
+- Mobile API field names are unchanged for enrollment, dashboard profile, my-policy, and renewal payloads. Existing date display code should consume the corrected `policy_*`, `policy_*_bs`, and `renewal_*` values as before.
 
 ## Beneficiary Dashboard Profile
 - The beneficiary dashboard is profile-first. It consumes optional `profile` data from `GET /api/dashboard` and shows the household head photo/avatar, HIB number, enrollment/status/policy/address details, plus compact rows for all other members with HIB/member numbers.
