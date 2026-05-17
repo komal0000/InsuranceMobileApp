@@ -270,6 +270,7 @@ describe('RenewalsPage', () => {
       document_type: 'birth_certificate',
       first_service_point_id: 7,
       first_service_point: 'Bir Hospital',
+      occupation: 'Agriculture',
     };
 
     await page.addNewMember();
@@ -277,6 +278,7 @@ describe('RenewalsPage', () => {
     expect(api.postFormData).toHaveBeenCalledWith('/renewals/42/members', jasmine.any(FormData));
     const submitted = api.postFormData.calls.mostRecent().args[1] as FormData;
     expect(submitted.get('first_service_point_id')).toBe('7');
+    expect(submitted.get('occupation')).toBe('Agriculture');
     expect(submitted.has('first_service_point')).toBeFalse();
   });
 

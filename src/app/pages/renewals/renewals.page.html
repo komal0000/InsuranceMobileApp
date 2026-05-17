@@ -374,6 +374,12 @@
                   <ion-select-option *ngFor="let option of servicePointOptions" [value]="option.id">{{ option.name }}</ion-select-option>
                 </ion-select>
               </ion-item>
+              <ion-item class="form-item">
+                <ion-select [label]="t('wizard.occupation')" [placeholder]="t('wizard.select_profession')" labelPlacement="stacked" [(ngModel)]="newMember.occupation">
+                  <ion-select-option value="">{{ t('wizard.select_profession') }}</ion-select-option>
+                  <ion-select-option *ngFor="let option of professionOptions" [value]="option.label">{{ option.label }}</ion-select-option>
+                </ion-select>
+              </ion-item>
 
               <!-- Identity Document -->
               <p class="field-section-label"><ion-icon name="document-text-outline"></ion-icon> {{ t('wizard.identity_document') }}</p>

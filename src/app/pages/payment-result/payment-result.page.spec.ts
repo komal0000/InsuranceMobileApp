@@ -1,5 +1,6 @@
 import { of } from 'rxjs';
 import { PaymentResultPage } from './payment-result.page';
+import { EN_TRANSLATIONS } from '../../i18n/en';
 
 describe('PaymentResultPage', () => {
   function makePage(params: Record<string, string>, paymentStatus: 'pending' | 'paid' | 'failed' = 'pending') {
@@ -62,5 +63,9 @@ describe('PaymentResultPage', () => {
     expect(paymentService.getPaymentStatus).toHaveBeenCalledOnceWith('REF-PAID');
     expect(page.status).toBe('success');
     expect(page.errorCode).toBe('');
+  });
+
+  it('describes successful renewal payment as sent for official review', () => {
+    expect(EN_TRANSLATIONS['payment_result.renewal_success']).toContain('official review');
   });
 });

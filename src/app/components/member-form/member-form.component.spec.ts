@@ -81,6 +81,26 @@ describe('MemberFormComponent', () => {
     expect(text).toContain('Bir Hospital');
   });
 
+  it('renders occupation choices from profession options for members', () => {
+    const fixture = TestBed.createComponent(MemberFormComponent);
+    const component = fixture.componentInstance;
+    component.member = { relationship: '', gender: '', occupation: 'Agriculture' };
+    component.professionOptions = [
+      { id: 1, label: 'Government' },
+      { id: 5, label: 'Agriculture' },
+    ];
+
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent;
+    const selects = Array.from(
+      fixture.nativeElement.querySelectorAll('ion-select') as NodeListOf<HTMLIonSelectElement>,
+    );
+
+    expect(text).toContain('Agriculture');
+    expect(selects.some((select) => select.label === 'Occupation')).toBeTrue();
+  });
+
   it('sets male gender and locks the field when son is selected', () => {
     const fixture = TestBed.createComponent(MemberFormComponent);
     const component = fixture.componentInstance;

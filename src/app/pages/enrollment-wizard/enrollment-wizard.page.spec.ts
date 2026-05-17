@@ -986,6 +986,7 @@ describe('EnrollmentWizardPage', () => {
       relationship: 'spouse',
       first_service_point_id: 7,
       first_service_point: 'Bir Hospital',
+      occupation: 'Agriculture',
     };
 
     await page.saveMember();
@@ -995,6 +996,7 @@ describe('EnrollmentWizardPage', () => {
     expect(submitted.has('first_name')).toBeTrue();
     expect(submitted.has('last_name')).toBeTrue();
     expect(submitted.get('first_service_point_id')).toBe('7');
+    expect(submitted.get('occupation')).toBe('Agriculture');
     expect(submitted.has('first_service_point')).toBeFalse();
     expect(submitted.has('middle_name')).toBeFalse();
     expect(submitted.has('middle_name_ne')).toBeFalse();
@@ -1025,6 +1027,7 @@ describe('EnrollmentWizardPage', () => {
       relationship: 'spouse',
       first_service_point_id: 7,
       first_service_point: 'Bir Hospital',
+      occupation: 'Salaried',
     };
 
     await page.saveMember();
@@ -1032,6 +1035,7 @@ describe('EnrollmentWizardPage', () => {
     expect(enrollmentSvc.updateMember).toHaveBeenCalledWith(4, 9, jasmine.any(FormData));
     const submitted = enrollmentSvc.updateMember.calls.mostRecent().args[2] as FormData;
     expect(submitted.get('first_service_point_id')).toBe('7');
+    expect(submitted.get('occupation')).toBe('Salaried');
     expect(submitted.has('first_service_point')).toBeFalse();
     expect(submitted.has('middle_name')).toBeFalse();
     expect(submitted.has('middle_name_ne')).toBeFalse();

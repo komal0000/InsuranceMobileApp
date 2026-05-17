@@ -37,6 +37,7 @@ interface MemberFormModel {
   email?: string;
   first_service_point_id?: number | string | null;
   first_service_point?: string | null;
+  occupation?: string;
   document_type?: string;
   citizenship_number?: string;
   citizenship_issue_date?: string;
@@ -211,6 +212,17 @@ interface MemberFormModel {
           <ion-select-option *ngFor="let option of servicePointOptions" [value]="option.id">{{ option.name }}</ion-select-option>
         </ion-select>
       </ion-item>
+      <ion-item class="form-item">
+        <ion-select [label]="text('wizard.occupation', 'Occupation')" labelPlacement="stacked"
+                    [placeholder]="text('wizard.select_profession', 'Select Occupation')"
+                    [(ngModel)]="member.occupation">
+          <ion-select-option value="">{{ text('wizard.select_profession', 'Select Occupation') }}</ion-select-option>
+          <ion-select-option *ngIf="member.occupation && !hasProfessionOption(member.occupation)" [value]="member.occupation">
+            {{ member.occupation }}
+          </ion-select-option>
+          <ion-select-option *ngFor="let option of professionOptions" [value]="option.label">{{ option.label }}</ion-select-option>
+        </ion-select>
+      </ion-item>
 
       <p class="form-section-title">{{ text('wizard.identity_document', 'Identity Document') }}</p>
       <ion-item class="form-item">
@@ -300,6 +312,7 @@ export class MemberFormComponent implements OnChanges {
   @Input() showEmail = false;
   @Input() disableSaveWhenInvalid = false;
   @Input() servicePointOptions: ServicePointOption[] = [];
+  @Input() professionOptions: Array<{ id: number; label: string }> = [];
   @Input() photoPreview = '';
   @Input() citizenshipFrontPreview = '';
   @Input() citizenshipBackPreview = '';
@@ -335,6 +348,10 @@ export class MemberFormComponent implements OnChanges {
 
   relationshipLabel(value: string): string {
     return this.languageService.label('relation', value);
+  }
+
+  hasProfessionOption(value: unknown): boolean {
+    return this.professionOptions.some((option) => option.label === String(value));
   }
 
   onRelationshipChange(value: string): void {

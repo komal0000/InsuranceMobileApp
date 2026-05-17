@@ -83,12 +83,22 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
   relationshipGenderMap: RelationshipGenderMap = {};
   relationshipBlockedByHeadMaritalStatus: RelationshipBlockMap = defaultRelationshipBlockMap();
   servicePointOptions: ServicePointOption[] = [];
+  professionOptions: Array<{ id: number; label: string }> = [
+    { id: 1, label: 'Government' },
+    { id: 2, label: 'Self Employed' },
+    { id: 3, label: 'Salaried' },
+    { id: 4, label: 'House Wife' },
+    { id: 5, label: 'Agriculture' },
+    { id: 6, label: 'Other' },
+    { id: 7, label: 'Foreign employment' },
+  ];
   newMember: any = {
     first_name: '', middle_name: '', last_name: '',
     first_name_ne: '', middle_name_ne: '', last_name_ne: '',
     gender: '', date_of_birth: '', relationship: '',
     blood_group: '', marital_status: '', mobile_number: '', email: '',
     first_service_point_id: '',
+    occupation: '',
     document_type: '',
     citizenship_number: '', citizenship_issue_date: '', citizenship_issue_district: '',
     birth_certificate_number: '', birth_certificate_issue_date: '',
@@ -213,6 +223,7 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
       email: member.email || '',
       first_service_point_id: member.first_service_point_id || '',
       first_service_point: member.first_service_point || '',
+      occupation: member.occupation || '',
       document_type: member.document_type || '',
       citizenship_number: member.citizenship_number || '',
       citizenship_issue_date: this.dateService.formatForDisplay(
@@ -537,6 +548,11 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
       return;
     }
 
+    if (!this.isFreeRenewal) {
+      this.goToPay();
+      return;
+    }
+
     this.submitting = true;
     this.api.post<ApiResponse<any>>(`/renewals/${this.renewalId}/submit`, {
       consent_accepted: true,
@@ -705,6 +721,7 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
         this.relationshipBlockedByHeadMaritalStatus = normalizeRelationshipBlockMap(
           res?.data?.relationship_blocked_by_head_marital_status,
         );
+        this.professionOptions = this.optionRecordToArray(res?.data?.profession_options, this.professionOptions);
       },
     });
   }
@@ -797,6 +814,7 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
       gender: '', date_of_birth: currentBs, relationship: '',
       blood_group: '', marital_status: '', mobile_number: '', email: '',
       first_service_point_id: '',
+      occupation: '',
       document_type: '',
       citizenship_number: '', citizenship_issue_date: currentBs, citizenship_issue_district: '',
       birth_certificate_number: '', birth_certificate_issue_date: currentBs,
@@ -805,6 +823,16 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
       citizenship_back_image: null,
       birth_certificate_front_image: null,
     };
+  }
+
+  private optionRecordToArray(raw: unknown, fallback: Array<{ id: number; label: string }>): Array<{ id: number; label: string }> {
+    if (!raw || typeof raw !== 'object') {
+      return fallback;
+    }
+
+    return Object.entries(raw as Record<string, string>)
+      .map(([id, label]) => ({ id: Number(id), label }))
+      .filter(option => Number.isFinite(option.id) && !!option.label);
   }
 
   private resetMemberPreviews() {

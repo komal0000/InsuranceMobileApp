@@ -221,6 +221,7 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
     gender: '', date_of_birth: '', relationship: '',
     blood_group: '', marital_status: '', mobile_number: '',
     first_service_point_id: '',
+    occupation: '',
     document_type: '',
     citizenship_number: '', citizenship_issue_date: '', citizenship_issue_district: '',
     birth_certificate_number: '', birth_certificate_issue_date: '',
@@ -899,6 +900,7 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
           this.newMember.gender        = d.gender        || '';
           this.newMember.date_of_birth = this.dateService.formatForDisplay(d.date_of_birth, d.date_of_birth_bs) || '';
           this.newMember.mobile_number = d.mobile_number || '';
+          this.newMember.occupation    = d.occupation    || this.newMember.occupation;
           if (d.citizenship_number)         this.newMember.citizenship_number         = d.citizenship_number;
           if (d.citizenship_issue_date_bs)  this.newMember.citizenship_issue_date     = d.citizenship_issue_date_bs;
           if (d.citizenship_issue_district) this.newMember.citizenship_issue_district = d.citizenship_issue_district;
@@ -1140,6 +1142,7 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
       gender: '', date_of_birth: currentBs, relationship: '',
       blood_group: '', marital_status: '', mobile_number: '',
       first_service_point_id: '',
+      occupation: '',
       document_type: '',
       citizenship_number: '', citizenship_issue_date: currentBs, citizenship_issue_district: '',
       birth_certificate_number: '', birth_certificate_issue_date: currentBs,
@@ -1186,6 +1189,7 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
       mobile_number: member.mobile_number || '',
       first_service_point_id: member.first_service_point_id || '',
       first_service_point: member.first_service_point || '',
+      occupation: member.occupation || '',
       document_type: member.document_type || '',
       citizenship_number: member.citizenship_number || '',
       citizenship_issue_date: this.dateService.formatForDisplay(

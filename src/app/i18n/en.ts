@@ -235,7 +235,7 @@ export const EN_TRANSLATIONS: Record<string, string> = {
   'payment_result.processing_message': 'Please wait while we submit your enrollment.',
   'payment_result.success': 'Payment Successful!',
   'payment_result.new_success': 'Your enrollment has been submitted for verification. You will be notified once it is reviewed.',
-  'payment_result.renewal_success': 'Your renewal has been completed successfully. Your policy is now active.',
+  'payment_result.renewal_success': 'Your renewal payment has been received and sent for official review.',
   'payment_result.generic_success': 'Your payment has been received and your policy is now active.',
   'payment_result.pending': 'Payment Still Verifying',
   'payment_result.pending_message': 'We received the gateway response and are still confirming it. Please check again shortly.',

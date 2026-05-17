@@ -1,6 +1,6 @@
 # InsuranceMobileApp Current Context
 
-Last updated: 2026-05-16
+Last updated: 2026-05-17
 
 This file captures the current Ionic/Angular state so future conversations do not need to rediscover the mobile app.
 
@@ -9,6 +9,7 @@ This file captures the current Ionic/Angular state so future conversations do no
 - Ionic `^8.0.0`, Angular `^20.0.0`, Capacitor `8.1.0`, TypeScript `~5.9.0`.
 - Capacitor/Android display app name is `HIB`; package/application id is still `io.ionic.starter`.
 - StatusBar is configured with the HIB blue background and non-overlay mode. Android API 35+ has `values-v35/styles.xml` opt out of edge-to-edge enforcement for the app launch/no-action-bar themes so the system status icons do not overlap Ionic headers where Android permits opt-out.
+- User-facing copy should brand the system as `HIB(Health Insurance Board)` / Health Insurance Board, Nepal. Do not reintroduce the previous program-era naming in mobile copy, translations, or style comments.
 - Main UI pages live under `src\app\pages`.
 - API services live under `src\app\services`.
 - Shared interfaces live under `src\app\interfaces`.
@@ -221,6 +222,7 @@ Family members:
 - Family-member NID lookup still exists.
 - Enrollment Step 2 shows the household head and existing members first. The Add Family Member button/form is below the list and the form is hidden until the user chooses to add or edit a member.
 - Enrollment member add/edit uses the shared member form's optional `First Service Point` select populated from the enrollment's permanent province/district service-point options. Selected member values are submitted as `first_service_point_id`, blank values are submitted as an empty `first_service_point_id` so the backend can clear a saved member-level service point, and editing an existing member preselects the saved member-level service point.
+- Enrollment and renewal member add/edit forms now include an optional `Occupation` dropdown sourced from `/api/enrollment-config.profession_options`; the selected label is submitted as the existing `occupation` field because family members do not have a separate `profession_id` column.
 - Member birth certificate capture now collects a single `birth_certificate_front_image` document labeled as the birth certificate document. Active enrollment and renewal member UI/FormData paths no longer collect `birth_certificate_back_image`; the optional interface field remains only for legacy backend payload compatibility.
 - Member English and Nepali middle-name inputs are not rendered in enrollment member entry, not copied into edit form state, and not submitted in member add/update FormData even if stale keys exist locally.
 - Step 2 and review name displays show first name plus last name only.
@@ -240,7 +242,7 @@ Family members:
 
 ## Renewal Mobile Changes
 - Renewal member add/edit no longer collects target-group fields.
-- Renewal detail and the Renewals tab direct-add member form load first-service-point options from the renewal enrollment province/district and submit optional `first_service_point_id` for member add/edit, including an empty `first_service_point_id` when the user clears the optional member service point.
+- Renewal detail and the Renewals tab direct-add member form load first-service-point options from the renewal enrollment province/district and submit optional `first_service_point_id` for member add/edit, including an empty `first_service_point_id` when the user clears the optional member service point. Both renewal member forms also load the profession options and submit the selected occupation label as `occupation`.
 - Renewal member add/edit no longer collects a birth certificate back image; birth certificate is one document capture.
 - Renewal member add/edit uses the same backend `relationship_gender_map` behavior as enrollment: deterministic relationships auto-fill and lock gender, while spouse/other/custom relationships stay manual.
 - Renewal member relationship pickers and stale-value validation use the same backend-provided marital-status relationship block matrix as enrollment, with the local fallback matrix if config is unavailable.
@@ -254,8 +256,12 @@ Family members:
 - Admin/staff management roles no longer see renewal search/initiation entry points.
 - `RenewalsPage.canInitiateRenewal` permits renewal initiation only for `beneficiary` and `enrollment_assistant`.
 - `RenewalSearchPage` also blocks direct renewal search/initiation for management roles and shows a management-safe notice.
+- Official-role API consumers now receive backend-filtered review queues from `/api/enrollments`, `/api/renewals`, and `/api/dashboard`: draft/pre-submit records stay hidden from district/province users, and province renewal/enrollment queues start after district verification. Response shapes and mobile interfaces are unchanged.
+- Official-role renewal detail API responses may now include additive `review_dossier` data for `district_eo`, `province`, and `super_admin` clients: policy/payment/household/member/document evidence plus added/updated/removed member groups. Existing beneficiary/mobile fields are unchanged, and normal mobile renewal screens do not need to consume this field.
+- Backend renewal approval now blocks `district_eo` server-side with `403` even if an old role record still has `renewal.approve`; district EOs can verify or reject `pending_review`, while province/super-admin users approve or reject only `verified` renewals.
 - Dashboard enrollment creation now permits only `beneficiary` and `enrollment_assistant`.
 - Renewal detail uses the shared member form component. It still refetches renewal detail after member mutations because the backend response does not include enough updated premium/renewal aggregate state.
+- Renewal detail follows the backend payment-first renewal flow: paid draft/eligible renewals route directly to the payment page and successful renewal payment copy says the renewal was sent for official review; zero-pay/subsidized renewals still call the submit endpoint and enter official review without a gateway payment.
 - Renewals tab re-entry now uses cached-content refresh: existing enrollment/renewal content stays visible while background requests refresh the data, and the full-page spinner is reserved for first/empty loads.
 
 ## Notification Mobile Changes

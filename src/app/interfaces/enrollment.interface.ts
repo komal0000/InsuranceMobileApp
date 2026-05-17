@@ -258,6 +258,7 @@ export interface NidLookupData {
   grandfather_name_ne?: string | null;
   mobile_number: string | null;
   email: string | null;
+  occupation?: string | null;
   address?: string | null;
   province: string | null;
   district: string | null;

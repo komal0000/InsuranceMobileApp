@@ -3,8 +3,9 @@ import { RenewalDetailPage } from './renewal-detail.page';
 
 describe('RenewalDetailPage', () => {
   function makePage(overrides: { dateService?: Record<string, unknown>; alertCtrl?: unknown } = {}) {
-    const api = jasmine.createSpyObj('ApiService', ['get', 'postFormData']);
+    const api = jasmine.createSpyObj('ApiService', ['get', 'post', 'postFormData']);
     api.get.and.returnValue(of({ success: true, data: {} }));
+    api.post.and.returnValue(of({ success: true, data: {} }));
     api.postFormData.and.returnValue(of({ success: true, data: {} }));
     const toast = { present: jasmine.createSpy().and.returnValue(Promise.resolve()) };
     const toastCtrl = {
@@ -23,9 +24,10 @@ describe('RenewalDetailPage', () => {
       ...overrides.dateService,
     };
 
+    const router = jasmine.createSpyObj('Router', ['navigate', 'navigateByUrl']);
     const page = new RenewalDetailPage(
       { snapshot: { paramMap: { get: () => '12' } } } as any,
-      jasmine.createSpyObj('Router', ['navigateByUrl']) as any,
+      router as any,
       api,
       { events$: EMPTY } as any,
       dateService as any,
@@ -34,7 +36,7 @@ describe('RenewalDetailPage', () => {
       languageService as any,
     );
 
-    return { page, api, toastCtrl };
+    return { page, api, router, toastCtrl };
   }
 
   function relationshipOptions() {
@@ -120,6 +122,7 @@ describe('RenewalDetailPage', () => {
       document_type: 'birth_certificate',
       first_service_point_id: 7,
       first_service_point: 'Bir Hospital',
+      occupation: 'Agriculture',
     };
 
     await page.saveMember();
@@ -127,6 +130,7 @@ describe('RenewalDetailPage', () => {
     expect(api.postFormData).toHaveBeenCalledWith('/renewals/12/members', jasmine.any(FormData));
     const submitted = api.postFormData.calls.mostRecent().args[1] as FormData;
     expect(submitted.get('first_service_point_id')).toBe('7');
+    expect(submitted.get('occupation')).toBe('Agriculture');
     expect(submitted.has('first_service_point')).toBeFalse();
   });
 
@@ -207,6 +211,49 @@ describe('RenewalDetailPage', () => {
       message: 'wizard.citizenship_issue_age',
       color: 'warning',
     }));
+  });
+
+  it('routes paid eligible renewals directly to payment instead of submit API', async () => {
+    const { page, api, router } = makePage();
+    page.renewalId = 12;
+    page.consentAccepted = true;
+    page.renewal = {
+      id: 12,
+      status: 'eligible',
+      final_amount: 3500,
+      renewal_number: 'RNW-0001',
+    } as any;
+
+    await page.submitRenewal();
+
+    expect(api.post).not.toHaveBeenCalled();
+    expect(router.navigate).toHaveBeenCalledOnceWith(['/payment'], {
+      queryParams: {
+        renewalId: 12,
+        amount: 3500,
+        type: 'renewal',
+        policyNumber: 'RNW-0001',
+      },
+    });
+  });
+
+  it('keeps zero-pay renewals on the submit-to-review API path', async () => {
+    const { page, api, router } = makePage();
+    page.renewalId = 12;
+    page.consentAccepted = true;
+    page.renewal = {
+      id: 12,
+      status: 'eligible',
+      final_amount: 0,
+      renewal_number: 'RNW-FREE',
+    } as any;
+
+    await page.submitRenewal();
+
+    expect(api.post).toHaveBeenCalledOnceWith('/renewals/12/submit', {
+      consent_accepted: true,
+    });
+    expect(router.navigate).not.toHaveBeenCalled();
   });
 
   it('removes newly added renewal members without selecting a death/removal document', async () => {
