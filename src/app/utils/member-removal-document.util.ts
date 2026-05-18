@@ -27,18 +27,20 @@ export function requiresRemovalDocument(
     return true;
   }
 
-  if (member.member_status) {
-    return false;
+  if (hasCoveredEnrollment(context)) {
+    return true;
   }
 
-  return ['approved', 'active', 'expired', 'pending_payment'].includes(String(context.enrollmentStatus || ''))
-    || Boolean(context.enrollmentApprovedAt);
+  return false;
 }
 
 function isProvinceApproved(member: RemovalDocumentMember): boolean {
-  return member.member_status === 'approved'
-    || Boolean(member.approved_at)
-    || Boolean(member.approved_by);
+  return member.member_status === 'approved';
+}
+
+function hasCoveredEnrollment(context: RemovalDocumentContext): boolean {
+  return ['approved', 'active', 'expired', 'pending_payment'].includes(String(context.enrollmentStatus || ''))
+    || Boolean(context.enrollmentApprovedAt);
 }
 
 function isRenewalAddedMember(

@@ -1195,6 +1195,33 @@ describe('EnrollmentWizardPage', () => {
     expect(presentedAlert.present).toHaveBeenCalled();
   });
 
+  it('requires and submits a death/removal document for active enrollment members with stale status', async () => {
+    const deathDocument = new File(['proof'], 'death-proof.pdf', { type: 'application/pdf' });
+    const enrollmentSvc = {
+      removeMember: jasmine.createSpy().and.returnValue(of({ success: true, message: 'Removed.' })),
+    };
+    const presentedAlert = { present: jasmine.createSpy().and.returnValue(Promise.resolve()) };
+    const alertCtrl = {
+      create: jasmine.createSpy().and.callFake(async (options: any) => {
+        options.buttons[1].handler();
+        return presentedAlert;
+      }),
+    };
+    const page = createPage({ enrollmentSvc, alertCtrl });
+    page.enrollmentId = 4;
+    page.enrollment = { status: 'active' } as any;
+    page.members = [{ id: 9, first_name: 'Sita', last_name: 'Shrestha', member_status: 'pending_verification' } as any];
+    (page as any).selectRemovalDocument = jasmine.createSpy().and.returnValue(Promise.resolve(deathDocument));
+
+    await page.removeMember(page.members[0]);
+    await Promise.resolve();
+
+    expect((page as any).selectRemovalDocument).toHaveBeenCalled();
+    expect(enrollmentSvc.removeMember).toHaveBeenCalledWith(4, 9, deathDocument);
+    expect(page.members).toEqual([]);
+    expect(presentedAlert.present).toHaveBeenCalled();
+  });
+
   it('stops listening to language changes when destroyed', () => {
     const languageChanges = new Subject<string>();
     let prefix = 'initial';
