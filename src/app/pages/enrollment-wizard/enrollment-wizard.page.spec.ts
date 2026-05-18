@@ -93,6 +93,32 @@ describe('EnrollmentWizardPage', () => {
     };
   }
 
+  function fillValidHouseholdHead(page: EnrollmentWizardPage) {
+    page.enrollmentId = 4;
+    page.currentStep = 1;
+    page.step1 = {
+      province: 'Bagmati',
+      district: 'Kathmandu',
+      municipality: 'Kathmandu',
+      ward_number: '1',
+      tole_village: '',
+      full_address: '',
+    };
+    page.headData = {
+      ...page.headData,
+      ...parentGrandparentNames(),
+      first_name: 'Komal',
+      last_name: 'Shrestha',
+      gender: 'female',
+      date_of_birth: '1990-06-15',
+      mobile_number: '9812345678',
+      marital_status: 'married',
+      citizenship_number: '311022/65843',
+      citizenship_issue_date: '2066-08-04',
+      citizenship_issue_district: 'Kathmandu',
+    };
+  }
+
   function relationshipOptions() {
     return [
       { value: 'spouse', label: 'Spouse' },
@@ -452,6 +478,77 @@ describe('EnrollmentWizardPage', () => {
     expect(page.saving).toBeFalse();
   });
 
+  it('blocks oversized household-head files before save', () => {
+    const enrollmentSvc = {
+      saveHouseholdHead: jasmine.createSpy(),
+    };
+    const page = createPage({ enrollmentSvc });
+    fillValidHouseholdHead(page);
+    (page as any).config = {
+      upload_limits: {
+        max_file_bytes: 2 * 1024 * 1024,
+        max_post_bytes: 20 * 1024 * 1024,
+      },
+    };
+    page.headData.photo = new Blob([new Uint8Array((2 * 1024 * 1024) + 1)], { type: 'image/jpeg' });
+    spyOn<any>(page, 'showToast');
+
+    page.nextStep();
+
+    expect(enrollmentSvc.saveHouseholdHead).not.toHaveBeenCalled();
+    expect((page as any).showToast).toHaveBeenCalledWith('wizard.upload_file_too_large', 'warning');
+    expect(page.saving).toBeFalse();
+  });
+
+  it('blocks household-head saves whose selected files exceed the total upload limit', () => {
+    const enrollmentSvc = {
+      saveHouseholdHead: jasmine.createSpy(),
+    };
+    const page = createPage({ enrollmentSvc });
+    fillValidHouseholdHead(page);
+    (page as any).config = {
+      upload_limits: {
+        max_file_bytes: 2 * 1024 * 1024,
+        max_post_bytes: 5 * 1024 * 1024,
+      },
+    };
+    page.headData.photo = new Blob([new Uint8Array(2 * 1024 * 1024)], { type: 'image/jpeg' });
+    page.headData.citizenship_front_image = new Blob([new Uint8Array(2 * 1024 * 1024)], { type: 'image/jpeg' });
+    page.headData.citizenship_back_image = new Blob([new Uint8Array(2 * 1024 * 1024)], { type: 'image/jpeg' });
+    spyOn<any>(page, 'showToast');
+
+    page.nextStep();
+
+    expect(enrollmentSvc.saveHouseholdHead).not.toHaveBeenCalled();
+    expect((page as any).showToast).toHaveBeenCalledWith('wizard.upload_total_too_large', 'warning');
+    expect(page.saving).toBeFalse();
+  });
+
+  it('shows backend 413 upload messages from household-head save', () => {
+    const enrollmentSvc = {
+      saveHouseholdHead: jasmine.createSpy().and.returnValue(throwError(() => ({
+        status: 413,
+        error: {
+          success: false,
+          message: 'The selected documents are too large. Upload smaller files and try again.',
+          max_upload_bytes: 20 * 1024 * 1024,
+        },
+      }))),
+    };
+    const page = createPage({ enrollmentSvc });
+    fillValidHouseholdHead(page);
+    spyOn<any>(page, 'showToast');
+
+    page.nextStep();
+
+    expect(enrollmentSvc.saveHouseholdHead).toHaveBeenCalled();
+    expect((page as any).showToast).toHaveBeenCalledWith(
+      'The selected documents are too large. Upload smaller files and try again.',
+      'danger'
+    );
+    expect(page.saving).toBeFalse();
+  });
+
   it('restores verified household-head NID labels from a saved enrollment payload', () => {
     const geoSvc = {
       districts: jasmine.createSpy().and.returnValue(of(response(['Kathmandu']))),
@@ -637,6 +734,18 @@ describe('EnrollmentWizardPage', () => {
     expect(formData.get('mother_first_name_ne')).toBe('शर्मिला माया');
     expect(formData.get('grandfather_last_name_ne')).toBe('लामा');
     expect(formData.get('grandfather_name_ne')).toBe('कालु बहादुर लामा');
+  });
+
+  it('normalizes household-head citizenship numbers before submitting', () => {
+    const page = createPage();
+    page.headData = {
+      ...page.headData,
+      citizenship_number: '३११०२२/६५८४३',
+    };
+
+    const formData = (page as any).buildHouseholdHeadFormData() as FormData;
+
+    expect(formData.get('citizenship_number')).toBe('31102265843');
   });
 
   it('allows household save when split parent and grandparent names are missing', () => {
@@ -928,6 +1037,69 @@ describe('EnrollmentWizardPage', () => {
     expect(page['showToast']).toHaveBeenCalledWith('wizard.relationship_marital_status_block', 'warning');
   });
 
+  it('blocks non-Devanagari household-head Nepali names before saving step one', async () => {
+    const enrollmentSvc = {
+      saveHouseholdHead: jasmine.createSpy().and.returnValue(of({ success: true, data: {} })),
+    };
+    const page = createPage({ enrollmentSvc });
+    spyOn<any>(page, 'showToast').and.returnValue(Promise.resolve());
+    page.currentStep = 1;
+    page.enrollmentId = 4;
+    page.step1 = {
+      province: 'Bagmati',
+      district: 'Kathmandu',
+      municipality: 'Kathmandu',
+      ward_number: '1',
+      tole_village: 'Dillibazar',
+      full_address: 'Dillibazar, Ward 1, Kathmandu',
+    } as any;
+    page.headData = {
+      ...page.headData,
+      first_name: 'Sita',
+      last_name: 'Lama',
+      first_name_ne: 'Sita',
+      last_name_ne: 'लामा',
+      gender: 'female',
+      date_of_birth: '2047-03-01',
+      mobile_number: '9812345678',
+      marital_status: 'married',
+      document_type: 'birth_certificate',
+      birth_certificate_number: 'BC-1',
+      birth_certificate_issue_date: '2070-01-01',
+      birth_certificate_front_image: new Blob(['fake'], { type: 'image/png' }),
+    };
+
+    await page.nextStep();
+
+    expect(enrollmentSvc.saveHouseholdHead).not.toHaveBeenCalled();
+    expect(page['showToast']).toHaveBeenCalledWith('wizard.nepali_name_format', 'warning');
+  });
+
+  it('blocks non-Devanagari enrollment member Nepali names before saving', async () => {
+    const enrollmentSvc = {
+      addMember: jasmine.createSpy().and.returnValue(of({ success: true, message: 'Saved.', data: { id: 10 } })),
+    };
+    const page = createPage({ enrollmentSvc });
+    spyOn<any>(page, 'showToast').and.returnValue(Promise.resolve());
+    page.enrollmentId = 4;
+    page.relationshipOptions = relationshipOptions();
+    page.newMember = {
+      first_name: 'Suman',
+      last_name: 'Lama',
+      first_name_ne: 'Suman',
+      last_name_ne: 'लामा',
+      gender: 'male',
+      date_of_birth: '2075-01-01',
+      relationship: 'son',
+      document_type: 'birth_certificate',
+    };
+
+    await page.saveMember();
+
+    expect(enrollmentSvc.addMember).not.toHaveBeenCalled();
+    expect(page['showToast']).toHaveBeenCalledWith('wizard.nepali_name_format', 'warning');
+  });
+
   it('blocks enrollment member save when citizenship issue date is before the sixteenth birthday', async () => {
     const enrollmentSvc = {
       addMember: jasmine.createSpy().and.returnValue(of({ success: true, message: 'Saved.', data: { id: 10 } })),
@@ -987,6 +1159,8 @@ describe('EnrollmentWizardPage', () => {
       first_service_point_id: 7,
       first_service_point: 'Bir Hospital',
       occupation: 'Agriculture',
+      document_type: 'citizenship',
+      citizenship_number: '३११०२२/६५८४३',
     };
 
     await page.saveMember();
@@ -997,6 +1171,7 @@ describe('EnrollmentWizardPage', () => {
     expect(submitted.has('last_name')).toBeTrue();
     expect(submitted.get('first_service_point_id')).toBe('7');
     expect(submitted.get('occupation')).toBe('Agriculture');
+    expect(submitted.get('citizenship_number')).toBe('31102265843');
     expect(submitted.has('first_service_point')).toBeFalse();
     expect(submitted.has('middle_name')).toBeFalse();
     expect(submitted.has('middle_name_ne')).toBeFalse();

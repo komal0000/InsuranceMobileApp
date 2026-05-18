@@ -24,6 +24,7 @@ import { Renewal } from '../../interfaces/renewal.interface';
 import { MemberFormComponent } from '../../components/member-form/member-form.component';
 import { LanguageToggleComponent } from '../../components/language-toggle/language-toggle.component';
 import { LanguageService } from '../../services/language.service';
+import { isNepaliNamePart, normalizeDigitsOnly } from '../../utils/auth-validation';
 import {
   RelationshipGenderMap,
   genderForRelationship,
@@ -57,6 +58,12 @@ const DEFAULT_MEMBER_RELATIONSHIPS: Array<{ value: string; label: string }> = [
   { value: 'son_in_law', label: 'Son In Law' },
   { value: 'daughter_in_law', label: 'Daughter In Law' },
   { value: 'other', label: 'Other' },
+];
+
+const MEMBER_NEPALI_NAME_FIELDS = [
+  'first_name_ne',
+  'middle_name_ne',
+  'last_name_ne',
 ];
 
 @Component({
@@ -275,6 +282,16 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
       return;
     }
 
+    if (this.hasInvalidNepaliNameParts(this.newMember)) {
+      this.toastCtrl.create({
+        message: this.t('wizard.nepali_name_format'),
+        duration: 2200,
+        color: 'warning',
+        position: 'top',
+      }).then(t => t.present());
+      return;
+    }
+
     const relationship = this.normalizeKey(this.newMember.relationship);
     if (this.isRelationshipBlockedForHead(relationship)) {
       this.toastCtrl.create({ message: this.t('wizard.relationship_marital_status_block'), duration: 2500, color: 'warning', position: 'top' }).then(t => t.present());
@@ -320,6 +337,11 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
       }
       if (val instanceof Blob) {
         fd.append(key, val, `${key}.jpg`);
+        return;
+      }
+      if (key === 'citizenship_number') {
+        const digits = normalizeDigitsOnly(String(val));
+        if (digits !== '') fd.append(key, digits);
         return;
       }
       fd.append(key, String(val));
@@ -797,6 +819,10 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
     if (gender) {
       this.newMember.gender = gender;
     }
+  }
+
+  private hasInvalidNepaliNameParts(member: Record<string, unknown>): boolean {
+    return MEMBER_NEPALI_NAME_FIELDS.some(field => !isNepaliNamePart(member[field] as string | null | undefined));
   }
 
   private normalizeKey(value: unknown): string {

@@ -34,6 +34,7 @@ import {
   ServicePointOption, SubsidyResult, SubsidySummary
 } from '../../interfaces/enrollment.interface';
 import { canonicalNid, isValidNidInput, nidLookupValue } from '../../utils/nid-number.util';
+import { isNepaliNamePart, normalizeDigitsOnly } from '../../utils/auth-validation';
 import {
   RelationshipGenderMap,
   genderForRelationship,
@@ -71,6 +72,43 @@ const DEFAULT_MEMBER_RELATIONSHIPS: Array<{ value: string; label: string }> = [
   { value: 'son_in_law', label: 'Son In Law' },
   { value: 'daughter_in_law', label: 'Daughter In Law' },
   { value: 'other', label: 'Other' },
+];
+
+const DEFAULT_UPLOAD_LIMITS = {
+  max_file_bytes: 2 * 1024 * 1024,
+  max_post_bytes: 20 * 1024 * 1024,
+};
+
+const HOUSEHOLD_HEAD_UPLOAD_FIELDS = [
+  'photo',
+  'citizenship_front_image',
+  'citizenship_back_image',
+  'birth_certificate_front_image',
+  'target_group_front_image',
+  'target_group_back_image',
+  'basai_sarai_front',
+  'basai_sarai_back',
+];
+
+const HOUSEHOLD_HEAD_NEPALI_NAME_FIELDS = [
+  'first_name_ne',
+  'middle_name_ne',
+  'last_name_ne',
+  'father_first_name_ne',
+  'father_last_name_ne',
+  'father_name_ne',
+  'mother_first_name_ne',
+  'mother_last_name_ne',
+  'mother_name_ne',
+  'grandfather_first_name_ne',
+  'grandfather_last_name_ne',
+  'grandfather_name_ne',
+];
+
+const MEMBER_NEPALI_NAME_FIELDS = [
+  'first_name_ne',
+  'middle_name_ne',
+  'last_name_ne',
 ];
 
 interface VerifiedNidField {
@@ -993,6 +1031,9 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
           !this.headData.date_of_birth || !this.headData.mobile_number || !this.headData.marital_status) {
       this.showToast(this.t('wizard.required_fields'), 'warning'); return;
       }
+      if (this.hasInvalidNepaliNameParts(this.headData, HOUSEHOLD_HEAD_NEPALI_NAME_FIELDS)) {
+        this.showToast(this.t('wizard.nepali_name_format'), 'warning'); return;
+      }
       if (!/^\d{10}$/.test(this.headData.mobile_number)) {
         this.showToast(this.t('wizard.mobile_digits'), 'warning'); return;
       }
@@ -1013,6 +1054,11 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
         this.showToast(this.t('wizard.required_fields'), 'warning'); return;
       } else if (!this.hasValidCitizenshipIssueDate(this.headData.date_of_birth, this.headData.citizenship_issue_date)) {
         this.showToast(this.t('wizard.citizenship_issue_age'), 'warning'); return;
+      }
+      this.clearInactiveHouseholdHeadUploads();
+      const uploadErrorKey = this.householdHeadUploadErrorKey();
+      if (uploadErrorKey) {
+        this.showToast(this.t(uploadErrorKey), 'warning'); return;
       }
       this.saving = true;
       const fd = this.buildHouseholdHeadFormData();
@@ -1035,12 +1081,96 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
 
   prevStep() { if (this.currentStep > 1) this.currentStep--; }
 
+	  private uploadLimits() {
+    return {
+      max_file_bytes: this.config?.upload_limits?.max_file_bytes || DEFAULT_UPLOAD_LIMITS.max_file_bytes,
+      max_post_bytes: this.config?.upload_limits?.max_post_bytes || DEFAULT_UPLOAD_LIMITS.max_post_bytes,
+    };
+	  }
+
+  private hasInvalidNepaliNameParts(source: any, fields: string[]): boolean {
+    return fields.some(field => !isNepaliNamePart(source?.[field]));
+  }
+
+  private activeHouseholdHeadUploadFields(): Set<string> {
+    const fields = new Set<string>(['photo']);
+    const usesBirthCertificate = this.householdHeadUsesBirthCertificate;
+
+    if (usesBirthCertificate) {
+      fields.add('birth_certificate_front_image');
+    } else if (!this.nidVerifiedHead) {
+      fields.add('citizenship_front_image');
+      fields.add('citizenship_back_image');
+    }
+
+    if (this.headData.is_target_group && this.headData.target_group_type !== 'senior_citizen') {
+      fields.add('target_group_front_image');
+      fields.add('target_group_back_image');
+    }
+
+    if (!this.temporarySameAsPermanent) {
+      fields.add('basai_sarai_front');
+      fields.add('basai_sarai_back');
+    }
+
+    return fields;
+  }
+
+  private clearInactiveHouseholdHeadUploads(): void {
+    const activeFields = this.activeHouseholdHeadUploadFields();
+
+    HOUSEHOLD_HEAD_UPLOAD_FIELDS.forEach(field => {
+      if (activeFields.has(field)) {
+        return;
+      }
+
+      this.headData[field] = null;
+      if (field === 'citizenship_front_image') this.citizenshipFrontPreview = '';
+      else if (field === 'citizenship_back_image') this.citizenshipBackPreview = '';
+      else if (field === 'birth_certificate_front_image') this.birthCertificateFrontPreview = '';
+      else if (field === 'target_group_front_image') this.targetGroupFrontPreview = '';
+      else if (field === 'target_group_back_image') this.targetGroupBackPreview = '';
+      else if (field === 'basai_sarai_front') this.basaiSaraiFrontPreview = '';
+      else if (field === 'basai_sarai_back') this.basaiSaraiBackPreview = '';
+    });
+  }
+
+  private householdHeadUploadErrorKey(): string | null {
+    const limits = this.uploadLimits();
+    const activeFields = this.activeHouseholdHeadUploadFields();
+    let totalBytes = 0;
+
+    activeFields.forEach(field => {
+      const value = this.headData[field];
+      if (!(value instanceof Blob)) {
+        return;
+      }
+
+      totalBytes += value.size;
+    });
+
+    for (const field of activeFields) {
+      const value = this.headData[field];
+      if (value instanceof Blob && limits.max_file_bytes > 0 && value.size > limits.max_file_bytes) {
+        return 'wizard.upload_file_too_large';
+      }
+    }
+
+    if (limits.max_post_bytes > 0 && totalBytes > limits.max_post_bytes) {
+      return 'wizard.upload_total_too_large';
+    }
+
+    return null;
+  }
+
   private buildHouseholdHeadFormData(): FormData {
     if (this.temporarySameAsPermanent) {
       this.copyPermanentToTemporary();
     }
     const usesBirthCertificate = this.syncHouseholdHeadDocumentType();
+    this.clearInactiveHouseholdHeadUploads();
     this.applyParentNameData(this.headData);
+    const activeUploadFields = this.activeHouseholdHeadUploadFields();
 
     const fd = new FormData();
     Object.entries({
@@ -1068,8 +1198,18 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
       const val = this.headData[key];
       if (val === null || val === undefined) return;
       if (typeof val === 'boolean') { fd.append(key, val ? '1' : '0'); return; }
-      if (val instanceof Blob) { fd.append(key, val, `${key}.jpg`); return; }
-      if (val !== '') fd.append(key, key === 'national_id' ? canonicalNid(val) : String(val));
+      if (val instanceof Blob) {
+        if (!activeUploadFields.has(key)) return;
+        fd.append(key, val, `${key}.jpg`); return;
+      }
+      if (val !== '') {
+        const stringValue = key === 'national_id'
+          ? canonicalNid(val)
+          : key === 'citizenship_number'
+            ? normalizeDigitsOnly(String(val))
+            : String(val);
+        if (stringValue !== '') fd.append(key, stringValue);
+      }
     });
 
     return fd;
@@ -1091,6 +1231,10 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
       }
       if (this.headData.national_id && !this.isValidNid(this.headData.national_id)) {
         this.showToast(this.t('wizard.nid_invalid_length'), 'warning');
+        this.savingDraft = false; return;
+      }
+      if (this.hasInvalidNepaliNameParts(this.headData, HOUSEHOLD_HEAD_NEPALI_NAME_FIELDS)) {
+        this.showToast(this.t('wizard.nepali_name_format'), 'warning');
         this.savingDraft = false; return;
       }
       const headAge = this.calculateAge(this.headData.date_of_birth);
@@ -1236,6 +1380,9 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
         !this.newMember.gender || !this.newMember.date_of_birth || !this.newMember.relationship) {
       this.showToast(this.t('wizard.member_required'), 'warning'); return;
     }
+    if (this.hasInvalidNepaliNameParts(this.newMember, MEMBER_NEPALI_NAME_FIELDS)) {
+      this.showToast(this.t('wizard.nepali_name_format'), 'warning'); return;
+    }
 
     const relationship = this.normalizeKey(this.newMember.relationship);
     if (this.isRelationshipBlockedForHead(relationship)) {
@@ -1283,6 +1430,11 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
       if (val === null || val === undefined || val === '') return;
       if (typeof val === 'boolean') { fd.append(key, val ? '1' : '0'); return; }
       if (val instanceof Blob) { fd.append(key, val, `${key}.jpg`); return; }
+      if (key === 'citizenship_number') {
+        const digits = normalizeDigitsOnly(String(val));
+        if (digits !== '') fd.append(key, digits);
+        return;
+      }
       fd.append(key, String(val));
     });
 
@@ -1464,7 +1616,8 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
     input.onchange = (event: any) => {
       const file: File = event.target.files[0];
       if (!file) return;
-      if (file.size > 2 * 1024 * 1024) { this.showToast(this.t('wizard.image_size'), 'danger'); return; }
+      const maxFileBytes = this.uploadLimits().max_file_bytes;
+      if (maxFileBytes > 0 && file.size > maxFileBytes) { this.showToast(this.t('wizard.image_size'), 'danger'); return; }
       const reader = new FileReader();
       reader.onload = () => this.applyImage(target, field as any, file, reader.result as string);
       reader.readAsDataURL(file);

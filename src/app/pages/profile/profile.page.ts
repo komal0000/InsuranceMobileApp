@@ -21,8 +21,9 @@ import { ApiResponse } from '../../interfaces/api-response.interface';
 import { User, ProfileUpdateRequest, ChangePasswordRequest } from '../../interfaces/user.interface';
 import { BsDatePickerComponent } from '../../components/bs-date-picker/bs-date-picker.component';
 import { LanguageToggleComponent } from '../../components/language-toggle/language-toggle.component';
+import { NepaliInputDirective } from '../../directives/nepali-input.directive';
 import { LanguageService } from '../../services/language.service';
-import { isStrongPassword } from '../../utils/auth-validation';
+import { isNepaliFullName, isStrongPassword, normalizeSpaces } from '../../utils/auth-validation';
 
 type ProfilePasswordField = 'current' | 'new' | 'confirmation';
 
@@ -33,7 +34,7 @@ type ProfilePasswordField = 'current' | 'new' | 'confirmation';
     CommonModule, FormsModule, BsDatePickerComponent,
     IonContent, IonHeader, IonToolbar, IonTitle, IonCard, IonCardContent,
     IonItem, IonInput, IonIcon, IonButton, IonSpinner,
-    LanguageToggleComponent
+    LanguageToggleComponent, NepaliInputDirective
   ],
   templateUrl: './profile.page.html',
   styleUrls: ['./profile.page.scss'],
@@ -149,6 +150,16 @@ export class ProfilePage implements OnInit {
   }
 
   async saveProfile() {
+    this.profileData.name_ne = normalizeSpaces(this.profileData.name_ne);
+
+    if (this.profileData.name_ne && !isNepaliFullName(this.profileData.name_ne)) {
+      const toast = await this.toastCtrl.create({
+        message: this.t('register.full_name_ne_format'), duration: 2000, color: 'warning', position: 'top',
+      });
+      await toast.present();
+      return;
+    }
+
     if (this.profileData.mobile_number && !/^\d{10}$/.test(this.profileData.mobile_number)) {
       const toast = await this.toastCtrl.create({
         message: this.t('register.mobile_digits'), duration: 2000, color: 'warning', position: 'top',

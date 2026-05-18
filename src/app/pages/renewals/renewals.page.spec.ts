@@ -253,6 +253,33 @@ describe('RenewalsPage', () => {
     }));
   });
 
+  it('blocks non-Devanagari Nepali names before direct add-member submit', async () => {
+    const { page, api, toastCtrl } = makePage('beneficiary');
+    page.canInitiateRenewal = true;
+    page.consentAccepted = true;
+    page.enrollment = { id: 7, status: 'active', household_head: { marital_status: 'married' } };
+    page.relationshipOptions = relationshipOptions();
+    page.newMember = {
+      first_name: 'Sita',
+      last_name: 'Lama',
+      first_name_ne: 'Sita',
+      last_name_ne: 'लामा',
+      gender: 'female',
+      date_of_birth: '2050-01-01',
+      relationship: 'spouse',
+      document_type: 'birth_certificate',
+    };
+
+    await page.addNewMember();
+
+    expect(api.post).not.toHaveBeenCalled();
+    expect(api.postFormData).not.toHaveBeenCalled();
+    expect(toastCtrl.create).toHaveBeenCalledWith(jasmine.objectContaining({
+      message: 'wizard.nepali_name_format',
+      color: 'warning',
+    }));
+  });
+
   it('submits selected first service point from the direct add-member form', async () => {
     const { page, api } = makePage('beneficiary');
     api.postFormData.and.returnValue(of({ success: true, data: {} }));
@@ -267,7 +294,8 @@ describe('RenewalsPage', () => {
       gender: 'female',
       date_of_birth: '2050-01-01',
       relationship: 'spouse',
-      document_type: 'birth_certificate',
+      document_type: 'citizenship',
+      citizenship_number: '३११०२२/६५८४३',
       first_service_point_id: 7,
       first_service_point: 'Bir Hospital',
       occupation: 'Agriculture',
@@ -279,6 +307,7 @@ describe('RenewalsPage', () => {
     const submitted = api.postFormData.calls.mostRecent().args[1] as FormData;
     expect(submitted.get('first_service_point_id')).toBe('7');
     expect(submitted.get('occupation')).toBe('Agriculture');
+    expect(submitted.get('citizenship_number')).toBe('31102265843');
     expect(submitted.has('first_service_point')).toBeFalse();
   });
 

@@ -28,7 +28,9 @@ import { ServicePointOption } from '../../interfaces/enrollment.interface';
 import { Renewal } from '../../interfaces/renewal.interface';
 import { BsDatePickerComponent } from '../../components/bs-date-picker/bs-date-picker.component';
 import { LanguageToggleComponent } from '../../components/language-toggle/language-toggle.component';
+import { NepaliInputDirective } from '../../directives/nepali-input.directive';
 import { LanguageService } from '../../services/language.service';
+import { isNepaliNamePart, normalizeDigitsOnly } from '../../utils/auth-validation';
 import {
   RelationshipGenderMap,
   genderForRelationship,
@@ -63,11 +65,17 @@ const DEFAULT_MEMBER_RELATIONSHIPS: Array<{ value: string; label: string }> = [
   { value: 'other', label: 'Other' },
 ];
 
+const MEMBER_NEPALI_NAME_FIELDS = [
+  'first_name_ne',
+  'middle_name_ne',
+  'last_name_ne',
+];
+
 @Component({
   selector: 'app-renewals',
   standalone: true,
   imports: [
-    CommonModule, FormsModule, BsDatePickerComponent, LanguageToggleComponent,
+    CommonModule, FormsModule, BsDatePickerComponent, LanguageToggleComponent, NepaliInputDirective,
     IonContent, IonHeader, IonToolbar, IonTitle, IonBadge, IonSearchbar,
     IonSegment, IonSegmentButton, IonRefresher, IonRefresherContent,
     IonInfiniteScroll, IonInfiniteScrollContent, IonFab, IonFabButton,
@@ -302,6 +310,10 @@ export class RenewalsPage implements OnInit, OnDestroy {
     this.showMemberForm = true;
   }
 
+  private hasInvalidNepaliNameParts(member: Record<string, unknown>): boolean {
+    return MEMBER_NEPALI_NAME_FIELDS.some(field => !isNepaliNamePart(member[field] as string | null | undefined));
+  }
+
   private loadServicePointOptions(): void {
     const province = this.enrollment?.province;
     const district = this.enrollment?.district;
@@ -394,6 +406,14 @@ export class RenewalsPage implements OnInit, OnDestroy {
       return;
     }
 
+    if (this.hasInvalidNepaliNameParts(m)) {
+      const toast = await this.toastCtrl.create({
+        message: this.t('wizard.nepali_name_format'), duration: 2000, color: 'warning', position: 'top',
+      });
+      await toast.present();
+      return;
+    }
+
     const relationship = this.normalizeKey(m.relationship);
     if (this.isRelationshipBlockedForHead(relationship)) {
       this.toastCtrl.create({ message: this.t('wizard.relationship_marital_status_block'), duration: 2500, color: 'warning', position: 'top' }).then(t => t.present());
@@ -435,6 +455,11 @@ export class RenewalsPage implements OnInit, OnDestroy {
       if (val === null || val === undefined || val === '') return;
       if (typeof val === 'boolean') { fd.append(key, val ? '1' : '0'); return; }
       if (val instanceof Blob) { fd.append(key, val, `${key}.jpg`); return; }
+      if (key === 'citizenship_number') {
+        const digits = normalizeDigitsOnly(String(val));
+        if (digits !== '') fd.append(key, digits);
+        return;
+      }
       fd.append(key, String(val));
     });
 

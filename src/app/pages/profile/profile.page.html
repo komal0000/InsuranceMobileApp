@@ -84,7 +84,7 @@
             </ion-item>
             <ion-item class="form-item">
               <ion-input [label]="t('profile.name_ne')" labelPlacement="stacked"
-                [(ngModel)]="profileData.name_ne" [readonly]="!editing"></ion-input>
+                appNepaliInput [(ngModel)]="profileData.name_ne" [readonly]="!editing"></ion-input>
             </ion-item>
             <ion-item class="form-item">
               <ion-input [label]="t('profile.mobile_number')" labelPlacement="stacked" type="tel"

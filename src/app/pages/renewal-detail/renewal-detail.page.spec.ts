@@ -119,7 +119,8 @@ describe('RenewalDetailPage', () => {
       gender: 'female',
       date_of_birth: '2050-01-01',
       relationship: 'spouse',
-      document_type: 'birth_certificate',
+      document_type: 'citizenship',
+      citizenship_number: '३११०२२/६५८४३',
       first_service_point_id: 7,
       first_service_point: 'Bir Hospital',
       occupation: 'Agriculture',
@@ -131,6 +132,7 @@ describe('RenewalDetailPage', () => {
     const submitted = api.postFormData.calls.mostRecent().args[1] as FormData;
     expect(submitted.get('first_service_point_id')).toBe('7');
     expect(submitted.get('occupation')).toBe('Agriculture');
+    expect(submitted.get('citizenship_number')).toBe('31102265843');
     expect(submitted.has('first_service_point')).toBeFalse();
   });
 
@@ -178,6 +180,31 @@ describe('RenewalDetailPage', () => {
     expect(api.postFormData).not.toHaveBeenCalled();
     expect(toastCtrl.create).toHaveBeenCalledWith(jasmine.objectContaining({
       message: 'wizard.relationship_marital_status_block',
+      color: 'warning',
+    }));
+  });
+
+  it('blocks non-Devanagari Nepali names before renewal member save', async () => {
+    const { page, api, toastCtrl } = makePage();
+    page.renewalId = 12;
+    page.renewal = { enrollment: { household_head: { marital_status: 'married' } } } as any;
+    page.relationshipOptions = relationshipOptions();
+    page.newMember = {
+      first_name: 'Sita',
+      last_name: 'Lama',
+      first_name_ne: 'Sita',
+      last_name_ne: 'लामा',
+      gender: 'female',
+      date_of_birth: '2050-01-01',
+      relationship: 'spouse',
+      document_type: 'birth_certificate',
+    };
+
+    await page.saveMember();
+
+    expect(api.postFormData).not.toHaveBeenCalled();
+    expect(toastCtrl.create).toHaveBeenCalledWith(jasmine.objectContaining({
+      message: 'wizard.nepali_name_format',
       color: 'warning',
     }));
   });

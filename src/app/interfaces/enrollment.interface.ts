@@ -208,6 +208,12 @@ export interface EnrollmentConfig {
   base_premium_amount: number;
   base_premium_member_count: number;
   additional_member_premium: number;
+  upload_limits?: {
+    max_file_bytes: number;
+    max_post_bytes: number;
+    max_file_label?: string;
+    max_post_label?: string;
+  };
   relationship_types: string[] | Record<string, string>;
   relationship_gender_map?: Record<string, 'male' | 'female'>;
   relationship_blocked_by_head_marital_status?: Record<string, string[]>;

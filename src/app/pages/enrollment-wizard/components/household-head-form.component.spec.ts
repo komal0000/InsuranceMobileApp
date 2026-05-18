@@ -84,9 +84,9 @@ describe('HouseholdHeadFormComponent', () => {
 
     expect(groupTitles).toEqual(['Father', 'Mother', 'Grandfather']);
     expect(groups.every((element) => element.classList.contains('parent-name-group--compact'))).toBeTrue();
-    expect(labels.filter((label) => label === 'First Name *').length).toBe(3);
-    expect(labels.filter((label) => label === 'Last Name *').length).toBe(3);
-    expect(labels.filter((label) => label === 'First Name (नेपाली) *').length).toBe(3);
-    expect(labels.filter((label) => label === 'Last Name (नेपाली) *').length).toBe(3);
+    expect(labels.filter((label) => label === 'First Name').length).toBe(3);
+    expect(labels.filter((label) => label === 'Last Name').length).toBe(3);
+    expect(labels.filter((label) => label === 'First Name (नेपाली)').length).toBe(3);
+    expect(labels.filter((label) => label === 'Last Name (नेपाली)').length).toBe(3);
   });
 });

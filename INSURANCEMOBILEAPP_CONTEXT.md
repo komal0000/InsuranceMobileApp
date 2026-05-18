@@ -60,6 +60,7 @@ This file captures the current Ionic/Angular state so future conversations do no
   - English full name must be at least two Latin-letter words.
   - Nepali full name must be at least two Devanagari-script words.
   - Extra spaces are normalized before submit.
+- `src\app\utils\auth-validation.ts` also exposes `isNepaliNamePart()` for optional split Nepali-name fields. Profile, enrollment household-head/parent/grandparent fields, enrollment members, renewal members, and registration now reject English letters, mixed English/Nepali, digits, Nepali digits, and punctuation before API submit; Laravel remains authoritative and returns `422` for invalid API payloads.
 - Register no longer asks for OTP or password.
 - After successful registration, the app navigates to login with:
   - `identifier_type=mobile`
@@ -173,6 +174,7 @@ Save behavior:
 - `saveHouseholdHead(id, formData)` calls `POST /api/enrollments/{id}/household-head`.
 - Old `saveStep1`, `saveStep2`, and generic `nidLookup` methods remain for compatibility.
 - Step 1 save sends permanent address, temporary address, selected household `first_service_point_id`, household-head fields, optional split parent/grandparent name fields, profession/qualification IDs, target-group fields, and files. Legacy combined parent/grandparent name fields are composed from the split fields before submit for compatibility when values are provided. The backend resolves the selected household service-point ID to the service-point name snapshot.
+- The wizard consumes optional `/api/enrollment-config.upload_limits` and falls back to `2 MB` per file / `20 MB` total. Before household-head save it clears inactive uploads, skips files not applicable to the current NID/document/target-group/temporary-address mode, blocks oversized selected/captured files locally, and surfaces backend `413` upload messages when a direct oversized request still reaches the API.
 - Backend API save/submit endpoints now also accept an enrollment in `rejected` status when the rejection actor was `district_eo` or `province` and the authenticated user is the household head or original enroller. Resubmission returns the enrollment to `pending_verification` and clears stale rejection/verification fields; response shapes are unchanged.
 
 Enrollment PDF behavior:
@@ -333,6 +335,7 @@ Family members:
 - The lightweight translation system uses `LanguageService`, `TranslatePipe`, and the dictionaries under `src\app\i18n`.
 - Login, register, dashboard, enrollments, enrollment detail, and enrollment wizard step titles/messages now resolve through `LanguageService`/`TranslatePipe` instead of relying only on DOM phrase replacement.
 - Nepali-name field labels use the mixed-script convention in English UI (`Full Name (नेपाली)`, `First Name (नेपाली)`, `Last Name (नेपाली)`) while Nepali UI keeps natural labels such as `पूरा नाम (नेपाली)`, `पहिलो नाम (नेपाली)`, and `थर (नेपाली)` across registration, profile, enrollment, and renewal/member forms.
+- All editable Ionic fields labeled as Nepali names use `appNepaliInput` where the user types names, including profile and renewal direct-add inputs. Transliteration is only a typing aid; pre-submit validation still requires Devanagari-only values.
 - Enrollments list search and status filter labels have Nepali keyed translations for the title, search placeholder, all/draft/verified/approved/rejected tabs, and related list messages.
 - DOM phrase translation is default-off. Keyed translations and locale helpers are the primary path; legacy DOM translation can be opted in with an explicit container only.
 - `LanguageService` now also provides locale-aware number formatting, digit localization, `translateText()` for backend/display messages, `label()` for enum-like values, and residual DOM attribute translation for `placeholder`, `title`, `aria-label`, `label`, and `alt`.

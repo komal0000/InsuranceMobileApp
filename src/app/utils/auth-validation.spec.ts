@@ -1,4 +1,4 @@
-import { isEnglishFullName, isNepaliFullName, isStrongPassword, normalizeSpaces } from './auth-validation';
+import { isEnglishFullName, isNepaliFullName, isNepaliNamePart, isStrongPassword, normalizeSpaces } from './auth-validation';
 
 describe('auth validation utilities', () => {
   it('validates existing name helpers', () => {
@@ -7,6 +7,18 @@ describe('auth validation utilities', () => {
     expect(isEnglishFullName('Sita')).toBeFalse();
     expect(isNepaliFullName('सीता शर्मा')).toBeTrue();
     expect(isNepaliFullName('Sita Sharma')).toBeFalse();
+  });
+
+  it('validates split Nepali name parts', () => {
+    expect(isNepaliNamePart('सीता')).toBeTrue();
+    expect(isNepaliNamePart('जित बहादुर')).toBeTrue();
+    expect(isNepaliNamePart('')).toBeTrue();
+    expect(isNepaliNamePart('Sita')).toBeFalse();
+    expect(isNepaliNamePart('Sita लामा')).toBeFalse();
+    expect(isNepaliNamePart('सीता 123')).toBeFalse();
+    expect(isNepaliNamePart('सीता १२३')).toBeFalse();
+    expect(isNepaliNamePart('सीता।')).toBeFalse();
+    expect(isNepaliNamePart('सीता॰')).toBeFalse();
   });
 
   it('keeps existing ASCII strong password behavior', () => {

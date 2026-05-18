@@ -421,6 +421,9 @@
   'dashboard.insurance_check_invalid_nid': '१० अंकसम्मको मान्य NID लेख्नुहोस्; हाइफन, खाली ठाउँ र नेपाली अंक मान्य छन्।',
   'dashboard.insurance_check_failed': 'अहिले बीमा जाँच गर्न सकिएन।',
   'wizard.save_failed': 'घरमूली विवरण सुरक्षित गर्न सकिएन।',
+  'wizard.nepali_name_format': 'नेपाली नामका फिल्डमा नेपाली अक्षर मात्र प्रयोग गर्नुहोस्।',
+  'wizard.upload_file_too_large': 'प्रत्येक कागजात २ MB वा सोभन्दा सानो हुनुपर्छ।',
+  'wizard.upload_total_too_large': 'छानिएका कागजातहरू धेरै ठूला छन्। साना फाइल अपलोड गरेर फेरि प्रयास गर्नुहोस्।',
 
   'policy.title': 'मेरो पोलिसी',
   'policy.members': 'सदस्यहरू',

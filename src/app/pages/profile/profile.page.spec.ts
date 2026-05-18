@@ -57,6 +57,27 @@ describe('ProfilePage', () => {
     }));
   });
 
+  it('blocks non-Devanagari Nepali profile names before saving', async () => {
+    const { page, api, toastCtrl } = createPage({
+      name: 'Sita Sharma',
+      name_ne: 'सीता शर्मा',
+      mobile_number: '9812345678',
+    });
+    page.profileData = {
+      name: 'Sita Sharma',
+      name_ne: 'Sita Sharma',
+      mobile_number: '9812345678',
+    };
+
+    await page.saveProfile();
+
+    expect(api.put).not.toHaveBeenCalled();
+    expect(toastCtrl.create).toHaveBeenCalledWith(jasmine.objectContaining({
+      message: 'register.full_name_ne_format',
+      color: 'warning',
+    }));
+  });
+
   it('toggles profile password fields independently', () => {
     const { page } = createPage();
 
