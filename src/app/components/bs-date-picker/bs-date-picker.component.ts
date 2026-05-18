@@ -612,22 +612,25 @@ export class BsDatePickerComponent implements ControlValueAccessor, OnDestroy {
     const raw = (event.target as HTMLInputElement).value;
     this.inputValue = raw.replace(/-/g, '/');
     this.inputInvalid = false;
+    this.syncTypedValue({ markInvalid: false });
   }
 
   onTextBlur(): void {
-    this.commitTypedInput();
+    this.syncTypedValue({ markInvalid: true, clearEmpty: true });
     this.onTouched();
   }
 
   onTextEnter(event: Event): void {
     event.preventDefault();
-    this.commitTypedInput();
+    this.syncTypedValue({ markInvalid: true, clearEmpty: true });
   }
 
   openSheet(): void {
     if (this.disabled) {
       return;
     }
+
+    this.syncTypedValue({ markInvalid: false });
 
     const hasValidSelection = this.selectedDate !== null && this.isYearSelectable(this.selectedDate.year);
     const focusDate: BsDateValue = hasValidSelection
@@ -729,26 +732,32 @@ export class BsDatePickerComponent implements ControlValueAccessor, OnDestroy {
     this.bsDateChange.emit(iso);
   }
 
-  private commitTypedInput(): void {
+  private syncTypedValue(options: { markInvalid?: boolean; clearEmpty?: boolean } = {}): boolean {
     if (this.disabled) {
-      return;
+      return false;
     }
 
     const raw = this.inputValue.trim();
     if (!raw) {
-      this.clearSelection();
-      return;
+      if (options.clearEmpty) {
+        this.clearSelection();
+        return true;
+      }
+      return false;
     }
 
     const parsed = this.parseBsDate(raw);
     if (!parsed) {
-      this.inputInvalid = true;
-      return;
+      if (options.markInvalid !== false) {
+        this.inputInvalid = true;
+      }
+      return false;
     }
 
     this.viewYear = parsed.year;
     this.viewMonth = parsed.month;
     this.commitValue(parsed);
+    return true;
   }
 
   private scheduleClose(): void {
