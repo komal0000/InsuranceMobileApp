@@ -150,6 +150,7 @@ describe('EnrollmentWizardPage', () => {
 
     const formData = (page as any).buildHouseholdHeadFormData() as FormData;
 
+    expect(formData.get('permanent_address_source')).toBe('citizenship');
     expect(formData.get('temporary_same_as_permanent')).toBe('0');
   });
 
@@ -166,6 +167,52 @@ describe('EnrollmentWizardPage', () => {
     expect(page.nidMessage2).toBe('');
     expect(page.nidLockedHeadFields.size).toBe(0);
     expect(page.verifiedNidGroups.length).toBe(0);
+    expect(page.permanentAddressSource).toBe('citizenship');
+  });
+
+  it('holds NID permanent address until the user confirms it as the source', () => {
+    const enrollmentSvc = {
+      headNidLookup: jasmine.createSpy().and.returnValue(of({
+        success: true,
+        message: 'Verified.',
+        data: {
+          national_id: '1234567890',
+          first_name: 'Komal',
+          last_name: 'Shrestha',
+          province: 'Bagamati',
+          district: 'Makawanpur',
+          municipality: 'Hetauda Sub-Metropolitan City',
+          ward_number: '9',
+          tole_village: 'Madanpath',
+        },
+      })),
+    };
+    const geoSvc = {
+      districts: jasmine.createSpy().and.returnValue(of(response(['Makawanpur']))),
+      municipalities: jasmine.createSpy().and.returnValue(of(response(['Hetauda Sub-Metropolitan City']))),
+      wards: jasmine.createSpy().and.returnValue(of(response(['9']))),
+      servicePoints: jasmine.createSpy().and.returnValue(of(servicePointResponse([]))),
+    };
+    const page = createPage({ enrollmentSvc, geoSvc });
+    page.enrollmentId = 4;
+    page.nidNumber2 = '1234567890';
+
+    page.lookupNid2();
+
+    expect(page.nidVerifiedHead).toBeTrue();
+    expect(page.permanentAddressSource).toBe('');
+    expect(page.nidPermanentAddress?.province).toBe('Bagamati');
+    expect(page.step1.province).toBe('');
+
+    page.onPermanentAddressSourceChange('nid');
+
+    expect(page.permanentAddressSource).toBe('nid');
+    expect(page.step1.province).toBe('Bagamati');
+    expect(page.step1.district).toBe('Makawanpur');
+    expect(page.step1.municipality).toBe('Hetauda Sub-Metropolitan City');
+    expect(page.step1.ward_number).toBe('9');
+    expect(page.step1.tole_village).toBe('Madanpath');
+    expect(page.isHeadFieldReadonly('province')).toBeTrue();
   });
 
   it('accepts hyphenated and Nepali-digit NIDs but rejects invalid household lookup values', () => {
@@ -356,7 +403,7 @@ describe('EnrollmentWizardPage', () => {
     expect(geoSvc.wards).toHaveBeenCalledWith('Bagamati', 'Kathmandu', 'Kathmandu Metropolitan City');
   });
 
-  it('loads mapped household-head NID address, citizenship district, and JPEG photo', () => {
+  it('loads mapped household-head NID address for confirmation, citizenship district, and JPEG photo', () => {
     const enrollmentSvc = {
       headNidLookup: jasmine.createSpy().and.returnValue(of({
         success: true,
@@ -406,11 +453,13 @@ describe('EnrollmentWizardPage', () => {
     page.nidNumber2 = '१२३-४५६-७८९-०';
     page.lookupNid2();
 
-    expect(page.step1.province).toBe('Bagamati');
-    expect(page.step1.district).toBe('Makawanpur');
-    expect(page.step1.municipality).toBe('Hetauda Sub-Metropolitan City');
-    expect(page.step1.ward_number).toBe('9');
-    expect(page.step1.tole_village).toBe('Madanpath');
+    expect(page.nidPermanentAddress?.province).toBe('Bagamati');
+    expect(page.nidPermanentAddress?.district).toBe('Makawanpur');
+    expect(page.nidPermanentAddress?.municipality).toBe('Hetauda Sub-Metropolitan City');
+    expect(page.nidPermanentAddress?.ward_number).toBe('9');
+    expect(page.nidPermanentAddress?.tole_village).toBe('Madanpath');
+    expect(page.step1.province).toBe('');
+    expect(page.permanentAddressSource).toBe('');
     expect(page.headData.citizenship_issue_district).toBe('Makawanpur');
     expect(page.headPhotoPreview).toBe('data:image/jpeg;base64,abc123');
     expect(page.headData.father_first_name).toBe('Jit Bahadur');
@@ -428,6 +477,64 @@ describe('EnrollmentWizardPage', () => {
     expect(verifiedValues).toContain('311022/65843');
     expect(enrollmentSvc.headNidLookup).toHaveBeenCalledWith(4, '123-456-789-0');
     expect(page.headData.national_id).toBe('1234567890');
+  });
+
+  it('requires Basai Sarai evidence for migration source before saving household head', async () => {
+    const enrollmentSvc = {
+      saveHouseholdHead: jasmine.createSpy().and.returnValue(of({ success: true, data: {} })),
+    };
+    const page = createPage({ enrollmentSvc });
+    fillValidHouseholdHead(page);
+    page.permanentAddressSource = 'migration';
+    page.headData.photo = new Blob(['photo'], { type: 'image/jpeg' });
+    page.headData.citizenship_front_image = new Blob(['front'], { type: 'image/jpeg' });
+    page.headData.citizenship_back_image = new Blob(['back'], { type: 'image/jpeg' });
+    spyOn<any>(page, 'showToast').and.returnValue(Promise.resolve());
+
+    await page.nextStep();
+
+    expect(enrollmentSvc.saveHouseholdHead).not.toHaveBeenCalled();
+    expect(page['showToast']).toHaveBeenCalledWith('wizard.basai_sarai_required', 'warning');
+  });
+
+  it('does not require Basai Sarai when only the temporary address differs', async () => {
+    const enrollmentSvc = {
+      saveHouseholdHead: jasmine.createSpy().and.returnValue(of({
+        success: true,
+        message: 'Saved.',
+        data: { id: 4, current_step: 2, household_head: null, family_members: [] },
+      })),
+      get: jasmine.createSpy().and.returnValue(of({
+        success: true,
+        message: 'Loaded.',
+        data: { id: 4, current_step: 2, household_head: null, family_members: [] },
+      })),
+    };
+    const page = createPage({ enrollmentSvc });
+    fillValidHouseholdHead(page);
+    page.permanentAddressSource = 'citizenship';
+    page.temporarySameAsPermanent = false;
+    page.temporaryAddress = {
+      province: 'Koshi',
+      district: 'Morang',
+      municipality: 'Biratnagar',
+      ward_number: '2',
+      tole_village: 'Temporary Tole',
+      full_address: 'Temporary Tole, Ward 2, Biratnagar',
+    };
+    page.headData.photo = new Blob(['photo'], { type: 'image/jpeg' });
+    page.headData.citizenship_front_image = new Blob(['front'], { type: 'image/jpeg' });
+    page.headData.citizenship_back_image = new Blob(['back'], { type: 'image/jpeg' });
+    spyOn<any>(page, 'showToast').and.returnValue(Promise.resolve());
+
+    await page.nextStep();
+
+    expect(enrollmentSvc.saveHouseholdHead).toHaveBeenCalled();
+    const submitted = enrollmentSvc.saveHouseholdHead.calls.mostRecent().args[1] as FormData;
+    expect(submitted.get('permanent_address_source')).toBe('citizenship');
+    expect(submitted.get('temporary_same_as_permanent')).toBe('0');
+    expect(submitted.has('basai_sarai_front')).toBeFalse();
+    expect(page['showToast']).not.toHaveBeenCalledWith('wizard.basai_sarai_required', 'warning');
   });
 
   it('shows duplicate active NID validation messages from household-head save', () => {

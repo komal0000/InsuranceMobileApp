@@ -15,6 +15,7 @@ export interface Enrollment {
   ward_number: number;
   tole_village: string;
   full_address: string;
+  permanent_address_source?: PermanentAddressSource | null;
   temporary_same_as_permanent?: boolean;
   temporary_province?: string | null;
   temporary_district?: string | null;
@@ -52,6 +53,8 @@ export interface Enrollment {
   pdf_download_url?: string | null;
   card_download_url?: string | null;
 }
+
+export type PermanentAddressSource = 'nid' | 'citizenship' | 'migration';
 
 export type EnrollmentStatus =
   | 'draft'
@@ -200,6 +203,8 @@ export interface EnrollmentDocument {
   document_type: string;
   file_path: string;
   file_name?: string;
+  url?: string;
+  file_url?: string;
   created_at?: string;
 }
 

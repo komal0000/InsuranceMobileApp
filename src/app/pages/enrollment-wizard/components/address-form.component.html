@@ -1,4 +1,31 @@
-      <ion-card *ngIf="hasEditablePermanentAddressFields()">
+      <ion-card>
+        <ion-card-content>
+          <div class="section-title">
+            <div class="section-icon" style="background:rgba(0,48,135,0.08)">
+              <ion-icon name="location-outline" style="color:#003087"></ion-icon>
+            </div>
+            <h3>{{ text('wizard.permanent_address_source', 'Permanent Address Source') }}</h3>
+          </div>
+
+          <ion-segment [ngModel]="permanentAddressSource" (ionChange)="onPermanentAddressSourceChange($event.detail.value)">
+            <ion-segment-button *ngIf="nidVerifiedHead && canUseNidPermanentAddress" value="nid">
+              <ion-label>{{ text('wizard.same_as_nid_address', 'Same as NID') }}</ion-label>
+            </ion-segment-button>
+            <ion-segment-button *ngIf="shouldShowCitizenshipAddressOption()" value="citizenship">
+              <ion-label>{{ text('wizard.same_as_citizenship_address', 'Same as Citizenship') }}</ion-label>
+            </ion-segment-button>
+            <ion-segment-button value="migration">
+              <ion-label>{{ text('wizard.migration_address', 'Migration') }}</ion-label>
+            </ion-segment-button>
+          </ion-segment>
+
+          <div *ngIf="permanentAddressSource === 'nid' && nidPermanentAddress" class="nid-waiver-note">
+            {{ nidPermanentAddress.full_address }}
+          </div>
+        </ion-card-content>
+      </ion-card>
+
+      <ion-card *ngIf="shouldShowPermanentAddressFields()">
         <ion-card-content>
           <div class="section-title">
             <div class="section-icon" style="background:rgba(0,48,135,0.08)">
@@ -72,6 +99,39 @@
         </ion-card-content>
       </ion-card>
 
+      <ion-card *ngIf="permanentAddressSource === 'migration'">
+        <ion-card-content>
+          <div class="section-title">
+            <div class="section-icon" style="background:rgba(0,48,135,0.08)">
+              <ion-icon name="document-text-outline" style="color:#003087"></ion-icon>
+            </div>
+            <h3>{{ text('wizard.basai_sarai_sifarish_document', 'Basai Sarai Sifarish Document') }}</h3>
+          </div>
+
+          <div class="capture-section">
+            <div class="capture-row">
+              <span class="capture-label">{{ text('wizard.basai_sarai_front', 'Basai Sarai Front') }}</span>
+              <ion-button size="small" fill="outline" (click)="captureImage('head','basai_sarai_front')">
+                <ion-icon slot="start" name="camera-outline"></ion-icon>
+                {{ basaiSaraiFrontPreview ? text('common.change', 'Change') : text('common.capture', 'Capture') }}
+              </ion-button>
+            </div>
+            <img *ngIf="basaiSaraiFrontPreview" [src]="basaiSaraiFrontPreview" class="preview-img" />
+          </div>
+
+          <div class="capture-section">
+            <div class="capture-row">
+              <span class="capture-label">{{ text('wizard.basai_sarai_back', 'Basai Sarai Back') }}</span>
+              <ion-button size="small" fill="outline" (click)="captureImage('head','basai_sarai_back')">
+                <ion-icon slot="start" name="camera-outline"></ion-icon>
+                {{ basaiSaraiBackPreview ? text('common.change', 'Change') : text('common.capture', 'Capture') }}
+              </ion-button>
+            </div>
+            <img *ngIf="basaiSaraiBackPreview" [src]="basaiSaraiBackPreview" class="preview-img" />
+          </div>
+        </ion-card-content>
+      </ion-card>
+
       <ion-card>
         <ion-card-content>
           <div class="section-title">
@@ -131,27 +191,6 @@
               </ion-input>
             </ion-item>
 
-            <div class="capture-section">
-              <div class="capture-row">
-                <span class="capture-label">{{ text('wizard.basai_sarai_front_optional', 'Basai Sarai Front (Optional)') }}</span>
-                <ion-button size="small" fill="outline" (click)="captureImage('head','basai_sarai_front')">
-                  <ion-icon slot="start" name="camera-outline"></ion-icon>
-                  {{ basaiSaraiFrontPreview ? text('common.change', 'Change') : text('common.capture', 'Capture') }}
-                </ion-button>
-              </div>
-              <img *ngIf="basaiSaraiFrontPreview" [src]="basaiSaraiFrontPreview" class="preview-img" />
-            </div>
-
-            <div class="capture-section">
-              <div class="capture-row">
-                <span class="capture-label">{{ text('wizard.basai_sarai_back_optional', 'Basai Sarai Back (Optional)') }}</span>
-                <ion-button size="small" fill="outline" (click)="captureImage('head','basai_sarai_back')">
-                  <ion-icon slot="start" name="camera-outline"></ion-icon>
-                  {{ basaiSaraiBackPreview ? text('common.change', 'Change') : text('common.capture', 'Capture') }}
-                </ion-button>
-              </div>
-              <img *ngIf="basaiSaraiBackPreview" [src]="basaiSaraiBackPreview" class="preview-img" />
-            </div>
           </div>
         </ion-card-content>
       </ion-card>

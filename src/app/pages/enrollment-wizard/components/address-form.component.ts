@@ -11,12 +11,15 @@ import {
   IonLabel,
   IonSelect,
   IonSelectOption,
+  IonSegment,
+  IonSegmentButton,
   IonToggle,
 } from '@ionic/angular/standalone';
-import { Step1Data } from '../../../interfaces/enrollment.interface';
+import { PermanentAddressSource, Step1Data } from '../../../interfaces/enrollment.interface';
 import { LanguageService } from '../../../services/language.service';
 
 type HeadAddressImageField = 'basai_sarai_front' | 'basai_sarai_back';
+type PermanentAddressSourceChoice = PermanentAddressSource | '';
 
 @Component({
   selector: 'app-address-form',
@@ -33,6 +36,8 @@ type HeadAddressImageField = 'basai_sarai_front' | 'basai_sarai_back';
     IonLabel,
     IonSelect,
     IonSelectOption,
+    IonSegment,
+    IonSegmentButton,
     IonToggle,
   ],
   templateUrl: './address-form.component.html',
@@ -53,6 +58,11 @@ export class AddressFormComponent {
   @Input() basaiSaraiFrontPreview = '';
   @Input() basaiSaraiBackPreview = '';
   @Input() lockedFields: ReadonlySet<string> = new Set<string>();
+  @Input() nidVerifiedHead = false;
+  @Input() nidPermanentAddress: Step1Data | null = null;
+  @Input() canUseNidPermanentAddress = false;
+
+  @Input() permanentAddressSource: PermanentAddressSourceChoice = 'citizenship';
 
   @Input()
   get temporarySameAsPermanent(): boolean {
@@ -64,6 +74,7 @@ export class AddressFormComponent {
   }
 
   @Output() temporarySameAsPermanentChange = new EventEmitter<boolean>();
+  @Output() permanentAddressSourceChange = new EventEmitter<PermanentAddressSourceChoice>();
   @Output() provinceChange = new EventEmitter<void>();
   @Output() districtChange = new EventEmitter<void>();
   @Output() municipalityChange = new EventEmitter<void>();
@@ -84,6 +95,18 @@ export class AddressFormComponent {
   hasEditablePermanentAddressFields(): boolean {
     return ['province', 'district', 'municipality', 'ward_number', 'tole_village']
       .some(field => !this.isHeadFieldReadonly(field));
+  }
+
+  shouldShowCitizenshipAddressOption(): boolean {
+    return !this.nidVerifiedHead || !this.canUseNidPermanentAddress;
+  }
+
+  shouldShowPermanentAddressFields(): boolean {
+    return this.permanentAddressSource !== 'nid' && this.hasEditablePermanentAddressFields();
+  }
+
+  onPermanentAddressSourceChange(value: unknown): void {
+    this.permanentAddressSourceChange.emit((value || '') as PermanentAddressSourceChoice);
   }
 
   onProvinceChange(): void {

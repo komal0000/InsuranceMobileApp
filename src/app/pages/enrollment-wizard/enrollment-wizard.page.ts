@@ -30,7 +30,7 @@ import { HouseholdHeadFormComponent } from './components/household-head-form.com
 import { NidGateComponent } from './components/nid-gate.component';
 import { ReviewSubmitComponent } from './components/review-submit.component';
 import {
-  Enrollment, EnrollmentConfig, FamilyMember, HouseholdHead, NidLookupData, Step1Data,
+  Enrollment, EnrollmentConfig, FamilyMember, HouseholdHead, NidLookupData, PermanentAddressSource, Step1Data,
   ServicePointOption, SubsidyResult, SubsidySummary
 } from '../../interfaces/enrollment.interface';
 import { canonicalNid, isValidNidInput, nidLookupValue } from '../../utils/nid-number.util';
@@ -121,6 +121,8 @@ interface VerifiedNidGroup {
   fields: VerifiedNidField[];
 }
 
+type PermanentAddressSourceChoice = PermanentAddressSource | '';
+
 @Component({
   selector: 'app-enrollment-wizard',
   standalone: true,
@@ -162,6 +164,8 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
     province: '', district: '', municipality: '', ward_number: '',
     tole_village: '', full_address: '',
   };
+  permanentAddressSource: PermanentAddressSourceChoice = 'citizenship';
+  nidPermanentAddress: Step1Data | null = null;
   provinces: string[] = [];
   districts: string[] = [];
   municipalities: string[] = [];
@@ -392,6 +396,10 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
       full_address: e.temporary_full_address || '',
     };
     this.loadTemporaryGeoOptions(this.temporaryAddress);
+    this.permanentAddressSource = (e.permanent_address_source as PermanentAddressSourceChoice) || 'citizenship';
+    this.nidPermanentAddress = null;
+    this.basaiSaraiFrontPreview = this.getEnrollmentDocUrl(e, 'basai_sarai_front') || '';
+    this.basaiSaraiBackPreview = this.getEnrollmentDocUrl(e, 'basai_sarai_back') || '';
 
     // ── Step 2: Household head ────────────────────────────────────────────────
     const head = e.household_head;
@@ -461,7 +469,14 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
       this.syncHouseholdHeadDocumentType();
       if (head.nid_verified_at && head.nid_raw_payload) {
         this.nidVerifiedHead = true;
+        this.nidPermanentAddress = this.step1FromNidPayload(head.nid_raw_payload as NidLookupData);
+        if (!e.permanent_address_source && this.hasCompleteAddress(this.nidPermanentAddress)) {
+          this.permanentAddressSource = 'nid';
+        }
         this.markLockedHeadFields(head.nid_raw_payload as NidLookupData);
+        if (this.permanentAddressSource === 'nid') {
+          this.lockNidAddressFields();
+        }
         this.syncHouseholdHeadDocumentType();
       }
     } else {
@@ -548,12 +563,7 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
   }
 
   updateFullAddress() {
-    const parts = [
-      this.step1.tole_village,
-      this.step1.ward_number ? `Ward ${this.step1.ward_number}` : '',
-      this.step1.municipality, this.step1.district, this.step1.province,
-    ].filter(Boolean);
-    this.step1.full_address = parts.join(', ');
+    this.step1.full_address = this.composeFullAddress(this.step1);
     if (this.temporarySameAsPermanent) {
       this.copyPermanentToTemporary();
     }
@@ -606,14 +616,17 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
   }
 
   updateTemporaryFullAddress() {
-    const parts = [
-      this.temporaryAddress.tole_village,
-      this.temporaryAddress.ward_number ? `Ward ${this.temporaryAddress.ward_number}` : '',
-      this.temporaryAddress.municipality,
-      this.temporaryAddress.district,
-      this.temporaryAddress.province,
-    ].filter(Boolean);
-    this.temporaryAddress.full_address = parts.join(', ');
+    this.temporaryAddress.full_address = this.composeFullAddress(this.temporaryAddress);
+  }
+
+  private composeFullAddress(address: Step1Data): string {
+    return [
+      address.tole_village,
+      address.ward_number ? `Ward ${address.ward_number}` : '',
+      address.municipality,
+      address.district,
+      address.province,
+    ].filter(Boolean).join(', ');
   }
 
   private loadTemporaryGeoOptions(address: Step1Data) {
@@ -670,7 +683,9 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
           if (d.citizenship_issue_date_bs)   this.headData.citizenship_issue_date      = d.citizenship_issue_date_bs;
           if (d.citizenship_issue_district)  this.headData.citizenship_issue_district  = d.citizenship_issue_district;
           if (d.photo_url) this.headPhotoPreview = d.photo_url;
-          this.applyNidLocation(d);
+          this.nidPermanentAddress = this.step1FromNidPayload(d);
+          this.permanentAddressSource = this.hasCompleteAddress(this.nidPermanentAddress) ? '' : 'citizenship';
+          this.clearNidAddressLocks();
           this.markLockedHeadFields(d);
           this.syncHouseholdHeadDocumentType();
           this.nidVerifiedHead = true;
@@ -704,6 +719,8 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
     }
     this.nidLockedHeadFields.clear();
     this.nidVerifiedHead = false;
+    this.nidPermanentAddress = null;
+    this.permanentAddressSource = 'citizenship';
     this.nidMessage2 = '';
     this.showNidGate2 = false;
   }
@@ -905,11 +922,6 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
         this.nidLockedHeadFields.add(field);
       }
     });
-    if (d.province) this.nidLockedHeadFields.add('province');
-    if (d.district) this.nidLockedHeadFields.add('district');
-    if (d.municipality) this.nidLockedHeadFields.add('municipality');
-    if (d.ward_number) this.nidLockedHeadFields.add('ward_number');
-    if (d.tole_village) this.nidLockedHeadFields.add('tole_village');
   }
 
   lookupNidMember() {
@@ -964,6 +976,85 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
   }
 
   skipNidGateMember() { this.showNidGateMember = false; }
+
+  get canUseNidPermanentAddress(): boolean {
+    return this.hasCompleteAddress(this.nidPermanentAddress);
+  }
+
+  onPermanentAddressSourceChange(source: PermanentAddressSourceChoice): void {
+    const previousSource = this.permanentAddressSource;
+    const nextSource = source || '';
+
+    if (nextSource === 'nid') {
+      if (!this.canUseNidPermanentAddress || !this.nidPermanentAddress) {
+        this.permanentAddressSource = this.nidVerifiedHead ? '' : 'citizenship';
+        return;
+      }
+
+      this.permanentAddressSource = 'nid';
+      this.applyNidLocation(this.nidPermanentAddress);
+      this.lockNidAddressFields();
+      return;
+    }
+
+    this.permanentAddressSource = nextSource;
+    this.clearNidAddressLocks();
+
+    if (previousSource === 'nid') {
+      this.clearPermanentAddress();
+    }
+  }
+
+  private step1FromNidPayload(d: {
+    province?: string | null;
+    district?: string | null;
+    municipality?: string | null;
+    ward_number?: string | null;
+    tole_village?: string | null;
+  }): Step1Data {
+    const address = {
+      province: d.province || '',
+      district: d.district || '',
+      municipality: d.municipality || '',
+      ward_number: d.ward_number ? String(d.ward_number) : '',
+      tole_village: d.tole_village || '',
+      full_address: '',
+    };
+
+    address.full_address = this.composeFullAddress(address);
+
+    return address;
+  }
+
+  private hasCompleteAddress(address: Step1Data | null): boolean {
+    return !!address?.province && !!address.district && !!address.municipality && !!address.ward_number;
+  }
+
+  private lockNidAddressFields(): void {
+    ['province', 'district', 'municipality', 'ward_number', 'tole_village']
+      .forEach(field => this.nidLockedHeadFields.add(field));
+  }
+
+  private clearNidAddressLocks(): void {
+    ['province', 'district', 'municipality', 'ward_number', 'tole_village']
+      .forEach(field => this.nidLockedHeadFields.delete(field));
+  }
+
+  private clearPermanentAddress(): void {
+    this.step1 = {
+      province: '',
+      district: '',
+      municipality: '',
+      ward_number: '',
+      tole_village: '',
+      full_address: '',
+    };
+    this.districts = [];
+    this.municipalities = [];
+    this.wards = [];
+    this.servicePointOptions = [];
+    this.firstServicePointId = '';
+  }
 
   private applyNidLocation(d: { province?: string | null; district?: string | null; municipality?: string | null; ward_number?: string | null; tole_village?: string | null }) {
     if (!d.province) {
@@ -1024,6 +1115,12 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
   async nextStep() {
     if (this.currentStep === 1) {
       this.syncHouseholdHeadDocumentType();
+      if (!this.permanentAddressSource) {
+        this.showToast(this.t('wizard.permanent_address_source_required'), 'warning'); return;
+      }
+      if (this.permanentAddressSource === 'nid' && (!this.canUseNidPermanentAddress || !this.nidPermanentAddress)) {
+        this.showToast(this.t('wizard.nid_address_unavailable'), 'warning'); return;
+      }
       if (!this.step1.province || !this.step1.district || !this.step1.municipality || !this.step1.ward_number) {
       this.showToast(this.t('wizard.required_location'), 'warning'); return;
       }
@@ -1056,6 +1153,9 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
         this.showToast(this.t('wizard.citizenship_issue_age'), 'warning'); return;
       }
       this.clearInactiveHouseholdHeadUploads();
+      if (this.permanentAddressSource === 'migration' && !this.hasBasaiSaraiEvidence()) {
+        this.showToast(this.t('wizard.basai_sarai_required'), 'warning'); return;
+      }
       const uploadErrorKey = this.householdHeadUploadErrorKey();
       if (uploadErrorKey) {
         this.showToast(this.t(uploadErrorKey), 'warning'); return;
@@ -1108,7 +1208,7 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
       fields.add('target_group_back_image');
     }
 
-    if (!this.temporarySameAsPermanent) {
+    if (this.permanentAddressSource === 'migration') {
       fields.add('basai_sarai_front');
       fields.add('basai_sarai_back');
     }
@@ -1163,6 +1263,13 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
     return null;
   }
 
+  private hasBasaiSaraiEvidence(): boolean {
+    return this.headData.basai_sarai_front instanceof Blob
+      || this.headData.basai_sarai_back instanceof Blob
+      || this.basaiSaraiFrontPreview !== ''
+      || this.basaiSaraiBackPreview !== '';
+  }
+
   private buildHouseholdHeadFormData(): FormData {
     if (this.temporarySameAsPermanent) {
       this.copyPermanentToTemporary();
@@ -1175,6 +1282,7 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
     const fd = new FormData();
     Object.entries({
       ...this.step1,
+      permanent_address_source: this.permanentAddressSource || 'citizenship',
       temporary_same_as_permanent: this.temporarySameAsPermanent,
       temporary_province: this.temporaryAddress.province,
       temporary_district: this.temporaryAddress.district,
@@ -1663,6 +1771,12 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
     if (!member?.documents?.length) return null;
     const doc = member.documents.find((d: any) => d.document_type === type);
     return doc?.url || null;
+  }
+
+  getEnrollmentDocUrl(enrollment: Enrollment | null, type: string): string | null {
+    if (!enrollment?.documents?.length) return null;
+    const doc = enrollment.documents.find((d: any) => d.document_type === type);
+    return doc?.url || doc?.file_url || null;
   }
 
   getAge(adDate?: string | null, bsDate?: string | null): number {
