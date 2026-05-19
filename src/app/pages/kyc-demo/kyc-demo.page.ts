@@ -11,6 +11,7 @@ import {
   IonContent,
   IonHeader,
   IonIcon,
+  IonImg,
   IonInput,
   IonItem,
   IonLabel,
@@ -22,6 +23,7 @@ import {
 import { addIcons } from 'ionicons';
 import {
   alertCircleOutline,
+  cameraOutline,
   checkmarkCircleOutline,
   homeOutline,
   peopleOutline,
@@ -51,6 +53,9 @@ type KycForm = {
   profession_id: string;
   education_id: string;
   health_facility_id: string;
+  citizenship: string;
+  national_id: string;
+  photo: string;
 };
 
 type KycFormField = keyof KycForm;
@@ -86,6 +91,7 @@ interface KycDisplayField {
     IonContent,
     IonHeader,
     IonIcon,
+    IonImg,
     IonInput,
     IonItem,
     IonLabel,
@@ -108,6 +114,7 @@ export class KycDemoPage implements OnDestroy {
   consentAcceptanceId: number | null = null;
   demoData: LegacyImisKycDemoResponse | null = null;
   kycForm: KycForm = this.blankKycForm();
+  photoPreview = '';
 
   readonly editableMemberFields: KycEditableField[] = [
     { key: 'firstname', labelKey: 'kyc_demo.firstname' },
@@ -122,6 +129,8 @@ export class KycDemoPage implements OnDestroy {
     { key: 'profession_id', labelKey: 'kyc_demo.profession_id' },
     { key: 'education_id', labelKey: 'kyc_demo.education_id' },
     { key: 'health_facility_id', labelKey: 'kyc_demo.health_facility_id' },
+    { key: 'citizenship', labelKey: 'kyc_demo.citizenship' },
+    { key: 'national_id', labelKey: 'kyc_demo.national_id' },
   ];
 
   private readonly lockedMemberFieldConfigs: KycLockedField[] = [
@@ -142,6 +151,7 @@ export class KycDemoPage implements OnDestroy {
   ) {
     addIcons({
       alertCircleOutline,
+      cameraOutline,
       checkmarkCircleOutline,
       homeOutline,
       peopleOutline,
@@ -250,6 +260,30 @@ export class KycDemoPage implements OnDestroy {
     return String(value);
   }
 
+  async captureKycPhoto(): Promise<void> {
+    try {
+      const { Camera, CameraResultType, CameraSource } = await import('@capacitor/camera');
+      const image = await Camera.getPhoto({
+        quality: 80,
+        allowEditing: false,
+        resultType: CameraResultType.DataUrl,
+        source: CameraSource.Prompt,
+        width: 1024,
+      });
+
+      if (image.dataUrl) {
+        this.applyKycPhotoDataUrl(image.dataUrl);
+      }
+    } catch {
+      this.fallbackKycPhotoInput();
+    }
+  }
+
+  applyKycPhotoDataUrl(dataUrl: string): void {
+    this.kycForm.photo = dataUrl;
+    this.photoPreview = dataUrl;
+  }
+
   get lockedMemberFields(): KycDisplayField[] {
     const member = this.demoData?.selected_member;
 
@@ -275,6 +309,7 @@ export class KycDemoPage implements OnDestroy {
     this.householdHeadChfid = data.household_head_chfid || this.householdHeadChfid.trim();
     this.memberChfid = data.selected_member?.chfid || data.member_chfid || this.memberChfid.trim();
     this.kycForm = this.formFromMember(data.selected_member);
+    this.photoPreview = this.kycForm.photo;
   }
 
   private clearMessages(): void {
@@ -313,6 +348,9 @@ export class KycDemoPage implements OnDestroy {
       profession_id: '',
       education_id: '',
       health_facility_id: '',
+      citizenship: '',
+      national_id: '',
+      photo: '',
     };
   }
 
@@ -330,6 +368,9 @@ export class KycDemoPage implements OnDestroy {
       profession_id: this.formValue(member?.profession_id),
       education_id: this.formValue(member?.education_id),
       health_facility_id: this.formValue(member?.health_facility_id),
+      citizenship: '',
+      national_id: '',
+      photo: '',
     };
   }
 
@@ -347,7 +388,25 @@ export class KycDemoPage implements OnDestroy {
       profession_id: this.kycForm.profession_id.trim(),
       education_id: this.kycForm.education_id.trim(),
       health_facility_id: this.kycForm.health_facility_id.trim(),
+      citizenship: this.kycForm.citizenship.trim(),
+      national_id: this.kycForm.national_id.trim(),
+      photo: this.kycForm.photo.trim(),
     };
+  }
+
+  private fallbackKycPhotoInput(): void {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/jpg,image/jpeg,image/png,image/webp';
+    input.onchange = (event: Event) => {
+      const file = (event.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = () => this.applyKycPhotoDataUrl(String(reader.result || ''));
+      reader.readAsDataURL(file);
+    };
+    input.click();
   }
 
   private formValue(value: unknown): string {

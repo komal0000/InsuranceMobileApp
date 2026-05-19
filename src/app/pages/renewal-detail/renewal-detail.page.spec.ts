@@ -136,6 +136,24 @@ describe('RenewalDetailPage', () => {
     expect(submitted.has('first_service_point')).toBeFalse();
   });
 
+  it('uses renewal members with staged add and removal badges before enrollment fallback', () => {
+    const { page } = makePage();
+    const added = { id: 9, first_name: 'Mina', pending_renewal_addition: true };
+    const removed = { id: 10, first_name: 'Rita', pending_renewal_removal: true };
+    page.renewal = {
+      members_added: [9],
+      members_removed: [10],
+      members: [added, removed],
+      enrollment: {
+        family_members: [{ id: 11, first_name: 'Public' }],
+      },
+    } as any;
+
+    expect(page.renewalMembers).toEqual([added, removed]);
+    expect(page.isRenewalAddedMember(added)).toBeTrue();
+    expect(page.isRenewalRemovedMember(removed)).toBeTrue();
+  });
+
   it('submits a blank first service point so renewal edits can clear a saved member value', async () => {
     const { page, api } = makePage();
     page.renewalId = 12;

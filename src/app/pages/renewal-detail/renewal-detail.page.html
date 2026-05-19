@@ -106,6 +106,12 @@
                   <strong>{{ member.first_name || '' }} {{ member.last_name || member.full_name || '' }}</strong>
                   <span class="nepali-name" *ngIf="member.first_name_ne">{{ member.first_name_ne }} {{ member.middle_name_ne || '' }} {{ member.last_name_ne || '' }}</span>
                   <span>{{ formatRelationship(member.relationship_type || member.relationship) }} | {{ label('gender', member.gender) }}</span>
+                  <ion-badge color="success" *ngIf="isRenewalAddedMember(member)" style="font-size:0.65rem; margin-top:4px;">
+                    {{ t('renewal_detail.new_member') }}
+                  </ion-badge>
+                  <ion-badge color="danger" *ngIf="isRenewalRemovedMember(member)" style="font-size:0.65rem; margin-top:4px;">
+                    {{ t('renewal_detail.pending_removal') }}
+                  </ion-badge>
                 </div>
                 <div class="member-actions" *ngIf="canSubmit">
                   <ion-button fill="clear" size="small" (click)="editMember(member)">

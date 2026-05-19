@@ -497,12 +497,14 @@ export class RenewalsPage implements OnInit, OnDestroy {
 
     const activeRenewal = this.renewals.find(r => ['eligible', 'draft'].includes(r.status));
     if (activeRenewal) {
-      addToRenewal(activeRenewal.id).subscribe({
+      const activeRenewalId = activeRenewal.id;
+      addToRenewal(activeRenewalId).subscribe({
         next: async (res) => {
           this.savingMember = false;
           if (res.success) {
             this.showMemberForm = false;
             this.loadBeneficiaryEnrollment();
+            this.router.navigateByUrl(`/renewal-detail/${activeRenewalId}`);
             const toast = await this.toastCtrl.create({ message: this.t('renewals.member_added_pending'), duration: 2500, color: 'success', position: 'top' });
             await toast.present();
           }

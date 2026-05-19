@@ -67,7 +67,7 @@ export class LegacyImisService {
   }
 
   private kycEditableFields(payload: LegacyImisKycEditableFields): LegacyImisKycEditableFields {
-    return {
+    return this.withoutUndefined({
       firstname: payload.firstname,
       lastname: payload.lastname,
       date_of_birth: payload.date_of_birth,
@@ -78,8 +78,25 @@ export class LegacyImisService {
       geolocation: payload.geolocation,
       relationship_code: payload.relationship_code,
       profession_id: payload.profession_id,
+      occupation: payload.occupation,
       education_id: payload.education_id,
+      education: payload.education,
       health_facility_id: payload.health_facility_id,
-    };
+      fsp: payload.fsp,
+      citizenship: payload.citizenship,
+      citizenship_number: payload.citizenship_number,
+      national_id: payload.national_id ? nidLookupValue(payload.national_id) : payload.national_id,
+      photo: payload.photo,
+    });
+  }
+
+  private withoutUndefined<T extends Record<string, unknown>>(fields: T): T {
+    return Object.keys(fields).reduce<Record<string, unknown>>((defined, key) => {
+      if (fields[key] !== undefined) {
+        defined[key] = fields[key];
+      }
+
+      return defined;
+    }, {}) as T;
   }
 }

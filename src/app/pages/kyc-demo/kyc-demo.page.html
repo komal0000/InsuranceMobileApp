@@ -113,6 +113,17 @@
             [(ngModel)]="kycForm[field.key]">
           </ion-input>
 
+          <div class="photo-capture">
+            <div>
+              <span>{{ t('kyc_demo.photo') }}</span>
+              <ion-button size="small" fill="outline" (click)="captureKycPhoto()">
+                <ion-icon name="camera-outline" slot="start"></ion-icon>
+                {{ photoPreview ? t('common.change') : t('common.capture') }}
+              </ion-button>
+            </div>
+            <ion-img *ngIf="photoPreview" [src]="photoPreview" class="photo-preview"></ion-img>
+          </div>
+
           <ion-button expand="block" (click)="updateKyc()" [disabled]="updating || !consentAccepted">
             <ion-spinner *ngIf="updating" name="crescent" slot="start"></ion-spinner>
             <ion-icon *ngIf="!updating" name="send-outline" slot="start"></ion-icon>

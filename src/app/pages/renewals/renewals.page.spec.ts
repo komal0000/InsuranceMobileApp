@@ -280,8 +280,8 @@ describe('RenewalsPage', () => {
     }));
   });
 
-  it('submits selected first service point from the direct add-member form', async () => {
-    const { page, api } = makePage('beneficiary');
+  it('submits selected first service point from the direct add-member form and opens renewal detail', async () => {
+    const { page, api, router } = makePage('beneficiary');
     api.postFormData.and.returnValue(of({ success: true, data: {} }));
     page.canInitiateRenewal = true;
     page.consentAccepted = true;
@@ -309,6 +309,7 @@ describe('RenewalsPage', () => {
     expect(submitted.get('occupation')).toBe('Agriculture');
     expect(submitted.get('citizenship_number')).toBe('31102265843');
     expect(submitted.has('first_service_point')).toBeFalse();
+    expect(router.navigateByUrl).toHaveBeenCalledWith('/renewal-detail/42');
   });
 
   it('submits a blank first service point from direct add-member form when none is selected', async () => {

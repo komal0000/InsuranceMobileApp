@@ -676,6 +676,23 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
     return Array.isArray(familyMembers) ? familyMembers : [];
   }
 
+  isRenewalAddedMember(member: any): boolean {
+    return this.containsRenewalMemberId(this.renewal?.members_added, member?.id);
+  }
+
+  isRenewalRemovedMember(member: any): boolean {
+    return this.containsRenewalMemberId(this.renewal?.members_removed, member?.id);
+  }
+
+  private containsRenewalMemberId(ids: Array<number | string> | null | undefined, memberId: number | string | null | undefined): boolean {
+    if (memberId === undefined || memberId === null || !ids?.length) {
+      return false;
+    }
+
+    const numericId = Number(memberId);
+    return ids.some(id => Number(id) === numericId);
+  }
+
   getHeadPhotoUrl(): string | null {
     const head = this.householdHead;
     if (!head) {

@@ -63,8 +63,13 @@ describe('LegacyImisService', () => {
       geolocation: '27.5291,84.3542',
       relationship_code: 0,
       profession_id: 6,
+      occupation: 2,
       education_id: 7,
+      education: 3,
       health_facility_id: 25,
+      fsp: 3,
+      citizenship: '1001',
+      photo: 'data:image/jpeg;base64,aW1hZ2U=',
       national_id: '१२३-४५६-७८९-०',
     }).subscribe(result => {
       expect(result).toEqual(response);
@@ -82,8 +87,13 @@ describe('LegacyImisService', () => {
       geolocation: '27.5291,84.3542',
       relationship_code: 0,
       profession_id: 6,
+      occupation: 2,
       education_id: 7,
+      education: 3,
       health_facility_id: 25,
+      fsp: 3,
+      citizenship: '1001',
+      photo: 'data:image/jpeg;base64,aW1hZ2U=',
       national_id: '123-456-789-0',
       consent_accepted: true,
     });
@@ -146,8 +156,14 @@ describe('LegacyImisService', () => {
       geolocation: '27.7172,85.3240',
       relationship_code: 2,
       profession_id: 6,
+      occupation: 2,
       education_id: 7,
+      education: 3,
       health_facility_id: 25,
+      fsp: 3,
+      citizenship: 'CIT-1001',
+      national_id: '1001',
+      photo: 'data:image/jpeg;base64,ZGVtbw==',
     }).subscribe(result => {
       expect(result).toEqual(response);
     });
@@ -165,8 +181,14 @@ describe('LegacyImisService', () => {
       geolocation: '27.7172,85.3240',
       relationship_code: 2,
       profession_id: 6,
+      occupation: 2,
       education_id: 7,
+      education: 3,
       health_facility_id: 25,
+      fsp: 3,
+      citizenship: 'CIT-1001',
+      national_id: '1001',
+      photo: 'data:image/jpeg;base64,ZGVtbw==',
       consent_accepted: true,
     });
   });

@@ -58,13 +58,19 @@ export interface LegacyImisKycEditableFields {
   geolocation?: string | null;
   relationship_code?: string | number | null;
   profession_id?: string | number | null;
+  occupation?: string | number | null;
   education_id?: string | number | null;
+  education?: string | number | null;
   health_facility_id?: string | number | null;
+  fsp?: string | number | null;
+  citizenship?: string | null;
+  citizenship_number?: string | null;
+  national_id?: string | null;
+  photo?: string | null;
 }
 
 export interface LegacyImisKycUpdatePayload extends LegacyImisKycEditableFields {
   chfid: string;
-  national_id?: string | null;
   consent_accepted?: boolean;
   consent_acceptance_id?: number | null;
 }

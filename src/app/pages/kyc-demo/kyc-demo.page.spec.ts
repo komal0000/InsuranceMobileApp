@@ -115,6 +115,9 @@ describe('KycDemoPage', () => {
       profession_id: '6',
       education_id: '7',
       health_facility_id: '25',
+      citizenship: '',
+      national_id: '',
+      photo: '',
     });
     expect(page.lockedMemberFields.map(field => field.key)).toEqual([
       'chfid',
@@ -148,6 +151,9 @@ describe('KycDemoPage', () => {
       profession_id: '6',
       education_id: '7',
       health_facility_id: '25',
+      citizenship: 'CIT-1001',
+      national_id: '1001',
+      photo: 'data:image/jpeg;base64,aW1hZ2U=',
     };
 
     page.updateKyc();
@@ -168,9 +174,21 @@ describe('KycDemoPage', () => {
       profession_id: '6',
       education_id: '7',
       health_facility_id: '25',
+      citizenship: 'CIT-1001',
+      national_id: '1001',
+      photo: 'data:image/jpeg;base64,aW1hZ2U=',
     });
     expect(page.demoData?.selected_member?.phone).toBe('+9779800000000');
     expect(page.successMessage).toBe('Updated');
+  });
+
+  it('applies captured KYC photo to the update form and preview', () => {
+    const { page } = makePage();
+
+    page.applyKycPhotoDataUrl('data:image/jpeg;base64,aW1hZ2U=');
+
+    expect(page.kycForm.photo).toBe('data:image/jpeg;base64,aW1hZ2U=');
+    expect(page.photoPreview).toBe('data:image/jpeg;base64,aW1hZ2U=');
   });
 
   it('shows backend member CHFID validation errors clearly', () => {
