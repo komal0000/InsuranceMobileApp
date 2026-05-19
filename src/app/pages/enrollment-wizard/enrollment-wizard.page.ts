@@ -684,13 +684,17 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
           if (d.citizenship_issue_district)  this.headData.citizenship_issue_district  = d.citizenship_issue_district;
           if (d.photo_url) this.headPhotoPreview = d.photo_url;
           this.nidPermanentAddress = this.step1FromNidPayload(d);
-          this.permanentAddressSource = this.hasCompleteAddress(this.nidPermanentAddress) ? '' : 'citizenship';
           this.clearNidAddressLocks();
           this.markLockedHeadFields(d);
           this.syncHouseholdHeadDocumentType();
           this.nidVerifiedHead = true;
+          if (this.hasCompleteAddress(this.nidPermanentAddress)) {
+            this.onPermanentAddressSourceChange('nid');
+          } else {
+            this.permanentAddressSource = 'citizenship';
+          }
           this.showNidGate2    = false;
-        this.showToast(this.t('wizard.nid_verified'), 'success');
+          this.showToast(this.t('wizard.nid_verified'), 'success');
         } else {
           this.nidMessage2 = this.languageService.translateText(res.message) || this.t('wizard.nid_no_record');
         }

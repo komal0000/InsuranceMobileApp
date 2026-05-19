@@ -295,6 +295,44 @@ export class EnrollmentDetailPage implements OnInit, OnDestroy {
     return this.dateService.formatForDisplay(adDate, bsDate) || '';
   }
 
+  enrollmentDateLabel(): string {
+    return this.enrollmentSubmittedAdDate() || this.enrollmentSubmittedBsDate()
+      ? 'enrollment_detail.submitted_prefix'
+      : 'enrollment_detail.created_prefix';
+  }
+
+  enrollmentDisplayDate(): string {
+    const submittedAd = this.enrollmentSubmittedAdDate();
+    const submittedBs = this.enrollmentSubmittedBsDate();
+
+    if (submittedAd || submittedBs) {
+      return this.displayDate(submittedAd, submittedBs);
+    }
+
+    return this.displayDate(this.enrollment?.created_at);
+  }
+
+  private enrollmentSubmittedAdDate(): string | null {
+    if (!this.enrollment || this.enrollment.status === 'draft') {
+      return null;
+    }
+
+    return this.enrollment.submitted_at_ad
+      || this.enrollment.submitted_at
+      || this.enrollment.payment_date
+      || null;
+  }
+
+  private enrollmentSubmittedBsDate(): string | null {
+    if (!this.enrollment || this.enrollment.status === 'draft') {
+      return null;
+    }
+
+    return this.enrollment.submitted_at_bs
+      || this.enrollment.payment_date_bs
+      || null;
+  }
+
   t(key: string): string {
     return this.languageService.t(key);
   }

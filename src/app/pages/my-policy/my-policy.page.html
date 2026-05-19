@@ -246,7 +246,7 @@
                 <div class="history-item" *ngFor="let h of history">
                   <div class="history-left">
                     <strong>{{ h.enrollment_number || '#' + h.id }}</strong>
-                    <span class="history-date">{{ displayDate(h.created_at, h.created_at_bs) }}</span>
+                    <span class="history-date">{{ historyDisplayDate(h) }}</span>
                   </div>
                   <ion-badge [color]="getStatusColor(h.status)">
                     {{ formatStatus(h.status) }}

@@ -8,13 +8,13 @@
           </div>
 
           <ion-segment [ngModel]="permanentAddressSource" (ionChange)="onPermanentAddressSourceChange($event.detail.value)">
-            <ion-segment-button *ngIf="nidVerifiedHead && canUseNidPermanentAddress" value="nid">
+            <ion-segment-button *ngIf="shouldShowNidAddressOption()" value="nid">
               <ion-label>{{ text('wizard.same_as_nid_address', 'Same as NID') }}</ion-label>
             </ion-segment-button>
             <ion-segment-button *ngIf="shouldShowCitizenshipAddressOption()" value="citizenship">
               <ion-label>{{ text('wizard.same_as_citizenship_address', 'Same as Citizenship') }}</ion-label>
             </ion-segment-button>
-            <ion-segment-button value="migration">
+            <ion-segment-button *ngIf="shouldShowMigrationAddressOption()" value="migration">
               <ion-label>{{ text('wizard.migration_address', 'Migration') }}</ion-label>
             </ion-segment-button>
           </ion-segment>

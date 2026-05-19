@@ -1117,6 +1117,7 @@
   'enrollment_detail.rejected': 'नामांकन अस्वीकृत भयो',
   'enrollment_detail.family_members_count': 'परिवार सदस्यहरू',
   'enrollment_detail.created_prefix': 'सिर्जना भएको',
+  'enrollment_detail.submitted_prefix': 'पेश भएको',
 
   'wizard.step1': 'घरमूली र ठेगाना',
   'wizard.step2': 'परिवार सदस्यहरू',

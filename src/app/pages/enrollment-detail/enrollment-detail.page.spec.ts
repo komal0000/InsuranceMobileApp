@@ -16,7 +16,9 @@ describe('EnrollmentDetailPage', () => {
     const enrollmentService = jasmine.createSpyObj('EnrollmentService', ['getPdfUrl', 'getAllCardsPdfUrl']);
     const syncService = { events$: EMPTY };
     const authService = { getCurrentUser: () => ({ role: 'beneficiary' }) };
-    const dateService = {};
+    const dateService = {
+      formatForDisplay: (adDate?: string | null, bsDate?: string | null) => bsDate || adDate || '',
+    };
     const languageService = {
       t: (key: string) => key,
       translateText: (value?: string) => value || '',
@@ -58,5 +60,31 @@ describe('EnrollmentDetailPage', () => {
       message: 'consent.required',
       color: 'warning',
     }));
+  });
+
+  it('displays submitted date when the enrollment has been submitted later', () => {
+    const { page } = makePage();
+    page.enrollment = {
+      status: 'pending_verification',
+      created_at: '2026-05-01',
+      submitted_at: '2026-05-11',
+      submitted_at_bs: '2083-01-28',
+    } as any;
+
+    expect(page.enrollmentDateLabel()).toBe('enrollment_detail.submitted_prefix');
+    expect(page.enrollmentDisplayDate()).toBe('2083-01-28');
+  });
+
+  it('falls back to created date for draft enrollments', () => {
+    const { page } = makePage();
+    page.enrollment = {
+      status: 'draft',
+      created_at: '2026-05-01',
+      submitted_at: null,
+      submitted_at_bs: null,
+    } as any;
+
+    expect(page.enrollmentDateLabel()).toBe('enrollment_detail.created_prefix');
+    expect(page.enrollmentDisplayDate()).toBe('2026-05-01');
   });
 });

@@ -1,6 +1,7 @@
 import { of, Subject, throwError } from 'rxjs';
 import { EnrollmentWizardPage } from './enrollment-wizard.page';
 import { ApiResponse } from '../../interfaces/api-response.interface';
+import { AddressFormComponent } from './components/address-form.component';
 
 describe('EnrollmentWizardPage', () => {
   function languageService(language = 'en') {
@@ -74,6 +75,10 @@ describe('EnrollmentWizardPage', () => {
       toastController() as any,
       (overrides.alertCtrl || {}) as any
     );
+  }
+
+  function createAddressForm() {
+    return new AddressFormComponent(languageService() as any);
   }
 
   function parentGrandparentNames() {
@@ -170,7 +175,7 @@ describe('EnrollmentWizardPage', () => {
     expect(page.permanentAddressSource).toBe('citizenship');
   });
 
-  it('holds NID permanent address until the user confirms it as the source', () => {
+  it('uses complete NID permanent address as the source immediately after lookup', () => {
     const enrollmentSvc = {
       headNidLookup: jasmine.createSpy().and.returnValue(of({
         success: true,
@@ -200,19 +205,36 @@ describe('EnrollmentWizardPage', () => {
     page.lookupNid2();
 
     expect(page.nidVerifiedHead).toBeTrue();
-    expect(page.permanentAddressSource).toBe('');
-    expect(page.nidPermanentAddress?.province).toBe('Bagamati');
-    expect(page.step1.province).toBe('');
-
-    page.onPermanentAddressSourceChange('nid');
-
     expect(page.permanentAddressSource).toBe('nid');
+    expect(page.nidPermanentAddress?.province).toBe('Bagamati');
     expect(page.step1.province).toBe('Bagamati');
     expect(page.step1.district).toBe('Makawanpur');
     expect(page.step1.municipality).toBe('Hetauda Sub-Metropolitan City');
     expect(page.step1.ward_number).toBe('9');
     expect(page.step1.tole_village).toBe('Madanpath');
     expect(page.isHeadFieldReadonly('province')).toBeTrue();
+  });
+
+  it('shows only the NID permanent address option in confirmed NID mode', () => {
+    const form = createAddressForm();
+    form.nidVerifiedHead = true;
+    form.canUseNidPermanentAddress = true;
+    form.permanentAddressSource = 'nid';
+
+    expect(form.shouldShowNidAddressOption()).toBeTrue();
+    expect(form.shouldShowCitizenshipAddressOption()).toBeFalse();
+    expect(form.shouldShowMigrationAddressOption()).toBeFalse();
+  });
+
+  it('shows citizenship and migration permanent address options in manual mode', () => {
+    const form = createAddressForm();
+    form.nidVerifiedHead = false;
+    form.canUseNidPermanentAddress = false;
+    form.permanentAddressSource = 'citizenship';
+
+    expect(form.shouldShowNidAddressOption()).toBeFalse();
+    expect(form.shouldShowCitizenshipAddressOption()).toBeTrue();
+    expect(form.shouldShowMigrationAddressOption()).toBeTrue();
   });
 
   it('accepts hyphenated and Nepali-digit NIDs but rejects invalid household lookup values', () => {
@@ -403,7 +425,7 @@ describe('EnrollmentWizardPage', () => {
     expect(geoSvc.wards).toHaveBeenCalledWith('Bagamati', 'Kathmandu', 'Kathmandu Metropolitan City');
   });
 
-  it('loads mapped household-head NID address for confirmation, citizenship district, and JPEG photo', () => {
+  it('loads mapped household-head NID address as selected source with citizenship district and JPEG photo', () => {
     const enrollmentSvc = {
       headNidLookup: jasmine.createSpy().and.returnValue(of({
         success: true,
@@ -458,14 +480,15 @@ describe('EnrollmentWizardPage', () => {
     expect(page.nidPermanentAddress?.municipality).toBe('Hetauda Sub-Metropolitan City');
     expect(page.nidPermanentAddress?.ward_number).toBe('9');
     expect(page.nidPermanentAddress?.tole_village).toBe('Madanpath');
-    expect(page.step1.province).toBe('');
-    expect(page.permanentAddressSource).toBe('');
+    expect(page.step1.province).toBe('Bagamati');
+    expect(page.permanentAddressSource).toBe('nid');
     expect(page.headData.citizenship_issue_district).toBe('Makawanpur');
     expect(page.headPhotoPreview).toBe('data:image/jpeg;base64,abc123');
     expect(page.headData.father_first_name).toBe('Jit Bahadur');
     expect(page.headData.father_last_name).toBe('Lama');
     expect(page.headData.grandfather_first_name_ne).toBe('कालु बहादुर');
     expect(page.headData.grandfather_last_name_ne).toBe('लामा');
+    expect(page.isHeadFieldReadonly('province')).toBeTrue();
     expect(page.isHeadFieldReadonly('citizenship_issue_district')).toBeTrue();
     expect(page.isHeadFieldReadonly('father_first_name')).toBeTrue();
     expect(page.isHeadFieldReadonly('citizenship_issue_date')).toBeTrue();

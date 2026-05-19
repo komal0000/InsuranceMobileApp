@@ -101,6 +101,13 @@ export class MyPolicyPage implements OnInit {
     return this.dateService.formatForDisplay(adDate, bsDate) || '';
   }
 
+  historyDisplayDate(historyItem: any): string {
+    return this.displayDate(
+      historyItem?.submitted_at_ad || historyItem?.submitted_at || historyItem?.created_at_ad || historyItem?.created_at,
+      historyItem?.submitted_at_bs || historyItem?.created_at_bs,
+    );
+  }
+
   t(key: string): string {
     return this.languageService.t(key);
   }

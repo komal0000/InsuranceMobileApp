@@ -572,6 +572,7 @@ export const EN_TRANSLATIONS: Record<string, string> = {
   'enrollment_detail.rejected': 'Enrollment rejected',
   'enrollment_detail.family_members_count': 'Family Members',
   'enrollment_detail.created_prefix': 'Created',
+  'enrollment_detail.submitted_prefix': 'Submitted',
 
   'wizard.step1': 'Household Head and Address',
   'wizard.step2': 'Family Members',

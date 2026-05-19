@@ -39,6 +39,12 @@ export interface Enrollment {
   payment_reference: string;
   payment_date: string;
   payment_date_bs?: string;
+  submitted_at?: string | null;
+  submitted_at_bs?: string | null;
+  submitted_at_ad?: string | null;
+  display_enrollment_date?: string | null;
+  display_enrollment_date_bs?: string | null;
+  display_enrollment_date_ad?: string | null;
   rejection_reason?: string;
   approved_by?: number | null;
   approved_at?: string | null;

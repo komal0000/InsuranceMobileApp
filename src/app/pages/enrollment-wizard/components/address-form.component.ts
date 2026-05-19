@@ -97,8 +97,20 @@ export class AddressFormComponent {
       .some(field => !this.isHeadFieldReadonly(field));
   }
 
+  isConfirmedNidAddressSource(): boolean {
+    return this.nidVerifiedHead && this.canUseNidPermanentAddress && this.permanentAddressSource === 'nid';
+  }
+
+  shouldShowNidAddressOption(): boolean {
+    return this.isConfirmedNidAddressSource();
+  }
+
   shouldShowCitizenshipAddressOption(): boolean {
-    return !this.nidVerifiedHead || !this.canUseNidPermanentAddress;
+    return !this.isConfirmedNidAddressSource();
+  }
+
+  shouldShowMigrationAddressOption(): boolean {
+    return !this.isConfirmedNidAddressSource();
   }
 
   shouldShowPermanentAddressFields(): boolean {
