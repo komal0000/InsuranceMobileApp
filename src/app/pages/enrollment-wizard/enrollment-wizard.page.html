@@ -82,6 +82,7 @@
                                [professionOptions]="professionOptions"
                                [qualificationOptions]="qualificationOptions"
                                [lockedFields]="nidLockedHeadFields"
+                               [citizenshipIssueDateErrorMessage]="headCitizenshipIssueDateWarning"
                                (capture)="captureImage('head', $event)">
       </app-household-head-form>
 
@@ -127,6 +128,7 @@
                                [professionOptions]="professionOptions"
                                [qualificationOptions]="qualificationOptions"
                                [lockedFields]="nidLockedHeadFields"
+                               [citizenshipIssueDateErrorMessage]="headCitizenshipIssueDateWarning"
                                (identityModeChange)="onHouseholdHeadIdentityModeChange()"
                                (capture)="captureImage('head', $event)">
       </app-household-head-form>
@@ -230,6 +232,8 @@
                            [relationshipGenderMap]="relationshipGenderMap"
                            [servicePointOptions]="servicePointOptions"
                            [professionOptions]="professionOptions"
+                           [lockedFields]="nidLockedMemberFields"
+                           [showEmail]="true"
                            [showRelationshipConstraintNotice]="hasBlockedRelationshipOptions"
                            [isEditing]="isEditingMember"
                            [saving]="savingMember"
@@ -237,6 +241,7 @@
                            [citizenshipFrontPreview]="memberCitizenshipFrontPreview"
                            [citizenshipBackPreview]="memberCitizenshipBackPreview"
                            [birthCertificateFrontPreview]="memberBirthCertFrontPreview"
+                           [citizenshipIssueDateErrorMessage]="memberCitizenshipIssueDateWarning"
                            (capture)="captureImage('member', $event)"
                            (save)="saveMember()"
                            (cancel)="cancelAddMember()">

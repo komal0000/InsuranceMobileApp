@@ -34,7 +34,7 @@ import {
   ServicePointOption, SubsidyResult, SubsidySummary
 } from '../../interfaces/enrollment.interface';
 import { canonicalNid, isValidNidInput, nidLookupValue } from '../../utils/nid-number.util';
-import { isNepaliNamePart, normalizeDigitsOnly } from '../../utils/auth-validation';
+import { isEnglishNamePart, isNepaliNamePart, normalizeDigitsOnly } from '../../utils/auth-validation';
 import {
   RelationshipGenderMap,
   genderForRelationship,
@@ -105,10 +105,29 @@ const HOUSEHOLD_HEAD_NEPALI_NAME_FIELDS = [
   'grandfather_name_ne',
 ];
 
+const HOUSEHOLD_HEAD_ENGLISH_NAME_FIELDS = [
+  'first_name',
+  'last_name',
+  'father_first_name',
+  'father_last_name',
+  'father_name',
+  'mother_first_name',
+  'mother_last_name',
+  'mother_name',
+  'grandfather_first_name',
+  'grandfather_last_name',
+  'grandfather_name',
+];
+
 const MEMBER_NEPALI_NAME_FIELDS = [
   'first_name_ne',
   'middle_name_ne',
   'last_name_ne',
+];
+
+const MEMBER_ENGLISH_NAME_FIELDS = [
+  'first_name',
+  'last_name',
 ];
 
 interface VerifiedNidField {
@@ -201,6 +220,7 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
     { id: 8, label: 'Un-Educated' },
   ];
   nidLockedHeadFields = new Set<string>();
+  nidLockedMemberFields = new Set<string>();
 
   showNidGate2 = true;
   nidNumber2 = '';
@@ -258,12 +278,13 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
   nidVerifiedMember = false;
 
   newMember: any = {
+    national_id: '',
     first_name: '', last_name: '',
     first_name_ne: '', last_name_ne: '',
     gender: '', date_of_birth: '', relationship: '',
-    blood_group: '', marital_status: '', mobile_number: '',
+    blood_group: '', marital_status: '', mobile_number: '', email: '',
     first_service_point_id: '',
-    occupation: '',
+    occupation: '', education_level: '',
     document_type: '',
     citizenship_number: '', citizenship_issue_date: '', citizenship_issue_district: '',
     birth_certificate_number: '', birth_certificate_issue_date: '',
@@ -745,6 +766,10 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
     return this.nidLockedHeadFields.has(field);
   }
 
+  isMemberFieldReadonly(field: string): boolean {
+    return this.nidLockedMemberFields.has(field);
+  }
+
   get verifiedNidGroups(): VerifiedNidGroup[] {
     if (!this.nidVerifiedHead) {
       return [];
@@ -928,6 +953,31 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
     });
   }
 
+  private markLockedMemberFields(d: NidLookupData): void {
+    const data = d as unknown as Record<string, unknown>;
+    const fieldMap: Record<string, string[]> = {
+      first_name: ['first_name'],
+      last_name: ['last_name'],
+      first_name_ne: ['first_name_ne'],
+      last_name_ne: ['last_name_ne'],
+      gender: ['gender'],
+      date_of_birth: ['date_of_birth', 'date_of_birth_bs', 'dob_loc'],
+      mobile_number: ['mobile_number'],
+      email: ['email'],
+      citizenship_number: ['citizenship_number', 'cc_number', 'cc_number_loc'],
+      citizenship_issue_date: ['citizenship_issue_date', 'citizenship_issue_date_bs', 'cc_issuing_date', 'cc_issuing_date_loc'],
+      citizenship_issue_district: ['citizenship_issue_district', 'cc_issuing_district', 'cc_issuing_district_loc'],
+      occupation: ['occupation', 'profession'],
+    };
+
+    Object.entries(fieldMap).forEach(([field, keys]) => {
+      const hasPayload = keys.some(key => data[key] !== null && data[key] !== undefined && String(data[key]).trim() !== '');
+      if (hasPayload && String(this.newMember[field] || '').trim() !== '') {
+        this.nidLockedMemberFields.add(field);
+      }
+    });
+  }
+
   lookupNidMember() {
     const nin = this.nidNumberMember.trim();
     if (!nin) return;
@@ -941,12 +991,15 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
     this.nidLookingMember = true;
     this.nidMessageMember = '';
     this.nidVerifiedMember = false;
+    this.nidLockedMemberFields.clear();
 
-    this.enrollmentSvc.nidLookup(lookupNin).subscribe({
+    this.enrollmentSvc.memberNidLookup(this.enrollmentId, lookupNin).subscribe({
       next: (res) => {
         this.nidLookingMember = false;
         if (res.success && res.data) {
           const d = res.data;
+          const rawNid = d.national_id || d.nin_loc || (d as any).nin || lookupNin;
+          this.newMember.national_id  = canonicalNid(rawNid) || lookupNin;
           this.newMember.first_name    = d.first_name    || '';
           this.newMember.last_name     = d.last_name     || '';
           this.newMember.first_name_ne = d.first_name_ne || this.newMember.first_name_ne;
@@ -954,20 +1007,32 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
           this.newMember.gender        = d.gender        || '';
           this.newMember.date_of_birth = this.dateService.formatForDisplay(d.date_of_birth, d.date_of_birth_bs) || '';
           this.newMember.mobile_number = d.mobile_number || '';
+          this.newMember.email         = d.email         || this.newMember.email;
           this.newMember.occupation    = d.occupation    || this.newMember.occupation;
+          this.newMember.document_type = 'citizenship';
           if (d.citizenship_number)         this.newMember.citizenship_number         = d.citizenship_number;
-          if (d.citizenship_issue_date_bs)  this.newMember.citizenship_issue_date     = d.citizenship_issue_date_bs;
+          if (d.citizenship_issue_date_bs || d.citizenship_issue_date) {
+            this.newMember.citizenship_issue_date = this.dateService.formatForDisplay(
+              d.citizenship_issue_date,
+              d.citizenship_issue_date_bs,
+            ) || '';
+          }
           if (d.citizenship_issue_district) this.newMember.citizenship_issue_district = d.citizenship_issue_district;
           if (d.photo_url) this.memberPhotoPreview = d.photo_url;
+          this.markLockedMemberFields(d);
           this.nidVerifiedMember = true;
           this.showNidGateMember = false;
         this.showToast(this.t('wizard.nid_verified'), 'success');
         } else {
+          this.nidLockedMemberFields.clear();
+          this.newMember.national_id = '';
           this.nidMessageMember = this.languageService.translateText(res.message) || this.t('wizard.nid_no_record');
         }
       },
       error: (err) => {
         this.nidLookingMember = false;
+        this.nidLockedMemberFields.clear();
+        this.newMember.national_id = '';
         if (err?.status === 404) {
           this.nidMessageMember = this.t('wizard.nid_no_record');
         } else if (err?.status === 422) {
@@ -979,7 +1044,12 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
     });
   }
 
-  skipNidGateMember() { this.showNidGateMember = false; }
+  skipNidGateMember() {
+    this.nidLockedMemberFields.clear();
+    this.nidVerifiedMember = false;
+    this.newMember.national_id = '';
+    this.showNidGateMember = false;
+  }
 
   get canUseNidPermanentAddress(): boolean {
     return this.hasCompleteAddress(this.nidPermanentAddress);
@@ -1132,6 +1202,9 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
           !this.headData.date_of_birth || !this.headData.mobile_number || !this.headData.marital_status) {
       this.showToast(this.t('wizard.required_fields'), 'warning'); return;
       }
+      if (this.hasInvalidEnglishNameParts(this.headData, HOUSEHOLD_HEAD_ENGLISH_NAME_FIELDS)) {
+        this.showToast(this.t('wizard.english_name_format'), 'warning'); return;
+      }
       if (this.hasInvalidNepaliNameParts(this.headData, HOUSEHOLD_HEAD_NEPALI_NAME_FIELDS)) {
         this.showToast(this.t('wizard.nepali_name_format'), 'warning'); return;
       }
@@ -1153,8 +1226,11 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
       } else if (!this.headData.citizenship_number || !this.headData.citizenship_issue_date ||
           !this.headData.citizenship_issue_district) {
         this.showToast(this.t('wizard.required_fields'), 'warning'); return;
-      } else if (!this.hasValidCitizenshipIssueDate(this.headData.date_of_birth, this.headData.citizenship_issue_date)) {
-        this.showToast(this.t('wizard.citizenship_issue_age'), 'warning'); return;
+      } else {
+        const issueDateErrorKey = this.citizenshipIssueDateErrorKey(this.headData.date_of_birth, this.headData.citizenship_issue_date);
+        if (issueDateErrorKey) {
+          this.showToast(this.t(issueDateErrorKey), 'warning'); return;
+        }
       }
       this.clearInactiveHouseholdHeadUploads();
       if (this.permanentAddressSource === 'migration' && !this.hasBasaiSaraiEvidence()) {
@@ -1194,6 +1270,10 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
 
   private hasInvalidNepaliNameParts(source: any, fields: string[]): boolean {
     return fields.some(field => !isNepaliNamePart(source?.[field]));
+  }
+
+  private hasInvalidEnglishNameParts(source: any, fields: string[]): boolean {
+    return fields.some(field => !isEnglishNamePart(source?.[field]));
   }
 
   private activeHouseholdHeadUploadFields(): Set<string> {
@@ -1345,6 +1425,10 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
         this.showToast(this.t('wizard.nid_invalid_length'), 'warning');
         this.savingDraft = false; return;
       }
+      if (this.hasInvalidEnglishNameParts(this.headData, HOUSEHOLD_HEAD_ENGLISH_NAME_FIELDS)) {
+        this.showToast(this.t('wizard.english_name_format'), 'warning');
+        this.savingDraft = false; return;
+      }
       if (this.hasInvalidNepaliNameParts(this.headData, HOUSEHOLD_HEAD_NEPALI_NAME_FIELDS)) {
         this.showToast(this.t('wizard.nepali_name_format'), 'warning');
         this.savingDraft = false; return;
@@ -1364,9 +1448,12 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
           !this.headData.citizenship_issue_district) {
         this.showToast(this.t('wizard.required_before_save'), 'warning');
         this.savingDraft = false; return;
-      } else if (!this.hasValidCitizenshipIssueDate(this.headData.date_of_birth, this.headData.citizenship_issue_date)) {
-        this.showToast(this.t('wizard.citizenship_issue_age'), 'warning');
-        this.savingDraft = false; return;
+      } else {
+        const issueDateErrorKey = this.citizenshipIssueDateErrorKey(this.headData.date_of_birth, this.headData.citizenship_issue_date);
+        if (issueDateErrorKey) {
+          this.showToast(this.t(issueDateErrorKey), 'warning');
+          this.savingDraft = false; return;
+        }
       }
       this.enrollmentSvc.saveHouseholdHead(this.enrollmentId, this.buildHouseholdHeadFormData()).subscribe({
         next: (res) => {
@@ -1393,12 +1480,13 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
     const currentBs = this.dateService.getCurrentBs();
     this.editingMemberId = null;
     this.newMember = {
+      national_id: '',
       first_name: '', last_name: '',
       first_name_ne: '', last_name_ne: '',
       gender: '', date_of_birth: currentBs, relationship: '',
-      blood_group: '', marital_status: '', mobile_number: '',
+      blood_group: '', marital_status: '', mobile_number: '', email: '',
       first_service_point_id: '',
-      occupation: '',
+      occupation: '', education_level: '',
       document_type: '',
       citizenship_number: '', citizenship_issue_date: currentBs, citizenship_issue_district: '',
       birth_certificate_number: '', birth_certificate_issue_date: currentBs,
@@ -1416,6 +1504,7 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
     this.memberTargetGroupBackPreview = '';
     this.nidNumberMember = ''; this.nidMessageMember = '';
     this.nidVerifiedMember = false;
+    this.nidLockedMemberFields.clear();
     this.showNidGateMember = true;
     this.showMemberForm = false;
   }
@@ -1431,8 +1520,11 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
     this.showMemberForm = true;
     this.nidNumberMember = '';
     this.nidMessageMember = '';
+    this.nidVerifiedMember = false;
+    this.nidLockedMemberFields.clear();
 
     this.newMember = {
+      national_id: member.national_id || '',
       first_name: member.first_name || '',
       last_name: member.last_name || '',
       first_name_ne: member.first_name_ne || '',
@@ -1443,9 +1535,11 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
       blood_group: member.blood_group || '',
       marital_status: member.marital_status || '',
       mobile_number: member.mobile_number || '',
+      email: member.email || '',
       first_service_point_id: member.first_service_point_id || '',
       first_service_point: member.first_service_point || '',
       occupation: member.occupation || '',
+      education_level: member.education_level || '',
       document_type: member.document_type || '',
       citizenship_number: member.citizenship_number || '',
       citizenship_issue_date: this.dateService.formatForDisplay(
@@ -1492,6 +1586,9 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
         !this.newMember.gender || !this.newMember.date_of_birth || !this.newMember.relationship) {
       this.showToast(this.t('wizard.member_required'), 'warning'); return;
     }
+    if (this.hasInvalidEnglishNameParts(this.newMember, MEMBER_ENGLISH_NAME_FIELDS)) {
+      this.showToast(this.t('wizard.english_name_format'), 'warning'); return;
+    }
     if (this.hasInvalidNepaliNameParts(this.newMember, MEMBER_NEPALI_NAME_FIELDS)) {
       this.showToast(this.t('wizard.nepali_name_format'), 'warning'); return;
     }
@@ -1515,9 +1612,11 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
     if (docType === 'citizenship' && this.calculateAge(this.newMember.date_of_birth) < 16) {
       this.showToast(this.t('wizard.member_age_citizenship'), 'warning'); return;
     }
-    if (docType === 'citizenship' && this.newMember.citizenship_issue_date &&
-        !this.hasValidCitizenshipIssueDate(this.newMember.date_of_birth, this.newMember.citizenship_issue_date)) {
-      this.showToast(this.t('wizard.citizenship_issue_age'), 'warning'); return;
+    if (docType === 'citizenship' && this.newMember.citizenship_issue_date) {
+      const issueDateErrorKey = this.citizenshipIssueDateErrorKey(this.newMember.date_of_birth, this.newMember.citizenship_issue_date);
+      if (issueDateErrorKey) {
+        this.showToast(this.t(issueDateErrorKey), 'warning'); return;
+      }
     }
 
     this.savingMember = true;
@@ -1919,6 +2018,28 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
     return this.languageService.t(key);
   }
 
+  get headCitizenshipIssueDateWarning(): string {
+    if (this.householdHeadUsesBirthCertificate || !this.headData.citizenship_issue_date) {
+      return '';
+    }
+
+    return this.citizenshipIssueDateWarning(
+      this.headData.date_of_birth,
+      this.headData.citizenship_issue_date
+    );
+  }
+
+  get memberCitizenshipIssueDateWarning(): string {
+    if (!this.newMember.citizenship_issue_date) {
+      return '';
+    }
+
+    return this.citizenshipIssueDateWarning(
+      this.newMember.date_of_birth,
+      this.newMember.citizenship_issue_date
+    );
+  }
+
   label(namespace: string, value: string | null | undefined, fallback?: string): string {
     return this.languageService.label(namespace, value, fallback);
   }
@@ -2054,6 +2175,39 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
     }
 
     return age;
+  }
+
+  private citizenshipIssueDateErrorKey(dateOfBirth?: string, issueDate?: string): string | null {
+    if (!dateOfBirth || !issueDate) {
+      return 'wizard.citizenship_issue_age';
+    }
+
+    const detector = this.dateService.citizenshipIssueDateError;
+    if (typeof detector === 'function') {
+      const error = detector.call(this.dateService, dateOfBirth, issueDate, 'bs');
+      if (error === 'before_birth') {
+        return 'wizard.citizenship_issue_before_birth';
+      }
+      if (error === 'future') {
+        return 'wizard.citizenship_issue_future';
+      }
+      if (error === 'too_soon') {
+        return 'wizard.citizenship_issue_age';
+      }
+    }
+
+    return this.hasValidCitizenshipIssueDate(dateOfBirth, issueDate)
+      ? null
+      : 'wizard.citizenship_issue_age';
+  }
+
+  private citizenshipIssueDateWarning(dateOfBirth?: string, issueDate?: string): string {
+    if (!dateOfBirth || !issueDate) {
+      return '';
+    }
+
+    const errorKey = this.citizenshipIssueDateErrorKey(dateOfBirth, issueDate);
+    return errorKey ? this.t(errorKey) : '';
   }
 
   private hasValidCitizenshipIssueDate(dateOfBirth?: string, issueDate?: string): boolean {

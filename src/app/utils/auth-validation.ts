@@ -10,6 +10,12 @@ export function isEnglishFullName(value?: string | null): boolean {
   return /^[A-Za-z]+(?: [A-Za-z]+)+$/.test(normalizeSpaces(value));
 }
 
+export function isEnglishNamePart(value?: string | null): boolean {
+  const name = normalizeSpaces(value);
+
+  return !name || /^[A-Za-z]+(?: [A-Za-z]+)*$/.test(name);
+}
+
 export function isNepaliFullName(value?: string | null): boolean {
   const name = normalizeSpaces(value);
 

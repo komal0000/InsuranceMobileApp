@@ -206,6 +206,7 @@
             [(ngModel)]="headData.citizenship_issue_date"
             [label]="text('wizard.citizenship_issue_date', 'Issue Date')"
             [placeholder]="text('common.select_bs_date', 'Select BS date')"
+            [errorMessage]="citizenshipIssueDateErrorMessage"
             [disabled]="isHeadFieldReadonly('citizenship_issue_date')">
           </app-bs-date-picker>
           <ion-item class="form-item" *ngIf="!isHeadFieldReadonly('citizenship_issue_district')">

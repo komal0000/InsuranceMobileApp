@@ -42,7 +42,7 @@ const MAX_SELECTABLE_YEAR = 2100;
         {{ label }}<span *ngIf="required"> *</span>
       </label>
 
-      <div class="trigger-field" [class.is-disabled]="disabled" [class.is-invalid]="inputInvalid">
+      <div class="trigger-field" [class.is-disabled]="disabled" [class.is-invalid]="inputInvalid || !!errorMessage">
         <input
           type="text"
           class="trigger-input"
@@ -68,6 +68,7 @@ const MAX_SELECTABLE_YEAR = 2100;
           <ion-icon name="calendar-outline"></ion-icon>
         </button>
       </div>
+      <p *ngIf="errorMessage" class="picker-error">{{ errorMessage }}</p>
     </div>
 
     <ion-modal
@@ -206,6 +207,13 @@ const MAX_SELECTABLE_YEAR = 2100;
     .trigger-field.is-invalid {
       border-color: #dc3545;
       box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.12);
+    }
+
+    .picker-error {
+      margin: 4px 4px 0;
+      color: #dc3545;
+      font-size: 12px;
+      font-weight: 600;
     }
 
     .trigger-input {
@@ -483,6 +491,7 @@ export class BsDatePickerComponent implements ControlValueAccessor, OnDestroy {
   @Input() placeholder = '';
   @Input() required = false;
   @Input() disabled = false;
+  @Input() errorMessage = '';
   @Output() bsDateChange = new EventEmitter<string>();
 
   readonly englishMonths = ['Baisakh', 'Jestha', 'Asar', 'Shrawan', 'Bhadra', 'Ashoj', 'Kartik', 'Mangsir', 'Poush', 'Magh', 'Falgun', 'Chaitra'];

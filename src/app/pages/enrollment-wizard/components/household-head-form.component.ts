@@ -114,6 +114,7 @@ export class HouseholdHeadFormComponent {
   @Input() professionOptions: Array<{ id: number; label: string }> = [];
   @Input() qualificationOptions: Array<{ id: number; label: string }> = [];
   @Input() lockedFields: ReadonlySet<string> = new Set<string>();
+  @Input() citizenshipIssueDateErrorMessage = '';
 
   @Input()
   get firstServicePoint(): string {

@@ -38,16 +38,26 @@ describe('DateService', () => {
     expect(prepared.get('date_of_birth_bs')).toBe('2083-01-15');
   });
 
-  it('requires citizenship issue dates to be at least sixteen AD years after birth', () => {
+  it('requires citizenship issue dates to be at least sixteen years and thirty days after birth', () => {
     const service = createService('en');
 
     expect(service.isCitizenshipIssueDateValid('1990-01-01', '2005-12-31', 'ad')).toBeFalse();
-    expect(service.isCitizenshipIssueDateValid('1990-01-01', '2006-01-01', 'ad')).toBeTrue();
+    expect(service.isCitizenshipIssueDateValid('1990-01-01', '2006-01-30', 'ad')).toBeFalse();
+    expect(service.isCitizenshipIssueDateValid('1990-01-01', '2006-01-31', 'ad')).toBeTrue();
+  });
+
+  it('returns specific citizenship issue date validation errors', () => {
+    const service = createService('en');
+
+    expect(service.citizenshipIssueDateError('1990-01-01', '1989-12-31', 'ad')).toBe('before_birth');
+    expect(service.citizenshipIssueDateError('1990-01-01', '2006-01-30', 'ad')).toBe('too_soon');
+    expect(service.citizenshipIssueDateError('1990-01-01', '2999-01-01', 'ad')).toBe('future');
+    expect(service.citizenshipIssueDateError('1990-01-01', '2006-01-31', 'ad')).toBeNull();
   });
 
   it('normalizes BS dates before validating citizenship issue dates', () => {
     const service = createService('en');
 
-    expect(service.isCitizenshipIssueDateValid('2060-01-01', '2076-01-01', 'bs')).toBeTrue();
+    expect(service.isCitizenshipIssueDateValid('2060-01-01', '2076-02-01', 'bs')).toBeTrue();
   });
 });

@@ -61,6 +61,7 @@ describe('EnrollmentWizardPage', () => {
       calculateAge: () => 30,
       formatForDisplay: (ad?: string, bs?: string) => bs || ad || '',
       isCitizenshipIssueDateValid: () => true,
+      citizenshipIssueDateError: () => null,
       prepareFormDataForApi: (fd: FormData) => fd,
     };
 
@@ -743,12 +744,15 @@ describe('EnrollmentWizardPage', () => {
 
   it('loads member NID citizenship district and JPEG photo preview', () => {
     const enrollmentSvc = {
-      nidLookup: jasmine.createSpy().and.returnValue(of({
+      nidLookup: jasmine.createSpy(),
+      memberNidLookup: jasmine.createSpy().and.returnValue(of({
         success: true,
         message: 'Verified.',
         data: {
           first_name: 'Sita',
           last_name: 'Shrestha',
+          gender: 'female',
+          date_of_birth_bs: '2050-01-01',
           citizenship_number: '98765',
           citizenship_issue_date_bs: '2070-01-02',
           citizenship_issue_district: 'Makawanpur',
@@ -769,13 +773,19 @@ describe('EnrollmentWizardPage', () => {
       {} as any
     );
 
+    page.enrollmentId = 4;
     page.nidNumberMember = '१२३-४५६-७८९-०';
     page.lookupNidMember();
 
+    expect(page.newMember.first_name).toBe('Sita');
     expect(page.newMember.citizenship_issue_district).toBe('Makawanpur');
     expect(page.memberPhotoPreview).toBe('data:image/jpeg;base64,member123');
     expect(page.nidVerifiedMember).toBeTrue();
-    expect(enrollmentSvc.nidLookup).toHaveBeenCalledWith('123-456-789-0');
+    expect((page as any).nidLockedMemberFields.has('first_name')).toBeTrue();
+    expect((page as any).nidLockedMemberFields.has('date_of_birth')).toBeTrue();
+    expect((page as any).nidLockedMemberFields.has('citizenship_number')).toBeTrue();
+    expect(enrollmentSvc.memberNidLookup).toHaveBeenCalledWith(4, '123-456-789-0');
+    expect(enrollmentSvc.nidLookup).not.toHaveBeenCalled();
   });
 
   it('localizes step titles from the language service', () => {
@@ -982,6 +992,60 @@ describe('EnrollmentWizardPage', () => {
     expect(enrollmentSvc.saveHouseholdHead).not.toHaveBeenCalled();
     expect(dateService.isCitizenshipIssueDateValid).toHaveBeenCalledWith('2047-09-17', '2063-09-16', 'bs');
     expect((page as any).showToast).toHaveBeenCalledWith('wizard.citizenship_issue_age', 'warning');
+  });
+
+  it('blocks household save when English name fields use Nepali script', () => {
+    const enrollmentSvc = {
+      saveHouseholdHead: jasmine.createSpy().and.returnValue(of({
+        success: true,
+        message: 'Saved.',
+        data: { id: 4, current_step: 2, household_head: null, family_members: [] },
+      })),
+    };
+    const page = createPage({ enrollmentSvc });
+    fillValidHouseholdHead(page);
+    page.headData.last_name = 'श्रेष्ठ';
+    spyOn<any>(page, 'showToast');
+
+    page.nextStep();
+
+    expect(enrollmentSvc.saveHouseholdHead).not.toHaveBeenCalled();
+    expect((page as any).showToast).toHaveBeenCalledWith('wizard.english_name_format', 'warning');
+  });
+
+  it('uses specific household citizenship issue date warnings', () => {
+    const enrollmentSvc = {
+      saveHouseholdHead: jasmine.createSpy().and.returnValue(of({
+        success: true,
+        message: 'Saved.',
+        data: { id: 4, current_step: 2, household_head: null, family_members: [] },
+      })),
+    };
+    const dateService = {
+      citizenshipIssueDateError: jasmine.createSpy().and.returnValue('future'),
+    };
+    const page = createPage({ enrollmentSvc, dateService });
+    fillValidHouseholdHead(page);
+    spyOn<any>(page, 'showToast');
+
+    page.nextStep();
+
+    expect(enrollmentSvc.saveHouseholdHead).not.toHaveBeenCalled();
+    expect(dateService.citizenshipIssueDateError).toHaveBeenCalledWith('1990-06-15', '2066-08-04', 'bs');
+    expect((page as any).showToast).toHaveBeenCalledWith('wizard.citizenship_issue_future', 'warning');
+  });
+
+  it('exposes household citizenship issue-date warning while editing', () => {
+    const dateService = {
+      citizenshipIssueDateError: jasmine.createSpy().and.returnValue('before_birth'),
+    };
+    const page = createPage({ dateService });
+    fillValidHouseholdHead(page);
+    page.headData.date_of_birth = '2050-01-01';
+    page.headData.citizenship_issue_date = '2049-12-30';
+
+    expect(page.headCitizenshipIssueDateWarning).toBe('wizard.citizenship_issue_before_birth');
+    expect(dateService.citizenshipIssueDateError).toHaveBeenCalledWith('2050-01-01', '2049-12-30', 'bs');
   });
 
   it('excludes stale household middle-name fields from the household payload', () => {
@@ -1230,6 +1294,30 @@ describe('EnrollmentWizardPage', () => {
     expect(page['showToast']).toHaveBeenCalledWith('wizard.nepali_name_format', 'warning');
   });
 
+  it('blocks enrollment member save when English name fields use Nepali script', async () => {
+    const enrollmentSvc = {
+      addMember: jasmine.createSpy().and.returnValue(of({ success: true, message: 'Saved.', data: { id: 10 } })),
+    };
+    const page = createPage({ enrollmentSvc });
+    spyOn<any>(page, 'showToast').and.returnValue(Promise.resolve());
+    page.enrollmentId = 4;
+    page.relationshipOptions = relationshipOptions();
+    page.headData.marital_status = 'married';
+    page.newMember = {
+      first_name: 'Suman',
+      last_name: 'लामा',
+      gender: 'male',
+      date_of_birth: '2075-01-01',
+      relationship: 'son',
+      document_type: 'birth_certificate',
+    };
+
+    await page.saveMember();
+
+    expect(enrollmentSvc.addMember).not.toHaveBeenCalled();
+    expect(page['showToast']).toHaveBeenCalledWith('wizard.english_name_format', 'warning');
+  });
+
   it('blocks enrollment member save when citizenship issue date is before the sixteenth birthday', async () => {
     const enrollmentSvc = {
       addMember: jasmine.createSpy().and.returnValue(of({ success: true, message: 'Saved.', data: { id: 10 } })),
@@ -1262,6 +1350,60 @@ describe('EnrollmentWizardPage', () => {
     expect(enrollmentSvc.addMember).not.toHaveBeenCalled();
     expect(dateService.isCitizenshipIssueDateValid).toHaveBeenCalledWith('2050-01-01', '2065-12-30', 'bs');
     expect(page['showToast']).toHaveBeenCalledWith('wizard.citizenship_issue_age', 'warning');
+  });
+
+  it('uses specific enrollment member citizenship issue date warnings', async () => {
+    const enrollmentSvc = {
+      addMember: jasmine.createSpy().and.returnValue(of({ success: true, message: 'Saved.', data: { id: 10 } })),
+    };
+    const dateService = {
+      getCurrentBs: () => '2083-01-01',
+      calculateAge: () => 30,
+      citizenshipIssueDateError: jasmine.createSpy().and.returnValue('before_birth'),
+    };
+    const page = createPage({ enrollmentSvc, dateService });
+    spyOn<any>(page, 'showToast').and.returnValue(Promise.resolve());
+    page.enrollmentId = 4;
+    page.relationshipOptions = relationshipOptions();
+    page.headData.marital_status = 'married';
+    page.newMember = {
+      first_name: 'Sita',
+      last_name: 'Shrestha',
+      gender: 'female',
+      date_of_birth: '2050-01-01',
+      relationship: 'spouse',
+      marital_status: 'married',
+      document_type: 'citizenship',
+      citizenship_number: 'CIT-001',
+      citizenship_issue_date: '2049-12-30',
+      citizenship_issue_district: 'Kathmandu',
+    };
+
+    await page.saveMember();
+
+    expect(enrollmentSvc.addMember).not.toHaveBeenCalled();
+    expect(dateService.citizenshipIssueDateError).toHaveBeenCalledWith('2050-01-01', '2049-12-30', 'bs');
+    expect(page['showToast']).toHaveBeenCalledWith('wizard.citizenship_issue_before_birth', 'warning');
+  });
+
+  it('exposes member citizenship issue-date warning only after issue date is filled', () => {
+    const dateService = {
+      citizenshipIssueDateError: jasmine.createSpy().and.returnValue('too_soon'),
+    };
+    const page = createPage({ dateService });
+    page.newMember = {
+      date_of_birth: '2050-01-01',
+      document_type: 'citizenship',
+      citizenship_issue_date: '',
+    };
+
+    expect(page.memberCitizenshipIssueDateWarning).toBe('');
+    expect(dateService.citizenshipIssueDateError).not.toHaveBeenCalled();
+
+    page.newMember.citizenship_issue_date = '2065-12-30';
+
+    expect(page.memberCitizenshipIssueDateWarning).toBe('wizard.citizenship_issue_age');
+    expect(dateService.citizenshipIssueDateError).toHaveBeenCalledWith('2050-01-01', '2065-12-30', 'bs');
   });
 
   it('excludes stale member middle-name fields from add-member payloads', async () => {

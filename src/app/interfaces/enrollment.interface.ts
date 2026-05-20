@@ -148,6 +148,10 @@ export interface FamilyMember {
   enrollment_id: number;
   household_head_id?: number;
   member_number?: string;
+  national_id?: string | null;
+  nid_verified_at?: string | null;
+  nid_mapping_status?: string | null;
+  nid_raw_payload?: Record<string, any> | null;
   first_name: string;
   middle_name?: string;
   last_name: string;
@@ -246,6 +250,7 @@ export interface EnrollmentStep {
 
 export interface NidLookupData {
   national_id: string;
+  nin?: string | null;
   first_name: string | null;
   last_name: string | null;
   first_name_ne?: string | null;
@@ -285,9 +290,15 @@ export interface NidLookupData {
   tole_village_ne?: string | null;
   mapping_status?: 'mapped' | 'partial' | 'local' | string | null;
   citizenship_number?: string | null;
+  cc_number?: string | null;
+  cc_number_loc?: string | null;
   citizenship_issue_date?: string | null;
   citizenship_issue_date_bs?: string | null;
   citizenship_issue_district?: string | null;
+  cc_issuing_date?: string | null;
+  cc_issuing_date_loc?: string | null;
+  cc_issuing_district?: string | null;
+  cc_issuing_district_loc?: string | null;
   nin_loc?: string | null;
   perm_state?: string | null;
   perm_district?: string | null;

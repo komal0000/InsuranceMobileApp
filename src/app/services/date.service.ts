@@ -11,6 +11,7 @@ import {
 import { LanguageService } from './language.service';
 
 type CalendarSource = 'auto' | 'bs' | 'ad';
+export type CitizenshipIssueDateError = 'before_birth' | 'too_soon' | 'future';
 
 @Injectable({ providedIn: 'root' })
 export class DateService {
@@ -154,17 +155,37 @@ export class DateService {
     issueDate: string | Date | null | undefined,
     source: CalendarSource = 'auto'
   ): boolean {
+    return this.citizenshipIssueDateError(dateOfBirth, issueDate, source) === null;
+  }
+
+  citizenshipIssueDateError(
+    dateOfBirth: string | Date | null | undefined,
+    issueDate: string | Date | null | undefined,
+    source: CalendarSource = 'auto'
+  ): CitizenshipIssueDateError | null {
     const birthParts = this.extractIsoParts(this.toApiDate(dateOfBirth, source));
     const issueParts = this.extractIsoParts(this.toApiDate(issueDate, source));
 
     if (!birthParts || !issueParts) {
-      return false;
+      return 'too_soon';
     }
 
-    const minimumIssueDate = Date.UTC(birthParts.year + 16, birthParts.month - 1, birthParts.day);
+    const today = new Date();
+    const todayDate = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
     const citizenshipIssueDate = Date.UTC(issueParts.year, issueParts.month - 1, issueParts.day);
+    if (citizenshipIssueDate > todayDate) {
+      return 'future';
+    }
 
-    return citizenshipIssueDate >= minimumIssueDate;
+    const birthDate = Date.UTC(birthParts.year, birthParts.month - 1, birthParts.day);
+    if (citizenshipIssueDate < birthDate) {
+      return 'before_birth';
+    }
+
+    const minimumIssueDate = new Date(Date.UTC(birthParts.year + 16, birthParts.month - 1, birthParts.day));
+    minimumIssueDate.setUTCDate(minimumIssueDate.getUTCDate() + 30);
+
+    return citizenshipIssueDate < minimumIssueDate.getTime() ? 'too_soon' : null;
   }
 
   calculateAgeFromDates(adDate?: string | null, bsDate?: string | null): number {

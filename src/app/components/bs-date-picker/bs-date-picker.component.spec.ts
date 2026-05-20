@@ -104,4 +104,14 @@ describe('BsDatePickerComponent', () => {
     expect(onChange).toHaveBeenCalledOnceWith('2084-02-03');
     expect(emitted).toEqual(['2084-02-03']);
   });
+
+  it('renders an external error message as a field-level warning', () => {
+    component.label = 'Issue Date';
+    (component as any).errorMessage = 'Citizenship issue date cannot be after today.';
+
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Citizenship issue date cannot be after today.');
+    expect(fixture.nativeElement.querySelector('.trigger-field')?.classList).toContain('is-invalid');
+  });
 });

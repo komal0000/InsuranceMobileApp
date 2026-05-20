@@ -142,23 +142,23 @@ interface MemberFormModel {
 
       <p class="form-section-title">{{ text('wizard.english_name', 'English Name') }}</p>
       <ion-item class="form-item">
-        <ion-input [label]="text('wizard.first_name_required', 'First Name *')" labelPlacement="stacked" [(ngModel)]="member.first_name"></ion-input>
+        <ion-input [label]="text('wizard.first_name_required', 'First Name *')" labelPlacement="stacked" [(ngModel)]="member.first_name" [readonly]="isFieldReadonly('first_name')" [disabled]="isFieldReadonly('first_name')" [attr.readonly]="isFieldReadonly('first_name') ? true : null"></ion-input>
       </ion-item>
       <ion-item class="form-item">
-        <ion-input [label]="text('wizard.last_name_required', 'Last Name *')" labelPlacement="stacked" [(ngModel)]="member.last_name"></ion-input>
+        <ion-input [label]="text('wizard.last_name_required', 'Last Name *')" labelPlacement="stacked" [(ngModel)]="member.last_name" [readonly]="isFieldReadonly('last_name')" [disabled]="isFieldReadonly('last_name')" [attr.readonly]="isFieldReadonly('last_name') ? true : null"></ion-input>
       </ion-item>
 
       <p class="form-section-title">{{ text('wizard.nepali_name', 'Nepali Name') }}</p>
       <ion-item class="form-item">
-        <ion-input [label]="text('wizard.first_name_ne', 'First Name (नेपाली)')" labelPlacement="stacked" appNepaliInput [(ngModel)]="member.first_name_ne"></ion-input>
+        <ion-input [label]="text('wizard.first_name_ne', 'First Name (नेपाली)')" labelPlacement="stacked" appNepaliInput [(ngModel)]="member.first_name_ne" [readonly]="isFieldReadonly('first_name_ne')" [disabled]="isFieldReadonly('first_name_ne')" [attr.readonly]="isFieldReadonly('first_name_ne') ? true : null"></ion-input>
       </ion-item>
       <ion-item class="form-item">
-        <ion-input [label]="text('wizard.last_name_ne', 'Last Name (नेपाली)')" labelPlacement="stacked" appNepaliInput [(ngModel)]="member.last_name_ne"></ion-input>
+        <ion-input [label]="text('wizard.last_name_ne', 'Last Name (नेपाली)')" labelPlacement="stacked" appNepaliInput [(ngModel)]="member.last_name_ne" [readonly]="isFieldReadonly('last_name_ne')" [disabled]="isFieldReadonly('last_name_ne')" [attr.readonly]="isFieldReadonly('last_name_ne') ? true : null"></ion-input>
       </ion-item>
 
       <p class="form-section-title">{{ text('wizard.personal_details', 'Personal Details') }}</p>
       <ion-item class="form-item">
-        <ion-select [label]="text('wizard.gender_required', 'Gender *')" labelPlacement="stacked" [(ngModel)]="member.gender" [disabled]="isGenderLocked">
+        <ion-select [label]="text('wizard.gender_required', 'Gender *')" labelPlacement="stacked" [(ngModel)]="member.gender" [disabled]="isGenderLocked || isFieldReadonly('gender')" [attr.disabled]="isGenderLocked || isFieldReadonly('gender') ? true : null">
           <ion-select-option value="male">{{ text('gender.male', 'Male') }}</ion-select-option>
           <ion-select-option value="female">{{ text('gender.female', 'Female') }}</ion-select-option>
           <ion-select-option value="other">{{ text('gender.other', 'Other') }}</ion-select-option>
@@ -167,7 +167,8 @@ interface MemberFormModel {
       <app-bs-date-picker
         [(ngModel)]="member.date_of_birth"
         [label]="text('wizard.date_of_birth_required', 'Date of Birth *')"
-        [placeholder]="text('common.select_bs_date', 'Select BS date')">
+        [placeholder]="text('common.select_bs_date', 'Select BS date')"
+        [disabled]="isFieldReadonly('date_of_birth')">
       </app-bs-date-picker>
       <ion-item class="form-item">
         <ion-select [label]="text('wizard.relationship_required', 'Relationship to Head *')" labelPlacement="stacked" [(ngModel)]="member.relationship" (ngModelChange)="onRelationshipChange($event)">
@@ -198,10 +199,10 @@ interface MemberFormModel {
         </ion-select>
       </ion-item>
       <ion-item class="form-item">
-        <ion-input [label]="text('profile.mobile_number', 'Mobile Number')" labelPlacement="stacked" type="tel" maxlength="10" minlength="10" [(ngModel)]="member.mobile_number"></ion-input>
+        <ion-input [label]="text('profile.mobile_number', 'Mobile Number')" labelPlacement="stacked" type="tel" maxlength="10" minlength="10" [(ngModel)]="member.mobile_number" [readonly]="isFieldReadonly('mobile_number')" [disabled]="isFieldReadonly('mobile_number')" [attr.readonly]="isFieldReadonly('mobile_number') ? true : null"></ion-input>
       </ion-item>
       <ion-item class="form-item" *ngIf="showEmail">
-        <ion-input [label]="text('profile.email', 'Email')" labelPlacement="stacked" type="email" [(ngModel)]="member.email"></ion-input>
+        <ion-input [label]="text('profile.email', 'Email')" labelPlacement="stacked" type="email" [(ngModel)]="member.email" [readonly]="isFieldReadonly('email')" [disabled]="isFieldReadonly('email')" [attr.readonly]="isFieldReadonly('email') ? true : null"></ion-input>
       </ion-item>
       <ion-item class="form-item">
         <ion-select [label]="text('wizard.first_service_point', 'First Service Point')" labelPlacement="stacked"
@@ -215,7 +216,9 @@ interface MemberFormModel {
       <ion-item class="form-item">
         <ion-select [label]="text('wizard.occupation', 'Occupation')" labelPlacement="stacked"
                     [placeholder]="text('wizard.select_profession', 'Select Occupation')"
-                    [(ngModel)]="member.occupation">
+                    [(ngModel)]="member.occupation"
+                    [disabled]="isFieldReadonly('occupation')"
+                    [attr.disabled]="isFieldReadonly('occupation') ? true : null">
           <ion-select-option value="">{{ text('wizard.select_profession', 'Select Occupation') }}</ion-select-option>
           <ion-select-option *ngIf="member.occupation && !hasProfessionOption(member.occupation)" [value]="member.occupation">
             {{ member.occupation }}
@@ -234,15 +237,17 @@ interface MemberFormModel {
 
       <div *ngIf="member.document_type === 'citizenship'">
         <ion-item class="form-item">
-          <ion-input [label]="text('wizard.citizenship_number', 'Citizenship Number')" labelPlacement="stacked" [(ngModel)]="member.citizenship_number"></ion-input>
+          <ion-input [label]="text('wizard.citizenship_number', 'Citizenship Number')" labelPlacement="stacked" [(ngModel)]="member.citizenship_number" [readonly]="isFieldReadonly('citizenship_number')" [disabled]="isFieldReadonly('citizenship_number')" [attr.readonly]="isFieldReadonly('citizenship_number') ? true : null"></ion-input>
         </ion-item>
         <app-bs-date-picker
           [(ngModel)]="member.citizenship_issue_date"
           [label]="text('wizard.citizenship_issue_date', 'Issue Date')"
-          [placeholder]="text('common.select_bs_date', 'Select BS date')">
+          [placeholder]="text('common.select_bs_date', 'Select BS date')"
+          [errorMessage]="member.citizenship_issue_date ? citizenshipIssueDateErrorMessage : ''"
+          [disabled]="isFieldReadonly('citizenship_issue_date')">
         </app-bs-date-picker>
         <ion-item class="form-item">
-          <ion-input [label]="text('wizard.citizenship_issue_district', 'Issue District')" labelPlacement="stacked" [(ngModel)]="member.citizenship_issue_district"></ion-input>
+          <ion-input [label]="text('wizard.citizenship_issue_district', 'Issue District')" labelPlacement="stacked" [(ngModel)]="member.citizenship_issue_district" [readonly]="isFieldReadonly('citizenship_issue_district')" [disabled]="isFieldReadonly('citizenship_issue_district')" [attr.readonly]="isFieldReadonly('citizenship_issue_district') ? true : null"></ion-input>
         </ion-item>
 
         <div class="capture-section">
@@ -311,12 +316,14 @@ export class MemberFormComponent implements OnChanges {
   @Input() saving = false;
   @Input() showEmail = false;
   @Input() disableSaveWhenInvalid = false;
+  @Input() lockedFields: ReadonlySet<string> = new Set<string>();
   @Input() servicePointOptions: ServicePointOption[] = [];
   @Input() professionOptions: Array<{ id: number; label: string }> = [];
   @Input() photoPreview = '';
   @Input() citizenshipFrontPreview = '';
   @Input() citizenshipBackPreview = '';
   @Input() birthCertificateFrontPreview = '';
+  @Input() citizenshipIssueDateErrorMessage = '';
 
   @Output() capture = new EventEmitter<MemberImageField>();
   @Output() save = new EventEmitter<void>();
@@ -352,6 +359,10 @@ export class MemberFormComponent implements OnChanges {
 
   hasProfessionOption(value: unknown): boolean {
     return this.professionOptions.some((option) => option.label === String(value));
+  }
+
+  isFieldReadonly(field: string): boolean {
+    return this.lockedFields.has(field);
   }
 
   onRelationshipChange(value: string): void {

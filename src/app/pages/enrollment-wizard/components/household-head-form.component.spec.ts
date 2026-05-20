@@ -89,4 +89,21 @@ describe('HouseholdHeadFormComponent', () => {
     expect(labels.filter((label) => label === 'First Name (नेपाली)').length).toBe(3);
     expect(labels.filter((label) => label === 'Last Name (नेपाली)').length).toBe(3);
   });
+
+  it('renders household citizenship issue-date warning below the date picker', () => {
+    const fixture = TestBed.createComponent(HouseholdHeadFormComponent);
+    const component = fixture.componentInstance;
+    component.headData = {
+      date_of_birth: '2050/01/01',
+      citizenship_issue_date: '2049/12/30',
+      citizenship_issue_district: 'Kathmandu',
+      citizenship_number: '12345',
+    };
+    component.usesBirthCertificate = false;
+    (component as any).citizenshipIssueDateErrorMessage = 'Citizenship issue date must be after date of birth.';
+
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Citizenship issue date must be after date of birth.');
+  });
 });

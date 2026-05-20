@@ -101,6 +101,71 @@ describe('MemberFormComponent', () => {
     expect(selects.some((select) => select.label === 'Occupation')).toBeTrue();
   });
 
+  it('renders NID-locked member fields visible but readonly', () => {
+    const fixture = TestBed.createComponent(MemberFormComponent);
+    const component = fixture.componentInstance;
+    component.member = {
+      first_name: 'Sita',
+      last_name: 'Shrestha',
+      gender: 'female',
+      date_of_birth: '2050-01-01',
+    };
+    (component as any).lockedFields = new Set(['first_name', 'gender', 'date_of_birth']);
+
+    fixture.detectChanges();
+
+    const inputs = Array.from(
+      fixture.nativeElement.querySelectorAll('ion-input') as NodeListOf<HTMLIonInputElement>,
+    );
+    const selects = Array.from(
+      fixture.nativeElement.querySelectorAll('ion-select') as NodeListOf<HTMLIonSelectElement>,
+    );
+    const firstNameInput = inputs.find((input) => input.label === 'First Name *');
+    const genderSelect = selects.find((select) => select.label === 'Gender *');
+
+    expect(firstNameInput).toBeTruthy();
+    expect(Boolean(firstNameInput?.readonly || firstNameInput?.disabled)).toBeTrue();
+    expect(genderSelect).toBeTruthy();
+    expect(Boolean(genderSelect?.disabled || genderSelect?.hasAttribute('disabled'))).toBeTrue();
+    expect(component.member.first_name).toBe('Sita');
+  });
+
+  it('renders member citizenship issue-date warning when issue date is filled', () => {
+    const fixture = TestBed.createComponent(MemberFormComponent);
+    const component = fixture.componentInstance;
+    component.member = {
+      first_name: 'Sita',
+      last_name: 'Shrestha',
+      gender: 'female',
+      date_of_birth: '2050/01/01',
+      document_type: 'citizenship',
+      citizenship_issue_date: '2049/12/30',
+    };
+    (component as any).citizenshipIssueDateErrorMessage = 'Citizenship issue date must be after date of birth.';
+
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Citizenship issue date must be after date of birth.');
+  });
+
+  it('does not render member citizenship issue-date warning when issue date is blank', () => {
+    const fixture = TestBed.createComponent(MemberFormComponent);
+    const component = fixture.componentInstance;
+    component.member = {
+      first_name: 'Sita',
+      last_name: 'Shrestha',
+      gender: 'female',
+      date_of_birth: '2050/01/01',
+      document_type: 'citizenship',
+      citizenship_issue_date: '',
+    };
+    (component as any).citizenshipIssueDateErrorMessage = 'Citizenship issue date must be after date of birth.';
+
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).not.toContain('Citizenship issue date must be after date of birth.');
+  });
+
   it('sets male gender and locks the field when son is selected', () => {
     const fixture = TestBed.createComponent(MemberFormComponent);
     const component = fixture.componentInstance;
