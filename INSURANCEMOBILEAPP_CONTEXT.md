@@ -199,6 +199,7 @@ Member card export behavior:
   - The page shows the household head card first, then family member card rows. Dashboard and Profile expose beneficiary-only HIB Profile shortcuts; the bottom tab bar is unchanged.
   - `Export All Cards PDF` uses `getAllCardsPdfUrl(enrollment_id)` for a fresh signed URL.
   - Tapping a holder opens `/hib-profile/member/:type/:id`, reloads the active enrollment cards, shows that holder's card/profile details, and exports via `getHeadCardPdfUrl(enrollment_id)` or `getMemberCardPdfUrl(enrollmentId, memberId)`.
+- Card holder `insurance_number` and `member_number` values returned by the backend are display-formatted for the card/profile surface, for example `2026-000-001` / `2026-000-001-01` in English mode and Nepali-digit equivalents in Nepali mode. Canonical enrollment records still use digit-only API fields such as `2026000001`.
 - Card PDFs open with Capacitor Browser using fresh signed URLs from the backend.
 
 Temporary address:

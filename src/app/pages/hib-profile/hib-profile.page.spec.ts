@@ -11,8 +11,8 @@ describe('HibProfilePage', () => {
     name_ne: 'सुनिता लामा',
     date_of_birth: '1990-01-01',
     gender: 'female',
-    member_number: 'HIB-2026-000001-01',
-    insurance_number: 'INS-HEAD',
+    member_number: '2026-000-001-01',
+    insurance_number: '2026-000-001',
     address: 'Hetauda',
     service_point: 'Hetauda HP',
     issue_date: '2026-05-10',
@@ -26,8 +26,8 @@ describe('HibProfilePage', () => {
     name: 'Amit Lama',
     date_of_birth: '2015-02-01',
     gender: 'male',
-    member_number: 'HIB-2026-000001-02',
-    insurance_number: 'INS-MEMBER',
+    member_number: '2026-000-001-02',
+    insurance_number: '2026-000-001',
     pdf_url: 'https://example.test/member-card.pdf',
   };
 
@@ -39,7 +39,7 @@ describe('HibProfilePage', () => {
         policy: options.policy ?? {
           status: 'active',
           enrollment_id: 12,
-          enrollment_number: 'HIB-2026-000001',
+          enrollment_number: '2026000001',
           total_members: 2,
           start_date: '2026-05-10',
           end_date: '2027-05-09',
@@ -104,7 +104,7 @@ describe('HibProfilePage', () => {
       policy: {
         status: 'approved',
         enrollment_id: 12,
-        enrollment_number: 'HIB-2026-000001',
+        enrollment_number: '2026000001',
       },
     });
 

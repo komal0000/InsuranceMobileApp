@@ -216,7 +216,7 @@ describe('EnrollmentWizardPage', () => {
     expect(page.isHeadFieldReadonly('province')).toBeTrue();
   });
 
-  it('shows only the NID permanent address option in confirmed NID mode', () => {
+  it('shows NID and migration permanent address options in confirmed NID mode', () => {
     const form = createAddressForm();
     form.nidVerifiedHead = true;
     form.canUseNidPermanentAddress = true;
@@ -224,7 +224,7 @@ describe('EnrollmentWizardPage', () => {
 
     expect(form.shouldShowNidAddressOption()).toBeTrue();
     expect(form.shouldShowCitizenshipAddressOption()).toBeFalse();
-    expect(form.shouldShowMigrationAddressOption()).toBeFalse();
+    expect(form.shouldShowMigrationAddressOption()).toBeTrue();
   });
 
   it('shows citizenship and migration permanent address options in manual mode', () => {
@@ -236,6 +236,30 @@ describe('EnrollmentWizardPage', () => {
     expect(form.shouldShowNidAddressOption()).toBeFalse();
     expect(form.shouldShowCitizenshipAddressOption()).toBeTrue();
     expect(form.shouldShowMigrationAddressOption()).toBeTrue();
+  });
+
+  it('switches from NID source to migration by clearing and unlocking the permanent address', () => {
+    const page = createPage();
+    page.nidVerifiedHead = true;
+    page.nidPermanentAddress = {
+      province: 'Bagmati',
+      district: 'Kathmandu',
+      municipality: 'Kathmandu Metropolitan City',
+      ward_number: '1',
+      tole_village: 'Dillibazar',
+      full_address: 'Dillibazar, Ward 1, Kathmandu',
+    };
+    page.onPermanentAddressSourceChange('nid');
+
+    expect(page.step1.province).toBe('Bagmati');
+    expect(page.isHeadFieldReadonly('province')).toBeTrue();
+
+    page.onPermanentAddressSourceChange('migration');
+
+    expect(page.permanentAddressSource).toBe('migration');
+    expect(page.step1.province).toBe('');
+    expect(page.step1.district).toBe('');
+    expect(page.isHeadFieldReadonly('province')).toBeFalse();
   });
 
   it('accepts hyphenated and Nepali-digit NIDs but rejects invalid household lookup values', () => {
@@ -757,6 +781,63 @@ describe('EnrollmentWizardPage', () => {
     expect(page.headPhotoPreview).toBe('https://example.test/draft-photo.jpg');
     expect(page.basaiSaraiFrontPreview).toBe('https://example.test/draft-basai.pdf');
     expect(page.showNidGate2).toBeFalse();
+  });
+
+  it('reloads a verified-NID migration source with NID and migration options available', () => {
+    const page = createPage({
+      dateService: {
+        formatForDisplay: (_ad?: string, bs?: string) => bs || '',
+      },
+    });
+
+    (page as any).prefillFromEnrollment({
+      id: 4,
+      current_step: 1,
+      permanent_address_source: 'migration',
+      province: 'Gandaki',
+      district: 'Kaski',
+      municipality: 'Pokhara Metropolitan City',
+      ward_number: 4,
+      tole_village: 'Migration Tole',
+      temporary_same_as_permanent: true,
+      household_head: {
+        id: 5,
+        enrollment_id: 4,
+        national_id: '1234567890',
+        nid_verified_at: '2026-05-07T00:00:00Z',
+        nid_raw_payload: {
+          national_id: '1234567890',
+          first_name: 'Komal',
+          province: 'Bagmati',
+          district: 'Kathmandu',
+          municipality: 'Kathmandu Metropolitan City',
+          ward_number: '1',
+          tole_village: 'Dillibazar',
+        },
+        first_name: 'Komal',
+        last_name: 'Shrestha',
+        gender: 'female',
+        date_of_birth: '1990-06-15',
+        date_of_birth_bs: '2047-03-01',
+        marital_status: 'married',
+        mobile_number: '9812345678',
+        is_target_group: false,
+        documents: [],
+      },
+      family_members: [],
+    } as any);
+
+    const form = createAddressForm();
+    form.nidVerifiedHead = page.nidVerifiedHead;
+    form.canUseNidPermanentAddress = page.canUseNidPermanentAddress;
+    form.permanentAddressSource = page.permanentAddressSource;
+
+    expect(page.permanentAddressSource).toBe('migration');
+    expect(page.step1.province).toBe('Gandaki');
+    expect(page.isHeadFieldReadonly('province')).toBeFalse();
+    expect(form.shouldShowNidAddressOption()).toBeTrue();
+    expect(form.shouldShowCitizenshipAddressOption()).toBeFalse();
+    expect(form.shouldShowMigrationAddressOption()).toBeTrue();
   });
 
   it('restores verified household-head NID labels from a saved enrollment payload', () => {
