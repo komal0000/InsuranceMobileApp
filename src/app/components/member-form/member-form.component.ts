@@ -13,8 +13,13 @@ import {
 import { BsDatePickerComponent } from '../bs-date-picker/bs-date-picker.component';
 import { NepaliInputDirective } from '../../directives/nepali-input.directive';
 import { ServicePointOption } from '../../interfaces/enrollment.interface';
+import { DateService } from '../../services/date.service';
 import { LanguageService } from '../../services/language.service';
 import { RelationshipGenderMap, genderForRelationship } from '../../utils/relationship-gender.util';
+import {
+  isMarriedOrDivorcedStatus,
+  spouseGenderForHead,
+} from '../../utils/relationship-marital-status.util';
 
 export type MemberImageField =
   | 'photo'
@@ -126,6 +131,13 @@ interface MemberFormModel {
       color: #6c757d;
       font-size: 0.75rem;
     }
+
+    .warning-text {
+      margin: -2px 4px 8px;
+      color: #dc3545;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
   `],
   template: `
     <div class="form-group">
@@ -166,6 +178,7 @@ interface MemberFormModel {
       </ion-item>
       <app-bs-date-picker
         [(ngModel)]="member.date_of_birth"
+        (ngModelChange)="syncMaritalStatusForAge()"
         [label]="text('wizard.date_of_birth_required', 'Date of Birth *')"
         [placeholder]="text('common.select_bs_date', 'Select BS date')"
         [disabled]="isFieldReadonly('date_of_birth')">
@@ -190,14 +203,15 @@ interface MemberFormModel {
         </ion-select>
       </ion-item>
       <ion-item class="form-item">
-        <ion-select [label]="text('wizard.marital_status', 'Marital Status')" labelPlacement="stacked" [(ngModel)]="member.marital_status">
+        <ion-select [label]="text('wizard.marital_status', 'Marital Status')" labelPlacement="stacked" [(ngModel)]="member.marital_status" (ngModelChange)="onMaritalStatusChange($event)" [disabled]="isSpouseMaritalStatusLocked">
           <ion-select-option value="single">{{ text('marital.single', 'Single') }}</ion-select-option>
-          <ion-select-option value="married">{{ text('marital.married', 'Married') }}</ion-select-option>
-          <ion-select-option value="divorced">{{ text('marital.divorced', 'Divorced') }}</ion-select-option>
+          <ion-select-option value="married" [disabled]="isMaritalOptionDisabled('married')">{{ text('marital.married', 'Married') }}</ion-select-option>
+          <ion-select-option value="divorced" [disabled]="isMaritalOptionDisabled('divorced')">{{ text('marital.divorced', 'Divorced') }}</ion-select-option>
           <ion-select-option value="widowed">{{ text('marital.widowed', 'Widowed') }}</ion-select-option>
           <ion-select-option value="separated">{{ text('marital.separated', 'Separated') }}</ion-select-option>
         </ion-select>
       </ion-item>
+      <div *ngIf="memberRelationshipWarning" class="warning-text">{{ memberRelationshipWarning }}</div>
       <ion-item class="form-item">
         <ion-input [label]="text('profile.mobile_number', 'Mobile Number')" labelPlacement="stacked" type="tel" maxlength="10" minlength="10" [(ngModel)]="member.mobile_number" [readonly]="isFieldReadonly('mobile_number')" [disabled]="isFieldReadonly('mobile_number')" [attr.readonly]="isFieldReadonly('mobile_number') ? true : null"></ion-input>
       </ion-item>
@@ -310,6 +324,7 @@ export class MemberFormComponent implements OnChanges {
   @Input({ required: true }) member!: MemberFormModel;
   @Input() relationshipOptions: Array<{ value: string; label: string }> = [];
   @Input() relationshipGenderMap: RelationshipGenderMap = {};
+  @Input() headGender: string | null = null;
   @Input() isHeadSingle = false;
   @Input() showRelationshipConstraintNotice = false;
   @Input() isEditing = false;
@@ -329,16 +344,36 @@ export class MemberFormComponent implements OnChanges {
   @Output() save = new EventEmitter<void>();
   @Output() cancel = new EventEmitter<void>();
 
-  constructor(private languageService: LanguageService) {}
+  constructor(
+    private languageService: LanguageService,
+    private dateService: DateService,
+  ) {}
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['member'] || changes['relationshipGenderMap']) {
-      this.applyRelationshipGender(this.member?.relationship);
+    if (changes['member'] || changes['relationshipGenderMap'] || changes['headGender']) {
+      this.applyRelationshipRules(this.member?.relationship);
     }
   }
 
   get isGenderLocked(): boolean {
-    return genderForRelationship(this.relationshipGenderMap, this.member?.relationship) !== null;
+    return this.relationshipGender(this.member?.relationship) !== null;
+  }
+
+  get isSpouseMaritalStatusLocked(): boolean {
+    return this.normalizedRelationship(this.member?.relationship) === 'spouse';
+  }
+
+  get memberRelationshipWarning(): string {
+    const age = this.memberAge();
+    if (age === null || age >= 20) {
+      return '';
+    }
+
+    if (this.isSpouseMaritalStatusLocked) {
+      return this.text('wizard.spouse_age_min', 'Spouse must be at least 20 years old.');
+    }
+
+    return this.text('wizard.member_marital_status_age', 'Members under 20 years old cannot be married or divorced.');
   }
 
   get isSaveDisabled(): boolean {
@@ -370,7 +405,36 @@ export class MemberFormComponent implements OnChanges {
       this.member.relationship = value;
     }
 
-    this.applyRelationshipGender(value);
+    this.applyRelationshipRules(value);
+  }
+
+  onMaritalStatusChange(value: string): void {
+    if (this.member) {
+      this.member.marital_status = value;
+    }
+
+    this.syncMaritalStatusForAge();
+  }
+
+  isMaritalOptionDisabled(status: string): boolean {
+    return !this.isSpouseMaritalStatusLocked
+      && this.isMemberUnderTwenty()
+      && isMarriedOrDivorcedStatus(status);
+  }
+
+  syncMaritalStatusForAge(): void {
+    if (!this.member) {
+      return;
+    }
+
+    if (this.isSpouseMaritalStatusLocked) {
+      this.member.marital_status = 'married';
+      return;
+    }
+
+    if (this.isMemberUnderTwenty() && isMarriedOrDivorcedStatus(this.member.marital_status)) {
+      this.member.marital_status = '';
+    }
   }
 
   text(key: string, fallback: string): string {
@@ -388,10 +452,54 @@ export class MemberFormComponent implements OnChanges {
     );
   }
 
-  private applyRelationshipGender(relationship: unknown): void {
-    const gender = genderForRelationship(this.relationshipGenderMap, relationship);
+  private applyRelationshipRules(relationship: unknown): void {
+    const gender = this.relationshipGender(relationship);
     if (gender && this.member) {
       this.member.gender = gender;
     }
+
+    if (this.normalizedRelationship(relationship) === 'spouse' && this.member) {
+      this.member.marital_status = 'married';
+    }
+
+    this.syncMaritalStatusForAge();
+  }
+
+  private relationshipGender(relationship: unknown): 'male' | 'female' | null {
+    const configured = genderForRelationship(this.relationshipGenderMap, relationship);
+    if (configured) {
+      return configured;
+    }
+
+    if (this.normalizedRelationship(relationship) === 'spouse') {
+      return spouseGenderForHead(this.headGender);
+    }
+
+    return null;
+  }
+
+  private isMemberUnderTwenty(): boolean {
+    const age = this.memberAge();
+    return age !== null && age < 20;
+  }
+
+  private memberAge(): number | null {
+    if (!this.member?.date_of_birth) {
+      return null;
+    }
+
+    if (typeof this.dateService.calculateAge === 'function') {
+      return this.dateService.calculateAge(this.member.date_of_birth, 'bs');
+    }
+
+    return null;
+  }
+
+  private normalizedRelationship(value: unknown): string {
+    if (typeof value !== 'string') {
+      return '';
+    }
+
+    return value.trim().toLowerCase().replace(/[\s-]+/g, '_');
   }
 }

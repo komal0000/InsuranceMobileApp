@@ -1,6 +1,9 @@
 import { normalizeRelationshipKey } from './relationship-gender.util';
 
 export type RelationshipBlockMap = Record<string, string[]>;
+export type BinaryGender = 'male' | 'female';
+
+const GRANDCHILD_RELATIONSHIPS = ['grandson', 'granddaughter'];
 
 export const DEFAULT_RELATIONSHIP_BLOCKS_BY_HEAD_MARITAL_STATUS: RelationshipBlockMap = {
   single: [
@@ -69,6 +72,60 @@ export function isRelationshipBlockedForHeadMaritalStatus(
   const normalizedRelationship = normalizeRelationshipKey(relationship);
   return normalizedRelationship.length > 0
     && blockedRelationshipsForHeadMaritalStatus(blockMap, headMaritalStatus).includes(normalizedRelationship);
+}
+
+export function spouseGenderForHead(headGender: unknown): BinaryGender | null {
+  const normalizedGender = normalizeRelationshipKey(headGender);
+  if (normalizedGender === 'male') {
+    return 'female';
+  }
+
+  if (normalizedGender === 'female') {
+    return 'male';
+  }
+
+  return null;
+}
+
+export function isGrandchildRelationship(relationship: unknown): boolean {
+  return GRANDCHILD_RELATIONSHIPS.includes(normalizeRelationshipKey(relationship));
+}
+
+export function isMarriedSonMember(member: unknown, ignoreMemberId?: number | string | null): boolean {
+  if (!member || typeof member !== 'object') {
+    return false;
+  }
+
+  const candidate = member as Record<string, unknown>;
+  if (ignoreMemberId !== null && ignoreMemberId !== undefined && String(candidate['id'] ?? '') === String(ignoreMemberId)) {
+    return false;
+  }
+
+  return normalizeRelationshipKey(candidate['relationship'] ?? candidate['relationship_type']) === 'son'
+    && normalizeRelationshipKey(candidate['marital_status']) === 'married';
+}
+
+export function hasMarriedSonMember(members: unknown, ignoreMemberId?: number | string | null): boolean {
+  return Array.isArray(members) && members.some(member => isMarriedSonMember(member, ignoreMemberId));
+}
+
+export function hasGrandchildMember(members: unknown, ignoreMemberId?: number | string | null): boolean {
+  return Array.isArray(members) && members.some(member => {
+    if (!member || typeof member !== 'object') {
+      return false;
+    }
+
+    const candidate = member as Record<string, unknown>;
+    if (ignoreMemberId !== null && ignoreMemberId !== undefined && String(candidate['id'] ?? '') === String(ignoreMemberId)) {
+      return false;
+    }
+
+    return isGrandchildRelationship(candidate['relationship'] ?? candidate['relationship_type']);
+  });
+}
+
+export function isMarriedOrDivorcedStatus(maritalStatus: unknown): boolean {
+  return ['married', 'divorced'].includes(normalizeRelationshipKey(maritalStatus));
 }
 
 function cloneRelationshipBlockMap(blockMap: RelationshipBlockMap): RelationshipBlockMap {

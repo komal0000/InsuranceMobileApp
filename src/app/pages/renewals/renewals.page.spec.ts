@@ -189,6 +189,121 @@ describe('RenewalsPage', () => {
     expect(page.isNewMemberGenderLocked).toBeFalse();
   });
 
+  it('auto-fills spouse gender and marital status when the head gender is binary', () => {
+    const { page } = makePage('beneficiary');
+    page.enrollment = { household_head: { marital_status: 'married', gender: 'female' } };
+    page.newMember = { relationship: '', gender: '', marital_status: 'single' };
+
+    page.onNewMemberRelationshipChange('spouse');
+
+    expect(page.newMember.gender).toBe('male');
+    expect(page.newMember.marital_status).toBe('married');
+    expect(page.isNewMemberGenderLocked).toBeTrue();
+    expect(page.isNewMemberSpouse).toBeTrue();
+  });
+
+  it('hides grandchild options until a married son exists on renewal add-member', () => {
+    const { page } = makePage('beneficiary');
+    page.enrollment = { household_head: { marital_status: 'married' }, family_members: [] };
+    page.relationshipOptions = relationshipOptions();
+
+    let values = page.availableMemberRelationshipOptions.map(option => option.value);
+    expect(values).not.toContain('grandson');
+    expect(values).not.toContain('granddaughter');
+
+    page.enrollment.family_members = [{
+      id: 21,
+      relationship: 'son',
+      marital_status: 'married',
+    }];
+
+    values = page.availableMemberRelationshipOptions.map(option => option.value);
+    expect(values).toContain('grandson');
+    expect(values).toContain('granddaughter');
+  });
+
+  it('blocks renewal add-member spouse younger than twenty', async () => {
+    const { page, api, toastCtrl } = makePage('beneficiary', {
+      dateService: { calculateAge: () => 19 },
+    });
+    page.canInitiateRenewal = true;
+    page.consentAccepted = true;
+    page.enrollment = { id: 7, status: 'active', household_head: { marital_status: 'married', gender: 'male' } };
+    page.relationshipOptions = relationshipOptions();
+    page.newMember = {
+      first_name: 'Sita',
+      last_name: 'Lama',
+      gender: 'female',
+      date_of_birth: '2070-01-01',
+      relationship: 'spouse',
+      marital_status: 'married',
+      document_type: 'birth_certificate',
+    };
+
+    await page.addNewMember();
+
+    expect(api.post).not.toHaveBeenCalled();
+    expect(api.postFormData).not.toHaveBeenCalled();
+    expect(toastCtrl.create).toHaveBeenCalledWith(jasmine.objectContaining({
+      message: 'wizard.spouse_age_min',
+      color: 'warning',
+    }));
+  });
+
+  it('blocks renewal add-member married or divorced status under twenty', async () => {
+    const { page, api, toastCtrl } = makePage('beneficiary', {
+      dateService: { calculateAge: () => 19 },
+    });
+    page.canInitiateRenewal = true;
+    page.consentAccepted = true;
+    page.enrollment = { id: 7, status: 'active', household_head: { marital_status: 'married' } };
+    page.relationshipOptions = relationshipOptions();
+    page.newMember = {
+      first_name: 'Suman',
+      last_name: 'Lama',
+      gender: 'male',
+      date_of_birth: '2070-01-01',
+      relationship: 'son',
+      marital_status: 'married',
+      document_type: 'birth_certificate',
+    };
+
+    await page.addNewMember();
+
+    expect(api.post).not.toHaveBeenCalled();
+    expect(api.postFormData).not.toHaveBeenCalled();
+    expect(toastCtrl.create).toHaveBeenCalledWith(jasmine.objectContaining({
+      message: 'wizard.member_marital_status_age',
+      color: 'warning',
+    }));
+  });
+
+  it('blocks renewal add-member grandchild without a married son', async () => {
+    const { page, api, toastCtrl } = makePage('beneficiary');
+    page.canInitiateRenewal = true;
+    page.consentAccepted = true;
+    page.enrollment = { id: 7, status: 'active', household_head: { marital_status: 'married' }, family_members: [] };
+    page.relationshipOptions = relationshipOptions();
+    page.newMember = {
+      first_name: 'Asha',
+      last_name: 'Lama',
+      gender: 'female',
+      date_of_birth: '2075-01-01',
+      relationship: 'granddaughter',
+      marital_status: 'single',
+      document_type: 'birth_certificate',
+    };
+
+    await page.addNewMember();
+
+    expect(api.post).not.toHaveBeenCalled();
+    expect(api.postFormData).not.toHaveBeenCalled();
+    expect(toastCtrl.create).toHaveBeenCalledWith(jasmine.objectContaining({
+      message: 'wizard.grandchild_requires_married_son',
+      color: 'warning',
+    }));
+  });
+
   it('hides all configured invalid relationships when the enrollee is single', () => {
     const { page } = makePage('beneficiary');
     page.enrollment = { household_head: { marital_status: 'single' } };

@@ -40,8 +40,12 @@ import {
   RelationshipBlockMap,
   blockedRelationshipsForHeadMaritalStatus,
   defaultRelationshipBlockMap,
+  hasMarriedSonMember,
+  isGrandchildRelationship,
   isRelationshipBlockedForHeadMaritalStatus,
+  isMarriedOrDivorcedStatus,
   normalizeRelationshipBlockMap,
+  spouseGenderForHead,
 } from '../../utils/relationship-marital-status.util';
 
 const DEFAULT_MEMBER_RELATIONSHIPS: Array<{ value: string; label: string }> = [
@@ -399,7 +403,7 @@ export class RenewalsPage implements OnInit, OnDestroy {
     }
 
     const m = this.newMember;
-    this.applyNewMemberRelationshipGender(m.relationship);
+    this.applyNewMemberRelationshipDefaults(m.relationship, false);
 
     if (!m.first_name || !m.last_name || !m.gender || !m.date_of_birth || !m.relationship) {
       this.toastCtrl.create({ message: this.t('wizard.required_fields'), duration: 2000, color: 'warning', position: 'top' }).then(t => t.present());
@@ -419,13 +423,28 @@ export class RenewalsPage implements OnInit, OnDestroy {
       this.toastCtrl.create({ message: this.t('wizard.relationship_marital_status_block'), duration: 2500, color: 'warning', position: 'top' }).then(t => t.present());
       return;
     }
+    if (isGrandchildRelationship(relationship) && !hasMarriedSonMember(this.renewalMembers)) {
+      this.toastCtrl.create({ message: this.t('wizard.grandchild_requires_married_son'), duration: 2500, color: 'warning', position: 'top' }).then(t => t.present());
+      return;
+    }
     if (!relationship || !this.availableMemberRelationshipOptions.some(option => option.value === relationship)) {
       this.toastCtrl.create({ message: this.t('wizard.relationship_invalid'), duration: 2000, color: 'warning', position: 'top' }).then(t => t.present());
       return;
     }
     m.relationship = relationship;
+    this.applyNewMemberRelationshipDefaults(relationship, false);
     if (m.marital_status) {
       m.marital_status = this.normalizeKey(m.marital_status);
+    }
+
+    const memberAge = this.dateService.calculateAge(m.date_of_birth, 'bs');
+    if (relationship === 'spouse' && memberAge < 20) {
+      this.toastCtrl.create({ message: this.t('wizard.spouse_age_min'), duration: 2500, color: 'warning', position: 'top' }).then(t => t.present());
+      return;
+    }
+    if (relationship !== 'spouse' && memberAge < 20 && isMarriedOrDivorcedStatus(m.marital_status)) {
+      this.toastCtrl.create({ message: this.t('wizard.member_marital_status_age'), duration: 2500, color: 'warning', position: 'top' }).then(t => t.present());
+      return;
     }
 
     if (m.mobile_number && !/^\d{10}$/.test(m.mobile_number)) {
@@ -675,11 +694,19 @@ export class RenewalsPage implements OnInit, OnDestroy {
       this.relationshipBlockedByHeadMaritalStatus,
       this.headMaritalStatus,
     );
-    if (!blocked.length) {
-      return this.relationshipOptions;
-    }
+    const selectedRelationship = this.normalizeKey(this.newMember?.relationship);
 
-    return this.relationshipOptions.filter(option => !blocked.includes(option.value));
+    return this.relationshipOptions.filter(option => {
+      if (blocked.includes(option.value)) {
+        return false;
+      }
+
+      if (isGrandchildRelationship(option.value) && !hasMarriedSonMember(this.renewalMembers)) {
+        return selectedRelationship === option.value;
+      }
+
+      return true;
+    });
   }
 
   private isRelationshipBlockedForHead(relationship: string): boolean {
@@ -696,13 +723,50 @@ export class RenewalsPage implements OnInit, OnDestroy {
       ?? '';
   }
 
+  get headGender(): string {
+    return this.enrollment?.household_head?.gender
+      ?? this.enrollment?.householdHead?.gender
+      ?? '';
+  }
+
   get isNewMemberGenderLocked(): boolean {
-    return genderForRelationship(this.relationshipGenderMap, this.newMember?.relationship) !== null;
+    return this.newMemberGender(this.newMember?.relationship) !== null;
+  }
+
+  get isNewMemberSpouse(): boolean {
+    return this.normalizeKey(this.newMember?.relationship) === 'spouse';
+  }
+
+  get newMemberRelationshipWarning(): string {
+    const age = this.newMember?.date_of_birth ? this.dateService.calculateAge(this.newMember.date_of_birth, 'bs') : null;
+    if (age === null || age >= 20) {
+      return '';
+    }
+
+    if (this.isNewMemberSpouse) {
+      return this.t('wizard.spouse_age_min');
+    }
+
+    return this.t('wizard.member_marital_status_age');
   }
 
   onNewMemberRelationshipChange(relationship: string): void {
     this.newMember.relationship = relationship;
-    this.applyNewMemberRelationshipGender(relationship);
+    this.applyNewMemberRelationshipDefaults(relationship);
+  }
+
+  onNewMemberMaritalStatusChange(value: string): void {
+    this.newMember.marital_status = value;
+    this.syncNewMemberMaritalStatusForAge();
+  }
+
+  isNewMemberMaritalOptionDisabled(status: string): boolean {
+    if (this.isNewMemberSpouse) {
+      return false;
+    }
+
+    const age = this.newMember?.date_of_birth ? this.dateService.calculateAge(this.newMember.date_of_birth, 'bs') : null;
+    return age !== null && age < 20 && isMarriedOrDivorcedStatus(status);
   }
 
   private loadRelationshipOptions() {
@@ -773,11 +837,50 @@ export class RenewalsPage implements OnInit, OnDestroy {
     return deduped;
   }
 
-  private applyNewMemberRelationshipGender(relationship: unknown): void {
-    const gender = genderForRelationship(this.relationshipGenderMap, relationship);
+  private applyNewMemberRelationshipDefaults(relationship: unknown, clearInvalidMaritalStatus = true): void {
+    const normalizedRelationship = this.normalizeKey(relationship);
+    const gender = this.newMemberGender(relationship);
     if (gender) {
       this.newMember.gender = gender;
     }
+
+    if (normalizedRelationship === 'spouse') {
+      this.newMember.marital_status = 'married';
+    }
+
+    if (clearInvalidMaritalStatus) {
+      this.syncNewMemberMaritalStatusForAge();
+    }
+  }
+
+  private syncNewMemberMaritalStatusForAge(): void {
+    if (this.isNewMemberSpouse) {
+      this.newMember.marital_status = 'married';
+      return;
+    }
+
+    const age = this.newMember?.date_of_birth ? this.dateService.calculateAge(this.newMember.date_of_birth, 'bs') : null;
+    if (age !== null && age < 20 && isMarriedOrDivorcedStatus(this.newMember?.marital_status)) {
+      this.newMember.marital_status = '';
+    }
+  }
+
+  private newMemberGender(relationship: unknown): 'male' | 'female' | null {
+    const configured = genderForRelationship(this.relationshipGenderMap, relationship);
+    if (configured) {
+      return configured;
+    }
+
+    return this.normalizeKey(relationship) === 'spouse'
+      ? spouseGenderForHead(this.headGender)
+      : null;
+  }
+
+  private get renewalMembers(): any[] {
+    return this.enrollment?.family_members
+      ?? this.enrollment?.familyMembers
+      ?? this.enrollment?.members
+      ?? [];
   }
 
   private normalizeKey(value: unknown): string {

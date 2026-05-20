@@ -680,6 +680,85 @@ describe('EnrollmentWizardPage', () => {
     expect(page.saving).toBeFalse();
   });
 
+  it('saves partial household-head drafts without required fields', async () => {
+    const enrollmentSvc = {
+      saveHouseholdHead: jasmine.createSpy().and.returnValue(of({
+        success: true,
+        data: {
+          id: 4,
+          current_step: 1,
+          step_data: {
+            household_head_draft: {
+              data: { first_name: 'Sunita' },
+            },
+          },
+          household_head: null,
+          family_members: [],
+        },
+      })),
+    };
+    const page = createPage({ enrollmentSvc });
+    page.enrollmentId = 4;
+    page.currentStep = 1;
+    page.headData.first_name = 'Sunita';
+    spyOn<any>(page, 'showToast').and.returnValue(Promise.resolve());
+
+    await page.saveDraft();
+
+    expect(enrollmentSvc.saveHouseholdHead).toHaveBeenCalled();
+    const submitted = enrollmentSvc.saveHouseholdHead.calls.mostRecent().args[1] as FormData;
+    expect(submitted.get('save_action')).toBe('draft');
+    expect(submitted.get('first_name')).toBe('Sunita');
+    expect(page['showToast']).toHaveBeenCalledWith('wizard.draft_saved', 'success');
+  });
+
+  it('restores partial household-head draft data from enrollment step data', () => {
+    const page = createPage();
+
+    (page as any).prefillFromEnrollment({
+      id: 4,
+      current_step: 1,
+      province: '',
+      district: '',
+      municipality: '',
+      ward_number: '',
+      temporary_same_as_permanent: false,
+      step_data: {
+        household_head_draft: {
+          data: {
+            first_name: 'Sunita',
+            last_name: 'Lama',
+            province: 'Bagmati',
+            district: 'Kathmandu',
+            municipality: 'Kathmandu',
+            ward_number: '1',
+            permanent_address_source: 'migration',
+            temporary_same_as_permanent: '0',
+            temporary_province: 'Koshi',
+            temporary_district: 'Morang',
+          },
+          files: {
+            photo: { url: 'https://example.test/draft-photo.jpg' },
+            basai_sarai_front: { url: 'https://example.test/draft-basai.pdf' },
+          },
+        },
+      },
+      household_head: null,
+      family_members: [],
+    } as any);
+
+    expect(page.headData.first_name).toBe('Sunita');
+    expect(page.headData.last_name).toBe('Lama');
+    expect(page.step1.province).toBe('Bagmati');
+    expect(page.step1.district).toBe('Kathmandu');
+    expect(page.permanentAddressSource).toBe('migration');
+    expect(page.temporarySameAsPermanent).toBeFalse();
+    expect(page.temporaryAddress.province).toBe('Koshi');
+    expect(page.headPhotoPreview).toBe('https://example.test/draft-photo.jpg');
+    expect(page.basaiSaraiFrontPreview).toBe('https://example.test/draft-basai.pdf');
+    expect(page.showNidGate2).toBeFalse();
+  });
+
   it('restores verified household-head NID labels from a saved enrollment payload', () => {
     const geoSvc = {
       districts: jasmine.createSpy().and.returnValue(of(response(['Kathmandu']))),
@@ -1205,6 +1284,186 @@ describe('EnrollmentWizardPage', () => {
     expect(values).toContain('son_in_law');
     expect(values).toContain('daughter_in_law');
     expect(values).toContain('father');
+  });
+
+  it('hides grandchild options until a married son exists', () => {
+    const page = createPage();
+    page.relationshipOptions = relationshipOptions();
+    page.headData.marital_status = 'married';
+
+    let values = page.availableMemberRelationshipOptions.map(option => option.value);
+    expect(values).not.toContain('grandson');
+    expect(values).not.toContain('granddaughter');
+
+    page.members = [{
+      id: 21,
+      enrollment_id: 4,
+      first_name: 'Ram',
+      last_name: 'Lama',
+      gender: 'male',
+      date_of_birth: '2050-01-01',
+      relationship: 'son',
+      marital_status: 'married',
+      is_target_group: false,
+    }];
+
+    values = page.availableMemberRelationshipOptions.map(option => option.value);
+    expect(values).toContain('grandson');
+    expect(values).toContain('granddaughter');
+  });
+
+  it('auto-fills spouse gender and marital status from the household head', async () => {
+    const enrollmentSvc = {
+      addMember: jasmine.createSpy().and.returnValue(of({ success: true, message: 'Saved.', data: { id: 10 } })),
+    };
+    const page = createPage({ enrollmentSvc });
+    spyOn<any>(page, 'showToast').and.returnValue(Promise.resolve());
+    page.enrollmentId = 4;
+    page.relationshipOptions = relationshipOptions();
+    page.headData.gender = 'male';
+    page.headData.marital_status = 'married';
+    page.newMember = {
+      first_name: 'Sita',
+      last_name: 'Shrestha',
+      gender: '',
+      date_of_birth: '2050-01-01',
+      relationship: 'spouse',
+      marital_status: 'single',
+      document_type: 'birth_certificate',
+    };
+
+    await page.saveMember();
+
+    expect(enrollmentSvc.addMember).toHaveBeenCalled();
+    const submitted = enrollmentSvc.addMember.calls.mostRecent().args[1] as FormData;
+    expect(submitted.get('gender')).toBe('female');
+    expect(submitted.get('marital_status')).toBe('married');
+  });
+
+  it('blocks spouse younger than twenty before saving', async () => {
+    const enrollmentSvc = {
+      addMember: jasmine.createSpy().and.returnValue(of({ success: true, message: 'Saved.', data: { id: 10 } })),
+    };
+    const page = createPage({ enrollmentSvc, dateService: { calculateAge: () => 19 } });
+    spyOn<any>(page, 'showToast').and.returnValue(Promise.resolve());
+    page.enrollmentId = 4;
+    page.relationshipOptions = relationshipOptions();
+    page.headData.gender = 'male';
+    page.headData.marital_status = 'married';
+    page.newMember = {
+      first_name: 'Sita',
+      last_name: 'Shrestha',
+      gender: 'female',
+      date_of_birth: '2070-01-01',
+      relationship: 'spouse',
+      marital_status: 'married',
+      document_type: 'birth_certificate',
+    };
+
+    await page.saveMember();
+
+    expect(enrollmentSvc.addMember).not.toHaveBeenCalled();
+    expect(page['showToast']).toHaveBeenCalledWith('wizard.spouse_age_min', 'warning');
+  });
+
+  it('blocks married or divorced enrollment members under twenty', async () => {
+    const enrollmentSvc = {
+      addMember: jasmine.createSpy().and.returnValue(of({ success: true, message: 'Saved.', data: { id: 10 } })),
+    };
+    const page = createPage({ enrollmentSvc, dateService: { calculateAge: () => 19 } });
+    spyOn<any>(page, 'showToast').and.returnValue(Promise.resolve());
+    page.enrollmentId = 4;
+    page.relationshipOptions = relationshipOptions();
+    page.headData.marital_status = 'married';
+    page.newMember = {
+      first_name: 'Suman',
+      last_name: 'Lama',
+      gender: 'male',
+      date_of_birth: '2070-01-01',
+      relationship: 'son',
+      marital_status: 'divorced',
+      document_type: 'birth_certificate',
+    };
+
+    await page.saveMember();
+
+    expect(enrollmentSvc.addMember).not.toHaveBeenCalled();
+    expect(page['showToast']).toHaveBeenCalledWith('wizard.member_marital_status_age', 'warning');
+  });
+
+  it('blocks grandchild save without a married son', async () => {
+    const enrollmentSvc = {
+      addMember: jasmine.createSpy().and.returnValue(of({ success: true, message: 'Saved.', data: { id: 10 } })),
+    };
+    const page = createPage({ enrollmentSvc });
+    spyOn<any>(page, 'showToast').and.returnValue(Promise.resolve());
+    page.enrollmentId = 4;
+    page.relationshipOptions = relationshipOptions();
+    page.headData.marital_status = 'married';
+    page.newMember = {
+      first_name: 'Asha',
+      last_name: 'Lama',
+      gender: 'female',
+      date_of_birth: '2075-01-01',
+      relationship: 'granddaughter',
+      marital_status: 'single',
+      document_type: 'birth_certificate',
+    };
+
+    await page.saveMember();
+
+    expect(enrollmentSvc.addMember).not.toHaveBeenCalled();
+    expect(page['showToast']).toHaveBeenCalledWith('wizard.grandchild_requires_married_son', 'warning');
+  });
+
+  it('blocks changing the only married son when a grandchild exists', async () => {
+    const enrollmentSvc = {
+      updateMember: jasmine.createSpy().and.returnValue(of({ success: true, message: 'Saved.', data: { id: 21 } })),
+    };
+    const page = createPage({ enrollmentSvc });
+    spyOn<any>(page, 'showToast').and.returnValue(Promise.resolve());
+    page.enrollmentId = 4;
+    page.relationshipOptions = relationshipOptions();
+    page.headData.marital_status = 'married';
+    page.members = [
+      {
+        id: 21,
+        enrollment_id: 4,
+        first_name: 'Ram',
+        last_name: 'Lama',
+        gender: 'male',
+        date_of_birth: '2050-01-01',
+        relationship: 'son',
+        marital_status: 'married',
+        is_target_group: false,
+      },
+      {
+        id: 22,
+        enrollment_id: 4,
+        first_name: 'Asha',
+        last_name: 'Lama',
+        gender: 'female',
+        date_of_birth: '2075-01-01',
+        relationship: 'granddaughter',
+        marital_status: 'single',
+        is_target_group: false,
+      },
+    ];
+    page.editingMemberId = 21;
+    page.newMember = {
+      first_name: 'Ram',
+      last_name: 'Lama',
+      gender: 'male',
+      date_of_birth: '2050-01-01',
+      relationship: 'son',
+      marital_status: 'single',
+      document_type: 'birth_certificate',
+    };
+
+    await page.saveMember();
+
+    expect(enrollmentSvc.updateMember).not.toHaveBeenCalled();
+    expect(page['showToast']).toHaveBeenCalledWith('wizard.married_son_required_for_grandchild', 'warning');
   });
 
   it('rejects stale relationship selections blocked by household head marital status', async () => {

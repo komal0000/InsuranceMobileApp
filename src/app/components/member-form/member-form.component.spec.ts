@@ -25,6 +25,7 @@ describe('MemberFormComponent', () => {
             getCurrentBs: () => '2083-01-01',
             adToBs: () => '2083-01-01',
             bsToAd: () => '2026-04-14',
+            calculateAge: (value: string) => String(value).startsWith('207') ? 10 : 33,
           },
         },
       ],
@@ -220,5 +221,36 @@ describe('MemberFormComponent', () => {
 
     expect(component.member.gender).toBe('female');
     expect(component.isGenderLocked).toBeFalse();
+  });
+
+  it('sets spouse marital status and opposite gender when household head gender is binary', () => {
+    const fixture = TestBed.createComponent(MemberFormComponent);
+    const component = fixture.componentInstance;
+    component.member = { relationship: '', gender: '', marital_status: 'single' };
+    component.headGender = 'male';
+
+    component.onRelationshipChange('spouse');
+
+    expect(component.member.gender).toBe('female');
+    expect(component.member.marital_status).toBe('married');
+    expect(component.isGenderLocked).toBeTrue();
+    expect(component.isSpouseMaritalStatusLocked).toBeTrue();
+  });
+
+  it('clears married and divorced options for members under twenty', () => {
+    const fixture = TestBed.createComponent(MemberFormComponent);
+    const component = fixture.componentInstance;
+    component.member = {
+      relationship: 'son',
+      gender: 'male',
+      date_of_birth: '2075-01-01',
+      marital_status: 'married',
+    };
+
+    component.syncMaritalStatusForAge();
+
+    expect(component.member.marital_status).toBe('');
+    expect(component.isMaritalOptionDisabled('married')).toBeTrue();
+    expect(component.isMaritalOptionDisabled('divorced')).toBeTrue();
   });
 });
