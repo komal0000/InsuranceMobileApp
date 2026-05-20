@@ -451,6 +451,7 @@ export class RenewalsPage implements OnInit, OnDestroy {
       this.toastCtrl.create({ message: this.t('wizard.mobile_digits'), duration: 2000, color: 'warning', position: 'top' }).then(t => t.present());
       return;
     }
+    this.syncNewMemberDocumentTypeFromDateOfBirth();
     const docType = m.document_type || 'citizenship';
     if (docType === 'citizenship' && this.dateService.calculateAge(m.date_of_birth, 'bs') < 16) {
       this.toastCtrl.create({ message: this.t('wizard.member_age_citizenship'), duration: 2500, color: 'warning', position: 'top' }).then(t => t.present());
@@ -747,7 +748,9 @@ export class RenewalsPage implements OnInit, OnDestroy {
       return this.t('wizard.spouse_age_min');
     }
 
-    return this.t('wizard.member_marital_status_age');
+    return isMarriedOrDivorcedStatus(this.newMember?.marital_status)
+      ? this.t('wizard.member_marital_status_age')
+      : '';
   }
 
   onNewMemberRelationshipChange(relationship: string): void {
@@ -758,6 +761,11 @@ export class RenewalsPage implements OnInit, OnDestroy {
   onNewMemberMaritalStatusChange(value: string): void {
     this.newMember.marital_status = value;
     this.syncNewMemberMaritalStatusForAge();
+  }
+
+  onNewMemberDateOfBirthChange(): void {
+    this.syncNewMemberMaritalStatusForAge();
+    this.syncNewMemberDocumentTypeFromDateOfBirth();
   }
 
   isNewMemberMaritalOptionDisabled(status: string): boolean {
@@ -863,6 +871,32 @@ export class RenewalsPage implements OnInit, OnDestroy {
     if (age !== null && age < 20 && isMarriedOrDivorcedStatus(this.newMember?.marital_status)) {
       this.newMember.marital_status = '';
     }
+  }
+
+  private syncNewMemberDocumentTypeFromDateOfBirth(): void {
+    if (!this.newMember?.date_of_birth) {
+      return;
+    }
+
+    const age = this.dateService.calculateAge(this.newMember.date_of_birth, 'bs');
+    const usesBirthCertificate = Number.isFinite(age) && age < 16;
+    this.newMember.document_type = usesBirthCertificate ? 'birth_certificate' : 'citizenship';
+
+    if (usesBirthCertificate) {
+      this.newMember.citizenship_number = '';
+      this.newMember.citizenship_issue_date = '';
+      this.newMember.citizenship_issue_district = '';
+      this.newMember.citizenship_front_image = null;
+      this.newMember.citizenship_back_image = null;
+      this.memberCitizenshipFrontPreview = null;
+      this.memberCitizenshipBackPreview = null;
+      return;
+    }
+
+    this.newMember.birth_certificate_number = '';
+    this.newMember.birth_certificate_issue_date = '';
+    this.newMember.birth_certificate_front_image = null;
+    this.memberBirthCertFrontPreview = null;
   }
 
   private newMemberGender(relationship: unknown): 'male' | 'female' | null {

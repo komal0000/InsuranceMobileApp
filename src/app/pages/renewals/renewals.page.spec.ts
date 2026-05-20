@@ -278,6 +278,23 @@ describe('RenewalsPage', () => {
     }));
   });
 
+  it('does not show renewal under-twenty marital warning when status is blank or single', () => {
+    const { page } = makePage('beneficiary', {
+      dateService: { calculateAge: () => 19 },
+    });
+    page.newMember = {
+      relationship: 'daughter',
+      date_of_birth: '2075-01-01',
+      marital_status: '',
+    };
+
+    expect(page.newMemberRelationshipWarning).toBe('');
+
+    page.newMember.marital_status = 'single';
+
+    expect(page.newMemberRelationshipWarning).toBe('');
+  });
+
   it('blocks renewal add-member grandchild without a married son', async () => {
     const { page, api, toastCtrl } = makePage('beneficiary');
     page.canInitiateRenewal = true;
@@ -425,6 +442,41 @@ describe('RenewalsPage', () => {
     expect(submitted.get('citizenship_number')).toBe('31102265843');
     expect(submitted.has('first_service_point')).toBeFalse();
     expect(router.navigateByUrl).toHaveBeenCalledWith('/renewal-detail/42');
+  });
+
+  it('submits birth-certificate identity for under-sixteen direct add members when the birth date is filled', async () => {
+    const { page, api, toastCtrl } = makePage('beneficiary', {
+      dateService: { calculateAge: (value: string) => String(value).startsWith('207') ? 10 : 33 },
+    });
+    api.postFormData.and.returnValue(of({ success: true, data: {} }));
+    page.canInitiateRenewal = true;
+    page.consentAccepted = true;
+    page.enrollment = { id: 7, status: 'active', household_head: { marital_status: 'married' } };
+    page.renewals = [{ id: 42, status: 'draft' }] as any;
+    page.relationshipOptions = relationshipOptions();
+    page.newMember = {
+      first_name: 'Anita',
+      last_name: 'Lama',
+      gender: 'female',
+      date_of_birth: '2075-01-01',
+      relationship: 'daughter',
+      marital_status: 'single',
+      document_type: 'citizenship',
+      citizenship_number: 'STALE-CIT',
+      birth_certificate_number: 'BC-123',
+    };
+
+    await page.addNewMember();
+
+    expect(api.postFormData).toHaveBeenCalledWith('/renewals/42/members', jasmine.any(FormData));
+    const submitted = api.postFormData.calls.mostRecent().args[1] as FormData;
+    expect(submitted.get('document_type')).toBe('birth_certificate');
+    expect(submitted.get('birth_certificate_number')).toBe('BC-123');
+    expect(submitted.has('citizenship_number')).toBeFalse();
+    expect(toastCtrl.create).not.toHaveBeenCalledWith(jasmine.objectContaining({
+      message: 'wizard.member_age_citizenship',
+      color: 'warning',
+    }));
   });
 
   it('submits a blank first service point from direct add-member form when none is selected', async () => {

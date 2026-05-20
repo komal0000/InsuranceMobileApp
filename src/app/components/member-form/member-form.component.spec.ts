@@ -253,4 +253,63 @@ describe('MemberFormComponent', () => {
     expect(component.isMaritalOptionDisabled('married')).toBeTrue();
     expect(component.isMaritalOptionDisabled('divorced')).toBeTrue();
   });
+
+  it('switches under-sixteen members to birth-certificate identity when birth date changes', () => {
+    const fixture = TestBed.createComponent(MemberFormComponent);
+    const component = fixture.componentInstance;
+    component.member = {
+      relationship: 'daughter',
+      gender: 'female',
+      date_of_birth: '2075-01-01',
+      marital_status: 'single',
+      document_type: 'citizenship',
+      citizenship_number: 'STALE-CIT',
+      citizenship_issue_date: '2080-01-01',
+      citizenship_issue_district: 'Kathmandu',
+    };
+
+    component.syncMaritalStatusForAge();
+
+    expect(component.member.document_type).toBe('birth_certificate');
+    expect(component.member.citizenship_number).toBe('');
+    expect(component.member.citizenship_issue_date).toBe('');
+    expect(component.member.citizenship_issue_district).toBe('');
+  });
+
+  it('switches adult members to citizenship identity when birth date changes', () => {
+    const fixture = TestBed.createComponent(MemberFormComponent);
+    const component = fixture.componentInstance;
+    component.member = {
+      relationship: 'daughter',
+      gender: 'female',
+      date_of_birth: '2050-01-01',
+      marital_status: 'single',
+      document_type: 'birth_certificate',
+      birth_certificate_number: 'STALE-BC',
+      birth_certificate_issue_date: '2070-01-01',
+    };
+
+    component.syncMaritalStatusForAge();
+
+    expect(component.member.document_type).toBe('citizenship');
+    expect(component.member.birth_certificate_number).toBe('');
+    expect(component.member.birth_certificate_issue_date).toBe('');
+  });
+
+  it('does not show under-twenty marital warning when status is blank or single', () => {
+    const fixture = TestBed.createComponent(MemberFormComponent);
+    const component = fixture.componentInstance;
+    component.member = {
+      relationship: 'daughter',
+      gender: 'female',
+      date_of_birth: '2075-01-01',
+      marital_status: '',
+    };
+
+    expect(component.memberRelationshipWarning).toBe('');
+
+    component.member.marital_status = 'single';
+
+    expect(component.memberRelationshipWarning).toBe('');
+  });
 });

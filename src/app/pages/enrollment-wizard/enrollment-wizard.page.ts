@@ -1639,6 +1639,7 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
     if (this.newMember.mobile_number && !/^\d{10}$/.test(this.newMember.mobile_number)) {
       this.showToast(this.t('wizard.mobile_digits'), 'warning'); return;
     }
+    this.syncMemberDocumentTypeFromDateOfBirth(this.newMember);
     const docType = this.newMember.document_type || null;
     if (docType === 'citizenship' && this.calculateAge(this.newMember.date_of_birth) < 16) {
       this.showToast(this.t('wizard.member_age_citizenship'), 'warning'); return;
@@ -2219,6 +2220,36 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
     }
 
     return usesBirthCertificate;
+  }
+
+  private syncMemberDocumentTypeFromDateOfBirth(member: Record<string, any>): void {
+    if (!member?.['date_of_birth']) {
+      return;
+    }
+
+    const age = this.calculateAge(member['date_of_birth']);
+    const usesBirthCertificate = Number.isFinite(age) && age < 16;
+    member['document_type'] = usesBirthCertificate ? 'birth_certificate' : 'citizenship';
+
+    if (usesBirthCertificate) {
+      member['citizenship_number'] = '';
+      member['citizenship_issue_date'] = '';
+      member['citizenship_issue_district'] = '';
+      member['citizenship_front_image'] = null;
+      member['citizenship_back_image'] = null;
+      if (member === this.newMember) {
+        this.memberCitizenshipFrontPreview = '';
+        this.memberCitizenshipBackPreview = '';
+      }
+      return;
+    }
+
+    member['birth_certificate_number'] = '';
+    member['birth_certificate_issue_date'] = '';
+    member['birth_certificate_front_image'] = null;
+    if (member === this.newMember) {
+      this.memberBirthCertFrontPreview = '';
+    }
   }
 
   private calculateAge(dob: string): number {

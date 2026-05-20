@@ -373,7 +373,9 @@ export class MemberFormComponent implements OnChanges {
       return this.text('wizard.spouse_age_min', 'Spouse must be at least 20 years old.');
     }
 
-    return this.text('wizard.member_marital_status_age', 'Members under 20 years old cannot be married or divorced.');
+    return isMarriedOrDivorcedStatus(this.member?.marital_status)
+      ? this.text('wizard.member_marital_status_age', 'Members under 20 years old cannot be married or divorced.')
+      : '';
   }
 
   get isSaveDisabled(): boolean {
@@ -426,6 +428,8 @@ export class MemberFormComponent implements OnChanges {
     if (!this.member) {
       return;
     }
+
+    this.syncDocumentTypeForAge();
 
     if (this.isSpouseMaritalStatusLocked) {
       this.member.marital_status = 'married';
@@ -493,6 +497,29 @@ export class MemberFormComponent implements OnChanges {
     }
 
     return null;
+  }
+
+  private syncDocumentTypeForAge(): void {
+    const age = this.memberAge();
+    if (age === null || !this.member) {
+      return;
+    }
+
+    const documentType = age < 16 ? 'birth_certificate' : 'citizenship';
+    this.member.document_type = documentType;
+
+    if (documentType === 'birth_certificate') {
+      this.member.citizenship_number = '';
+      this.member.citizenship_issue_date = '';
+      this.member.citizenship_issue_district = '';
+      this.member['citizenship_front_image'] = null;
+      this.member['citizenship_back_image'] = null;
+      return;
+    }
+
+    this.member.birth_certificate_number = '';
+    this.member.birth_certificate_issue_date = '';
+    this.member['birth_certificate_front_image'] = null;
   }
 
   private normalizedRelationship(value: unknown): string {

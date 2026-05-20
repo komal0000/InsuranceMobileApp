@@ -1340,6 +1340,73 @@ describe('EnrollmentWizardPage', () => {
     expect(submitted.get('marital_status')).toBe('married');
   });
 
+  it('submits birth-certificate identity for under-sixteen members when the birth date is filled', async () => {
+    const enrollmentSvc = {
+      addMember: jasmine.createSpy().and.returnValue(of({ success: true, message: 'Saved.', data: { id: 10 } })),
+    };
+    const page = createPage({
+      enrollmentSvc,
+      dateService: { calculateAge: (value: string) => String(value).startsWith('207') ? 10 : 33 },
+    });
+    spyOn<any>(page, 'showToast').and.returnValue(Promise.resolve());
+    page.enrollmentId = 4;
+    page.relationshipOptions = relationshipOptions();
+    page.headData.marital_status = 'married';
+    page.newMember = {
+      first_name: 'Anita',
+      last_name: 'Lama',
+      gender: 'female',
+      date_of_birth: '2075-01-01',
+      relationship: 'daughter',
+      marital_status: 'single',
+      document_type: 'citizenship',
+      citizenship_number: 'STALE-CIT',
+      birth_certificate_number: 'BC-123',
+    };
+
+    await page.saveMember();
+
+    expect(enrollmentSvc.addMember).toHaveBeenCalled();
+    const submitted = enrollmentSvc.addMember.calls.mostRecent().args[1] as FormData;
+    expect(submitted.get('document_type')).toBe('birth_certificate');
+    expect(submitted.get('birth_certificate_number')).toBe('BC-123');
+    expect(submitted.has('citizenship_number')).toBeFalse();
+    expect(page['showToast']).not.toHaveBeenCalledWith('wizard.member_age_citizenship', 'warning');
+  });
+
+  it('submits citizenship identity for adult members when the birth date is filled', async () => {
+    const enrollmentSvc = {
+      addMember: jasmine.createSpy().and.returnValue(of({ success: true, message: 'Saved.', data: { id: 10 } })),
+    };
+    const page = createPage({
+      enrollmentSvc,
+      dateService: { calculateAge: (value: string) => String(value).startsWith('207') ? 10 : 33 },
+    });
+    spyOn<any>(page, 'showToast').and.returnValue(Promise.resolve());
+    page.enrollmentId = 4;
+    page.relationshipOptions = relationshipOptions();
+    page.headData.marital_status = 'married';
+    page.newMember = {
+      first_name: 'Anita',
+      last_name: 'Lama',
+      gender: 'female',
+      date_of_birth: '2050-01-01',
+      relationship: 'daughter',
+      marital_status: 'single',
+      document_type: 'birth_certificate',
+      citizenship_number: '123',
+      birth_certificate_number: 'STALE-BC',
+    };
+
+    await page.saveMember();
+
+    expect(enrollmentSvc.addMember).toHaveBeenCalled();
+    const submitted = enrollmentSvc.addMember.calls.mostRecent().args[1] as FormData;
+    expect(submitted.get('document_type')).toBe('citizenship');
+    expect(submitted.get('citizenship_number')).toBe('123');
+    expect(submitted.has('birth_certificate_number')).toBeFalse();
+  });
+
   it('blocks spouse younger than twenty before saving', async () => {
     const enrollmentSvc = {
       addMember: jasmine.createSpy().and.returnValue(of({ success: true, message: 'Saved.', data: { id: 10 } })),

@@ -336,7 +336,7 @@
                   <ion-select-option value="other">{{ t('gender.other') }}</ion-select-option>
                 </ion-select>
               </ion-item>
-              <app-bs-date-picker [(ngModel)]="newMember.date_of_birth" (ngModelChange)="onNewMemberMaritalStatusChange(newMember.marital_status)" [label]="t('wizard.date_of_birth_required')" [placeholder]="t('common.select_bs_date')"></app-bs-date-picker>
+              <app-bs-date-picker [(ngModel)]="newMember.date_of_birth" (ngModelChange)="onNewMemberDateOfBirthChange()" [label]="t('wizard.date_of_birth_required')" [placeholder]="t('common.select_bs_date')"></app-bs-date-picker>
               <ion-item class="form-item">
                 <ion-select [label]="t('wizard.relationship_to_head_required')" labelPlacement="stacked" [(ngModel)]="newMember.relationship" (ngModelChange)="onNewMemberRelationshipChange($event)">
                   <ion-select-option *ngFor="let option of availableMemberRelationshipOptions" [value]="option.value">
