@@ -1,6 +1,6 @@
 # InsuranceMobileApp Current Context
 
-Last updated: 2026-05-18
+Last updated: 2026-05-22
 
 This file captures the current Ionic/Angular state so future conversations do not need to rediscover the mobile app.
 
@@ -194,6 +194,7 @@ Member card export behavior:
 - Enrollment detail attaches `card_download_url` from the show response and shows `Export Member Cards` only for active enrollments.
 - Enrollment detail bulk card export always requests a fresh signed card URL before opening because cached detail URLs expire.
 - My Policy no longer exposes card export controls. It keeps policy details, household head details, covered members, renewal, and history only.
+- `PolicyService.getMyPolicy()` centralizes the `GET /my-policy` call and normalizes missing `policy`/`history` payload fields. My Policy, HIB Profile, and HIB Profile Member consume this service instead of repeating the raw API call and response shaping.
 - HIB Profile is the mobile card export surface:
   - `/tabs/hib-profile` loads `/my-policy`, then calls `EnrollmentService.getCards(enrollment_id)` only when the policy is `active`.
   - The page shows the household head card first, then family member card rows. Dashboard and Profile expose beneficiary-only HIB Profile shortcuts; the bottom tab bar is unchanged.
@@ -390,6 +391,18 @@ Important optimization files:
 - `src\app\pages\renewal-detail\renewal-detail.page.ts`
 
 ## Verification
+Policy service cleanup verification on 2026-05-22:
+```powershell
+cd C:\Insurance\InsuranceMobileApp
+npm test -- --watch=false --browsers=ChromeHeadless --include src/app/services/policy.service.spec.ts --include src/app/pages/my-policy/my-policy.page.spec.ts --include src/app/pages/hib-profile/hib-profile.page.spec.ts --include src/app/pages/hib-profile-member/hib-profile-member.page.spec.ts
+npm run build
+```
+
+Local macOS result:
+- Focused policy/HIB profile tests pass: `12 SUCCESS`.
+- `npm run build` passes and writes to `www`.
+- Existing SCSS budget warning remains for `src/app/components/bs-date-picker/bs-date-picker.component.ts` (`4.13 kB` total against `4.00 kB`).
+
 Nepali translation refresh verification on 2026-05-16:
 ```powershell
 cd C:\Insurance\InsuranceMobileApp

@@ -42,17 +42,14 @@ describe('HibProfileMemberPage', () => {
         paramMap: convertToParamMap({ type, id: String(id) }),
       },
     };
-    const api = jasmine.createSpyObj('ApiService', ['get']);
-    api.get.and.returnValue(of({
-      success: true,
-      data: {
-        policy: {
-          status: 'active',
-          enrollment_id: 12,
-          enrollment_number: '2026000001',
-        },
-        history: [],
+    const policyService = jasmine.createSpyObj('PolicyService', ['getMyPolicy']);
+    policyService.getMyPolicy.and.returnValue(of({
+      policy: {
+        status: 'active',
+        enrollment_id: 12,
+        enrollment_number: '2026000001',
       },
+      history: [],
     }));
     const enrollmentService = jasmine.createSpyObj('EnrollmentService', [
       'getCards',
@@ -84,7 +81,7 @@ describe('HibProfileMemberPage', () => {
 
     const page = new HibProfileMemberPage(
       route as any,
-      api,
+      policyService,
       enrollmentService,
       { formatForDisplay: (ad?: string | null, bs?: string | null) => bs || ad || '' } as any,
       router,

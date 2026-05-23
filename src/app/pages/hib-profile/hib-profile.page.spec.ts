@@ -32,20 +32,17 @@ describe('HibProfilePage', () => {
   };
 
   function makePage(options: { policy?: any; cards?: EnrollmentCardHolder[] } = {}) {
-    const api = jasmine.createSpyObj('ApiService', ['get']);
-    api.get.and.returnValue(of({
-      success: true,
-      data: {
-        policy: options.policy ?? {
-          status: 'active',
-          enrollment_id: 12,
-          enrollment_number: '2026000001',
-          total_members: 2,
-          start_date: '2026-05-10',
-          end_date: '2027-05-09',
-        },
-        history: [],
+    const policyService = jasmine.createSpyObj('PolicyService', ['getMyPolicy']);
+    policyService.getMyPolicy.and.returnValue(of({
+      policy: options.policy ?? {
+        status: 'active',
+        enrollment_id: 12,
+        enrollment_number: '2026000001',
+        total_members: 2,
+        start_date: '2026-05-10',
+        end_date: '2027-05-09',
       },
+      history: [],
     }));
 
     const enrollmentService = jasmine.createSpyObj('EnrollmentService', [
@@ -77,7 +74,7 @@ describe('HibProfilePage', () => {
     };
 
     const page = new HibProfilePage(
-      api,
+      policyService,
       enrollmentService,
       { formatForDisplay: (ad?: string | null, bs?: string | null) => bs || ad || '' } as any,
       router,
@@ -85,7 +82,7 @@ describe('HibProfilePage', () => {
       languageService as any,
     );
 
-    return { page, api, enrollmentService, router };
+    return { page, policyService, enrollmentService, router };
   }
 
   it('loads active policy cards and renders the household head before members', () => {

@@ -12,24 +12,13 @@ import {
   arrowBackOutline, downloadOutline, idCardOutline, locationOutline,
   personOutline, shieldCheckmarkOutline
 } from 'ionicons/icons';
-import { ApiResponse } from '../../interfaces/api-response.interface';
 import { EnrollmentCardHolder } from '../../interfaces/enrollment.interface';
+import { HibPolicySummary } from '../../interfaces/policy.interface';
 import { LanguageToggleComponent } from '../../components/language-toggle/language-toggle.component';
-import { ApiService } from '../../services/api.service';
 import { DateService } from '../../services/date.service';
 import { EnrollmentService } from '../../services/enrollment.service';
 import { LanguageService } from '../../services/language.service';
-
-interface HibPolicySummary {
-  enrollment_id?: number | null;
-  enrollment_number?: string | null;
-  status?: string | null;
-}
-
-interface MyPolicyPayload {
-  policy?: HibPolicySummary | null;
-  history?: unknown[];
-}
+import { PolicyService } from '../../services/policy.service';
 
 interface DetailRow {
   label: string;
@@ -58,7 +47,7 @@ export class HibProfileMemberPage implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
-    private api: ApiService,
+    private policyService: PolicyService,
     private enrollmentService: EnrollmentService,
     private dateService: DateService,
     private router: Router,
@@ -81,10 +70,9 @@ export class HibProfileMemberPage implements OnInit {
     this.loading = true;
     this.holder = null;
 
-    this.api.get<ApiResponse<MyPolicyPayload>>('/my-policy').subscribe({
-      next: (res) => {
-        const data = res.data || {};
-        this.policy = data.policy || null;
+    this.policyService.getMyPolicy().subscribe({
+      next: (data) => {
+        this.policy = data.policy;
 
         if (!this.canLoadCards) {
           this.loading = false;

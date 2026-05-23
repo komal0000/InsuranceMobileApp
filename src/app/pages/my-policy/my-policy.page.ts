@@ -10,11 +10,11 @@ import {
   peopleOutline, personOutline, locationOutline, cashOutline,
   refreshOutline
 } from 'ionicons/icons';
-import { ApiService } from '../../services/api.service';
 import { DateService } from '../../services/date.service';
-import { ApiResponse } from '../../interfaces/api-response.interface';
+import { HibPolicySummary } from '../../interfaces/policy.interface';
 import { LanguageToggleComponent } from '../../components/language-toggle/language-toggle.component';
 import { LanguageService } from '../../services/language.service';
+import { PolicyService } from '../../services/policy.service';
 
 @Component({
   selector: 'app-my-policy',
@@ -29,12 +29,12 @@ import { LanguageService } from '../../services/language.service';
   styleUrls: ['./my-policy.page.scss'],
 })
 export class MyPolicyPage implements OnInit {
-  policy: any = null;
+  policy: HibPolicySummary | null = null;
   history: any[] = [];
   loading = true;
 
   constructor(
-    private api: ApiService,
+    private policyService: PolicyService,
     private dateService: DateService,
     private languageService: LanguageService
   ) {
@@ -49,11 +49,10 @@ export class MyPolicyPage implements OnInit {
 
   load() {
     this.loading = true;
-    this.api.get<ApiResponse>('/my-policy').subscribe({
-      next: (res) => {
-        const data = res.data || {};
-        this.policy = data.policy || null;
-        this.history = data.history || [];
+    this.policyService.getMyPolicy().subscribe({
+      next: (data) => {
+        this.policy = data.policy;
+        this.history = data.history;
         this.loading = false;
       },
       error: () => { this.loading = false; },
@@ -61,18 +60,17 @@ export class MyPolicyPage implements OnInit {
   }
 
   refresh(event: any) {
-    this.api.get<ApiResponse>('/my-policy').subscribe({
-      next: (res) => {
-        const data = res.data || {};
-        this.policy = data.policy || null;
-        this.history = data.history || [];
+    this.policyService.getMyPolicy().subscribe({
+      next: (data) => {
+        this.policy = data.policy;
+        this.history = data.history;
         event.target.complete();
       },
       error: () => event.target.complete(),
     });
   }
 
-  getStatusColor(status: string): string {
+  getStatusColor(status?: string | null): string {
     switch (status) {
       case 'active': return 'success';
       case 'approved': return 'primary';
@@ -84,8 +82,8 @@ export class MyPolicyPage implements OnInit {
     }
   }
 
-  formatStatus(status: string): string {
-    return this.languageService.label('status', status);
+  formatStatus(status?: string | null): string {
+    return this.languageService.label('status', status || undefined);
   }
 
   get daysRemaining(): number | null {

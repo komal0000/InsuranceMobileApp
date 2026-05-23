@@ -171,11 +171,11 @@
                 <div class="section-icon cyan">
                   <ion-icon name="people-outline"></ion-icon>
                 </div>
-                <span>{{ t('policy.covered_members') }} ({{ formatNumber(policy.members.length) }})</span>
+                <span>{{ t('policy.covered_members') }} ({{ formatNumber(policy.members?.length || 0) }})</span>
               </div>
 
               <div class="member-list">
-                <div class="member-row" *ngFor="let m of policy.members">
+                <div class="member-row" *ngFor="let m of policy.members || []">
                   <div class="member-avatar">{{ (m.first_name || '?').charAt(0).toUpperCase() }}</div>
                   <div class="member-info">
                     <strong>{{ m.full_name }}</strong>

@@ -3,11 +3,8 @@ import { MyPolicyPage } from './my-policy.page';
 
 describe('MyPolicyPage', () => {
   function makePage(policy: any = null, history: any[] = []) {
-    const api = jasmine.createSpyObj('ApiService', ['get']);
-    api.get.and.returnValue(of({
-      success: true,
-      data: { policy, history },
-    }));
+    const policyService = jasmine.createSpyObj('PolicyService', ['getMyPolicy']);
+    policyService.getMyPolicy.and.returnValue(of({ policy, history }));
 
     const languageService = {
       t: (key: string) => key,
@@ -17,7 +14,7 @@ describe('MyPolicyPage', () => {
     };
 
     const page = new MyPolicyPage(
-      api,
+      policyService,
       {
         formatForDisplay: (adDate?: string | null, bsDate?: string | null) => bsDate || adDate || '',
         toApiDate: () => '',
@@ -25,7 +22,7 @@ describe('MyPolicyPage', () => {
       languageService as any,
     );
 
-    return { page, api };
+    return { page, policyService };
   }
 
   it('loads policy details without exposing card export actions', () => {
