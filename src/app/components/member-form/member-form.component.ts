@@ -15,6 +15,7 @@ import { NepaliInputDirective } from '../../directives/nepali-input.directive';
 import { ServicePointOption } from '../../interfaces/enrollment.interface';
 import { DateService } from '../../services/date.service';
 import { LanguageService } from '../../services/language.service';
+import { normalizeDigitsOnly } from '../../utils/auth-validation';
 import { RelationshipGenderMap, genderForRelationship } from '../../utils/relationship-gender.util';
 import {
   isMarriedOrDivorcedStatus,
@@ -288,7 +289,7 @@ interface MemberFormModel {
 
       <div *ngIf="member.document_type === 'birth_certificate'">
         <ion-item class="form-item">
-          <ion-input [label]="text('wizard.birth_certificate_number', 'Birth Certificate Number')" labelPlacement="stacked" [(ngModel)]="member.birth_certificate_number"></ion-input>
+          <ion-input [label]="text('wizard.birth_certificate_number', 'Birth Certificate Number')" labelPlacement="stacked" [(ngModel)]="member.birth_certificate_number" inputmode="numeric" pattern="[0-9]*" maxlength="100" [attr.inputmode]="'numeric'" [attr.pattern]="'[0-9]*'" [attr.maxlength]="'100'" (ionInput)="normalizeBirthCertificateNumber($event)"></ion-input>
         </ion-item>
         <app-bs-date-picker
           [(ngModel)]="member.birth_certificate_issue_date"
@@ -388,6 +389,10 @@ export class MemberFormComponent implements OnChanges {
 
   captureImage(field: MemberImageField): void {
     this.capture.emit(field);
+  }
+
+  normalizeBirthCertificateNumber(event: CustomEvent): void {
+    this.member.birth_certificate_number = normalizeDigitsOnly(String(event.detail?.value ?? ''));
   }
 
   relationshipLabel(value: string): string {

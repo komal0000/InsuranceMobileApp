@@ -67,6 +67,18 @@ describe('MemberFormComponent', () => {
     expect(text).not.toContain('Some relationships are hidden');
   });
 
+  it('normalizes member birth certificate number input to digits', () => {
+    const fixture = TestBed.createComponent(MemberFormComponent);
+    const component = fixture.componentInstance;
+    component.member = { document_type: 'birth_certificate', birth_certificate_number: '' };
+
+    component.normalizeBirthCertificateNumber(new CustomEvent('ionInput', {
+      detail: { value: 'BC-१२३' },
+    }));
+
+    expect(component.member.birth_certificate_number).toBe('123');
+  });
+
   it('renders optional first service point choices for members', () => {
     const fixture = TestBed.createComponent(MemberFormComponent);
     const component = fixture.componentInstance;

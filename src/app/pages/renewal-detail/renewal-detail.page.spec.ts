@@ -136,6 +136,33 @@ describe('RenewalDetailPage', () => {
     expect(submitted.has('first_service_point')).toBeFalse();
   });
 
+  it('normalizes birth certificate numbers before renewal member saves', async () => {
+    const { page, api } = makePage({
+      dateService: { calculateAge: (value: string) => String(value).startsWith('207') ? 10 : 33 },
+    });
+    page.renewalId = 12;
+    page.renewal = { enrollment: { household_head: { marital_status: 'married' } } } as any;
+    page.relationshipOptions = [{ value: 'daughter', label: 'Daughter' }];
+    page.newMember = {
+      first_name: 'Anita',
+      last_name: 'Lama',
+      gender: 'female',
+      date_of_birth: '2075-01-01',
+      relationship: 'daughter',
+      marital_status: 'single',
+      document_type: 'birth_certificate',
+      birth_certificate_number: 'BC-१२३',
+    };
+
+    await page.saveMember();
+
+    expect(api.postFormData).toHaveBeenCalledWith('/renewals/12/members', jasmine.any(FormData));
+    const submitted = api.postFormData.calls.mostRecent().args[1] as FormData;
+    expect(submitted.get('document_type')).toBe('birth_certificate');
+    expect(submitted.get('birth_certificate_number')).toBe('123');
+    expect(submitted.has('citizenship_number')).toBeFalse();
+  });
+
   it('uses renewal members with staged add and removal badges before enrollment fallback', () => {
     const { page } = makePage();
     const added = { id: 9, first_name: 'Mina', pending_renewal_addition: true };

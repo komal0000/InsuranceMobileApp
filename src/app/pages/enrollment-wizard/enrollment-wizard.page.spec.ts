@@ -1255,7 +1255,7 @@ describe('EnrollmentWizardPage', () => {
       citizenship_issue_district: 'Kathmandu',
       citizenship_front_image: new Blob(['front'], { type: 'image/jpeg' }),
       citizenship_back_image: new Blob(['back'], { type: 'image/jpeg' }),
-      birth_certificate_number: 'BC-123',
+      birth_certificate_number: 'BC-१२३',
       birth_certificate_issue_date: '2072-02-01',
       birth_certificate_front_image: new Blob(['birth'], { type: 'image/jpeg' }),
     };
@@ -1263,7 +1263,7 @@ describe('EnrollmentWizardPage', () => {
     const formData = (page as any).buildHouseholdHeadFormData() as FormData;
 
     expect(formData.get('document_type')).toBe('birth_certificate');
-    expect(formData.get('birth_certificate_number')).toBe('BC-123');
+    expect(formData.get('birth_certificate_number')).toBe('123');
     expect(formData.get('birth_certificate_issue_date')).toBe('2072-02-01');
     expect(formData.has('birth_certificate_front_image')).toBeTrue();
     expect(formData.has('citizenship_number')).toBeFalse();
@@ -1313,7 +1313,7 @@ describe('EnrollmentWizardPage', () => {
       mobile_number: '9812345678',
       marital_status: 'single',
       citizenship_number: '',
-      birth_certificate_number: 'BC-123',
+      birth_certificate_number: 'BC-१२३',
       birth_certificate_issue_date: '2072-02-01',
       birth_certificate_front_image: new Blob(['birth'], { type: 'image/jpeg' }),
     };
@@ -1450,7 +1450,7 @@ describe('EnrollmentWizardPage', () => {
     expect(enrollmentSvc.addMember).toHaveBeenCalled();
     const submitted = enrollmentSvc.addMember.calls.mostRecent().args[1] as FormData;
     expect(submitted.get('document_type')).toBe('birth_certificate');
-    expect(submitted.get('birth_certificate_number')).toBe('BC-123');
+    expect(submitted.get('birth_certificate_number')).toBe('123');
     expect(submitted.has('citizenship_number')).toBeFalse();
     expect(page['showToast']).not.toHaveBeenCalledWith('wizard.member_age_citizenship', 'warning');
   });

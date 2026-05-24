@@ -103,7 +103,8 @@ export class HibProfileMemberPage implements OnInit {
     return [
       { label: this.t('hib_profile.label'), value: this.holderLabel(this.holder) },
       { label: this.t('hib_profile.member_number'), value: this.holder.member_number },
-      { label: this.t('hib_profile.insurance_number'), value: this.holder.insurance_number },
+      { label: this.t('hib_profile.household_head_hib_number'), value: this.holder.household_head_hib_number || '' },
+      { label: this.t('dashboard.enrollment_number'), value: this.holder.enrollment_number || '' },
       { label: this.t('policy.gender'), value: this.genderLabel(this.holder.gender) },
       { label: this.t('profile.date_of_birth'), value: this.displayCardDate(this.holder.date_of_birth, this.holder.date_of_birth_bs) },
       { label: this.t('dashboard.address'), value: this.holderAddress(this.holder) },

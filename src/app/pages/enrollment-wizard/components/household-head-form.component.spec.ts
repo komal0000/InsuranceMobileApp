@@ -106,4 +106,17 @@ describe('HouseholdHeadFormComponent', () => {
 
     expect(fixture.nativeElement.textContent).toContain('Citizenship issue date must be after date of birth.');
   });
+
+  it('normalizes household birth certificate number input to digits', () => {
+    const fixture = TestBed.createComponent(HouseholdHeadFormComponent);
+    const component = fixture.componentInstance;
+    component.headData = { birth_certificate_number: '' };
+    component.usesBirthCertificate = true;
+
+    component.normalizeBirthCertificateNumber(new CustomEvent('ionInput', {
+      detail: { value: 'BC-१२३' },
+    }));
+
+    expect(component.headData.birth_certificate_number).toBe('123');
+  });
 });

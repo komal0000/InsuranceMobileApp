@@ -18,6 +18,7 @@ import { NepaliInputDirective } from '../../../directives/nepali-input.directive
 import { BsDatePickerComponent } from '../../../components/bs-date-picker/bs-date-picker.component';
 import { LanguageService } from '../../../services/language.service';
 import { ServicePointOption } from '../../../interfaces/enrollment.interface';
+import { normalizeDigitsOnly } from '../../../utils/auth-validation';
 
 type HouseholdHeadImageField =
   | 'photo'
@@ -156,6 +157,10 @@ export class HouseholdHeadFormComponent {
 
   notifyIdentityModeChange(): void {
     this.identityModeChange.emit();
+  }
+
+  normalizeBirthCertificateNumber(event: CustomEvent): void {
+    this.headData.birth_certificate_number = normalizeDigitsOnly(String(event.detail?.value ?? ''));
   }
 
   text(key: string, fallback: string): string {

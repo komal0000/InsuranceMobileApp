@@ -463,7 +463,7 @@ describe('RenewalsPage', () => {
       marital_status: 'single',
       document_type: 'citizenship',
       citizenship_number: 'STALE-CIT',
-      birth_certificate_number: 'BC-123',
+      birth_certificate_number: 'BC-१२३',
     };
 
     await page.addNewMember();
@@ -471,7 +471,7 @@ describe('RenewalsPage', () => {
     expect(api.postFormData).toHaveBeenCalledWith('/renewals/42/members', jasmine.any(FormData));
     const submitted = api.postFormData.calls.mostRecent().args[1] as FormData;
     expect(submitted.get('document_type')).toBe('birth_certificate');
-    expect(submitted.get('birth_certificate_number')).toBe('BC-123');
+    expect(submitted.get('birth_certificate_number')).toBe('123');
     expect(submitted.has('citizenship_number')).toBeFalse();
     expect(toastCtrl.create).not.toHaveBeenCalledWith(jasmine.objectContaining({
       message: 'wizard.member_age_citizenship',

@@ -324,7 +324,10 @@ export interface EnrollmentCardHolder {
   date_of_birth_bs?: string | null;
   gender?: string | null;
   member_number: string;
+  hib_number?: string | null;
   insurance_number: string;
+  household_head_hib_number?: string | null;
+  enrollment_number?: string | null;
   address?: string | null;
   province?: string | null;
   district?: string | null;

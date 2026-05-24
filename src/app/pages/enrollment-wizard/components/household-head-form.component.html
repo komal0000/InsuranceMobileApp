@@ -245,7 +245,14 @@
           <ng-template #birthCertificateFields>
             <ion-item class="form-item">
               <ion-input [label]="text('wizard.birth_certificate_number', 'Birth Certificate Number') + ' *'" labelPlacement="stacked" [placeholder]="text('wizard.birth_certificate_no', 'Birth Certificate No.')"
-                         [(ngModel)]="headData.birth_certificate_number">
+                         [(ngModel)]="headData.birth_certificate_number"
+                         inputmode="numeric"
+                         pattern="[0-9]*"
+                         maxlength="100"
+                         [attr.inputmode]="'numeric'"
+                         [attr.pattern]="'[0-9]*'"
+                         [attr.maxlength]="'100'"
+                         (ionInput)="normalizeBirthCertificateNumber($event)">
               </ion-input>
             </ion-item>
             <app-bs-date-picker

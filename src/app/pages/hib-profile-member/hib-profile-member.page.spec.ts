@@ -12,8 +12,11 @@ describe('HibProfileMemberPage', () => {
     name_ne: 'सुनिता लामा',
     date_of_birth: '1990-01-01',
     gender: 'female',
-    member_number: '2026-000-001-01',
-    insurance_number: '2026-000-001',
+    member_number: '768-130-473-123',
+    hib_number: '768-130-473-123',
+    insurance_number: '768-130-473-123',
+    household_head_hib_number: '768-130-473-123',
+    enrollment_number: '2026-000-001',
     address: 'Hetauda',
     service_point: 'Hetauda HP',
     issue_date: '2026-05-10',
@@ -27,8 +30,11 @@ describe('HibProfileMemberPage', () => {
     name: 'Amit Lama',
     date_of_birth: '2015-02-01',
     gender: 'male',
-    member_number: '2026-000-001-02',
-    insurance_number: '2026-000-001',
+    member_number: '982-345-670-456',
+    hib_number: '982-345-670-456',
+    insurance_number: '982-345-670-456',
+    household_head_hib_number: '768-130-473-123',
+    enrollment_number: '2026-000-001',
     address: 'Hetauda',
     service_point: 'Hetauda HP',
     issue_date: '2026-05-10',
@@ -104,6 +110,21 @@ describe('HibProfileMemberPage', () => {
     expect(enrollmentService.getCards).toHaveBeenCalledOnceWith(12);
     expect(enrollmentService.getMemberCardPdfUrl).toHaveBeenCalledOnceWith(12, 7);
     expect((page as any).openCardPdf).toHaveBeenCalledOnceWith('https://example.test/member-fresh.pdf');
+  });
+
+  it('shows holder HIB and household head HIB as separate member details', () => {
+    const { page } = makePage('member', 7);
+
+    page.load();
+
+    expect(page.detailRows).toContain(jasmine.objectContaining({
+      label: 'hib_profile.member_number',
+      value: '982-345-670-456',
+    }));
+    expect(page.detailRows).toContain(jasmine.objectContaining({
+      label: 'hib_profile.household_head_hib_number',
+      value: '768-130-473-123',
+    }));
   });
 
   it('resolves the household head holder and exports the head card', async () => {

@@ -1,6 +1,6 @@
 # InsuranceMobileApp Current Context
 
-Last updated: 2026-05-22
+Last updated: 2026-05-24
 
 This file captures the current Ionic/Angular state so future conversations do not need to rediscover the mobile app.
 
@@ -74,7 +74,8 @@ This file captures the current Ionic/Angular state so future conversations do no
 - Login setup-password, forgot-password reset, and profile change-password now use the backend-aligned strong-password rule: 8+ characters with uppercase, lowercase, number, and symbol. The mobile validator counts Unicode code points, not JavaScript UTF-16 code units, to match Laravel `Str::length()`.
 - Password inputs on normal login, login setup-password, forgot-password OTP reset, and profile change-password have per-field `eye-outline` / `eye-off-outline` reveal buttons. Each page keeps independent visibility state per input and leaves the existing form models/API payloads unchanged.
 - Backend password reset and profile change-password now reject matching the current password or the immediately previous password tracked from the next successful change onward. API validation messages are surfaced from the backend; request payloads are unchanged.
-- Existing user login remains password-based by mobile or HIB number.
+- Existing user login remains password-based by mobile or approved household HIB number.
+- Mobile request payloads are unchanged for HIB login/setup (`identifier_type=hib_number`, `identifier`, password/OTP fields), but the backend now normalizes formatted/Nepali-digit household HIB input and only accepts it after the linked enrollment is approved/active. Unapproved HIB numbers return the existing credential/setup validation errors.
 - Authenticated user payloads now include `preferred_language`.
 - `AuthService` syncs backend `preferred_language` into the mobile language service on login, setup-password login, profile fetch, and language update.
 - `AuthService.updateLanguage()` calls `PATCH /api/user/language` and updates the cached user.
@@ -164,6 +165,7 @@ NID behavior:
 - NID photo preview is used when `photo_url` is returned.
 - For household-head NID-verified Step 1, citizenship front/back capture controls are hidden and a note explains that citizenship card images are not required. Manual fallback, family-member NID, and renewal member behavior are unchanged.
 - Household-head DOB now drives identity collection. Ages 1 through 100 are accepted; under-16 heads submit `document_type=birth_certificate`, `birth_certificate_number`, `birth_certificate_issue_date`, and `birth_certificate_front_image`, while stale citizenship keys/files are removed from `FormData`. Exactly 16 and older submit `document_type=citizenship` and keep the existing citizenship details/image flow.
+- Mobile birth certificate number inputs normalize pasted/typed mixed text to ASCII digits before `FormData` submission for household-head, enrollment member, renewals-tab member, and renewal-detail member saves.
 - Mobile pre-submit validation mirrors the backend citizenship issue-date rule: citizenship issue dates are normalized through `DateService` and must be at least 16 years after DOB. The check runs for enrollment wizard household-head save/draft, enrollment member save, renewals-tab add-member, and renewal-detail member add/edit; birth-certificate flows are skipped.
 - If household-head NID lookup fills an under-16 DOB, the wizard still requires birth-certificate details/document while keeping the NID photo behavior.
 - Mobile consumes backend-mapped NID display fields directly: `province`, `district`, `municipality`, `ward_number`, `tole_village`, `citizenship_issue_district`, and JPEG `photo_url`.

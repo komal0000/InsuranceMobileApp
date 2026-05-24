@@ -344,6 +344,11 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
         if (digits !== '') fd.append(key, digits);
         return;
       }
+      if (key === 'birth_certificate_number') {
+        const digits = normalizeDigitsOnly(String(val));
+        if (digits !== '') fd.append(key, digits);
+        return;
+      }
       fd.append(key, String(val));
     });
 

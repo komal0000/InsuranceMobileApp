@@ -115,8 +115,14 @@ export class RenewalSearchPage {
   }
 
   get searchPlaceholder(): string {
-    return this.searchType === 'national_id'
-      ? this.t('renewal_search.enter_national_id')
-      : this.t('renewal_search.enter_value');
+    if (this.searchType === 'national_id') {
+      return this.t('renewal_search.enter_national_id');
+    }
+
+    if (this.searchType === 'hib_number') {
+      return this.t('renewal_search.enter_household_hib_number');
+    }
+
+    return this.t('renewal_search.enter_value');
   }
 }

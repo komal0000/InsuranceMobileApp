@@ -1426,7 +1426,9 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
           ? canonicalNid(val)
           : key === 'citizenship_number'
             ? normalizeDigitsOnly(String(val))
-            : String(val);
+            : key === 'birth_certificate_number'
+              ? normalizeDigitsOnly(String(val))
+              : String(val);
         if (options.includeEmpty || stringValue !== '') fd.append(key, stringValue);
       }
     });
@@ -1674,6 +1676,11 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
       if (typeof val === 'boolean') { fd.append(key, val ? '1' : '0'); return; }
       if (val instanceof Blob) { fd.append(key, val, `${key}.jpg`); return; }
       if (key === 'citizenship_number') {
+        const digits = normalizeDigitsOnly(String(val));
+        if (digits !== '') fd.append(key, digits);
+        return;
+      }
+      if (key === 'birth_certificate_number') {
         const digits = normalizeDigitsOnly(String(val));
         if (digits !== '') fd.append(key, digits);
         return;

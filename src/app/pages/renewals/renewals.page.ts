@@ -354,6 +354,10 @@ export class RenewalsPage implements OnInit, OnDestroy {
     }
   }
 
+  normalizeBirthCertificateNumber(event: CustomEvent): void {
+    this.newMember.birth_certificate_number = normalizeDigitsOnly(String(event.detail?.value ?? ''));
+  }
+
   private fallbackRenewalMemberFileInput(field: string) {
     const input = document.createElement('input');
     input.type = 'file'; input.accept = 'image/jpg,image/jpeg,image/png';
@@ -476,6 +480,11 @@ export class RenewalsPage implements OnInit, OnDestroy {
       if (typeof val === 'boolean') { fd.append(key, val ? '1' : '0'); return; }
       if (val instanceof Blob) { fd.append(key, val, `${key}.jpg`); return; }
       if (key === 'citizenship_number') {
+        const digits = normalizeDigitsOnly(String(val));
+        if (digits !== '') fd.append(key, digits);
+        return;
+      }
+      if (key === 'birth_certificate_number') {
         const digits = normalizeDigitsOnly(String(val));
         if (digits !== '') fd.append(key, digits);
         return;
