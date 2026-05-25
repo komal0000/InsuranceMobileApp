@@ -233,7 +233,7 @@ export class DateService {
       }
 
       normalized[field] = this.toApiDate(raw, 'bs');
-      normalized[bsField] = this.normalizeDate(raw) ?? raw;
+      normalized[bsField] = this.toBsInputDate(raw);
     }
 
     return normalized as T;
@@ -263,7 +263,7 @@ export class DateService {
       }
 
       prepared.append(field, this.toApiDate(raw, 'bs'));
-      prepared.append(bsField, this.normalizeDate(raw) ?? raw);
+      prepared.append(bsField, this.toBsInputDate(raw));
     }
 
     return prepared;
@@ -316,6 +316,11 @@ export class DateService {
 
   private toDisplayDate(value: string): string {
     return value.replace(/-/g, '/');
+  }
+
+  private toBsInputDate(value: string | Date | null | undefined): string {
+    const normalized = this.normalizeDate(value);
+    return normalized ? this.toDisplayDate(normalized) : this.getStringValue(value) ?? '';
   }
 
   private getStringValue(value: unknown): string | null {

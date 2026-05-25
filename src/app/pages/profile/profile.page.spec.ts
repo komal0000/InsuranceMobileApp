@@ -1,5 +1,6 @@
 import { of } from 'rxjs';
 import { ProfilePage } from './profile.page';
+import { DateService } from '../../services/date.service';
 
 describe('ProfilePage', () => {
   const createToastController = () => ({
@@ -11,7 +12,11 @@ describe('ProfilePage', () => {
   const createPage = (user: Record<string, unknown> | null = null) => {
     const authService = jasmine.createSpyObj('AuthService', ['getCurrentUser', 'fetchProfile']);
     const api = jasmine.createSpyObj('ApiService', ['put']);
-    const dateService = jasmine.createSpyObj('DateService', ['getCurrentBs', 'formatForDisplay']);
+    const realDateService = new DateService({
+      currentLanguage: 'en',
+      localizeDigits: (value: string | number | null | undefined) => value == null ? '' : String(value),
+    } as any);
+    const dateService = jasmine.createSpyObj('DateService', ['getCurrentBs', 'formatForDisplay', 'preparePayloadForApi']);
     const router = jasmine.createSpyObj('Router', ['navigateByUrl']);
     const toastCtrl = createToastController();
     const alertCtrl = jasmine.createSpyObj('AlertController', ['create']);
@@ -24,6 +29,9 @@ describe('ProfilePage', () => {
     authService.getCurrentUser.and.returnValue(user);
     authService.fetchProfile.and.returnValue(of(user));
     api.put.and.returnValue(of({ success: true, message: 'Password changed successfully' }));
+    dateService.preparePayloadForApi.and.callFake(
+      (payload: Record<string, unknown>, dateFields: string[]) => realDateService.preparePayloadForApi(payload, dateFields)
+    );
 
     const page = new ProfilePage(
       authService as any,
@@ -76,6 +84,28 @@ describe('ProfilePage', () => {
       message: 'register.full_name_ne_format',
       color: 'warning',
     }));
+  });
+
+  it('submits profile DOB with slash-formatted BS companion date', async () => {
+    const { page, api } = createPage({
+      name: 'Amar Khawas',
+      name_ne: 'अमर खवास',
+      mobile_number: '9800000077',
+    });
+    page.profileData = {
+      name: 'Amar Khawas',
+      name_ne: 'अमर खवास',
+      email: 'quick2heal@gmail.com',
+      mobile_number: '9800000077',
+      date_of_birth: '2054/01/15',
+    };
+
+    await page.saveProfile();
+
+    const payload = api.put.calls.mostRecent().args[1] as Record<string, unknown>;
+    expect(payload['date_of_birth']).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(payload['date_of_birth']).not.toBe('2054-01-15');
+    expect(payload['date_of_birth_bs']).toBe('2054/01/15');
   });
 
   it('toggles profile password fields independently', () => {

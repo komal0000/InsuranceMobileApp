@@ -30,12 +30,20 @@ describe('DateService', () => {
 
     expect(service.toApiDate('2083/01/15', 'bs')).toBe(hyphenApiDate);
 
+    const payload = service.preparePayloadForApi<Record<string, unknown>>(
+      { date_of_birth: '2083/01/15' },
+      ['date_of_birth']
+    );
+
+    expect(payload['date_of_birth']).toBe(hyphenApiDate);
+    expect(payload['date_of_birth_bs']).toBe('2083/01/15');
+
     const formData = new FormData();
     formData.append('date_of_birth', '2083/01/15');
     const prepared = service.prepareFormDataForApi(formData, ['date_of_birth']);
 
     expect(prepared.get('date_of_birth')).toBe(hyphenApiDate);
-    expect(prepared.get('date_of_birth_bs')).toBe('2083-01-15');
+    expect(prepared.get('date_of_birth_bs')).toBe('2083/01/15');
   });
 
   it('requires citizenship issue dates to be at least sixteen years and thirty days after birth', () => {
