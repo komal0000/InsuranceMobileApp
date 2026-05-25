@@ -1909,6 +1909,25 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
     return { base, extra, total: base + extra, members: totalMembers };
   }
 
+  get householdHeadRelationshipNameAutofill(): Record<string, Partial<Record<'first_name' | 'last_name' | 'first_name_ne' | 'last_name_ne', string>>> {
+    const map: Record<string, Partial<Record<'first_name' | 'last_name' | 'first_name_ne' | 'last_name_ne', string>>> = {};
+
+    (['father', 'mother', 'grandfather'] as const).forEach((relation) => {
+      const values = {
+        first_name: this.compactText(this.headData?.[`${relation}_first_name`]),
+        last_name: this.compactText(this.headData?.[`${relation}_last_name`]),
+        first_name_ne: this.compactText(this.headData?.[`${relation}_first_name_ne`]),
+        last_name_ne: this.compactText(this.headData?.[`${relation}_last_name_ne`]),
+      };
+
+      if (Object.values(values).some((value) => value !== '')) {
+        map[relation] = values;
+      }
+    });
+
+    return map;
+  }
+
   getDocUrl(member: any, type: string): string | null {
     if (!member?.documents?.length) return null;
     const doc = member.documents.find((d: any) => d.document_type === type);

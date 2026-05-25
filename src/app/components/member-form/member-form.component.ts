@@ -52,6 +52,10 @@ interface MemberFormModel {
   birth_certificate_issue_date?: string;
 }
 
+type RelationshipNameField = 'first_name' | 'last_name' | 'first_name_ne' | 'last_name_ne';
+
+type RelationshipNameAutofill = Record<string, Partial<Record<RelationshipNameField, string>>>;
+
 @Component({
   selector: 'app-member-form',
   standalone: true,
@@ -142,6 +146,14 @@ interface MemberFormModel {
   `],
   template: `
     <div class="form-group">
+      <ion-item class="form-item">
+        <ion-select [label]="text('wizard.relationship_required', 'Relationship to Head *')" labelPlacement="stacked" [(ngModel)]="member.relationship" (ngModelChange)="onRelationshipChange($event)">
+          <ion-select-option *ngFor="let option of relationshipOptions" [value]="option.value">
+            {{ relationshipLabel(option.value) }}
+          </ion-select-option>
+        </ion-select>
+      </ion-item>
+
       <div class="capture-section" style="margin-bottom:16px">
         <div class="capture-row">
           <span class="capture-label">{{ text('profile.photo', 'Photo') }}</span>
@@ -184,13 +196,6 @@ interface MemberFormModel {
         [placeholder]="text('common.select_bs_date', 'Select BS date')"
         [disabled]="isFieldReadonly('date_of_birth')">
       </app-bs-date-picker>
-      <ion-item class="form-item">
-        <ion-select [label]="text('wizard.relationship_required', 'Relationship to Head *')" labelPlacement="stacked" [(ngModel)]="member.relationship" (ngModelChange)="onRelationshipChange($event)">
-          <ion-select-option *ngFor="let option of relationshipOptions" [value]="option.value">
-            {{ relationshipLabel(option.value) }}
-          </ion-select-option>
-        </ion-select>
-      </ion-item>
       <ion-item class="form-item">
         <ion-select [label]="text('wizard.blood_group', 'Blood Group')" labelPlacement="stacked" [(ngModel)]="member.blood_group">
           <ion-select-option value="A+">A+</ion-select-option>
@@ -325,6 +330,7 @@ export class MemberFormComponent implements OnChanges {
   @Input({ required: true }) member!: MemberFormModel;
   @Input() relationshipOptions: Array<{ value: string; label: string }> = [];
   @Input() relationshipGenderMap: RelationshipGenderMap = {};
+  @Input() relationshipNameAutofill: RelationshipNameAutofill = {};
   @Input() headGender: string | null = null;
   @Input() isHeadSingle = false;
   @Input() showRelationshipConstraintNotice = false;
@@ -345,12 +351,22 @@ export class MemberFormComponent implements OnChanges {
   @Output() save = new EventEmitter<void>();
   @Output() cancel = new EventEmitter<void>();
 
+  private relationshipNameAutofilledValues: Partial<Record<RelationshipNameField, string>> = {};
+
   constructor(
     private languageService: LanguageService,
     private dateService: DateService,
   ) {}
 
   ngOnChanges(changes: SimpleChanges): void {
+    if (changes['member']) {
+      this.relationshipNameAutofilledValues = {};
+    }
+
+    if (changes['member'] || changes['relationshipNameAutofill']) {
+      this.applyRelationshipNameAutofill(this.member?.relationship);
+    }
+
     if (changes['member'] || changes['relationshipGenderMap'] || changes['headGender']) {
       this.applyRelationshipRules(this.member?.relationship);
     }
@@ -412,6 +428,7 @@ export class MemberFormComponent implements OnChanges {
       this.member.relationship = value;
     }
 
+    this.applyRelationshipNameAutofill(value);
     this.applyRelationshipRules(value);
   }
 
@@ -472,6 +489,42 @@ export class MemberFormComponent implements OnChanges {
     }
 
     this.syncMaritalStatusForAge();
+  }
+
+  private applyRelationshipNameAutofill(relationship: unknown): void {
+    if (!this.member) {
+      return;
+    }
+
+    const values = this.relationshipNameAutofill[this.normalizedRelationship(relationship)] || null;
+    const fields: RelationshipNameField[] = ['first_name', 'last_name', 'first_name_ne', 'last_name_ne'];
+
+    fields.forEach((field) => {
+      if (this.isFieldReadonly(field)) {
+        return;
+      }
+
+      const currentValue = String(this.member[field] || '').trim();
+      const previousValue = this.relationshipNameAutofilledValues[field] || '';
+      const wasAutofilled = previousValue !== '';
+      const nextValue = String(values?.[field] || '').trim();
+
+      if (!nextValue) {
+        if (wasAutofilled && currentValue === previousValue) {
+          this.member[field] = '';
+        }
+        delete this.relationshipNameAutofilledValues[field];
+        return;
+      }
+
+      if (currentValue !== '' && (!wasAutofilled || currentValue !== previousValue)) {
+        delete this.relationshipNameAutofilledValues[field];
+        return;
+      }
+
+      this.member[field] = nextValue;
+      this.relationshipNameAutofilledValues[field] = nextValue;
+    });
   }
 
   private relationshipGender(relationship: unknown): 'male' | 'female' | null {

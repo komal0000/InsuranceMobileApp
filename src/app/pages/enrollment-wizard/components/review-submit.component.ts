@@ -20,6 +20,7 @@ import {
   Enrollment,
   FamilyMember,
   HouseholdHead,
+  PermanentAddressSource,
   Step1Data,
   SubsidyResult,
   SubsidySummary,
@@ -92,6 +93,9 @@ export class ReviewSubmitComponent {
   @Input() citizenshipFrontPreview = '';
   @Input() citizenshipBackPreview = '';
   @Input() birthCertificateFrontPreview = '';
+  @Input() permanentAddressSource: PermanentAddressSource | '' | null = null;
+  @Input() basaiSaraiFrontPreview = '';
+  @Input() basaiSaraiBackPreview = '';
   @Input() submitting = false;
 
   @Input()
@@ -158,6 +162,23 @@ export class ReviewSubmitComponent {
     return this.languageService.label('relation', value);
   }
 
+  get isMigrationPermanentAddress(): boolean {
+    return (this.permanentAddressSource || this.enrollment?.permanent_address_source || '') === 'migration';
+  }
+
+  get basaiSaraiEvidence(): Array<{ label: string; url: string }> {
+    return [
+      {
+        label: 'Basai Sarai Front',
+        url: this.basaiSaraiFrontPreview || this.enrollmentDocumentUrl('basai_sarai_front'),
+      },
+      {
+        label: 'Basai Sarai Back',
+        url: this.basaiSaraiBackPreview || this.enrollmentDocumentUrl('basai_sarai_back'),
+      },
+    ].filter((item) => item.url !== '');
+  }
+
   paySubmitLabel(amount: string | number | null | undefined): string {
     return this.t('renewal_detail.pay_amount_submit').replace(':amount', this.formatCurrency(amount ?? 0, 0));
   }
@@ -179,5 +200,11 @@ export class ReviewSubmitComponent {
     if (result.benefit_type === 'percentage_discount') return `${this.formatNumber(result.benefit_value)}% ${this.t('benefit.percentage_discount')}`;
     if (result.benefit_type === 'fixed_discount') return `${this.formatCurrency(result.benefit_value)} ${this.t('benefit.fixed_discount')}`;
     return this.languageService.translateText(result.benefit_type);
+  }
+
+  private enrollmentDocumentUrl(type: string): string {
+    const document = this.enrollment?.documents?.find((item) => item.document_type === type);
+
+    return document?.url || document?.file_url || '';
   }
 }

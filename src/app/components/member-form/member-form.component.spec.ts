@@ -143,6 +143,71 @@ describe('MemberFormComponent', () => {
     expect(component.member.first_name).toBe('Sita');
   });
 
+  it('renders relationship before member name controls', () => {
+    const fixture = TestBed.createComponent(MemberFormComponent);
+    const component = fixture.componentInstance;
+    component.member = { relationship: '', first_name: '', last_name: '', gender: '' };
+    component.relationshipOptions = [{ value: 'father', label: 'Father' }];
+
+    fixture.detectChanges();
+
+    const controls = Array.from(
+      fixture.nativeElement.querySelectorAll('ion-select, ion-input') as NodeListOf<HTMLElement>,
+    ).map((element: any) => element.label);
+
+    expect(controls.indexOf('Relationship to Head *')).toBeLessThan(controls.indexOf('First Name *'));
+  });
+
+  it('fills parent names from the household head when a parent relationship is selected', () => {
+    const fixture = TestBed.createComponent(MemberFormComponent);
+    const component = fixture.componentInstance;
+    component.member = { relationship: '', first_name: '', last_name: '', first_name_ne: '', last_name_ne: '', gender: '' };
+    (component as any).relationshipNameAutofill = {
+      father: {
+        first_name: 'Jit',
+        last_name: 'Lama',
+        first_name_ne: 'जित',
+        last_name_ne: 'लामा',
+      },
+    };
+
+    component.onRelationshipChange('father');
+
+    expect(component.member.first_name).toBe('Jit');
+    expect(component.member.last_name).toBe('Lama');
+    expect(component.member.first_name_ne).toBe('जित');
+    expect(component.member.last_name_ne).toBe('लामा');
+  });
+
+  it('does not overwrite manually entered or NID-locked names during parent relationship autofill', () => {
+    const fixture = TestBed.createComponent(MemberFormComponent);
+    const component = fixture.componentInstance;
+    component.member = {
+      relationship: '',
+      first_name: 'NID First',
+      last_name: '',
+      first_name_ne: 'Manual Nepali',
+      last_name_ne: '',
+      gender: '',
+    };
+    component.lockedFields = new Set(['first_name']);
+    (component as any).relationshipNameAutofill = {
+      mother: {
+        first_name: 'Sharmila',
+        last_name: 'Lama',
+        first_name_ne: 'शर्मिला',
+        last_name_ne: 'लामा',
+      },
+    };
+
+    component.onRelationshipChange('mother');
+
+    expect(component.member.first_name).toBe('NID First');
+    expect(component.member.last_name).toBe('Lama');
+    expect(component.member.first_name_ne).toBe('Manual Nepali');
+    expect(component.member.last_name_ne).toBe('लामा');
+  });
+
   it('renders member citizenship issue-date warning when issue date is filled', () => {
     const fixture = TestBed.createComponent(MemberFormComponent);
     const component = fixture.componentInstance;

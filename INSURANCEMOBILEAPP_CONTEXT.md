@@ -130,9 +130,10 @@ Step 1 includes:
 - personal information
 - optional split father/mother/grandfather first-name and last-name fields in English and Nepali, grouped compactly by Father, Mother, and Grandfather with English first/last fields followed by Nepali first/last fields
 - age-aware identity document fields: citizenship for household heads 16+, birth-certificate number/issue-date/document for household heads under 16
+- permanent address source (`nid`, `citizenship`, or `migration`)
 - permanent address
 - temporary address
-- optional Basai Sarai front/back file capture when temporary differs
+- optional Basai Sarai front/back file capture when permanent address source is `migration`
 - first service point dropdown loaded from backend service points after permanent province/district selection
 - profession ID select
 - qualification ID select
@@ -171,6 +172,7 @@ NID behavior:
 - Mobile consumes backend-mapped NID display fields directly: `province`, `district`, `municipality`, `ward_number`, `tole_village`, `citizenship_issue_district`, and JPEG `photo_url`.
 - Household-head NID tests cover Bagamati/Makawanpur/Hetauda mapped address selection, locked citizenship issue/date fields, grouped verified label/value metadata, saved NID payload restoration, and JPEG photo preview.
 - Member NID tests cover `citizenship_issue_district` and JPEG `photo_url` preview.
+- Family-member forms render relationship before member name/photo fields. When `father`, `mother`, or `grandfather` is selected, blank or previously auto-filled member English/Nepali name fields are filled from the household-head parent/grandparent split names; manually edited and NID-locked name fields are preserved.
 
 Save behavior:
 - `saveHouseholdHead(id, formData)` calls `POST /api/enrollments/{id}/household-head`.
@@ -208,8 +210,8 @@ Member card export behavior:
 Temporary address:
 - `temporarySameAsPermanent` defaults to `false`; users must explicitly toggle same-as-permanent.
 - `temporarySameAsPermanent` copies permanent address into temporary address locally.
-- If unchecked, temporary location dropdowns and Basai Sarai front/back capture are shown.
-- Backend treats Basai Sarai files as optional.
+- If unchecked, temporary location dropdowns are shown.
+- Migration-based permanent address review shows `Basai Sarai (permanent address is changed)` and Basai Sarai front/back evidence in the mobile review step; backend officer review uses the same migration address source and documents.
 
 Profession options:
 - `1 Government`
