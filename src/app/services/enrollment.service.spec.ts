@@ -167,6 +167,18 @@ describe('EnrollmentService', () => {
     expect(submitted.has('death_document')).toBeTrue();
   });
 
+  it('preserves selected PDF filenames for death/removal supporting documents', () => {
+    const response = { success: true, message: 'Removed.', data: null };
+    const file = new File(['proof'], 'death-proof.pdf', { type: 'application/pdf' });
+    api.postFormData.and.returnValue(of(response));
+
+    service.removeMember(25, 9, file).subscribe(result => expect(result).toEqual(response));
+
+    const submitted = api.postFormData.calls.mostRecent().args[1] as FormData;
+    const submittedFile = submitted.get('death_document') as File;
+    expect(submittedFile.name).toBe('death-proof.pdf');
+  });
+
   it('removes unapproved members without sending a death/removal document', () => {
     const response = { success: true, message: 'Removed.', data: null };
     api.postFormData.and.returnValue(of(response));

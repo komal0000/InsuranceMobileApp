@@ -856,6 +856,21 @@ Result:
 - Full mobile Karma suite passes: `114 SUCCESS`.
 - Existing build warning remains: `src/app/components/bs-date-picker/bs-date-picker.component.ts` style budget exceeded by 55 bytes (`4.05 kB` total against `4.00 kB`).
 
+Upload file type rules verification on 2026-05-26:
+```bash
+cd /Users/rahkehs/Downloads/Other/2026/Insurance/InsuranceMobileApp
+CHROME_BIN="/Applications/Brave Browser.app/Contents/MacOS/Brave Browser" npm test -- --watch=false --browsers=ChromeHeadless --include=src/app/pages/profile/profile.page.spec.ts
+CHROME_BIN="/Applications/Brave Browser.app/Contents/MacOS/Brave Browser" npm test -- --watch=false --browsers=ChromeHeadless --include=src/app/pages/enrollment-wizard/enrollment-wizard.page.spec.ts
+CHROME_BIN="/Applications/Brave Browser.app/Contents/MacOS/Brave Browser" npm test -- --watch=false --browsers=ChromeHeadless --include=src/app/pages/renewals/renewals.page.spec.ts --include=src/app/pages/renewal-detail/renewal-detail.page.spec.ts --include=src/app/services/enrollment.service.spec.ts
+npm run build
+```
+
+Result:
+- Profile, enrollment wizard, renewal list/detail, and enrollment service specs passed with picker assertions for `image/*` photo uploads and `image/*,application/pdf` document uploads.
+- PDF `File` uploads keep their original filename in FormData; image/camera blobs still use image fallback filenames.
+- `npm run build` succeeds and writes to `www`.
+- Existing build warning remains: `src/app/components/bs-date-picker/bs-date-picker.component.ts` style budget exceeded by 131 bytes (`4.13 kB` total against `4.00 kB`).
+
 ## Deployment Notes
 - Environment API URL is configured in:
   - `src\environments\environment.ts`

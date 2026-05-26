@@ -397,7 +397,7 @@ export class KycDemoPage implements OnDestroy {
   private fallbackKycPhotoInput(): void {
     const input = document.createElement('input');
     input.type = 'file';
-    input.accept = 'image/jpg,image/jpeg,image/png,image/webp';
+    input.accept = 'image/*';
     input.onchange = (event: Event) => {
       const file = (event.target as HTMLInputElement).files?.[0];
       if (!file) return;

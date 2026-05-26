@@ -75,6 +75,9 @@ const MEMBER_NEPALI_NAME_FIELDS = [
   'last_name_ne',
 ];
 
+const IMAGE_FILE_ACCEPT = 'image/*';
+const DOCUMENT_FILE_ACCEPT = 'image/*,application/pdf';
+
 @Component({
   selector: 'app-renewals',
   standalone: true,
@@ -342,6 +345,11 @@ export class RenewalsPage implements OnInit, OnDestroy {
     field: 'photo' | 'citizenship_front_image' | 'citizenship_back_image' |
            'birth_certificate_front_image'
   ) {
+    if (field !== 'photo') {
+      this.fallbackRenewalMemberFileInput(field);
+      return;
+    }
+
     try {
       const { Camera, CameraResultType, CameraSource } = await import('@capacitor/camera');
       const image = await Camera.getPhoto({
@@ -360,7 +368,8 @@ export class RenewalsPage implements OnInit, OnDestroy {
 
   private fallbackRenewalMemberFileInput(field: string) {
     const input = document.createElement('input');
-    input.type = 'file'; input.accept = 'image/jpg,image/jpeg,image/png';
+    input.type = 'file';
+    input.accept = this.fileAcceptForField(field);
     input.onchange = (event: any) => {
       const file: File = event.target.files[0];
       if (!file) return;
@@ -368,6 +377,11 @@ export class RenewalsPage implements OnInit, OnDestroy {
         this.toastCtrl.create({ message: this.t('wizard.image_size'), duration: 2000, color: 'danger', position: 'top' }).then(t => t.present());
         return;
       }
+      if (!file.type.startsWith('image/')) {
+        this.applyRenewalMemberImage(field as any, file, file.name);
+        return;
+      }
+
       const reader = new FileReader();
       reader.onload = () => this.applyRenewalMemberImage(field as any, file, reader.result as string);
       reader.readAsDataURL(file);
@@ -381,6 +395,26 @@ export class RenewalsPage implements OnInit, OnDestroy {
     else if (field === 'citizenship_front_image') this.memberCitizenshipFrontPreview = dataUrl;
     else if (field === 'citizenship_back_image') this.memberCitizenshipBackPreview = dataUrl;
     else if (field === 'birth_certificate_front_image') this.memberBirthCertFrontPreview = dataUrl;
+  }
+
+  private fileAcceptForField(field: string): string {
+    return field === 'photo' ? IMAGE_FILE_ACCEPT : DOCUMENT_FILE_ACCEPT;
+  }
+
+  isImagePreview(value: string): boolean {
+    if (!value) {
+      return false;
+    }
+
+    return !value.startsWith('data:application/pdf') && !/\.pdf($|\?)/i.test(value);
+  }
+
+  filePreviewLabel(value: string): string {
+    return value.split('/').pop()?.split('?')[0] || this.t('common.file');
+  }
+
+  private fileNameFor(file: File | Blob, fallback: string): string {
+    return typeof File !== 'undefined' && file instanceof File && file.name ? file.name : fallback;
   }
 
   private dataUrlToBlob(dataUrl: string): Blob {
@@ -478,7 +512,7 @@ export class RenewalsPage implements OnInit, OnDestroy {
       }
       if (val === null || val === undefined || val === '') return;
       if (typeof val === 'boolean') { fd.append(key, val ? '1' : '0'); return; }
-      if (val instanceof Blob) { fd.append(key, val, `${key}.jpg`); return; }
+      if (val instanceof Blob) { fd.append(key, val, this.fileNameFor(val, `${key}.jpg`)); return; }
       if (key === 'citizenship_number') {
         const digits = normalizeDigitsOnly(String(val));
         if (digits !== '') fd.append(key, digits);

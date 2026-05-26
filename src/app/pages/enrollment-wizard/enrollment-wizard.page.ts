@@ -84,6 +84,9 @@ const DEFAULT_UPLOAD_LIMITS = {
   max_post_bytes: 20 * 1024 * 1024,
 };
 
+const IMAGE_FILE_ACCEPT = 'image/*';
+const DOCUMENT_FILE_ACCEPT = 'image/*,application/pdf';
+
 const HOUSEHOLD_HEAD_UPLOAD_FIELDS = [
   'photo',
   'citizenship_front_image',
@@ -1419,7 +1422,7 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
       if (typeof val === 'boolean') { fd.append(key, val ? '1' : '0'); return; }
       if (val instanceof Blob) {
         if (!activeUploadFields.has(key)) return;
-        fd.append(key, val, `${key}.jpg`); return;
+        fd.append(key, val, this.fileNameFor(val, `${key}.jpg`)); return;
       }
       if (val !== null && val !== undefined && (options.includeEmpty || val !== '')) {
         const stringValue = key === 'national_id'
@@ -1674,7 +1677,7 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
       }
       if (val === null || val === undefined || val === '') return;
       if (typeof val === 'boolean') { fd.append(key, val ? '1' : '0'); return; }
-      if (val instanceof Blob) { fd.append(key, val, `${key}.jpg`); return; }
+      if (val instanceof Blob) { fd.append(key, val, this.fileNameFor(val, `${key}.jpg`)); return; }
       if (key === 'citizenship_number') {
         const digits = normalizeDigitsOnly(String(val));
         if (digits !== '') fd.append(key, digits);
@@ -1771,7 +1774,7 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
         }, 300);
       };
       input.type = 'file';
-      input.accept = 'image/jpg,image/jpeg,image/png,application/pdf';
+      input.accept = DOCUMENT_FILE_ACCEPT;
       input.onchange = (event: Event) => {
         const file = (event.target as HTMLInputElement | null)?.files?.[0] ?? null;
         if (!file) {
@@ -1848,6 +1851,11 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
            'basai_sarai_front' | 'basai_sarai_back' |
            'birth_certificate_front_image'
   ) {
+    if (field !== 'photo') {
+      this.fallbackFileInput(target, field);
+      return;
+    }
+
     try {
       const { Camera, CameraResultType, CameraSource } = await import('@capacitor/camera');
       const image = await Camera.getPhoto({
@@ -1862,12 +1870,18 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
 
   private fallbackFileInput(target: 'head' | 'member', field: string) {
     const input = document.createElement('input');
-    input.type = 'file'; input.accept = 'image/jpg,image/jpeg,image/png';
+    input.type = 'file';
+    input.accept = this.fileAcceptForField(field);
     input.onchange = (event: any) => {
       const file: File = event.target.files[0];
       if (!file) return;
       const maxFileBytes = this.uploadLimits().max_file_bytes;
       if (maxFileBytes > 0 && file.size > maxFileBytes) { this.showToast(this.t('wizard.image_size'), 'danger'); return; }
+      if (!file.type.startsWith('image/')) {
+        this.applyImage(target, field as any, file, file.name);
+        return;
+      }
+
       const reader = new FileReader();
       reader.onload = () => this.applyImage(target, field as any, file, reader.result as string);
       reader.readAsDataURL(file);
@@ -1907,6 +1921,14 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
     const extraRate = cfg?.additional_member_premium || 700;
     const extra = Math.max(0, totalMembers - baseCount) * extraRate;
     return { base, extra, total: base + extra, members: totalMembers };
+  }
+
+  private fileAcceptForField(field: string): string {
+    return field === 'photo' ? IMAGE_FILE_ACCEPT : DOCUMENT_FILE_ACCEPT;
+  }
+
+  private fileNameFor(file: File | Blob, fallback: string): string {
+    return typeof File !== 'undefined' && file instanceof File && file.name ? file.name : fallback;
   }
 
   get householdHeadRelationshipNameAutofill(): Record<string, Partial<Record<'first_name' | 'last_name' | 'first_name_ne' | 'last_name_ne', string>>> {

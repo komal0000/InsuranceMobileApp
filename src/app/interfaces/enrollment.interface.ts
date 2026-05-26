@@ -13,6 +13,7 @@ export interface Enrollment {
   district: string;
   municipality: string;
   ward_number: number;
+  location_id?: number | null;
   tole_village: string;
   full_address: string;
   permanent_address_source?: PermanentAddressSource | null;
@@ -45,6 +46,11 @@ export interface Enrollment {
   display_enrollment_date?: string | null;
   display_enrollment_date_bs?: string | null;
   display_enrollment_date_ad?: string | null;
+  imis_sync_status?: ImisEnrollmentSyncStatus | null;
+  imis_synced_at?: string | null;
+  imis_last_sync_at?: string | null;
+  imis_last_http_status?: number | null;
+  imis_last_error?: string | null;
   rejection_reason?: string;
   approved_by?: number | null;
   approved_at?: string | null;
@@ -61,6 +67,13 @@ export interface Enrollment {
 }
 
 export type PermanentAddressSource = 'nid' | 'citizenship' | 'migration';
+
+export type ImisEnrollmentSyncStatus =
+  | 'not_synced'
+  | 'in_progress'
+  | 'success'
+  | 'failed'
+  | 'dry_run';
 
 export type EnrollmentStatus =
   | 'draft'

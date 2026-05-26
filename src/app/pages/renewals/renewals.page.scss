@@ -281,6 +281,20 @@
   border-radius: 8px;
 }
 
+.file-preview {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 10px 12px;
+  color: #212529;
+  font-size: 0.85rem;
+  font-weight: 600;
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+}
+
 .section-heading {
   margin: 16px 0 8px;
   color: #495057;

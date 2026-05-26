@@ -163,6 +163,18 @@ export class HouseholdHeadFormComponent {
     this.headData.birth_certificate_number = normalizeDigitsOnly(String(event.detail?.value ?? ''));
   }
 
+  isImagePreview(value: string): boolean {
+    if (!value) {
+      return false;
+    }
+
+    return !value.startsWith('data:application/pdf') && !/\.pdf($|\?)/i.test(value);
+  }
+
+  filePreviewLabel(value: string): string {
+    return value.split('/').pop()?.split('?')[0] || this.text('common.file', 'File');
+  }
+
   text(key: string, fallback: string): string {
     const translated = this.languageService.t(key);
     return translated === key ? fallback : translated;

@@ -108,6 +108,36 @@ describe('RenewalDetailPage', () => {
     ]);
   });
 
+  it('uses image-or-pdf picker for renewal detail identity documents', () => {
+    const { page } = makePage();
+    const input = {
+      type: '',
+      accept: '',
+      click: jasmine.createSpy('click'),
+    } as unknown as HTMLInputElement;
+    spyOn(document, 'createElement').and.returnValue(input);
+
+    (page as any).fallbackFileInput('citizenship_front_image');
+
+    expect(input.type).toBe('file');
+    expect(input.accept).toBe('image/*,application/pdf');
+    expect(input.click).toHaveBeenCalled();
+  });
+
+  it('uses image-only picker for renewal detail photos', () => {
+    const { page } = makePage();
+    const input = {
+      type: '',
+      accept: '',
+      click: jasmine.createSpy('click'),
+    } as unknown as HTMLInputElement;
+    spyOn(document, 'createElement').and.returnValue(input);
+
+    (page as any).fallbackFileInput('photo');
+
+    expect(input.accept).toBe('image/*');
+  });
+
   it('submits selected first service point for renewal member saves', async () => {
     const { page, api } = makePage();
     page.renewalId = 12;

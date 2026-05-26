@@ -228,7 +228,8 @@
                 {{ citizenshipFrontPreview ? text('common.change', 'Change') : text('common.capture', 'Capture') }}
               </ion-button>
             </div>
-            <img *ngIf="citizenshipFrontPreview" [src]="citizenshipFrontPreview" class="preview-img" />
+            <img *ngIf="isImagePreview(citizenshipFrontPreview)" [src]="citizenshipFrontPreview" class="preview-img" />
+            <div *ngIf="citizenshipFrontPreview && !isImagePreview(citizenshipFrontPreview)" class="file-preview">{{ filePreviewLabel(citizenshipFrontPreview) }}</div>
           </div>
           <div class="capture-section" *ngIf="!nidVerifiedHead">
             <div class="capture-row">
@@ -238,7 +239,8 @@
                 {{ citizenshipBackPreview ? text('common.change', 'Change') : text('common.capture', 'Capture') }}
               </ion-button>
             </div>
-            <img *ngIf="citizenshipBackPreview" [src]="citizenshipBackPreview" class="preview-img" />
+            <img *ngIf="isImagePreview(citizenshipBackPreview)" [src]="citizenshipBackPreview" class="preview-img" />
+            <div *ngIf="citizenshipBackPreview && !isImagePreview(citizenshipBackPreview)" class="file-preview">{{ filePreviewLabel(citizenshipBackPreview) }}</div>
           </div>
           </ng-container>
 
@@ -268,7 +270,8 @@
                   {{ birthCertificateFrontPreview ? text('common.change', 'Change') : text('common.capture', 'Capture') }}
                 </ion-button>
               </div>
-              <img *ngIf="birthCertificateFrontPreview" [src]="birthCertificateFrontPreview" class="preview-img" />
+              <img *ngIf="isImagePreview(birthCertificateFrontPreview)" [src]="birthCertificateFrontPreview" class="preview-img" />
+              <div *ngIf="birthCertificateFrontPreview && !isImagePreview(birthCertificateFrontPreview)" class="file-preview">{{ filePreviewLabel(birthCertificateFrontPreview) }}</div>
             </div>
           </ng-template>
         </div>
@@ -354,7 +357,8 @@
                   {{ targetGroupFrontPreview ? text('common.change', 'Change') : text('common.capture', 'Capture') }}
                 </ion-button>
               </div>
-              <img *ngIf="targetGroupFrontPreview" [src]="targetGroupFrontPreview" class="preview-img" />
+              <img *ngIf="isImagePreview(targetGroupFrontPreview)" [src]="targetGroupFrontPreview" class="preview-img" />
+              <div *ngIf="targetGroupFrontPreview && !isImagePreview(targetGroupFrontPreview)" class="file-preview">{{ filePreviewLabel(targetGroupFrontPreview) }}</div>
             </div>
             <div class="capture-section" *ngIf="headData.target_group_type !== 'senior_citizen'">
               <div class="capture-row">
@@ -364,7 +368,8 @@
                   {{ targetGroupBackPreview ? text('common.change', 'Change') : text('common.capture', 'Capture') }}
                 </ion-button>
               </div>
-              <img *ngIf="targetGroupBackPreview" [src]="targetGroupBackPreview" class="preview-img" />
+              <img *ngIf="isImagePreview(targetGroupBackPreview)" [src]="targetGroupBackPreview" class="preview-img" />
+              <div *ngIf="targetGroupBackPreview && !isImagePreview(targetGroupBackPreview)" class="file-preview">{{ filePreviewLabel(targetGroupBackPreview) }}</div>
             </div>
           </div>
         </div>

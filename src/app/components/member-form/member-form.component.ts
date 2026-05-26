@@ -121,6 +121,13 @@ type RelationshipNameAutofill = Record<string, Partial<Record<RelationshipNameFi
       border: 1px solid #e9ecef;
     }
 
+    .file-preview {
+      margin-top: 8px;
+      color: #495057;
+      font-size: 0.82rem;
+      font-weight: 600;
+    }
+
     .btn-row {
       display: flex;
       gap: 8px;
@@ -278,7 +285,8 @@ type RelationshipNameAutofill = Record<string, Partial<Record<RelationshipNameFi
               {{ citizenshipFrontPreview ? text('common.change', 'Change') : text('common.capture', 'Capture') }}
             </ion-button>
           </div>
-          <img *ngIf="citizenshipFrontPreview" [src]="citizenshipFrontPreview" class="preview-img" />
+          <img *ngIf="isImagePreview(citizenshipFrontPreview)" [src]="citizenshipFrontPreview" class="preview-img" />
+          <div *ngIf="citizenshipFrontPreview && !isImagePreview(citizenshipFrontPreview)" class="file-preview">{{ filePreviewLabel(citizenshipFrontPreview) }}</div>
         </div>
         <div class="capture-section">
           <div class="capture-row">
@@ -288,7 +296,8 @@ type RelationshipNameAutofill = Record<string, Partial<Record<RelationshipNameFi
               {{ citizenshipBackPreview ? text('common.change', 'Change') : text('common.capture', 'Capture') }}
             </ion-button>
           </div>
-          <img *ngIf="citizenshipBackPreview" [src]="citizenshipBackPreview" class="preview-img" />
+          <img *ngIf="isImagePreview(citizenshipBackPreview)" [src]="citizenshipBackPreview" class="preview-img" />
+          <div *ngIf="citizenshipBackPreview && !isImagePreview(citizenshipBackPreview)" class="file-preview">{{ filePreviewLabel(citizenshipBackPreview) }}</div>
         </div>
       </div>
 
@@ -310,7 +319,8 @@ type RelationshipNameAutofill = Record<string, Partial<Record<RelationshipNameFi
               {{ birthCertificateFrontPreview ? text('common.change', 'Change') : text('common.capture', 'Capture') }}
             </ion-button>
           </div>
-          <img *ngIf="birthCertificateFrontPreview" [src]="birthCertificateFrontPreview" class="preview-img" />
+          <img *ngIf="isImagePreview(birthCertificateFrontPreview)" [src]="birthCertificateFrontPreview" class="preview-img" />
+          <div *ngIf="birthCertificateFrontPreview && !isImagePreview(birthCertificateFrontPreview)" class="file-preview">{{ filePreviewLabel(birthCertificateFrontPreview) }}</div>
         </div>
       </div>
 
@@ -466,6 +476,18 @@ export class MemberFormComponent implements OnChanges {
   text(key: string, fallback: string): string {
     const translated = this.languageService.t(key);
     return translated === key ? fallback : translated;
+  }
+
+  isImagePreview(value: string): boolean {
+    if (!value) {
+      return false;
+    }
+
+    return !value.startsWith('data:application/pdf') && !/\.pdf($|\?)/i.test(value);
+  }
+
+  filePreviewLabel(value: string): string {
+    return value.split('/').pop()?.split('?')[0] || this.text('common.file', 'File');
   }
 
   private hasRequiredFields(): boolean {

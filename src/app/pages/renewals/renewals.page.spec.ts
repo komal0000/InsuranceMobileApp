@@ -104,6 +104,36 @@ describe('RenewalsPage', () => {
     ]);
   });
 
+  it('uses image-or-pdf picker for renewal member identity documents', () => {
+    const { page } = makePage('beneficiary');
+    const input = {
+      type: '',
+      accept: '',
+      click: jasmine.createSpy('click'),
+    } as unknown as HTMLInputElement;
+    spyOn(document, 'createElement').and.returnValue(input);
+
+    (page as any).fallbackRenewalMemberFileInput('birth_certificate_front_image');
+
+    expect(input.type).toBe('file');
+    expect(input.accept).toBe('image/*,application/pdf');
+    expect(input.click).toHaveBeenCalled();
+  });
+
+  it('uses image-only picker for renewal member photos', () => {
+    const { page } = makePage('beneficiary');
+    const input = {
+      type: '',
+      accept: '',
+      click: jasmine.createSpy('click'),
+    } as unknown as HTMLInputElement;
+    spyOn(document, 'createElement').and.returnValue(input);
+
+    (page as any).fallbackRenewalMemberFileInput('photo');
+
+    expect(input.accept).toBe('image/*');
+  });
+
   it('initiates beneficiary renewal only after consent is accepted', async () => {
     const { page, api, toastCtrl, router } = makePage('beneficiary');
     api.post.and.returnValue(of({ success: true, data: { id: 42 } }));

@@ -1488,6 +1488,92 @@ describe('EnrollmentWizardPage', () => {
     expect(submitted.has('birth_certificate_number')).toBeFalse();
   });
 
+  it('uses image-or-pdf picker for member identity documents', () => {
+    const page = createPage();
+    const input = {
+      type: '',
+      accept: '',
+      click: jasmine.createSpy('click'),
+      addEventListener: jasmine.createSpy('addEventListener'),
+    } as unknown as HTMLInputElement;
+    spyOn(document, 'createElement').and.returnValue(input);
+
+    (page as any).fallbackFileInput('member', 'citizenship_front_image');
+
+    expect(input.type).toBe('file');
+    expect(input.accept).toBe('image/*,application/pdf');
+    expect(input.click).toHaveBeenCalled();
+  });
+
+  it('uses image-only picker for member photos', () => {
+    const page = createPage();
+    const input = {
+      type: '',
+      accept: '',
+      click: jasmine.createSpy('click'),
+      addEventListener: jasmine.createSpy('addEventListener'),
+    } as unknown as HTMLInputElement;
+    spyOn(document, 'createElement').and.returnValue(input);
+
+    (page as any).fallbackFileInput('member', 'photo');
+
+    expect(input.accept).toBe('image/*');
+  });
+
+  it('preserves PDF filenames when submitting member identity documents', async () => {
+    const enrollmentSvc = {
+      addMember: jasmine.createSpy().and.returnValue(of({ success: true, message: 'Saved.', data: { id: 10 } })),
+    };
+    const page = createPage({ enrollmentSvc });
+    spyOn<any>(page, 'showToast').and.returnValue(Promise.resolve());
+    page.enrollmentId = 4;
+    page.relationshipOptions = relationshipOptions();
+    page.headData.marital_status = 'married';
+    page.newMember = {
+      first_name: 'Anita',
+      last_name: 'Lama',
+      gender: 'female',
+      date_of_birth: '2050-01-01',
+      relationship: 'daughter',
+      marital_status: 'single',
+      document_type: 'citizenship',
+      citizenship_front_image: new File(['proof'], 'citizenship-front.pdf', { type: 'application/pdf' }),
+    };
+
+    await page.saveMember();
+
+    const submitted = enrollmentSvc.addMember.calls.mostRecent().args[1] as FormData;
+    const file = submitted.get('citizenship_front_image') as File;
+    expect(file.name).toBe('citizenship-front.pdf');
+  });
+
+  it('uses image filenames for captured member image blobs', async () => {
+    const enrollmentSvc = {
+      addMember: jasmine.createSpy().and.returnValue(of({ success: true, message: 'Saved.', data: { id: 10 } })),
+    };
+    const page = createPage({ enrollmentSvc });
+    spyOn<any>(page, 'showToast').and.returnValue(Promise.resolve());
+    page.enrollmentId = 4;
+    page.relationshipOptions = relationshipOptions();
+    page.headData.marital_status = 'married';
+    page.newMember = {
+      first_name: 'Anita',
+      last_name: 'Lama',
+      gender: 'female',
+      date_of_birth: '2050-01-01',
+      relationship: 'daughter',
+      marital_status: 'single',
+      document_type: 'citizenship',
+      photo: new Blob(['image'], { type: 'image/jpeg' }),
+    };
+
+    await page.saveMember();
+
+    const submitted = enrollmentSvc.addMember.calls.mostRecent().args[1] as FormData;
+    const file = submitted.get('photo') as File;
+    expect(file.name).toBe('photo.jpg');
+  });
+
   it('blocks spouse younger than twenty before saving', async () => {
     const enrollmentSvc = {
       addMember: jasmine.createSpy().and.returnValue(of({ success: true, message: 'Saved.', data: { id: 10 } })),

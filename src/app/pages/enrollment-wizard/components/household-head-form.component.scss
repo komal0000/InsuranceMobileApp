@@ -33,6 +33,13 @@
   margin-bottom: 0;
 }
 
+.file-preview {
+  margin-top: 8px;
+  color: #495057;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
 @media (max-width: 380px) {
   .parent-name-row {
     grid-template-columns: 1fr;

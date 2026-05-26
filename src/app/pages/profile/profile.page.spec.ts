@@ -11,7 +11,7 @@ describe('ProfilePage', () => {
 
   const createPage = (user: Record<string, unknown> | null = null) => {
     const authService = jasmine.createSpyObj('AuthService', ['getCurrentUser', 'fetchProfile']);
-    const api = jasmine.createSpyObj('ApiService', ['put']);
+    const api = jasmine.createSpyObj('ApiService', ['put', 'postFormData']);
     const realDateService = new DateService({
       currentLanguage: 'en',
       localizeDigits: (value: string | number | null | undefined) => value == null ? '' : String(value),
@@ -63,6 +63,23 @@ describe('ProfilePage', () => {
       message: 'auth.password_policy',
       color: 'warning',
     }));
+  });
+
+  it('uses an image-only picker for profile photos', async () => {
+    const { page } = createPage();
+    const input = {
+      type: '',
+      accept: '',
+      files: null,
+      click: jasmine.createSpy('click'),
+    } as unknown as HTMLInputElement;
+    spyOn(document, 'createElement').and.returnValue(input);
+
+    await page.pickImage();
+
+    expect(input.type).toBe('file');
+    expect(input.accept).toBe('image/*');
+    expect(input.click).toHaveBeenCalled();
   });
 
   it('blocks non-Devanagari Nepali profile names before saving', async () => {

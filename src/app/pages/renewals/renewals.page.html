@@ -408,7 +408,11 @@
                       {{ memberCitizenshipFrontPreview ? t('common.change') : t('common.capture') }}
                     </ion-button>
                   </div>
-                  <img *ngIf="memberCitizenshipFrontPreview" [src]="memberCitizenshipFrontPreview" class="preview-img" [alt]="t('wizard.citizenship_front')" />
+                  <img *ngIf="memberCitizenshipFrontPreview && isImagePreview(memberCitizenshipFrontPreview)" [src]="memberCitizenshipFrontPreview" class="preview-img" [alt]="t('wizard.citizenship_front')" />
+                  <div *ngIf="memberCitizenshipFrontPreview && !isImagePreview(memberCitizenshipFrontPreview)" class="file-preview">
+                    <ion-icon name="document-text-outline"></ion-icon>
+                    <span>{{ filePreviewLabel(memberCitizenshipFrontPreview) }}</span>
+                  </div>
                 </div>
                 <div class="capture-section">
                   <div class="capture-row">
@@ -418,7 +422,11 @@
                       {{ memberCitizenshipBackPreview ? t('common.change') : t('common.capture') }}
                     </ion-button>
                   </div>
-                  <img *ngIf="memberCitizenshipBackPreview" [src]="memberCitizenshipBackPreview" class="preview-img" [alt]="t('wizard.citizenship_back')" />
+                  <img *ngIf="memberCitizenshipBackPreview && isImagePreview(memberCitizenshipBackPreview)" [src]="memberCitizenshipBackPreview" class="preview-img" [alt]="t('wizard.citizenship_back')" />
+                  <div *ngIf="memberCitizenshipBackPreview && !isImagePreview(memberCitizenshipBackPreview)" class="file-preview">
+                    <ion-icon name="document-text-outline"></ion-icon>
+                    <span>{{ filePreviewLabel(memberCitizenshipBackPreview) }}</span>
+                  </div>
                 </div>
               </div>
 
@@ -436,7 +444,11 @@
                       {{ memberBirthCertFrontPreview ? t('common.change') : t('common.capture') }}
                     </ion-button>
                   </div>
-                  <img *ngIf="memberBirthCertFrontPreview" [src]="memberBirthCertFrontPreview" class="preview-img" [alt]="t('wizard.birth_certificate_front')" />
+                  <img *ngIf="memberBirthCertFrontPreview && isImagePreview(memberBirthCertFrontPreview)" [src]="memberBirthCertFrontPreview" class="preview-img" [alt]="t('wizard.birth_certificate_front')" />
+                  <div *ngIf="memberBirthCertFrontPreview && !isImagePreview(memberBirthCertFrontPreview)" class="file-preview">
+                    <ion-icon name="document-text-outline"></ion-icon>
+                    <span>{{ filePreviewLabel(memberBirthCertFrontPreview) }}</span>
+                  </div>
                 </div>
               </div>
 

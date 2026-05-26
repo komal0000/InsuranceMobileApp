@@ -107,7 +107,7 @@ export class ProfilePage implements OnInit {
   async pickImage() {
     const input = document.createElement('input');
     input.type = 'file';
-    input.accept = 'image/jpeg,image/png,image/webp';
+    input.accept = 'image/*';
     input.onchange = () => {
       const file = input.files?.[0];
       if (file) {

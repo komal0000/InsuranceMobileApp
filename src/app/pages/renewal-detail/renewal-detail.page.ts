@@ -66,6 +66,9 @@ const MEMBER_NEPALI_NAME_FIELDS = [
   'last_name_ne',
 ];
 
+const IMAGE_FILE_ACCEPT = 'image/*';
+const DOCUMENT_FILE_ACCEPT = 'image/*,application/pdf';
+
 @Component({
   selector: 'app-renewal-detail',
   standalone: true,
@@ -336,7 +339,7 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
         return;
       }
       if (val instanceof Blob) {
-        fd.append(key, val, `${key}.jpg`);
+        fd.append(key, val, this.fileNameFor(val, `${key}.jpg`));
         return;
       }
       if (key === 'citizenship_number') {
@@ -396,6 +399,11 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
     field: 'photo' | 'citizenship_front_image' | 'citizenship_back_image' |
            'birth_certificate_front_image'
   ) {
+    if (field !== 'photo') {
+      this.fallbackFileInput(field);
+      return;
+    }
+
     try {
       const { Camera, CameraResultType, CameraSource } = await import('@capacitor/camera');
       const image = await Camera.getPhoto({
@@ -420,13 +428,18 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
   ) {
     const input = document.createElement('input');
     input.type = 'file';
-    input.accept = 'image/jpg,image/jpeg,image/png';
+    input.accept = this.fileAcceptForField(field);
     input.onchange = (event: Event) => {
       const target = event.target as HTMLInputElement | null;
       const file = target?.files?.[0];
       if (!file) return;
       if (file.size > 2 * 1024 * 1024) {
         this.toastCtrl.create({ message: this.t('wizard.image_size'), duration: 2000, color: 'danger', position: 'top' }).then(t => t.present());
+        return;
+      }
+
+      if (!file.type.startsWith('image/')) {
+        this.applyImage(field, file, file.name);
         return;
       }
 
@@ -532,7 +545,7 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
         }, 300);
       };
       input.type = 'file';
-      input.accept = 'image/jpg,image/jpeg,image/png,application/pdf';
+      input.accept = DOCUMENT_FILE_ACCEPT;
       input.onchange = (event: Event) => {
         const file = (event.target as HTMLInputElement | null)?.files?.[0] ?? null;
         if (!file) {
@@ -561,6 +574,10 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
 
   private fileNameFor(file: File | Blob, fallback: string): string {
     return typeof File !== 'undefined' && file instanceof File && file.name ? file.name : fallback;
+  }
+
+  private fileAcceptForField(field: string): string {
+    return field === 'photo' ? IMAGE_FILE_ACCEPT : DOCUMENT_FILE_ACCEPT;
   }
 
   async submitRenewal() {
