@@ -57,16 +57,7 @@ export class PushNotificationService {
       console.log('Push action performed:', action);
       const data = action.notification.data;
       this.zone.run(() => {
-        this.fetchUnreadCount();
-        this.syncService.emitFromNotificationData(data);
-
-        if (data?.enrollment_id) {
-          this.router.navigate(['/enrollment-detail', data.enrollment_id]);
-        } else if (data?.renewal_id) {
-          this.router.navigate(['/renewal-detail', data.renewal_id]);
-        } else {
-          this.router.navigate(['/tabs/notifications']);
-        }
+        this.handleNotificationAction(data);
       });
     });
 
@@ -106,5 +97,28 @@ export class PushNotificationService {
 
   resetUnread(): void {
     this.unreadCount$.next(0);
+  }
+
+  private handleNotificationAction(data: any): void {
+    const notificationId = data?.notification_id;
+
+    this.syncService.emitFromNotificationData(data);
+
+    if (notificationId !== undefined && notificationId !== null && String(notificationId).trim() !== '') {
+      this.api.post(`/notifications/${notificationId}/read`, {}).subscribe({
+        next: () => this.fetchUnreadCount(),
+        error: () => this.fetchUnreadCount(),
+      });
+    } else {
+      this.fetchUnreadCount();
+    }
+
+    if (data?.enrollment_id) {
+      this.router.navigate(['/enrollment-detail', data.enrollment_id]);
+    } else if (data?.renewal_id) {
+      this.router.navigate(['/renewal-detail', data.renewal_id]);
+    } else {
+      this.router.navigate(['/tabs/notifications']);
+    }
   }
 }
