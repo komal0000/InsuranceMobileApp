@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   IonTabs, IonTabBar, IonTabButton, IonIcon, IonLabel, IonBadge
@@ -25,18 +25,18 @@ import { LanguageService } from '../services/language.service';
   styleUrls: ['./tabs.page.scss'],
 })
 export class TabsPage implements OnInit, OnDestroy {
+  private authService = inject(AuthService);
+  private pushService = inject(PushNotificationService);
+  private dashboardData = inject(DashboardDataService);
+  private syncService = inject(AppSyncService);
+  private languageService = inject(LanguageService);
+
   unreadCount = 0;
   hideEnrollmentTab = false;
   private readonly destroy$ = new Subject<void>();
   private enrollmentTabRequestId = 0;
 
-  constructor(
-    private authService: AuthService,
-    private pushService: PushNotificationService,
-    private dashboardData: DashboardDataService,
-    private syncService: AppSyncService,
-    private languageService: LanguageService
-  ) {
+  constructor() {
     addIcons({
       homeOutline, home, documentTextOutline, documentText,
       refreshOutline, refresh, notificationsOutline, notifications,

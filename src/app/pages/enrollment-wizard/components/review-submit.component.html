@@ -32,13 +32,13 @@
                 <span class="review-value">{{ enrollment?.full_address || step1.full_address || '—' }}</span>
               </div>
               <div class="review-item" *ngIf="isMigrationPermanentAddress">
-                <span class="review-label">Permanent Address Source</span>
-                <span class="review-value">Basai Sarai (permanent address is changed)</span>
+                <span class="review-label">{{ t('wizard.permanent_address_source') }}</span>
+                <span class="review-value">{{ t('wizard.basai_sarai_permanent_address_changed') }}</span>
               </div>
             </div>
             <div *ngIf="isMigrationPermanentAddress && basaiSaraiEvidence.length"
                  style="display:flex;flex-wrap:wrap;gap:10px;margin-top:12px">
-              <div *ngFor="let document of basaiSaraiEvidence" style="display:flex;flex-direction:column;gap:4px">
+              <div *ngFor="let document of basaiSaraiEvidence; trackBy: trackByEntity" style="display:flex;flex-direction:column;gap:4px">
                 <span style="font-size:0.75rem;font-weight:700;color:#495057">{{ document.label }}</span>
                 <img [src]="document.url"
                      [alt]="document.label"
@@ -162,7 +162,7 @@
                 <ion-badge color="primary">{{ t('wizard.head') }}</ion-badge>
               </div>
               <!-- Members -->
-              <div class="member-row" *ngFor="let m of members">
+              <div class="member-row" *ngFor="let m of members; trackBy: trackByEntity">
                 <div class="member-avatar">{{ (m.first_name || '?')[0].toUpperCase() }}</div>
                 <div class="member-info">
                   <strong>{{ m.first_name }} {{ m.last_name }}</strong>
@@ -208,7 +208,7 @@
                 <ion-icon name="checkmark-circle-outline" style="vertical-align:middle;margin-right:4px"></ion-icon>
                 {{ t('wizard.subsidy_eligibility') }} ({{ formatNumber(subsidyResults.length) }} {{ t('rule(s) matched') }})
               </p>
-              <div *ngFor="let sr of subsidyResults" style="padding:6px 0;border-bottom:1px solid #c8e6c9;font-size:0.82rem">
+              <div *ngFor="let sr of subsidyResults; trackBy: trackByEntity" style="padding:6px 0;border-bottom:1px solid #c8e6c9;font-size:0.82rem">
                 <strong>{{ sr.member_name }}</strong> ({{ formatNumber(sr.member_age) }} {{ t('common.years_short') }})
                 <br>
                 <span style="color:#555">{{ sr.rule_name }}</span>

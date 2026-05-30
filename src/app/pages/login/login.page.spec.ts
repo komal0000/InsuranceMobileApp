@@ -1,5 +1,5 @@
 import { BehaviorSubject, of } from 'rxjs';
-import { ActivatedRoute, convertToParamMap } from '@angular/router';
+import { ActivatedRoute, convertToParamMap, Router } from '@angular/router';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { LoginPage } from './login.page';
@@ -52,6 +52,27 @@ describe('LoginPage', () => {
     'createLoginSetupPassword',
   ]);
 
+  const createPage = (
+    authService: unknown = createAuthService(),
+    router: unknown = jasmine.createSpyObj('Router', ['navigateByUrl']),
+    params: Record<string, string> = {},
+    toastCtrl: unknown = createToastController(),
+    languageService: unknown = createLanguageService()
+  ) => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: AuthService, useValue: authService },
+        { provide: Router, useValue: router },
+        { provide: ActivatedRoute, useValue: createRoute(params) },
+        { provide: ToastController, useValue: toastCtrl },
+        { provide: LanguageService, useValue: languageService },
+      ],
+    });
+
+    return TestBed.runInInjectionContext(() => new LoginPage());
+  };
+
   const renderPage = async (params: Record<string, string> = {}) => {
     await TestBed.configureTestingModule({
       imports: [LoginPage],
@@ -73,13 +94,7 @@ describe('LoginPage', () => {
   it('keeps registration setup hidden on direct login', () => {
     const authService = createAuthService();
     const router = jasmine.createSpyObj('Router', ['navigateByUrl']);
-    const page = new LoginPage(
-      authService as any,
-      router as any,
-      createRoute() as any,
-      createToastController() as any,
-      createLanguageService() as any
-    );
+    const page = createPage(authService, router);
 
     expect(page.showRegistrationSetup).toBeFalse();
     expect(page.loginData.identifier).toBe('');
@@ -88,17 +103,11 @@ describe('LoginPage', () => {
   it('prefills mobile and shows setup from registration handoff', () => {
     const authService = createAuthService();
     const router = jasmine.createSpyObj('Router', ['navigateByUrl']);
-    const page = new LoginPage(
-      authService as any,
-      router as any,
-      createRoute({
-        setup: 'registration',
-        identifier_type: 'mobile',
-        identifier: '9812345678',
-      }) as any,
-      createToastController() as any,
-      createLanguageService() as any
-    );
+    const page = createPage(authService, router, {
+      setup: 'registration',
+      identifier_type: 'mobile',
+      identifier: '9812345678',
+    });
 
     expect(page.showRegistrationSetup).toBeTrue();
     expect(page.loginData.identifier_type).toBe('mobile');
@@ -109,13 +118,7 @@ describe('LoginPage', () => {
     const authService = createAuthService();
     const router = jasmine.createSpyObj('Router', ['navigateByUrl']);
     const languageService = createLanguageService();
-    const page = new LoginPage(
-      authService as any,
-      router as any,
-      createRoute() as any,
-      createToastController() as any,
-      languageService as any
-    );
+    const page = createPage(authService, router, {}, createToastController(), languageService);
 
     expect(page.identifierPlaceholder).toBe('Enter mobile number');
 
@@ -129,17 +132,11 @@ describe('LoginPage', () => {
     const authService = createAuthService();
     const router = jasmine.createSpyObj('Router', ['navigateByUrl']);
     router.navigateByUrl.and.resolveTo(true);
-    const page = new LoginPage(
-      authService as any,
-      router as any,
-      createRoute({
-        setup: 'registration',
-        identifier_type: 'mobile',
-        identifier: '9812345678',
-      }) as any,
-      createToastController() as any,
-      createLanguageService() as any
-    );
+    const page = createPage(authService, router, {
+      setup: 'registration',
+      identifier_type: 'mobile',
+      identifier: '9812345678',
+    });
 
     authService.sendLoginSetupOtp.and.returnValue(of({
       success: true,
@@ -211,17 +208,11 @@ describe('LoginPage', () => {
     const authService = createAuthService();
     const router = jasmine.createSpyObj('Router', ['navigateByUrl']);
     const toastCtrl = createToastController();
-    const page = new LoginPage(
-      authService as any,
-      router as any,
-      createRoute({
-        setup: 'registration',
-        identifier_type: 'mobile',
-        identifier: '9812345678',
-      }) as any,
-      toastCtrl as any,
-      createLanguageService() as any
-    );
+    const page = createPage(authService, router, {
+      setup: 'registration',
+      identifier_type: 'mobile',
+      identifier: '9812345678',
+    }, toastCtrl);
 
     authService.createLoginSetupPassword.and.returnValue(of({
       success: true,
@@ -254,13 +245,7 @@ describe('LoginPage', () => {
   it('toggles each login password field independently', () => {
     const authService = createAuthService();
     const router = jasmine.createSpyObj('Router', ['navigateByUrl']);
-    const page = new LoginPage(
-      authService as any,
-      router as any,
-      createRoute() as any,
-      createToastController() as any,
-      createLanguageService() as any
-    );
+    const page = createPage(authService, router);
 
     expect(page.passwordInputType('login')).toBe('password');
     expect(page.passwordInputType('setup')).toBe('password');

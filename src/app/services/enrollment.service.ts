@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { shareReplay } from 'rxjs/operators';
 import { ApiService } from './api.service';
@@ -10,6 +10,9 @@ import { DateService } from './date.service';
 
 @Injectable({ providedIn: 'root' })
 export class EnrollmentService {
+  private api = inject(ApiService);
+  private dateService = inject(DateService);
+
   private readonly headDateFields = ['date_of_birth', 'citizenship_issue_date', 'birth_certificate_issue_date'];
   private readonly memberDateFields = [
     'date_of_birth',
@@ -17,11 +20,6 @@ export class EnrollmentService {
     'birth_certificate_issue_date',
   ];
   private configRequest$?: Observable<ApiResponse<EnrollmentConfig>>;
-
-  constructor(
-    private api: ApiService,
-    private dateService: DateService
-  ) {}
 
   // ── Config ──────────────────────────────────────────────────
 

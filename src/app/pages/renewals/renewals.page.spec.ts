@@ -1,5 +1,13 @@
 import { EMPTY, Subject, of } from 'rxjs';
+import { TestBed } from '@angular/core/testing';
+import { Router } from '@angular/router';
+import { ToastController } from '@ionic/angular/standalone';
 import { RenewalsPage } from './renewals.page';
+import { ApiService } from '../../services/api.service';
+import { AppSyncService } from '../../services/app-sync.service';
+import { AuthService } from '../../services/auth.service';
+import { DateService } from '../../services/date.service';
+import { LanguageService } from '../../services/language.service';
 
 describe('RenewalsPage', () => {
   function makePage(role: string, overrides: { dateService?: Record<string, unknown> } = {}) {
@@ -24,15 +32,19 @@ describe('RenewalsPage', () => {
       ...overrides.dateService,
     };
 
-    const page = new RenewalsPage(
-      api,
-      { events$: EMPTY } as any,
-      { getCurrentUser: () => ({ role }) } as any,
-      dateService as any,
-      router,
-      toastCtrl as any,
-      languageService as any
-    );
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: ApiService, useValue: api },
+        { provide: AppSyncService, useValue: { events$: EMPTY } },
+        { provide: AuthService, useValue: { getCurrentUser: () => ({ role }) } },
+        { provide: DateService, useValue: dateService },
+        { provide: Router, useValue: router },
+        { provide: ToastController, useValue: toastCtrl },
+        { provide: LanguageService, useValue: languageService },
+      ],
+    });
+    const page = TestBed.runInInjectionContext(() => new RenewalsPage());
 
     return { page, router, api, toastCtrl };
   }

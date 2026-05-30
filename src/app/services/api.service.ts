@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
@@ -24,11 +24,11 @@ export function resolveDevelopmentBrowserApiUrl(
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
+  private http = inject(HttpClient);
+
   private readonly baseUrls = this.resolveBaseUrls();
   private readonly preferredBaseUrlStorageKey = 'hib_api_preferred_base_url';
   private preferredBaseUrlIndex = this.resolvePreferredBaseUrlIndex();
-
-  constructor(private http: HttpClient) {}
 
   get<T>(path: string, params?: Record<string, any>): Observable<T> {
     let httpParams = new HttpParams();

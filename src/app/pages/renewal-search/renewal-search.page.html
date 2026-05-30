@@ -63,7 +63,7 @@
               <ion-text color="medium">{{ t('renewal_search.no_policies') }}</ion-text>
             </div>
             <div class="result-list" *ngIf="results.length > 0">
-              <div class="result-item" *ngFor="let r of results" (click)="initiateRenewal(r)">
+              <div class="result-item" *ngFor="let r of results; trackBy: trackByEntity" (click)="initiateRenewal(r)">
                 <div class="result-info">
                   <strong>{{ r.enrollment_number || t('enrollments.number_prefix') + r.id }}</strong>
                   <span *ngIf="r.household_head">{{ r.household_head?.first_name }} {{ r.household_head?.last_name }}</span>

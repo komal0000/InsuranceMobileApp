@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
@@ -27,6 +27,12 @@ import { PaymentService } from '../../services/payment.service';
   styleUrls: ['./payment-result.page.scss'],
 })
 export class PaymentResultPage implements OnInit {
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private toastCtrl = inject(ToastController);
+  private languageService = inject(LanguageService);
+  private paymentService = inject(PaymentService);
+
 
   status: 'success' | 'failed' | 'pending' | 'processing' = 'processing';
   referenceId = '';
@@ -37,13 +43,7 @@ export class PaymentResultPage implements OnInit {
   errorCode = '';
   checkingStatus = false;
 
-  constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private toastCtrl: ToastController,
-    private languageService: LanguageService,
-    private paymentService: PaymentService,
-  ) {
+  constructor() {
     addIcons({ checkmarkCircleOutline, closeCircleOutline, timeOutline });
   }
 

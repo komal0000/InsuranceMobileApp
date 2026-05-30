@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import {
   IonButton,
@@ -21,6 +21,7 @@ import {
   isMarriedOrDivorcedStatus,
   spouseGenderForHead,
 } from '../../utils/relationship-marital-status.util';
+import { trackByEntity } from '../../utils/track-by.util';
 
 export type MemberImageField =
   | 'photo'
@@ -155,7 +156,7 @@ type RelationshipNameAutofill = Record<string, Partial<Record<RelationshipNameFi
     <div class="form-group">
       <ion-item class="form-item">
         <ion-select [label]="text('wizard.relationship_required', 'Relationship to Head *')" labelPlacement="stacked" [(ngModel)]="member.relationship" (ngModelChange)="onRelationshipChange($event)">
-          <ion-select-option *ngFor="let option of relationshipOptions" [value]="option.value">
+          <ion-select-option *ngFor="let option of relationshipOptions; trackBy: trackByEntity" [value]="option.value">
             {{ relationshipLabel(option.value) }}
           </ion-select-option>
         </ion-select>
@@ -237,7 +238,7 @@ type RelationshipNameAutofill = Record<string, Partial<Record<RelationshipNameFi
                     [(ngModel)]="member.first_service_point_id"
                     [disabled]="!servicePointOptions.length">
           <ion-select-option value="">{{ text('common.not_available', 'Not available') }}</ion-select-option>
-          <ion-select-option *ngFor="let option of servicePointOptions" [value]="option.id">{{ option.name }}</ion-select-option>
+          <ion-select-option *ngFor="let option of servicePointOptions; trackBy: trackByEntity" [value]="option.id">{{ option.name }}</ion-select-option>
         </ion-select>
       </ion-item>
       <ion-item class="form-item">
@@ -250,7 +251,7 @@ type RelationshipNameAutofill = Record<string, Partial<Record<RelationshipNameFi
           <ion-select-option *ngIf="member.occupation && !hasProfessionOption(member.occupation)" [value]="member.occupation">
             {{ member.occupation }}
           </ion-select-option>
-          <ion-select-option *ngFor="let option of professionOptions" [value]="option.label">{{ option.label }}</ion-select-option>
+          <ion-select-option *ngFor="let option of professionOptions; trackBy: trackByEntity" [value]="option.label">{{ option.label }}</ion-select-option>
         </ion-select>
       </ion-item>
 
@@ -325,7 +326,7 @@ type RelationshipNameAutofill = Record<string, Partial<Record<RelationshipNameFi
       </div>
 
       <div class="btn-row">
-        <ion-button expand="block" fill="outline" color="medium" (click)="cancel.emit()">
+        <ion-button expand="block" fill="outline" color="medium" (click)="cancelRequested.emit()">
           {{ text('common.cancel', 'Cancel') }}
         </ion-button>
         <ion-button expand="block" (click)="save.emit()" [disabled]="isSaveDisabled">
@@ -337,6 +338,10 @@ type RelationshipNameAutofill = Record<string, Partial<Record<RelationshipNameFi
   `,
 })
 export class MemberFormComponent implements OnChanges {
+  readonly trackByEntity = trackByEntity;
+  private languageService = inject(LanguageService);
+  private dateService = inject(DateService);
+
   @Input({ required: true }) member!: MemberFormModel;
   @Input() relationshipOptions: Array<{ value: string; label: string }> = [];
   @Input() relationshipGenderMap: RelationshipGenderMap = {};
@@ -359,14 +364,9 @@ export class MemberFormComponent implements OnChanges {
 
   @Output() capture = new EventEmitter<MemberImageField>();
   @Output() save = new EventEmitter<void>();
-  @Output() cancel = new EventEmitter<void>();
+  @Output() cancelRequested = new EventEmitter<void>();
 
   private relationshipNameAutofilledValues: Partial<Record<RelationshipNameField, string>> = {};
-
-  constructor(
-    private languageService: LanguageService,
-    private dateService: DateService,
-  ) {}
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['member']) {

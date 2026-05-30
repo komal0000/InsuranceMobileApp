@@ -1,14 +1,20 @@
 import { of } from 'rxjs';
+import { TestBed } from '@angular/core/testing';
 import { GeoService } from './geo.service';
 import { ApiResponse } from '../interfaces/api-response.interface';
+import { ApiService } from './api.service';
 
 describe('GeoService', () => {
   let api: jasmine.SpyObj<{ get: (...args: unknown[]) => unknown }>;
   let service: GeoService;
 
   beforeEach(() => {
+    TestBed.resetTestingModule();
     api = jasmine.createSpyObj('ApiService', ['get']);
-    service = new GeoService(api as any);
+    TestBed.configureTestingModule({
+      providers: [{ provide: ApiService, useValue: api }],
+    });
+    service = TestBed.inject(GeoService);
   });
 
   it('caches repeated province requests during one app session', (done) => {

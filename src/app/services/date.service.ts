@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import {
   adToBs as convertAdToBs,
   bsToAd as convertBsToAd,
@@ -15,10 +15,10 @@ export type CitizenshipIssueDateError = 'before_birth' | 'too_soon' | 'future';
 
 @Injectable({ providedIn: 'root' })
 export class DateService {
+  private languageService = inject(LanguageService);
+
   private readonly isoDatePattern = /^\d{4}-\d{2}-\d{2}$/;
   private readonly inputDatePattern = /^\d{4}[-/]\d{2}[-/]\d{2}$/;
-
-  constructor(private languageService: LanguageService) {}
 
   adToBs(value: string | Date | null | undefined): string {
     const normalized = this.normalizeDate(value);

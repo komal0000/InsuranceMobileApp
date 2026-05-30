@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -26,6 +26,7 @@ import { LanguageService } from '../../services/language.service';
 import { ApiResponse } from '../../interfaces/api-response.interface';
 import { Enrollment } from '../../interfaces/enrollment.interface';
 import { LanguageToggleComponent } from '../../components/language-toggle/language-toggle.component';
+import { trackByEntity } from '../../utils/track-by.util';
 
 @Component({
   selector: 'app-enrollment-detail',
@@ -41,6 +42,18 @@ import { LanguageToggleComponent } from '../../components/language-toggle/langua
   styleUrls: ['./enrollment-detail.page.scss'],
 })
 export class EnrollmentDetailPage implements OnInit, OnDestroy {
+  readonly trackByEntity = trackByEntity;
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private api = inject(ApiService);
+  private enrollmentService = inject(EnrollmentService);
+  private syncService = inject(AppSyncService);
+  private authService = inject(AuthService);
+  private dateService = inject(DateService);
+  private languageService = inject(LanguageService);
+  private toastCtrl = inject(ToastController);
+  private alertCtrl = inject(AlertController);
+
   enrollment: Enrollment | null = null;
   loading = true;
   enrollmentId!: number;
@@ -51,18 +64,7 @@ export class EnrollmentDetailPage implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
   private hasEnteredView = false;
 
-  constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private api: ApiService,
-    private enrollmentService: EnrollmentService,
-    private syncService: AppSyncService,
-    private authService: AuthService,
-    private dateService: DateService,
-    private languageService: LanguageService,
-    private toastCtrl: ToastController,
-    private alertCtrl: AlertController
-  ) {
+  constructor() {
     addIcons({
       locationOutline, personOutline, peopleOutline, documentOutline,
       checkmarkCircleOutline, closeCircleOutline, createOutline, trashOutline,

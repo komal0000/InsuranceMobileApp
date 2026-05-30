@@ -637,6 +637,7 @@ export const EN_TRANSLATIONS: Record<string, string> = {
   'wizard.same_as_nid_address': 'Same as NID',
   'wizard.same_as_citizenship_address': 'Same as Citizenship',
   'wizard.migration_address': 'Migration',
+  'wizard.basai_sarai_permanent_address_changed': 'Basai Sarai (permanent address is changed)',
   'wizard.basai_sarai_sifarish_document': 'Basai Sarai Sifarish Document',
   'wizard.basai_sarai_front': 'Basai Sarai Front',
   'wizard.basai_sarai_back': 'Basai Sarai Back',

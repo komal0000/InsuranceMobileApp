@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -32,6 +32,7 @@ import {
   InsuranceCheckResult,
 } from '../../interfaces/dashboard.interface';
 import { isValidNidInput } from '../../utils/nid-number.util';
+import { trackByEntity } from '../../utils/track-by.util';
 
 @Component({
   selector: 'app-dashboard',
@@ -46,6 +47,14 @@ import { isValidNidInput } from '../../utils/nid-number.util';
   styleUrls: ['./dashboard.page.scss'],
 })
 export class DashboardPage implements OnInit, OnDestroy {
+  readonly trackByEntity = trackByEntity;
+  private api = inject(ApiService);
+  private authService = inject(AuthService);
+  private router = inject(Router);
+  private syncService = inject(AppSyncService);
+  private dashboardData = inject(DashboardDataService);
+  private languageService = inject(LanguageService);
+
   user: User | null = null;
   stats: DashboardData | null = {};
   loading = true;
@@ -62,14 +71,7 @@ export class DashboardPage implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
   private dashboardRequestId = 0;
 
-  constructor(
-    private api: ApiService,
-    private authService: AuthService,
-    private router: Router,
-    private syncService: AppSyncService,
-    private dashboardData: DashboardDataService,
-    private languageService: LanguageService
-  ) {
+  constructor() {
     addIcons({
       documentTextOutline, shieldCheckmarkOutline, refreshOutline,
       cashOutline, peopleOutline, alertCircleOutline, todayOutline,

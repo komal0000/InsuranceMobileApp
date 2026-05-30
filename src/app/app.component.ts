@@ -1,4 +1,4 @@
-import { ApplicationRef, Component, OnDestroy, OnInit } from '@angular/core';
+import { ApplicationRef, Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { App, URLOpenListenerEvent } from '@capacitor/app';
 import { IonApp, IonRouterOutlet } from '@ionic/angular/standalone';
@@ -18,17 +18,15 @@ interface RemovableListener {
   imports: [IonApp, IonRouterOutlet, LanguageToggleComponent],
 })
 export class AppComponent implements OnInit, OnDestroy {
+  private router = inject(Router);
+  private syncService = inject(AppSyncService);
+  private languageService = inject(LanguageService);
+  private appRef = inject(ApplicationRef);
+
   private readonly appListeners: RemovableListener[] = [];
   private routerSubscription?: Subscription;
   private languageSubscription?: Subscription;
   showFloatingLanguageToggle = false;
-
-  constructor(
-    private router: Router,
-    private syncService: AppSyncService,
-    private languageService: LanguageService,
-    private appRef: ApplicationRef
-  ) {}
 
   ngOnInit() {
     void this.languageService.init();
@@ -44,7 +42,7 @@ export class AppComponent implements OnInit, OnDestroy {
         queueMicrotask(() => this.appRef.tick());
       });
 
-    // Intercept deep links from payment gateways (io.ionic.starter://payment-result?...)
+    // Intercept deep links from payment gateways (com.needtechnosoft.hib://payment-result?...)
     void App.addListener('appUrlOpen', (event: URLOpenListenerEvent) => {
       const url = new URL(event.url);
       if (url.hostname === 'payment-result') {

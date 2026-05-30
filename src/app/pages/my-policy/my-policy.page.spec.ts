@@ -1,5 +1,9 @@
 import { of } from 'rxjs';
+import { TestBed } from '@angular/core/testing';
 import { MyPolicyPage } from './my-policy.page';
+import { DateService } from '../../services/date.service';
+import { LanguageService } from '../../services/language.service';
+import { PolicyService } from '../../services/policy.service';
 
 describe('MyPolicyPage', () => {
   function makePage(policy: any = null, history: any[] = []) {
@@ -13,14 +17,20 @@ describe('MyPolicyPage', () => {
       translateText: (value: string) => value,
     };
 
-    const page = new MyPolicyPage(
-      policyService,
-      {
+    const dateService = {
         formatForDisplay: (adDate?: string | null, bsDate?: string | null) => bsDate || adDate || '',
         toApiDate: () => '',
-      } as any,
-      languageService as any,
-    );
+      };
+
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: PolicyService, useValue: policyService },
+        { provide: DateService, useValue: dateService },
+        { provide: LanguageService, useValue: languageService },
+      ],
+    });
+    const page = TestBed.runInInjectionContext(() => new MyPolicyPage());
 
     return { page, policyService };
   }

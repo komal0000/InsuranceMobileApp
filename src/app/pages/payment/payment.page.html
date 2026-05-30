@@ -79,7 +79,7 @@
 
     <div class="gateway-grid">
       <div
-        *ngFor="let gw of gateways"
+        *ngFor="let gw of gateways; trackBy: trackByEntity"
         class="gateway-card"
         [class.selected]="selectedGateway === gw.key"
         [style.borderColor]="selectedGateway === gw.key ? gw.color : '#e0e0e0'"

@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -23,6 +23,7 @@ import { LanguageService } from '../../services/language.service';
 import { ApiResponse, PaginatedData } from '../../interfaces/api-response.interface';
 import { Enrollment, EnrollmentStatus } from '../../interfaces/enrollment.interface';
 import { LanguageToggleComponent } from '../../components/language-toggle/language-toggle.component';
+import { trackByEntity } from '../../utils/track-by.util';
 
 @Component({
   selector: 'app-enrollments',
@@ -41,6 +42,15 @@ import { LanguageToggleComponent } from '../../components/language-toggle/langua
   styleUrls: ['./enrollments.page.scss'],
 })
 export class EnrollmentsPage implements OnInit, OnDestroy {
+  readonly trackByEntity = trackByEntity;
+  private api = inject(ApiService);
+  private syncService = inject(AppSyncService);
+  private authService = inject(AuthService);
+  private dateService = inject(DateService);
+  private router = inject(Router);
+  private toastCtrl = inject(ToastController);
+  private languageService = inject(LanguageService);
+
   enrollments: Enrollment[] = [];
   search = '';
   statusFilter = '';
@@ -53,15 +63,7 @@ export class EnrollmentsPage implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
   private hasEnteredView = false;
 
-  constructor(
-    private api: ApiService,
-    private syncService: AppSyncService,
-    private authService: AuthService,
-    private dateService: DateService,
-    private router: Router,
-    private toastCtrl: ToastController,
-    private languageService: LanguageService
-  ) {
+  constructor() {
     addIcons({ addOutline, documentTextOutline, informationCircleOutline });
   }
 

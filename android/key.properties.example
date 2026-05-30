@@ -1,0 +1,6 @@
+# Copy this file to android/key.properties and replace with real values.
+# storeFile is resolved from the android/ folder by default.
+storeFile=release-keystore.jks
+storePassword=CHANGE_ME
+keyAlias=upload
+keyPassword=CHANGE_ME

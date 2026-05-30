@@ -105,7 +105,7 @@
         <div class="field-group-title">{{ t('kyc_demo.editable_member_fields') }}</div>
         <div class="update-form">
           <ion-input
-            *ngFor="let field of editableMemberFields"
+            *ngFor="let field of editableMemberFields; trackBy: trackByEntity"
             fill="outline"
             label-placement="stacked"
             [label]="t(field.labelKey)"
@@ -134,7 +134,7 @@
         <div class="field-group-title locked">{{ t('kyc_demo.locked_member_fields') }}</div>
         <div class="locked-field-grid">
           <ion-input
-            *ngFor="let field of lockedMemberFields"
+            *ngFor="let field of lockedMemberFields; trackBy: trackByEntity"
             fill="outline"
             label-placement="stacked"
             [label]="field.label"
@@ -153,7 +153,7 @@
         </div>
 
         <ion-list lines="none" class="member-list">
-          <ion-item *ngFor="let member of demoData.members" [class.selected]="member.chfid === demoData.selected_member?.chfid">
+          <ion-item *ngFor="let member of demoData.members; trackBy: trackByEntity" [class.selected]="member.chfid === demoData.selected_member?.chfid">
             <ion-label>
               <h3>{{ memberName(member) }}</h3>
               <p>{{ t('kyc_demo.member_chfid') }}: {{ member.chfid }}</p>

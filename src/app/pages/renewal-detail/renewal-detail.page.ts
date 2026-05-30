@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -38,6 +38,7 @@ import {
   normalizeRelationshipBlockMap,
 } from '../../utils/relationship-marital-status.util';
 import { requiresRemovalDocument } from '../../utils/member-removal-document.util';
+import { trackByEntity } from '../../utils/track-by.util';
 
 const DEFAULT_MEMBER_RELATIONSHIPS: Array<{ value: string; label: string }> = [
   { value: 'spouse', label: 'Spouse' },
@@ -81,6 +82,16 @@ const DOCUMENT_FILE_ACCEPT = 'image/*,application/pdf';
   styleUrls: ['./renewal-detail.page.scss'],
 })
 export class RenewalDetailPage implements OnInit, OnDestroy {
+  readonly trackByEntity = trackByEntity;
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private api = inject(ApiService);
+  private syncService = inject(AppSyncService);
+  private dateService = inject(DateService);
+  private toastCtrl = inject(ToastController);
+  private alertCtrl = inject(AlertController);
+  private languageService = inject(LanguageService);
+
   renewal: Renewal | null = null;
   loading = true;
   submitting = false;
@@ -129,16 +140,7 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
   private hasEnteredView = false;
 
-  constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private api: ApiService,
-    private syncService: AppSyncService,
-    private dateService: DateService,
-    private toastCtrl: ToastController,
-    private alertCtrl: AlertController,
-    private languageService: LanguageService
-  ) {
+  constructor() {
     addIcons({
       personOutline,
       peopleOutline,

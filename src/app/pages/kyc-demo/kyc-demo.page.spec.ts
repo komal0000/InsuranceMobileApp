@@ -1,6 +1,9 @@
 import { of, throwError } from 'rxjs';
+import { TestBed } from '@angular/core/testing';
 import { KycDemoPage } from './kyc-demo.page';
 import { LegacyImisKycDemoResponse } from '../../interfaces/legacy-imis.interface';
+import { LanguageService } from '../../services/language.service';
+import { LegacyImisService } from '../../services/legacy-imis.service';
 
 describe('KycDemoPage', () => {
   const demoResponse = (phone = '9811111111'): LegacyImisKycDemoResponse => ({
@@ -78,7 +81,16 @@ describe('KycDemoPage', () => {
 
     return {
       legacyImis,
-      page: new KycDemoPage(legacyImis as any, languageService as any),
+      page: (() => {
+        TestBed.resetTestingModule();
+        TestBed.configureTestingModule({
+          providers: [
+            { provide: LegacyImisService, useValue: legacyImis },
+            { provide: LanguageService, useValue: languageService },
+          ],
+        });
+        return TestBed.runInInjectionContext(() => new KycDemoPage());
+      })(),
     };
   }
 

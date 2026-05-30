@@ -1,11 +1,12 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, OnDestroy, Output, forwardRef } from '@angular/core';
+import { Component, EventEmitter, Input, OnDestroy, Output, forwardRef, inject } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { IonIcon, IonModal } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { calendarClearOutline, calendarOutline, chevronBackOutline, chevronForwardOutline } from 'ionicons/icons';
 import { DateService } from '../../services/date.service';
 import { LanguageService } from '../../services/language.service';
+import { trackByEntity } from '../../utils/track-by.util';
 
 interface BsDateValue {
   year: number;
@@ -98,13 +99,13 @@ const MAX_SELECTABLE_YEAR = 2100;
 
             <div class="select-group">
               <select class="picker-select month-select" (change)="onMonthChange($event)">
-                <option *ngFor="let month of months; let index = index" [value]="index + 1" [selected]="index + 1 === viewMonth">
+                <option *ngFor="let month of months; let index = index; trackBy: trackByEntity" [value]="index + 1" [selected]="index + 1 === viewMonth">
                   {{ month }}
                 </option>
               </select>
 
               <select class="picker-select year-select" (change)="onYearChange($event)">
-                <option *ngFor="let year of years" [value]="year" [selected]="year === viewYear">{{ formatNumberForLocale(year) }}</option>
+                <option *ngFor="let year of years; trackBy: trackByEntity" [value]="year" [selected]="year === viewYear">{{ formatNumberForLocale(year) }}</option>
               </select>
             </div>
 
@@ -115,7 +116,7 @@ const MAX_SELECTABLE_YEAR = 2100;
 
           <div class="weekday-row">
             <span
-              *ngFor="let dayName of weekdayLabels; let index = index"
+              *ngFor="let dayName of weekdayLabels; let index = index; trackBy: trackByEntity"
               class="weekday"
               [class.saturday]="index === 6"
             >
@@ -124,10 +125,10 @@ const MAX_SELECTABLE_YEAR = 2100;
           </div>
 
           <div class="calendar-grid">
-            <div *ngFor="let _ of leadingPlaceholders" class="day-placeholder"></div>
+            <div *ngFor="let _ of leadingPlaceholders; trackBy: trackByEntity" class="day-placeholder"></div>
 
             <button
-              *ngFor="let cell of calendarCells"
+              *ngFor="let cell of calendarCells; trackBy: trackByEntity"
               type="button"
               class="day-cell"
               [class.is-today]="cell.today"
@@ -161,18 +162,12 @@ const MAX_SELECTABLE_YEAR = 2100;
     :host {
       display: block;
       width: 100%;
-      max-width: 100%;
-      margin: 0 auto;
       color: #4a1010;
       font-size: 14px;
     }
 
     * {
       box-sizing: border-box;
-    }
-
-    .picker-shell {
-      width: 100%;
     }
 
     .picker-label {
@@ -236,14 +231,6 @@ const MAX_SELECTABLE_YEAR = 2100;
 
     .trigger-input:disabled {
       opacity: 1;
-    }
-
-    .trigger-icon,
-    .nav-button,
-    .day-cell,
-    .footer-button {
-      min-width: 44px;
-      min-height: 44px;
     }
 
     .trigger-icon {
@@ -487,6 +474,10 @@ const MAX_SELECTABLE_YEAR = 2100;
   `],
 })
 export class BsDatePickerComponent implements ControlValueAccessor, OnDestroy {
+  readonly trackByEntity = trackByEntity;
+  private dateService = inject(DateService);
+  private languageService = inject(LanguageService);
+
   @Input() label = '';
   @Input() placeholder = '';
   @Input() required = false;
@@ -512,10 +503,7 @@ export class BsDatePickerComponent implements ControlValueAccessor, OnDestroy {
   private onChange: (value: string) => void = () => undefined;
   private onTouched: () => void = () => undefined;
 
-  constructor(
-    private dateService: DateService,
-    private languageService: LanguageService
-  ) {
+  constructor() {
     addIcons({
       calendarClearOutline,
       calendarOutline,

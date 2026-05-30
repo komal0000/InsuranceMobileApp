@@ -94,16 +94,17 @@ C:\Insurance
 - Frameworks:
   - Ionic `^8.0.0`
   - Angular `^20.0.0`
-  - Capacitor `8.1.0`
+  - Capacitor `8.3.4`
   - TypeScript `~5.9.0`
 - Native/mobile capabilities:
   - Camera
   - Browser
   - Preferences
+  - Secure Storage
   - Push Notifications
 - Current Android shell:
-  - Capacitor `appId`: `io.ionic.starter`
-  - Android `applicationId`: `io.ionic.starter`
+  - Capacitor `appId`: `com.needtechnosoft.hib`
+  - Android `applicationId`: `com.needtechnosoft.hib`
 - Web output:
   - Angular builds into `www/`
 - API configuration:
@@ -195,9 +196,9 @@ These are the most important items to fix or account for before production deplo
 
 - Mobile API URL is still a LAN/development address in both environment files:
   - `http://192.168.254.20:8000/api`
-- The mobile app package name is still the starter value:
-  - Capacitor app id: `io.ionic.starter`
-  - Android application id: `io.ionic.starter`
+- The mobile app package name is now aligned to the organization/app:
+  - Capacitor app id: `com.needtechnosoft.hib`
+  - Android application id: `com.needtechnosoft.hib`
 - Firebase push notifications require all of these to match:
   - Android package name
   - `google-services.json`
@@ -703,8 +704,8 @@ Before publishing the Android app:
   - `InsuranceMobileApp/src/environments/environment.prod.ts`
 - use the real public HTTPS backend URL, for example:
   - `https://insurance.example.gov.np/api`
-- change the Capacitor/Android app id from `io.ionic.starter` to the final organization package name
-- align the final package name with Firebase
+- keep the Capacitor/Android app id aligned to `com.needtechnosoft.hib`
+- align the package name with Firebase
 - replace `google-services.json` if the Firebase project changes
 - test payment redirects and return handling against the public backend
 - test push token registration and notification receipt on a physical Android device

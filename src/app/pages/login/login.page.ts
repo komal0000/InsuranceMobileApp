@@ -1,4 +1,4 @@
-import { Component, OnDestroy } from '@angular/core';
+import { Component, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -34,6 +34,12 @@ type LoginPasswordField = 'login' | 'setup' | 'setupConfirmation';
   styleUrls: ['./login.page.scss'],
 })
 export class LoginPage implements OnDestroy {
+  private authService = inject(AuthService);
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
+  private toastCtrl = inject(ToastController);
+  private languageService = inject(LanguageService);
+
   loginData: LoginRequest = {
     identifier_type: 'mobile',
     identifier: '',
@@ -58,13 +64,7 @@ export class LoginPage implements OnDestroy {
   identifierInputType = 'tel';
   private readonly destroy$ = new Subject<void>();
 
-  constructor(
-    private authService: AuthService,
-    private router: Router,
-    private route: ActivatedRoute,
-    private toastCtrl: ToastController,
-    private languageService: LanguageService
-  ) {
+  constructor() {
     addIcons({
       logInOutline, personOutline, lockClosedOutline, eyeOutline,
       eyeOffOutline, shieldCheckmarkOutline, languageOutline, keyOutline,

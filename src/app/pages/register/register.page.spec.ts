@@ -1,5 +1,10 @@
 import { of } from 'rxjs';
+import { TestBed } from '@angular/core/testing';
+import { Router } from '@angular/router';
+import { ToastController } from '@ionic/angular/standalone';
 import { RegisterPage } from './register.page';
+import { AuthService } from '../../services/auth.service';
+import { LanguageService } from '../../services/language.service';
 
 describe('RegisterPage', () => {
   const createLanguageService = () => ({
@@ -15,18 +20,32 @@ describe('RegisterPage', () => {
     })),
   });
 
+  const createPage = (
+    authService: unknown,
+    router: unknown,
+    toastCtrl: unknown,
+    languageService: unknown = createLanguageService()
+  ) => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: AuthService, useValue: authService },
+        { provide: Router, useValue: router },
+        { provide: ToastController, useValue: toastCtrl },
+        { provide: LanguageService, useValue: languageService },
+      ],
+    });
+
+    return TestBed.runInInjectionContext(() => new RegisterPage());
+  };
+
   it('toggles the local language using the next language', () => {
     const authService = jasmine.createSpyObj('AuthService', ['registerBeneficiary']);
     const router = jasmine.createSpyObj('Router', ['navigate']);
     const toastCtrl = createToastController();
     const languageService = createLanguageService();
 
-    const page = new RegisterPage(
-      authService as any,
-      router as any,
-      toastCtrl as any,
-      languageService as any
-    );
+    const page = createPage(authService, router, toastCtrl, languageService);
 
     const toggleLang = (page as any).toggleLang;
     expect(toggleLang).toEqual(jasmine.any(Function));
@@ -54,12 +73,7 @@ describe('RegisterPage', () => {
       },
     }));
 
-    const page = new RegisterPage(
-      authService as any,
-      router as any,
-      toastCtrl as any,
-      createLanguageService() as any
-    );
+    const page = createPage(authService, router, toastCtrl);
     page.formData = {
       name: 'Komal Shrestha',
       name_ne: 'कोमल श्रेष्ठ',
@@ -96,12 +110,7 @@ describe('RegisterPage', () => {
       },
     }));
 
-    const page = new RegisterPage(
-      authService as any,
-      router as any,
-      toastCtrl as any,
-      createLanguageService() as any
-    );
+    const page = createPage(authService, router, toastCtrl);
     page.formData = {
       name: 'Komal',
       name_ne: 'कोमल श्रेष्ठ',
@@ -132,12 +141,7 @@ describe('RegisterPage', () => {
       },
     }));
 
-    const page = new RegisterPage(
-      authService as any,
-      router as any,
-      toastCtrl as any,
-      createLanguageService() as any
-    );
+    const page = createPage(authService, router, toastCtrl);
     page.formData = {
       name: 'Komal Shrestha',
       name_ne: 'Komal Shrestha',

@@ -1,5 +1,14 @@
 import { EMPTY, of } from 'rxjs';
+import { TestBed } from '@angular/core/testing';
+import { ActivatedRoute, Router } from '@angular/router';
+import { AlertController, ToastController } from '@ionic/angular/standalone';
 import { EnrollmentDetailPage } from './enrollment-detail.page';
+import { ApiService } from '../../services/api.service';
+import { AppSyncService } from '../../services/app-sync.service';
+import { AuthService } from '../../services/auth.service';
+import { DateService } from '../../services/date.service';
+import { EnrollmentService } from '../../services/enrollment.service';
+import { LanguageService } from '../../services/language.service';
 
 describe('EnrollmentDetailPage', () => {
   function makePage() {
@@ -32,18 +41,22 @@ describe('EnrollmentDetailPage', () => {
     };
     const alertCtrl = jasmine.createSpyObj('AlertController', ['create']);
 
-    const page = new EnrollmentDetailPage(
-      route as any,
-      router,
-      api,
-      enrollmentService,
-      syncService as any,
-      authService as any,
-      dateService as any,
-      languageService as any,
-      toastCtrl as any,
-      alertCtrl as any,
-    );
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: ActivatedRoute, useValue: route },
+        { provide: Router, useValue: router },
+        { provide: ApiService, useValue: api },
+        { provide: EnrollmentService, useValue: enrollmentService },
+        { provide: AppSyncService, useValue: syncService },
+        { provide: AuthService, useValue: authService },
+        { provide: DateService, useValue: dateService },
+        { provide: LanguageService, useValue: languageService },
+        { provide: ToastController, useValue: toastCtrl },
+        { provide: AlertController, useValue: alertCtrl },
+      ],
+    });
+    const page = TestBed.runInInjectionContext(() => new EnrollmentDetailPage());
     page.enrollmentId = 12;
 
     return { page, api, toastCtrl };

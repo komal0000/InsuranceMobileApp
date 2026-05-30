@@ -97,7 +97,7 @@
             </div>
 
             <div class="member-list" *ngIf="renewalMembers.length > 0">
-              <div class="member-row" *ngFor="let member of renewalMembers">
+              <div class="member-row" *ngFor="let member of renewalMembers; trackBy: trackByEntity">
                 <div class="member-avatar" style="overflow: hidden;">
                   <img *ngIf="getMemberPhotoUrl(member)" [src]="getMemberPhotoUrl(member)" [alt]="t('Member Photo')" style="width: 100%; height: 100%; object-fit: cover;" />
                   <span *ngIf="!getMemberPhotoUrl(member)">{{ (member.first_name || member.full_name || '').charAt(0).toUpperCase() }}</span>
@@ -151,7 +151,7 @@
                                [birthCertificateFrontPreview]="memberBirthCertFrontPreview"
                                (capture)="captureImage($event)"
                                (save)="saveMember()"
-                               (cancel)="cancelMemberForm()">
+                               (cancelRequested)="cancelMemberForm()">
               </app-member-form>
             </div>
           </ion-card-content>

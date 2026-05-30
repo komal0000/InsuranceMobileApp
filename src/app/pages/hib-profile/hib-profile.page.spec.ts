@@ -1,6 +1,13 @@
 import { of } from 'rxjs';
+import { TestBed } from '@angular/core/testing';
+import { Router } from '@angular/router';
+import { ToastController } from '@ionic/angular/standalone';
 import { HibProfilePage } from './hib-profile.page';
 import { EnrollmentCardHolder } from '../../interfaces/enrollment.interface';
+import { DateService } from '../../services/date.service';
+import { EnrollmentService } from '../../services/enrollment.service';
+import { LanguageService } from '../../services/language.service';
+import { PolicyService } from '../../services/policy.service';
 
 describe('HibProfilePage', () => {
   const headHolder: EnrollmentCardHolder = {
@@ -79,14 +86,18 @@ describe('HibProfilePage', () => {
       translateText: (value?: string | null) => value || '',
     };
 
-    const page = new HibProfilePage(
-      policyService,
-      enrollmentService,
-      { formatForDisplay: (ad?: string | null, bs?: string | null) => bs || ad || '' } as any,
-      router,
-      toastCtrl,
-      languageService as any,
-    );
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: PolicyService, useValue: policyService },
+        { provide: EnrollmentService, useValue: enrollmentService },
+        { provide: DateService, useValue: { formatForDisplay: (ad?: string | null, bs?: string | null) => bs || ad || '' } },
+        { provide: Router, useValue: router },
+        { provide: ToastController, useValue: toastCtrl },
+        { provide: LanguageService, useValue: languageService },
+      ],
+    });
+    const page = TestBed.runInInjectionContext(() => new HibProfilePage());
 
     return { page, policyService, enrollmentService, router };
   }

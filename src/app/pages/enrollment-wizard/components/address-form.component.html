@@ -42,7 +42,7 @@
                           [(ngModel)]="step1.province"
                           [disabled]="isHeadFieldReadonly('province')"
                           (ionChange)="onProvinceChange()">
-                <ion-select-option *ngFor="let p of provinces" [value]="p">{{ p }}</ion-select-option>
+                <ion-select-option *ngFor="let p of provinces; trackBy: trackByEntity" [value]="p">{{ p }}</ion-select-option>
               </ion-select>
             </ion-item>
 
@@ -53,7 +53,7 @@
                           [(ngModel)]="step1.district"
                           [disabled]="!districts.length || isHeadFieldReadonly('district')"
                           (ionChange)="onDistrictChange()">
-                <ion-select-option *ngFor="let d of districts" [value]="d">{{ d }}</ion-select-option>
+                <ion-select-option *ngFor="let d of districts; trackBy: trackByEntity" [value]="d">{{ d }}</ion-select-option>
               </ion-select>
             </ion-item>
 
@@ -64,7 +64,7 @@
                           [(ngModel)]="step1.municipality"
                           [disabled]="!municipalities.length || isHeadFieldReadonly('municipality')"
                           (ionChange)="onMunicipalityChange()">
-                <ion-select-option *ngFor="let m of municipalities" [value]="m">{{ m }}</ion-select-option>
+                <ion-select-option *ngFor="let m of municipalities; trackBy: trackByEntity" [value]="m">{{ m }}</ion-select-option>
               </ion-select>
             </ion-item>
 
@@ -75,7 +75,7 @@
                           [(ngModel)]="step1.ward_number"
                           [disabled]="!wards.length || isHeadFieldReadonly('ward_number')"
                           (ionChange)="updateFullAddress()">
-                <ion-select-option *ngFor="let w of wards" [value]="w">{{ w }}</ion-select-option>
+                <ion-select-option *ngFor="let w of wards; trackBy: trackByEntity" [value]="w">{{ w }}</ion-select-option>
               </ion-select>
             </ion-item>
 
@@ -150,7 +150,7 @@
             <ion-item class="form-item">
               <ion-select [label]="text('wizard.temporary_province', 'Temporary Province')" labelPlacement="stacked" [placeholder]="text('wizard.select_province', 'Select Province')"
                           [(ngModel)]="temporaryAddress.province" (ionChange)="onTemporaryProvinceChange()">
-                <ion-select-option *ngFor="let p of provinces" [value]="p">{{ p }}</ion-select-option>
+                <ion-select-option *ngFor="let p of provinces; trackBy: trackByEntity" [value]="p">{{ p }}</ion-select-option>
               </ion-select>
             </ion-item>
 
@@ -158,7 +158,7 @@
               <ion-select [label]="text('wizard.temporary_district', 'Temporary District')" labelPlacement="stacked" [placeholder]="text('wizard.select_district', 'Select District')"
                           [(ngModel)]="temporaryAddress.district" [disabled]="!temporaryDistricts.length"
                           (ionChange)="onTemporaryDistrictChange()">
-                <ion-select-option *ngFor="let d of temporaryDistricts" [value]="d">{{ d }}</ion-select-option>
+                <ion-select-option *ngFor="let d of temporaryDistricts; trackBy: trackByEntity" [value]="d">{{ d }}</ion-select-option>
               </ion-select>
             </ion-item>
 
@@ -166,7 +166,7 @@
               <ion-select [label]="text('wizard.temporary_municipality', 'Temporary Municipality')" labelPlacement="stacked" [placeholder]="text('wizard.select_municipality', 'Select Municipality')"
                           [(ngModel)]="temporaryAddress.municipality" [disabled]="!temporaryMunicipalities.length"
                           (ionChange)="onTemporaryMunicipalityChange()">
-                <ion-select-option *ngFor="let m of temporaryMunicipalities" [value]="m">{{ m }}</ion-select-option>
+                <ion-select-option *ngFor="let m of temporaryMunicipalities; trackBy: trackByEntity" [value]="m">{{ m }}</ion-select-option>
               </ion-select>
             </ion-item>
 
@@ -174,7 +174,7 @@
               <ion-select [label]="text('wizard.temporary_ward', 'Temporary Ward')" labelPlacement="stacked" [placeholder]="text('wizard.select_ward', 'Select Ward')"
                           [(ngModel)]="temporaryAddress.ward_number" [disabled]="!temporaryWards.length"
                           (ionChange)="updateTemporaryFullAddress()">
-                <ion-select-option *ngFor="let w of temporaryWards" [value]="w">{{ w }}</ion-select-option>
+                <ion-select-option *ngFor="let w of temporaryWards; trackBy: trackByEntity" [value]="w">{{ w }}</ion-select-option>
               </ion-select>
             </ion-item>
 

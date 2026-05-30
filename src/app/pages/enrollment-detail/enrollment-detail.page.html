@@ -138,7 +138,7 @@
               <h3>{{ t('enrollment_detail.family_members_count') }} ({{ formatNumber(enrollment.members.length) }})</h3>
             </div>
             <div class="member-list">
-              <div class="member-item" *ngFor="let member of enrollment.members">
+              <div class="member-item" *ngFor="let member of enrollment.members; trackBy: trackByEntity">
                 <div class="member-avatar">{{ (member.first_name || '').charAt(0) | uppercase }}</div>
                 <div class="member-info">
                   <strong>{{ member.first_name }} {{ member.last_name }}</strong>
@@ -159,7 +159,7 @@
               <h3>{{ t('enrollment_detail.documents') }} ({{ formatNumber(enrollment.documents.length) }})</h3>
             </div>
             <div class="doc-list">
-              <div class="doc-item" *ngFor="let doc of enrollment.documents">
+              <div class="doc-item" *ngFor="let doc of enrollment.documents; trackBy: trackByEntity">
                 <ion-icon name="document-outline" class="doc-icon"></ion-icon>
                 <div class="doc-info">
                   <strong>{{ doc.document_type }}</strong>

@@ -93,7 +93,7 @@
             </div>
 
             <div *ngIf="familyMembers.length; else noMembers" class="member-card-list">
-              <ion-card button class="holder-card" *ngFor="let member of familyMembers" (click)="openHolder(member)">
+              <ion-card button class="holder-card" *ngFor="let member of familyMembers; trackBy: trackByEntity" (click)="openHolder(member)">
                 <ion-card-content>
                   <div class="holder-row">
                     <div class="holder-avatar">{{ holderInitial(member) }}</div>

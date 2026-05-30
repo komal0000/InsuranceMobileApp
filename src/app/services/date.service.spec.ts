@@ -1,14 +1,23 @@
+import { TestBed } from '@angular/core/testing';
 import { DateService } from './date.service';
+import { LanguageService } from './language.service';
 
 describe('DateService', () => {
   function createService(language = 'en') {
-    return new DateService({
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [{
+        provide: LanguageService,
+        useValue: {
       currentLanguage: language,
       localizeDigits: (value: string | number | null | undefined) => {
         const source = value == null ? '' : String(value);
         return language === 'ne' ? `localized:${source}` : source;
       },
-    } as any);
+        },
+      }],
+    });
+    return TestBed.inject(DateService);
   }
 
   it('formats BS dates for display with slash separators', () => {

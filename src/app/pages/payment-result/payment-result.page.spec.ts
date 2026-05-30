@@ -1,6 +1,11 @@
 import { of } from 'rxjs';
+import { TestBed } from '@angular/core/testing';
+import { ActivatedRoute, Router } from '@angular/router';
+import { ToastController } from '@ionic/angular/standalone';
 import { PaymentResultPage } from './payment-result.page';
 import { EN_TRANSLATIONS } from '../../i18n/en';
+import { LanguageService } from '../../services/language.service';
+import { PaymentService } from '../../services/payment.service';
 
 describe('PaymentResultPage', () => {
   function makePage(params: Record<string, string>, paymentStatus: 'pending' | 'paid' | 'failed' = 'pending') {
@@ -26,13 +31,17 @@ describe('PaymentResultPage', () => {
       },
     }));
 
-    const page = new PaymentResultPage(
-      route as any,
-      router,
-      toastCtrl,
-      languageService as any,
-      paymentService,
-    );
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: ActivatedRoute, useValue: route },
+        { provide: Router, useValue: router },
+        { provide: ToastController, useValue: toastCtrl },
+        { provide: LanguageService, useValue: languageService },
+        { provide: PaymentService, useValue: paymentService },
+      ],
+    });
+    const page = TestBed.runInInjectionContext(() => new PaymentResultPage());
 
     return { page, router, paymentService };
   }

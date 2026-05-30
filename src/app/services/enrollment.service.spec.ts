@@ -1,7 +1,10 @@
 import { of } from 'rxjs';
+import { TestBed } from '@angular/core/testing';
 import { ApiResponse } from '../interfaces/api-response.interface';
 import { EnrollmentConfig } from '../interfaces/enrollment.interface';
 import { EnrollmentService } from './enrollment.service';
+import { ApiService } from './api.service';
+import { DateService } from './date.service';
 
 describe('EnrollmentService', () => {
   let api: jasmine.SpyObj<{
@@ -12,8 +15,15 @@ describe('EnrollmentService', () => {
   let service: EnrollmentService;
 
   beforeEach(() => {
+    TestBed.resetTestingModule();
     api = jasmine.createSpyObj('ApiService', ['get', 'post', 'postFormData']);
-    service = new EnrollmentService(api as any, {} as any);
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: ApiService, useValue: api },
+        { provide: DateService, useValue: {} },
+      ],
+    });
+    service = TestBed.inject(EnrollmentService);
   });
 
   it('shares enrollment config requests during one app session', () => {

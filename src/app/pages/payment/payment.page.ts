@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -19,6 +19,7 @@ import { ApiResponse } from '../../interfaces/api-response.interface';
 import { PaymentStatusResponse } from '../../interfaces/payment.interface';
 import { LanguageToggleComponent } from '../../components/language-toggle/language-toggle.component';
 import { LanguageService } from '../../services/language.service';
+import { trackByEntity } from '../../utils/track-by.util';
 
 interface GatewayOption {
   key: 'khalti' | 'esewa' | 'ips';
@@ -42,6 +43,14 @@ interface GatewayOption {
   styleUrls: ['./payment.page.scss'],
 })
 export class PaymentPage implements OnInit {
+  readonly trackByEntity = trackByEntity;
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private paymentSvc = inject(PaymentService);
+  private toastCtrl = inject(ToastController);
+  private alertCtrl = inject(AlertController);
+  private languageService = inject(LanguageService);
+
 
   gateways: GatewayOption[] = [
     { key: 'khalti', name: 'Khalti',      color: '#5C2D91', bg: '#F3EBFF', icon: 'wallet-outline' },
@@ -67,14 +76,7 @@ export class PaymentPage implements OnInit {
   activeReferenceId: string | null = null;
   consentAccepted = false;
 
-  constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private paymentSvc: PaymentService,
-    private toastCtrl: ToastController,
-    private alertCtrl: AlertController,
-    private languageService: LanguageService,
-  ) {
+  constructor() {
     addIcons({
       walletOutline, cardOutline, cashOutline, checkmarkCircleOutline,
       closeCircleOutline, timeOutline, arrowForwardOutline

@@ -6,8 +6,12 @@ import { LanguageService } from '../../../services/language.service';
 import { ReviewSubmitComponent } from './review-submit.component';
 
 describe('ReviewSubmitComponent', () => {
+  const translations: Record<string, string> = {
+    'wizard.basai_sarai_permanent_address_changed': 'Basai Sarai (permanent address is changed)',
+  };
+
   const languageService = {
-    t: (key: string) => key,
+    t: (key: string) => translations[key] ?? key,
     label: (_namespace: string, value?: string, fallback?: string) => value || fallback || '',
     formatNumber: (value: string | number | null | undefined) => String(value ?? 0),
     translateText: (value: string) => value,

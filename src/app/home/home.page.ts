@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { IonHeader, IonToolbar, IonTitle, IonContent } from '@ionic/angular/standalone';
 import { LanguageToggleComponent } from '../components/language-toggle/language-toggle.component';
 import { LanguageService } from '../services/language.service';
@@ -10,7 +10,8 @@ import { LanguageService } from '../services/language.service';
   imports: [IonHeader, IonToolbar, IonTitle, IonContent, LanguageToggleComponent],
 })
 export class HomePage {
-  constructor(private languageService: LanguageService) {}
+  private languageService = inject(LanguageService);
+
 
   t(key: string): string {
     return this.languageService.t(key);

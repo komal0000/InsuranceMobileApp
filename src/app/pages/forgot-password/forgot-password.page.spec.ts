@@ -1,5 +1,10 @@
 import { of } from 'rxjs';
+import { TestBed } from '@angular/core/testing';
+import { Router } from '@angular/router';
+import { ToastController } from '@ionic/angular/standalone';
 import { ForgotPasswordPage } from './forgot-password.page';
+import { AuthService } from '../../services/auth.service';
+import { LanguageService } from '../../services/language.service';
 
 describe('ForgotPasswordPage', () => {
   const createToastController = () => ({
@@ -10,6 +15,20 @@ describe('ForgotPasswordPage', () => {
   const languageService = {
     t: (key: string) => key,
     translateText: (value?: string) => value || '',
+  };
+
+  const createPage = (authService: unknown, router: unknown, toastCtrl: unknown) => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: AuthService, useValue: authService },
+        { provide: Router, useValue: router },
+        { provide: ToastController, useValue: toastCtrl },
+        { provide: LanguageService, useValue: languageService },
+      ],
+    });
+
+    return TestBed.runInInjectionContext(() => new ForgotPasswordPage());
   };
 
   it('moves to OTP verification after sending a password reset OTP', async () => {
@@ -30,7 +49,7 @@ describe('ForgotPasswordPage', () => {
       },
     }));
 
-    const page = new ForgotPasswordPage(authService as any, router as any, toastCtrl as any, languageService as any);
+    const page = createPage(authService, router, toastCtrl);
     page.mobileNumber = '9812345678';
 
     await page.sendOtp();
@@ -55,7 +74,7 @@ describe('ForgotPasswordPage', () => {
       data: undefined,
     }));
 
-    const page = new ForgotPasswordPage(authService as any, router as any, toastCtrl as any, languageService as any);
+    const page = createPage(authService, router, toastCtrl);
     page.setRecoveryMethod('email');
     page.mobileNumber = '9812345678';
 
@@ -80,7 +99,7 @@ describe('ForgotPasswordPage', () => {
       data: undefined,
     }));
 
-    const page = new ForgotPasswordPage(authService as any, router as any, toastCtrl as any, languageService as any);
+    const page = createPage(authService, router, toastCtrl);
     page.mobileNumber = '9812345678';
     page.otp = '123456';
     page.password = 'Password123';
@@ -104,7 +123,7 @@ describe('ForgotPasswordPage', () => {
     ]);
     const router = jasmine.createSpyObj('Router', ['navigateByUrl']);
     const toastCtrl = createToastController();
-    const page = new ForgotPasswordPage(authService as any, router as any, toastCtrl as any, languageService as any);
+    const page = createPage(authService, router, toastCtrl);
 
     expect(page.passwordInputType('password')).toBe('password');
     expect(page.passwordInputType('confirmation')).toBe('password');

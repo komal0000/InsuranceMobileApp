@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ApiResponse } from '../interfaces/api-response.interface';
 import {
@@ -14,7 +14,8 @@ import { ApiService } from './api.service';
 
 @Injectable({ providedIn: 'root' })
 export class LegacyImisService {
-  constructor(private api: ApiService) {}
+  private api = inject(ApiService);
+
 
   familyMembers(chfid: string, nationalId?: string | null): Observable<ApiResponse<LegacyImisFamilyMembersResponse>> {
     const params: Record<string, string> = {

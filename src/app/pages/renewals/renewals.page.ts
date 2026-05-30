@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -47,6 +47,7 @@ import {
   normalizeRelationshipBlockMap,
   spouseGenderForHead,
 } from '../../utils/relationship-marital-status.util';
+import { trackByEntity } from '../../utils/track-by.util';
 
 const DEFAULT_MEMBER_RELATIONSHIPS: Array<{ value: string; label: string }> = [
   { value: 'spouse', label: 'Spouse' },
@@ -93,6 +94,15 @@ const DOCUMENT_FILE_ACCEPT = 'image/*,application/pdf';
   styleUrls: ['./renewals.page.scss'],
 })
 export class RenewalsPage implements OnInit, OnDestroy {
+  readonly trackByEntity = trackByEntity;
+  private api = inject(ApiService);
+  private syncService = inject(AppSyncService);
+  private authService = inject(AuthService);
+  private dateService = inject(DateService);
+  private router = inject(Router);
+  private toastCtrl = inject(ToastController);
+  private languageService = inject(LanguageService);
+
   renewals: Renewal[] = [];
   search = '';
   statusFilter = '';
@@ -133,15 +143,7 @@ export class RenewalsPage implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
   private hasEnteredView = false;
 
-  constructor(
-    private api: ApiService,
-    private syncService: AppSyncService,
-    private authService: AuthService,
-    private dateService: DateService,
-    private router: Router,
-    private toastCtrl: ToastController,
-    private languageService: LanguageService
-  ) {
+  constructor() {
     addIcons({
       searchOutline, refreshOutline, personOutline, peopleOutline, locationOutline,
       arrowForwardOutline, callOutline, cardOutline, calendarOutline, addOutline,

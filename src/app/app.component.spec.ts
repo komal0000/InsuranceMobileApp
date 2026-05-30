@@ -1,7 +1,10 @@
+import { ApplicationRef } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { App } from '@capacitor/app';
 import { BehaviorSubject } from 'rxjs';
 import { AppComponent } from './app.component';
+import { AppSyncService } from './services/app-sync.service';
 import { AuthService } from './services/auth.service';
 import { LanguageService } from './services/language.service';
 
@@ -15,6 +18,28 @@ describe('AppComponent', () => {
     languageService.toggleLanguage.and.returnValue('ne');
     languageService.setLocalLanguage.and.returnValue(Promise.resolve());
     return languageService;
+  };
+
+  const createComponent = async (languageService = createLanguageService()) => {
+    const syncService = jasmine.createSpyObj('AppSyncService', ['emitGlobalRefresh']);
+    TestBed.resetTestingModule();
+    await TestBed.configureTestingModule({
+      imports: [AppComponent],
+      providers: [
+        provideRouter([]),
+        { provide: AppSyncService, useValue: syncService },
+        { provide: LanguageService, useValue: languageService },
+      ],
+    }).compileComponents();
+
+    const fixture = TestBed.createComponent(AppComponent);
+    return {
+      fixture,
+      component: fixture.componentInstance,
+      appRef: TestBed.inject(ApplicationRef),
+      languageService,
+      syncService,
+    };
   };
 
   it('should create the app', async () => {
@@ -38,42 +63,28 @@ describe('AppComponent', () => {
 
   it('requests a root change detection pass when language changes', async () => {
     const languageService = createLanguageService();
-    const appRef = jasmine.createSpyObj('ApplicationRef', ['tick']);
-    const component = new AppComponent(
-      { url: '/', events: { pipe: () => ({ subscribe: jasmine.createSpy('subscribe') }) } } as any,
-      jasmine.createSpyObj('AppSyncService', ['emitGlobalRefresh']) as any,
-      languageService as any,
-      appRef as any
-    );
+    spyOn(App, 'addListener').and.returnValue(Promise.resolve({ remove: async () => {} }));
+    const { component, appRef } = await createComponent(languageService);
+    const tickSpy = spyOn(appRef, 'tick').and.stub();
 
     component.ngOnInit();
     (languageService as any).languageSubject.next('ne');
     await Promise.resolve();
 
-    expect(appRef.tick).toHaveBeenCalled();
+    expect(tickSpy).toHaveBeenCalled();
     component.ngOnDestroy();
   });
 
-  it('does not show the floating language toggle on registration', () => {
-    const component = new AppComponent(
-      { url: '/register' } as any,
-      jasmine.createSpyObj('AppSyncService', ['emitGlobalRefresh']) as any,
-      createLanguageService() as any,
-      jasmine.createSpyObj('ApplicationRef', ['tick']) as any
-    );
+  it('does not show the floating language toggle on registration', async () => {
+    const { component } = await createComponent();
 
     (component as any).updateFloatingLanguageToggle('/register');
 
     expect(component.showFloatingLanguageToggle).toBeFalse();
   });
 
-  it('keeps the floating language toggle on forgot password', () => {
-    const component = new AppComponent(
-      { url: '/forgot-password' } as any,
-      jasmine.createSpyObj('AppSyncService', ['emitGlobalRefresh']) as any,
-      createLanguageService() as any,
-      jasmine.createSpyObj('ApplicationRef', ['tick']) as any
-    );
+  it('keeps the floating language toggle on forgot password', async () => {
+    const { component } = await createComponent();
 
     (component as any).updateFloatingLanguageToggle('/forgot-password');
 

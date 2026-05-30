@@ -1,5 +1,12 @@
 import { of, Subject } from 'rxjs';
+import { TestBed } from '@angular/core/testing';
+import { Router } from '@angular/router';
 import { DashboardPage } from './dashboard.page';
+import { ApiService } from '../../services/api.service';
+import { AppSyncService } from '../../services/app-sync.service';
+import { AuthService } from '../../services/auth.service';
+import { DashboardDataService } from '../../services/dashboard-data.service';
+import { LanguageService } from '../../services/language.service';
 
 describe('DashboardPage', () => {
   function languageService() {
@@ -12,14 +19,19 @@ describe('DashboardPage', () => {
   }
 
   function makePage(overrides: { dashboardData?: unknown; router?: unknown } = {}): DashboardPage {
-    return new DashboardPage(
-      {} as any,
-      {} as any,
-      (overrides.router || {}) as any,
-      { events$: new Subject() } as any,
-      (overrides.dashboardData || {}) as any,
-      languageService() as any
-    );
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: ApiService, useValue: {} },
+        { provide: AuthService, useValue: {} },
+        { provide: Router, useValue: overrides.router || {} },
+        { provide: AppSyncService, useValue: { events$: new Subject() } },
+        { provide: DashboardDataService, useValue: overrides.dashboardData || {} },
+        { provide: LanguageService, useValue: languageService() },
+      ],
+    });
+
+    return TestBed.runInInjectionContext(() => new DashboardPage());
   }
 
   it('does not allow admin management roles to create enrollments', () => {

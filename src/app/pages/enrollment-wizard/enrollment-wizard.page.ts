@@ -1,4 +1,4 @@
-﻿import { Component, OnDestroy, OnInit } from '@angular/core';
+﻿import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -55,6 +55,7 @@ import {
 import { requiresRemovalDocument } from '../../utils/member-removal-document.util';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { trackByEntity } from '../../utils/track-by.util';
 
 const STEP_TITLE_KEYS = ['wizard.step1', 'wizard.step2', 'wizard.step3'];
 
@@ -166,6 +167,17 @@ type PermanentAddressSourceChoice = PermanentAddressSource | '';
   styleUrls: ['./enrollment-wizard.page.scss'],
 })
 export class EnrollmentWizardPage implements OnInit, OnDestroy {
+  readonly trackByEntity = trackByEntity;
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private enrollmentSvc = inject(EnrollmentService);
+  private geoSvc = inject(GeoService);
+  private dateService = inject(DateService);
+  private languageService = inject(LanguageService);
+  private authService = inject(AuthService);
+  private toastCtrl = inject(ToastController);
+  private alertCtrl = inject(AlertController);
+
   private readonly destroy$ = new Subject<void>();
 
   enrollmentId!: number;
@@ -311,17 +323,7 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
   memberTargetGroupFrontPreview = '';
   memberTargetGroupBackPreview = '';
 
-  constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private enrollmentSvc: EnrollmentService,
-    private geoSvc: GeoService,
-    private dateService: DateService,
-    private languageService: LanguageService,
-    private authService: AuthService,
-    private toastCtrl: ToastController,
-    private alertCtrl: AlertController
-  ) {
+  constructor() {
     addIcons({
       locationOutline, personOutline, peopleOutline,
       checkmarkCircleOutline, cameraOutline, trashOutline,

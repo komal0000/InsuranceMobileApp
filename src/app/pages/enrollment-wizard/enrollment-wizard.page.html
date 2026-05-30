@@ -15,7 +15,7 @@
       <div class="progress-fill" [style.width.%]="(currentStep / 3) * 100"></div>
     </div>
     <div class="steps-row">
-      <div *ngFor="let title of stepTitles; let i = index"
+      <div *ngFor="let title of stepTitles; let i = index; trackBy: trackByEntity"
            class="step-dot-container"
            [class.active]="currentStep === i + 1"
            [class.completed]="currentStep > i + 1">
@@ -53,10 +53,10 @@
             <ion-badge color="success">{{ t('wizard.nid_verified_badge') }}</ion-badge>
           </div>
           <p class="verified-nid-help">{{ t('wizard.nid_verified_fields_help') }}</p>
-          <div class="verified-nid-group" *ngFor="let group of verifiedNidGroups">
+          <div class="verified-nid-group" *ngFor="let group of verifiedNidGroups; trackBy: trackByEntity">
             <div class="verified-nid-group-title">{{ group.title }}</div>
             <div class="verified-nid-grid">
-              <div class="verified-nid-item" *ngFor="let field of group.fields">
+              <div class="verified-nid-item" *ngFor="let field of group.fields; trackBy: trackByEntity">
                 <span class="verified-nid-label">{{ field.label }}</span>
                 <strong class="verified-nid-value">{{ field.value }}</strong>
               </div>
@@ -171,7 +171,7 @@
       </ion-card>
 
       <!-- Members -->
-      <ion-card *ngFor="let m of members">
+      <ion-card *ngFor="let m of members; trackBy: trackByEntity">
         <ion-card-content>
           <div class="member-row">
             <div class="member-avatar">
@@ -246,7 +246,7 @@
                            [citizenshipIssueDateErrorMessage]="memberCitizenshipIssueDateWarning"
                            (capture)="captureImage('member', $event)"
                            (save)="saveMember()"
-                           (cancel)="cancelAddMember()">
+                           (cancelRequested)="cancelAddMember()">
           </app-member-form>
         </ion-card-content>
       </ion-card>

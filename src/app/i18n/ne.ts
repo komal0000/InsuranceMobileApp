@@ -648,6 +648,7 @@
   'wizard.same_as_nid_address': 'NID अनुसार',
   'wizard.same_as_citizenship_address': 'नागरिकता अनुसार',
   'wizard.migration_address': 'बसाइँसराइ',
+  'wizard.basai_sarai_permanent_address_changed': 'बसाइँसराइ (स्थायी ठेगाना परिवर्तन भएको)',
   'wizard.basai_sarai_sifarish_document': 'बसाइँसराइ सिफारिस कागजात',
   'wizard.basai_sarai_front': 'बसाइँसराइ अगाडि',
   'wizard.basai_sarai_back': 'बसाइँसराइ पछाडि',

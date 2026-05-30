@@ -34,7 +34,7 @@
   </div>
 
   <div class="list-content" *ngIf="enrollments.length > 0">
-    <ion-card *ngFor="let e of enrollments" button (click)="viewDetail(e)" class="enrollment-card">
+    <ion-card *ngFor="let e of enrollments; trackBy: trackByEntity" button (click)="viewDetail(e)" class="enrollment-card">
       <ion-card-content>
         <div class="card-top-row">
           <div class="enroll-number">{{ formatEnrollmentNumber(e) }}</div>

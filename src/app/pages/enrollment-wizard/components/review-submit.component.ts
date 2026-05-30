@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import {
   IonAccordion,
@@ -25,6 +25,7 @@ import {
   SubsidyResult,
   SubsidySummary,
 } from '../../../interfaces/enrollment.interface';
+import { trackByEntity } from '../../../utils/track-by.util';
 
 interface PremiumBreakdown {
   base: number;
@@ -79,6 +80,10 @@ interface ReviewHeadData {
   styleUrls: ['../enrollment-wizard.page.scss'],
 })
 export class ReviewSubmitComponent {
+  readonly trackByEntity = trackByEntity;
+  private dateService = inject(DateService);
+  private languageService = inject(LanguageService);
+
   private confirmedValue = false;
 
   @Input() enrollment: Enrollment | null = null;
@@ -112,11 +117,6 @@ export class ReviewSubmitComponent {
   @Output() previousStepRequested = new EventEmitter<void>();
   @Output() payAndSubmitRequested = new EventEmitter<void>();
   @Output() submitEnrollmentRequested = new EventEmitter<void>();
-
-  constructor(
-    private dateService: DateService,
-    private languageService: LanguageService,
-  ) {}
 
   goToStep(step: number): void {
     this.goToStepRequested.emit(step);
