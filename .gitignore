@@ -65,6 +65,10 @@ yarn-error.log
 testem.log
 /typings
 
+# Firebase / Google Services local config
+google-services.json
+GoogleService-Info.plist
+
 # System files
 .DS_Store
 Thumbs.db
