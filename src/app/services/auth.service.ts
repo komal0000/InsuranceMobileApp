@@ -1,8 +1,11 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
+import { Capacitor } from '@capacitor/core';
 import { BehaviorSubject, Observable, from, of, throwError } from 'rxjs';
 import { map, switchMap, tap } from 'rxjs/operators';
 import { catchError } from 'rxjs/operators';
+import { SecureStorage } from '@aparajita/capacitor-secure-storage';
 import { Preferences } from '@capacitor/preferences';
+import { environment } from '../../environments/environment';
 import {
   User,
   AuthData,
@@ -29,30 +32,22 @@ const USER_KEY = 'auth_user';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
+  private api = inject(ApiService);
+  private languageService = inject(LanguageService);
+
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   private tokenSubject = new BehaviorSubject<string | null>(null);
   private initialized = false;
+  private persistedSecureSession = false;
 
   currentUser$ = this.currentUserSubject.asObservable();
   isAuthenticated$ = this.tokenSubject.pipe(map(t => !!t));
 
-  constructor(
-    private api: ApiService,
-    private languageService: LanguageService
-  ) {}
-
   async init(): Promise<void> {
     if (this.initialized) return;
 
-    let token = sessionStorage.getItem(TOKEN_KEY);
-    let userJson = sessionStorage.getItem(USER_KEY);
-
-    if (!token) {
-      const prefToken = await Preferences.get({ key: TOKEN_KEY });
-      token = prefToken.value;
-      const prefUser = await Preferences.get({ key: USER_KEY });
-      userJson = prefUser.value;
-    }
+    const { token, userJson, persisted } = await this.loadStoredSession();
+    this.persistedSecureSession = persisted;
 
     if (token) {
       this.tokenSubject.next(token);
@@ -66,6 +61,7 @@ export class AuthService {
         }
       }
     }
+    await this.clearLegacyPreferences();
     this.initialized = true;
   }
 
@@ -182,8 +178,7 @@ export class AuthService {
       tap(user => {
         this.currentUserSubject.next(user);
         this.languageService.useUserPreference(user.preferred_language);
-        sessionStorage.setItem(USER_KEY, JSON.stringify(user));
-        Preferences.set({ key: USER_KEY, value: JSON.stringify(user) });
+        void this.persistUserSnapshot(user);
       })
     );
   }
@@ -193,8 +188,7 @@ export class AuthService {
       tap(user => {
         const updatedUser = { ...(this.currentUserSubject.value || user), ...user };
         this.currentUserSubject.next(updatedUser);
-        sessionStorage.setItem(USER_KEY, JSON.stringify(updatedUser));
-        Preferences.set({ key: USER_KEY, value: JSON.stringify(updatedUser) });
+        void this.persistUserSnapshot(updatedUser);
       })
     );
   }
@@ -202,26 +196,119 @@ export class AuthService {
   async clearSession(): Promise<void> {
     this.tokenSubject.next(null);
     this.currentUserSubject.next(null);
-    sessionStorage.removeItem(TOKEN_KEY);
-    sessionStorage.removeItem(USER_KEY);
-    await Preferences.remove({ key: TOKEN_KEY });
-    await Preferences.remove({ key: USER_KEY });
+    this.persistedSecureSession = false;
+    this.clearBrowserSession();
+    await this.clearSecureSession();
+    await this.clearLegacyPreferences();
   }
 
   private async setSession(auth: AuthData, remember: boolean = true): Promise<void> {
     this.tokenSubject.next(auth.token);
     this.currentUserSubject.next(auth.user);
     this.languageService.useUserPreference(auth.user.preferred_language);
+    this.persistedSecureSession = remember && this.canUseNativeSecureStorage();
 
-    sessionStorage.setItem(TOKEN_KEY, auth.token);
-    sessionStorage.setItem(USER_KEY, JSON.stringify(auth.user));
-
-    if (remember) {
-      await Preferences.set({ key: TOKEN_KEY, value: auth.token });
-      await Preferences.set({ key: USER_KEY, value: JSON.stringify(auth.user) });
+    if (this.canUseBrowserSessionStorage()) {
+      sessionStorage.setItem(TOKEN_KEY, auth.token);
+      sessionStorage.setItem(USER_KEY, JSON.stringify(auth.user));
     } else {
-      await Preferences.remove({ key: TOKEN_KEY });
-      await Preferences.remove({ key: USER_KEY });
+      this.clearBrowserSession();
     }
+
+    if (this.persistedSecureSession) {
+      await SecureStorage.setItem(TOKEN_KEY, auth.token);
+      await SecureStorage.setItem(USER_KEY, JSON.stringify(auth.user));
+    } else {
+      await this.clearSecureSession();
+    }
+
+    await this.clearLegacyPreferences();
+  }
+
+  private async loadStoredSession(): Promise<{ token: string | null; userJson: string | null; persisted: boolean }> {
+    if (this.canUseBrowserSessionStorage()) {
+      const token = sessionStorage.getItem(TOKEN_KEY);
+      const userJson = sessionStorage.getItem(USER_KEY);
+      if (token) {
+        return { token, userJson, persisted: false };
+      }
+    }
+
+    if (!this.canUseNativeSecureStorage()) {
+      return { token: null, userJson: null, persisted: false };
+    }
+
+    const token = await SecureStorage.getItem(TOKEN_KEY);
+    const userJson = await SecureStorage.getItem(USER_KEY);
+    if (typeof token === 'string' && token) {
+      return {
+        token,
+        userJson: typeof userJson === 'string' ? userJson : null,
+        persisted: true,
+      };
+    }
+
+    return this.migrateLegacyPreferenceSession();
+  }
+
+  private async migrateLegacyPreferenceSession(): Promise<{ token: string | null; userJson: string | null; persisted: boolean }> {
+    const prefToken = await Preferences.get({ key: TOKEN_KEY });
+    if (!prefToken.value) {
+      return { token: null, userJson: null, persisted: false };
+    }
+
+    const prefUser = await Preferences.get({ key: USER_KEY });
+    await SecureStorage.setItem(TOKEN_KEY, prefToken.value);
+    if (prefUser.value) {
+      await SecureStorage.setItem(USER_KEY, prefUser.value);
+    }
+
+    return { token: prefToken.value, userJson: prefUser.value, persisted: true };
+  }
+
+  private async persistUserSnapshot(user: User): Promise<void> {
+    const userJson = JSON.stringify(user);
+    if (this.canUseBrowserSessionStorage()) {
+      sessionStorage.setItem(USER_KEY, userJson);
+    }
+
+    if (this.persistedSecureSession) {
+      await SecureStorage.setItem(USER_KEY, userJson);
+    }
+
+    await Preferences.remove({ key: USER_KEY });
+  }
+
+  private canUseNativeSecureStorage(): boolean {
+    return Capacitor.isNativePlatform();
+  }
+
+  private canUseBrowserSessionStorage(): boolean {
+    return !environment.production
+      && !this.canUseNativeSecureStorage()
+      && typeof sessionStorage !== 'undefined';
+  }
+
+  private clearBrowserSession(): void {
+    if (typeof sessionStorage === 'undefined') {
+      return;
+    }
+
+    sessionStorage.removeItem(TOKEN_KEY);
+    sessionStorage.removeItem(USER_KEY);
+  }
+
+  private async clearSecureSession(): Promise<void> {
+    if (!this.canUseNativeSecureStorage()) {
+      return;
+    }
+
+    await SecureStorage.removeItem(TOKEN_KEY);
+    await SecureStorage.removeItem(USER_KEY);
+  }
+
+  private async clearLegacyPreferences(): Promise<void> {
+    await Preferences.remove({ key: TOKEN_KEY });
+    await Preferences.remove({ key: USER_KEY });
   }
 }

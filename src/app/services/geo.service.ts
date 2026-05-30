@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { shareReplay } from 'rxjs/operators';
 import { ApiService } from './api.service';
@@ -7,9 +7,9 @@ import { ServicePointOption } from '../interfaces/enrollment.interface';
 
 @Injectable({ providedIn: 'root' })
 export class GeoService {
-  private readonly cache = new Map<string, Observable<ApiResponse<unknown>>>();
+  private api = inject(ApiService);
 
-  constructor(private api: ApiService) {}
+  private readonly cache = new Map<string, Observable<ApiResponse<unknown>>>();
 
   provinces(): Observable<ApiResponse<string[]>> {
     return this.cached<string[]>('/geo/provinces');

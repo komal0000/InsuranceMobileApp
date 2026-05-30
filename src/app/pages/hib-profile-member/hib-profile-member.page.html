@@ -68,7 +68,7 @@
           </div>
 
           <div class="detail-list">
-            <div class="detail-row" *ngFor="let row of detailRows">
+            <div class="detail-row" *ngFor="let row of detailRows; trackBy: trackByEntity">
               <span>{{ row.label }}</span>
               <strong>{{ row.value }}</strong>
             </div>

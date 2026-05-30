@@ -198,7 +198,7 @@
               </div>
 
               <div class="member-list" *ngIf="enrollment.family_members && enrollment.family_members.length > 0">
-                <div class="member-card" *ngFor="let member of enrollment.family_members">
+                <div class="member-card" *ngFor="let member of enrollment.family_members; trackBy: trackByEntity">
                   <div class="member-avatar-wrapper">
                     <img *ngIf="getMemberPhotoUrl(member)" [src]="getMemberPhotoUrl(member)" [alt]="t('profile.photo')" class="member-photo" />
                     <div *ngIf="!getMemberPhotoUrl(member)" class="avatar-placeholder small">
@@ -339,7 +339,7 @@
               <app-bs-date-picker [(ngModel)]="newMember.date_of_birth" (ngModelChange)="onNewMemberDateOfBirthChange()" [label]="t('wizard.date_of_birth_required')" [placeholder]="t('common.select_bs_date')"></app-bs-date-picker>
               <ion-item class="form-item">
                 <ion-select [label]="t('wizard.relationship_to_head_required')" labelPlacement="stacked" [(ngModel)]="newMember.relationship" (ngModelChange)="onNewMemberRelationshipChange($event)">
-                  <ion-select-option *ngFor="let option of availableMemberRelationshipOptions" [value]="option.value">
+                  <ion-select-option *ngFor="let option of availableMemberRelationshipOptions; trackBy: trackByEntity" [value]="option.value">
                     {{ formatRelationship(option.value) }}
                   </ion-select-option>
                 </ion-select>
@@ -372,13 +372,13 @@
               <ion-item class="form-item">
                 <ion-select [label]="t('wizard.first_service_point')" [placeholder]="t('wizard.select_service_point')" labelPlacement="stacked" [(ngModel)]="newMember.first_service_point_id" [disabled]="!servicePointOptions.length">
                   <ion-select-option value="">{{ t('common.not_available') }}</ion-select-option>
-                  <ion-select-option *ngFor="let option of servicePointOptions" [value]="option.id">{{ option.name }}</ion-select-option>
+                  <ion-select-option *ngFor="let option of servicePointOptions; trackBy: trackByEntity" [value]="option.id">{{ option.name }}</ion-select-option>
                 </ion-select>
               </ion-item>
               <ion-item class="form-item">
                 <ion-select [label]="t('wizard.occupation')" [placeholder]="t('wizard.select_profession')" labelPlacement="stacked" [(ngModel)]="newMember.occupation">
                   <ion-select-option value="">{{ t('wizard.select_profession') }}</ion-select-option>
-                  <ion-select-option *ngFor="let option of professionOptions" [value]="option.label">{{ option.label }}</ion-select-option>
+                  <ion-select-option *ngFor="let option of professionOptions; trackBy: trackByEntity" [value]="option.label">{{ option.label }}</ion-select-option>
                 </ion-select>
               </ion-item>
 
@@ -465,7 +465,7 @@
           <!-- ─── Existing Renewals ─── -->
           <div *ngIf="renewals.length > 0" class="list-content">
             <h3 class="section-heading">{{ t('renewals.history') }}</h3>
-            <ion-card *ngFor="let r of renewals" button (click)="viewDetail(r)" class="renewal-card">
+            <ion-card *ngFor="let r of renewals; trackBy: trackByEntity" button (click)="viewDetail(r)" class="renewal-card">
               <ion-card-content>
                 <div class="card-top-row">
                   <span class="renewal-number">{{ r.renewal_number || t('renewal_detail.number_prefix') + r.id }}</span>
@@ -494,7 +494,7 @@
         </div>
 
         <div class="list-content" *ngIf="renewals.length > 0">
-          <ion-card *ngFor="let r of renewals" button (click)="viewDetail(r)" class="renewal-card">
+          <ion-card *ngFor="let r of renewals; trackBy: trackByEntity" button (click)="viewDetail(r)" class="renewal-card">
             <ion-card-content>
               <div class="card-top-row">
                 <span class="renewal-number">{{ r.enrollment_number || t('renewal_detail.number_prefix') + r.id }}</span>

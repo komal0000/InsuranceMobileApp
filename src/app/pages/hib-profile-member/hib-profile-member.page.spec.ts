@@ -1,7 +1,13 @@
-import { convertToParamMap } from '@angular/router';
+import { TestBed } from '@angular/core/testing';
+import { ActivatedRoute, convertToParamMap, Router } from '@angular/router';
+import { ToastController } from '@ionic/angular/standalone';
 import { of } from 'rxjs';
 import { HibProfileMemberPage } from './hib-profile-member.page';
 import { EnrollmentCardHolder } from '../../interfaces/enrollment.interface';
+import { DateService } from '../../services/date.service';
+import { EnrollmentService } from '../../services/enrollment.service';
+import { LanguageService } from '../../services/language.service';
+import { PolicyService } from '../../services/policy.service';
 
 describe('HibProfileMemberPage', () => {
   const headHolder: EnrollmentCardHolder = {
@@ -85,15 +91,19 @@ describe('HibProfileMemberPage', () => {
       translateText: (value?: string | null) => value || '',
     };
 
-    const page = new HibProfileMemberPage(
-      route as any,
-      policyService,
-      enrollmentService,
-      { formatForDisplay: (ad?: string | null, bs?: string | null) => bs || ad || '' } as any,
-      router,
-      toastCtrl,
-      languageService as any,
-    );
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: ActivatedRoute, useValue: route },
+        { provide: PolicyService, useValue: policyService },
+        { provide: EnrollmentService, useValue: enrollmentService },
+        { provide: DateService, useValue: { formatForDisplay: (ad?: string | null, bs?: string | null) => bs || ad || '' } },
+        { provide: Router, useValue: router },
+        { provide: ToastController, useValue: toastCtrl },
+        { provide: LanguageService, useValue: languageService },
+      ],
+    });
+    const page = TestBed.runInInjectionContext(() => new HibProfileMemberPage());
 
     return { page, enrollmentService };
   }

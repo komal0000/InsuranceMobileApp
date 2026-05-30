@@ -1,6 +1,10 @@
-import { fakeAsync, tick } from '@angular/core/testing';
+import { fakeAsync, TestBed, tick } from '@angular/core/testing';
+import { ActivatedRoute, Router } from '@angular/router';
+import { AlertController, ToastController } from '@ionic/angular/standalone';
 import { of } from 'rxjs';
 import { PaymentPage } from './payment.page';
+import { LanguageService } from '../../services/language.service';
+import { PaymentService } from '../../services/payment.service';
 
 describe('PaymentPage', () => {
   function makePage(
@@ -38,14 +42,18 @@ describe('PaymentPage', () => {
       formatNumber: (value: string | number) => String(value),
     };
 
-    const page = new PaymentPage(
-      route as any,
-      router,
-      paymentSvc,
-      toastCtrl,
-      alertCtrl,
-      languageService as any,
-    );
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: ActivatedRoute, useValue: route },
+        { provide: Router, useValue: router },
+        { provide: PaymentService, useValue: paymentSvc },
+        { provide: ToastController, useValue: toastCtrl },
+        { provide: AlertController, useValue: alertCtrl },
+        { provide: LanguageService, useValue: languageService },
+      ],
+    });
+    const page = TestBed.runInInjectionContext(() => new PaymentPage());
     page.ngOnInit();
     page.consentAccepted = true;
 

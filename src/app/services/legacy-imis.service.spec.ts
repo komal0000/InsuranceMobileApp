@@ -1,4 +1,5 @@
 import { of } from 'rxjs';
+import { TestBed } from '@angular/core/testing';
 import { ApiResponse } from '../interfaces/api-response.interface';
 import {
   LegacyImisFamilyMembersResponse,
@@ -6,6 +7,7 @@ import {
   LegacyImisKycUpdateResponse,
 } from '../interfaces/legacy-imis.interface';
 import { LegacyImisService } from './legacy-imis.service';
+import { ApiService } from './api.service';
 
 describe('LegacyImisService', () => {
   let api: jasmine.SpyObj<{
@@ -15,8 +17,12 @@ describe('LegacyImisService', () => {
   let service: LegacyImisService;
 
   beforeEach(() => {
+    TestBed.resetTestingModule();
     api = jasmine.createSpyObj('ApiService', ['get', 'post']);
-    service = new LegacyImisService(api as any);
+    TestBed.configureTestingModule({
+      providers: [{ provide: ApiService, useValue: api }],
+    });
+    service = TestBed.inject(LegacyImisService);
   });
 
   it('fetches legacy family members through the backend by CHFID', () => {

@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Preferences } from '@capacitor/preferences';
 import { BehaviorSubject, Observable, from } from 'rxjs';
 import { map, switchMap, tap } from 'rxjs/operators';
@@ -63,6 +63,8 @@ const DYNAMIC_PHRASE_REPLACEMENTS: Array<[string, string]> = [
 
 @Injectable({ providedIn: 'root' })
 export class LanguageService {
+  private api = inject(ApiService);
+
   private readonly languageSubject = new BehaviorSubject<AppLanguage>('en');
   private readonly textOriginals = new WeakMap<Text, string>();
   private readonly attributeOriginals = new WeakMap<Element, Record<string, string>>();
@@ -70,8 +72,6 @@ export class LanguageService {
   private domTranslationRoot?: Element;
 
   readonly language$ = this.languageSubject.asObservable();
-
-  constructor(private api: ApiService) {}
 
   get currentLanguage(): AppLanguage {
     return this.languageSubject.value;

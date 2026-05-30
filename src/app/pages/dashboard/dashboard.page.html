@@ -77,7 +77,7 @@
             </div>
 
             <div class="profile-member-list" *ngIf="profileMembers.length > 0; else noOtherMembers">
-              <div class="profile-member-row" *ngFor="let member of profileMembers">
+              <div class="profile-member-row" *ngFor="let member of profileMembers; trackBy: trackByEntity">
                 <div class="member-photo">
                   <img *ngIf="member.photo_url; else memberInitialTpl" [src]="member.photo_url" [alt]="member.name || t('common.member')">
                   <ng-template #memberInitialTpl>

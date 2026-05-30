@@ -175,7 +175,7 @@
               </div>
 
               <div class="member-list">
-                <div class="member-row" *ngFor="let m of policy.members || []">
+                <div class="member-row" *ngFor="let m of policy.members || []; trackBy: trackByEntity">
                   <div class="member-avatar">{{ (m.first_name || '?').charAt(0).toUpperCase() }}</div>
                   <div class="member-info">
                     <strong>{{ m.full_name }}</strong>
@@ -243,7 +243,7 @@
               </div>
 
               <div class="history-list">
-                <div class="history-item" *ngFor="let h of history">
+                <div class="history-item" *ngFor="let h of history; trackBy: trackByEntity">
                   <div class="history-left">
                     <strong>{{ h.enrollment_number || '#' + h.id }}</strong>
                     <span class="history-date">{{ historyDisplayDate(h) }}</span>

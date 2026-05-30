@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ApiService } from './api.service';
 import { ApiResponse } from '../interfaces/api-response.interface';
@@ -6,7 +6,8 @@ import { PaymentCreateResponse, PaymentStatusResponse } from '../interfaces/paym
 
 @Injectable({ providedIn: 'root' })
 export class PaymentService {
-  constructor(private api: ApiService) {}
+  private api = inject(ApiService);
+
 
   /**
    * Create a payment and get the gateway redirect URL.

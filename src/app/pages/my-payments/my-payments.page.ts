@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   IonContent, IonHeader, IonToolbar, IonTitle, IonBadge, IonIcon,
@@ -12,6 +12,7 @@ import { DateService } from '../../services/date.service';
 import { ApiResponse } from '../../interfaces/api-response.interface';
 import { LanguageToggleComponent } from '../../components/language-toggle/language-toggle.component';
 import { LanguageService } from '../../services/language.service';
+import { trackByEntity } from '../../utils/track-by.util';
 
 @Component({
   selector: 'app-my-payments',
@@ -27,16 +28,17 @@ import { LanguageService } from '../../services/language.service';
   styleUrls: ['./my-payments.page.scss'],
 })
 export class MyPaymentsPage implements OnInit {
+  readonly trackByEntity = trackByEntity;
+  private api = inject(ApiService);
+  private dateService = inject(DateService);
+  private languageService = inject(LanguageService);
+
   payments: any[] = [];
   loading = true;
   page = 1;
   hasMore = true;
 
-  constructor(
-    private api: ApiService,
-    private dateService: DateService,
-    private languageService: LanguageService
-  ) {
+  constructor() {
     addIcons({ walletOutline, cashOutline, calendarOutline, documentTextOutline });
   }
 

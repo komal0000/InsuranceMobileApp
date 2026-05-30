@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -30,6 +30,11 @@ type ForgotPasswordField = 'password' | 'confirmation';
   styleUrls: ['./forgot-password.page.scss'],
 })
 export class ForgotPasswordPage {
+  private authService = inject(AuthService);
+  private router = inject(Router);
+  private toastCtrl = inject(ToastController);
+  private languageService = inject(LanguageService);
+
   recoveryMethod: RecoveryMethod = 'otp';
   otpStep: OtpStep = 1;
   mobileNumber = '';
@@ -42,12 +47,7 @@ export class ForgotPasswordPage {
   };
   loadingAction: 'sendOtp' | 'verifyOtp' | 'resetPassword' | 'sendEmail' | null = null;
 
-  constructor(
-    private authService: AuthService,
-    private router: Router,
-    private toastCtrl: ToastController,
-    private languageService: LanguageService
-  ) {
+  constructor() {
     addIcons({
       arrowBackOutline, shieldCheckmarkOutline, callOutline, keyOutline,
       lockClosedOutline, mailOutline, eyeOutline, eyeOffOutline,

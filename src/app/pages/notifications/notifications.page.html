@@ -21,7 +21,7 @@
       </div>
 
       <div class="notif-content" *ngIf="notifications.length > 0">
-        <div *ngFor="let n of notifications" class="notif-item" [class.unread]="!n.is_read"
+        <div *ngFor="let n of notifications; trackBy: trackByEntity" class="notif-item" [class.unread]="!n.is_read"
           (click)="markAsRead(n)">
           <div class="notif-icon-box" [class.read]="n.is_read">
             <ion-icon [name]="n.is_read ? 'mail-open-outline' : 'mail-outline'"></ion-icon>

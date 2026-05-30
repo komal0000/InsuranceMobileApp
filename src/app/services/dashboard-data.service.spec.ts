@@ -1,7 +1,10 @@
 import { of } from 'rxjs';
+import { TestBed } from '@angular/core/testing';
 import { ApiResponse } from '../interfaces/api-response.interface';
 import { DashboardData } from '../interfaces/dashboard.interface';
 import { DashboardDataService } from './dashboard-data.service';
+import { ApiService } from './api.service';
+import { AuthService } from './auth.service';
 
 describe('DashboardDataService', () => {
   let api: jasmine.SpyObj<{
@@ -18,11 +21,18 @@ describe('DashboardDataService', () => {
   };
 
   beforeEach(() => {
+    TestBed.resetTestingModule();
     api = jasmine.createSpyObj('ApiService', ['get', 'post']);
     authService = jasmine.createSpyObj('AuthService', ['getCurrentUser']);
     authService.getCurrentUser.and.returnValue({ id: 42 });
     api.get.and.returnValue(of(response));
-    service = new DashboardDataService(api as any, authService as any);
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: ApiService, useValue: api },
+        { provide: AuthService, useValue: authService },
+      ],
+    });
+    service = TestBed.inject(DashboardDataService);
   });
 
   it('uses the in-session dashboard cache for repeated normal reads', () => {

@@ -1,6 +1,12 @@
 import { of } from 'rxjs';
+import { TestBed } from '@angular/core/testing';
+import { Router } from '@angular/router';
+import { ActionSheetController, AlertController, ToastController } from '@ionic/angular/standalone';
 import { ProfilePage } from './profile.page';
 import { DateService } from '../../services/date.service';
+import { ApiService } from '../../services/api.service';
+import { AuthService } from '../../services/auth.service';
+import { LanguageService } from '../../services/language.service';
 
 describe('ProfilePage', () => {
   const createToastController = () => ({
@@ -12,20 +18,22 @@ describe('ProfilePage', () => {
   const createPage = (user: Record<string, unknown> | null = null) => {
     const authService = jasmine.createSpyObj('AuthService', ['getCurrentUser', 'fetchProfile']);
     const api = jasmine.createSpyObj('ApiService', ['put', 'postFormData']);
-    const realDateService = new DateService({
+    const languageService = {
+      t: (key: string) => key,
+      translateText: (value?: string) => value || '',
       currentLanguage: 'en',
       localizeDigits: (value: string | number | null | undefined) => value == null ? '' : String(value),
-    } as any);
+    };
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [{ provide: LanguageService, useValue: languageService }],
+    });
+    const realDateService = TestBed.inject(DateService);
     const dateService = jasmine.createSpyObj('DateService', ['getCurrentBs', 'formatForDisplay', 'preparePayloadForApi']);
     const router = jasmine.createSpyObj('Router', ['navigateByUrl']);
     const toastCtrl = createToastController();
     const alertCtrl = jasmine.createSpyObj('AlertController', ['create']);
     const actionSheetCtrl = jasmine.createSpyObj('ActionSheetController', ['create']);
-    const languageService = {
-      t: (key: string) => key,
-      translateText: (value?: string) => value || '',
-    };
-
     authService.getCurrentUser.and.returnValue(user);
     authService.fetchProfile.and.returnValue(of(user));
     api.put.and.returnValue(of({ success: true, message: 'Password changed successfully' }));
@@ -33,16 +41,20 @@ describe('ProfilePage', () => {
       (payload: Record<string, unknown>, dateFields: string[]) => realDateService.preparePayloadForApi(payload, dateFields)
     );
 
-    const page = new ProfilePage(
-      authService as any,
-      api as any,
-      dateService as any,
-      router as any,
-      toastCtrl as any,
-      alertCtrl as any,
-      actionSheetCtrl as any,
-      languageService as any
-    );
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: AuthService, useValue: authService },
+        { provide: ApiService, useValue: api },
+        { provide: DateService, useValue: dateService },
+        { provide: Router, useValue: router },
+        { provide: ToastController, useValue: toastCtrl },
+        { provide: AlertController, useValue: alertCtrl },
+        { provide: ActionSheetController, useValue: actionSheetCtrl },
+        { provide: LanguageService, useValue: languageService },
+      ],
+    });
+    const page = TestBed.runInInjectionContext(() => new ProfilePage());
 
     return { page, api, router, toastCtrl };
   };

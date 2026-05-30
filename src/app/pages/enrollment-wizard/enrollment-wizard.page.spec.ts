@@ -1,7 +1,15 @@
 import { of, Subject, throwError } from 'rxjs';
+import { TestBed } from '@angular/core/testing';
+import { ActivatedRoute, Router } from '@angular/router';
+import { AlertController, ToastController } from '@ionic/angular/standalone';
 import { EnrollmentWizardPage } from './enrollment-wizard.page';
 import { ApiResponse } from '../../interfaces/api-response.interface';
 import { AddressFormComponent } from './components/address-form.component';
+import { AuthService } from '../../services/auth.service';
+import { DateService } from '../../services/date.service';
+import { EnrollmentService } from '../../services/enrollment.service';
+import { GeoService } from '../../services/geo.service';
+import { LanguageService } from '../../services/language.service';
 
 describe('EnrollmentWizardPage', () => {
   function languageService(language = 'en') {
@@ -48,6 +56,7 @@ describe('EnrollmentWizardPage', () => {
     languageService?: unknown;
     authService?: unknown;
     alertCtrl?: unknown;
+    route?: unknown;
   } = {}) {
     const defaultGeoSvc = {
       provinces: jasmine.createSpy().and.returnValue(of(response([]))),
@@ -65,21 +74,30 @@ describe('EnrollmentWizardPage', () => {
       prepareFormDataForApi: (fd: FormData) => fd,
     };
 
-    return new EnrollmentWizardPage(
-      {} as any,
-      (overrides.router || {}) as any,
-      (overrides.enrollmentSvc || {}) as any,
-      ({ ...defaultGeoSvc, ...((overrides.geoSvc || {}) as object) }) as any,
-      ({ ...defaultDateService, ...((overrides.dateService || {}) as object) }) as any,
-      (overrides.languageService || languageService()) as any,
-      (overrides.authService || { getCurrentUser: () => null }) as any,
-      toastController() as any,
-      (overrides.alertCtrl || {}) as any
-    );
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: ActivatedRoute, useValue: overrides.route || {} },
+        { provide: Router, useValue: overrides.router || {} },
+        { provide: EnrollmentService, useValue: overrides.enrollmentSvc || {} },
+        { provide: GeoService, useValue: { ...defaultGeoSvc, ...((overrides.geoSvc || {}) as object) } },
+        { provide: DateService, useValue: { ...defaultDateService, ...((overrides.dateService || {}) as object) } },
+        { provide: LanguageService, useValue: overrides.languageService || languageService() },
+        { provide: AuthService, useValue: overrides.authService || { getCurrentUser: () => null } },
+        { provide: ToastController, useValue: toastController() },
+        { provide: AlertController, useValue: overrides.alertCtrl || {} },
+      ],
+    });
+
+    return TestBed.runInInjectionContext(() => new EnrollmentWizardPage());
   }
 
   function createAddressForm() {
-    return new AddressFormComponent(languageService() as any);
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [{ provide: LanguageService, useValue: languageService() }],
+    });
+    return TestBed.runInInjectionContext(() => new AddressFormComponent());
   }
 
   function parentGrandparentNames() {
@@ -421,17 +439,7 @@ describe('EnrollmentWizardPage', () => {
       servicePoints: jasmine.createSpy().and.returnValue(of(servicePointResponse([]))),
     };
 
-    const page = new EnrollmentWizardPage(
-      {} as any,
-      {} as any,
-      {} as any,
-      geoSvc as any,
-      {} as any,
-      languageService() as any,
-      { getCurrentUser: () => null } as any,
-      {} as any,
-      {} as any
-    );
+    const page = createPage({ geoSvc });
 
     (page as any).applyNidLocation({
       province: 'Bagamati',
@@ -484,17 +492,11 @@ describe('EnrollmentWizardPage', () => {
       servicePoints: jasmine.createSpy().and.returnValue(of(servicePointResponse([]))),
     };
 
-    const page = new EnrollmentWizardPage(
-      {} as any,
-      {} as any,
-      enrollmentSvc as any,
-      geoSvc as any,
-      { formatForDisplay: (_ad?: string, bs?: string) => bs || '' } as any,
-      languageService() as any,
-      { getCurrentUser: () => null } as any,
-      toastController() as any,
-      {} as any
-    );
+    const page = createPage({
+      enrollmentSvc,
+      geoSvc,
+      dateService: { formatForDisplay: (_ad?: string, bs?: string) => bs || '' },
+    });
 
     page.enrollmentId = 4;
     page.nidNumber2 = '१२३-४५६-७८९-०';
@@ -921,17 +923,10 @@ describe('EnrollmentWizardPage', () => {
       })),
     };
 
-    const page = new EnrollmentWizardPage(
-      {} as any,
-      {} as any,
-      enrollmentSvc as any,
-      {} as any,
-      { formatForDisplay: (_ad?: string, bs?: string) => bs || '' } as any,
-      languageService() as any,
-      { getCurrentUser: () => null } as any,
-      toastController() as any,
-      {} as any
-    );
+    const page = createPage({
+      enrollmentSvc,
+      dateService: { formatForDisplay: (_ad?: string, bs?: string) => bs || '' },
+    });
 
     page.enrollmentId = 4;
     page.nidNumberMember = '१२३-४५६-७८९-०';
@@ -2186,17 +2181,13 @@ describe('EnrollmentWizardPage', () => {
       getCurrentBs: () => '2083-01-01',
       formatForDisplay: (_ad?: string, bs?: string) => bs || '',
     };
-    const page = new EnrollmentWizardPage(
-      { snapshot: { paramMap: { get: () => '7' } } } as any,
-      {} as any,
-      enrollmentSvc as any,
-      geoSvc as any,
-      dateService as any,
-      localizedLanguageService as any,
-      { getCurrentUser: () => null } as any,
-      toastController() as any,
-      {} as any
-    );
+    const page = createPage({
+      route: { snapshot: { paramMap: { get: () => '7' } } },
+      enrollmentSvc,
+      geoSvc,
+      dateService,
+      languageService: localizedLanguageService,
+    });
 
     page.ngOnInit();
     prefix = 'changed';

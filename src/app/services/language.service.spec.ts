@@ -1,17 +1,23 @@
 import { of } from 'rxjs';
+import { TestBed } from '@angular/core/testing';
 import { Preferences } from '@capacitor/preferences';
 import { EN_TRANSLATIONS } from '../i18n/en';
 import { NE_TRANSLATIONS } from '../i18n/ne';
 import { LanguageService } from './language.service';
+import { ApiService } from './api.service';
 
 describe('LanguageService', () => {
   let api: jasmine.SpyObj<{ patch: (...args: unknown[]) => unknown }>;
   let service: LanguageService;
 
   beforeEach(() => {
+    TestBed.resetTestingModule();
     api = jasmine.createSpyObj('ApiService', ['patch']);
     spyOn(Preferences, 'set').and.returnValue(Promise.resolve());
-    service = new LanguageService(api as any);
+    TestBed.configureTestingModule({
+      providers: [{ provide: ApiService, useValue: api }],
+    });
+    service = TestBed.inject(LanguageService);
   });
 
   it('translates keyed and phrase-based text in Nepali mode', async () => {

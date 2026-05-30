@@ -147,7 +147,7 @@ android/app/google-services.json
 Notes:
 
 - If you change the Firebase project, replace `android/app/google-services.json` with the correct file.
-- The current Android package values use `io.ionic.starter` in Capacitor and Gradle config. If you change the app ID, you must keep Firebase, Android, and Capacitor settings aligned.
+- The current Android package values use `com.needtechnosoft.hib` in Capacitor and Gradle config. If you change the app ID, you must keep Firebase, Android, and Capacitor settings aligned.
 - Push notifications will not work unless the Firebase configuration matches the app package name.
 
 ## Useful Commands

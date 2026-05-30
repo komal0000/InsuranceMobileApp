@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -21,6 +21,7 @@ import { ApiResponse, PaginatedData } from '../../interfaces/api-response.interf
 import { Subsidy } from '../../interfaces/subsidy.interface';
 import { LanguageToggleComponent } from '../../components/language-toggle/language-toggle.component';
 import { LanguageService } from '../../services/language.service';
+import { trackByEntity } from '../../utils/track-by.util';
 
 @Component({
   selector: 'app-subsidies',
@@ -36,6 +37,15 @@ import { LanguageService } from '../../services/language.service';
   styleUrls: ['./subsidies.page.scss'],
 })
 export class SubsidiesPage implements OnInit {
+  readonly trackByEntity = trackByEntity;
+  private api = inject(ApiService);
+  private authService = inject(AuthService);
+  private dateService = inject(DateService);
+  private router = inject(Router);
+  private toastCtrl = inject(ToastController);
+  private alertCtrl = inject(AlertController);
+  private languageService = inject(LanguageService);
+
   subsidies: Subsidy[] = [];
   search = '';
   statusFilter = '';
@@ -45,15 +55,7 @@ export class SubsidiesPage implements OnInit {
   canManage = false;
   selectedSubsidy: Subsidy | null = null;
 
-  constructor(
-    private api: ApiService,
-    private authService: AuthService,
-    private dateService: DateService,
-    private router: Router,
-    private toastCtrl: ToastController,
-    private alertCtrl: AlertController,
-    private languageService: LanguageService
-  ) {
+  constructor() {
     addIcons({
       cashOutline, checkmarkCircleOutline, closeCircleOutline, banOutline,
       shieldCheckmarkOutline, chevronForwardOutline, documentTextOutline

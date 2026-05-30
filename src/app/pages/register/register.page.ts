@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -30,6 +30,11 @@ import {
   styleUrls: ['./register.page.scss'],
 })
 export class RegisterPage {
+  private authService = inject(AuthService);
+  private router = inject(Router);
+  private toastCtrl = inject(ToastController);
+  private languageService = inject(LanguageService);
+
   formData: RegisterRequest = {
     name: '',
     name_ne: '',
@@ -39,12 +44,7 @@ export class RegisterPage {
 
   loading = false;
 
-  constructor(
-    private authService: AuthService,
-    private router: Router,
-    private toastCtrl: ToastController,
-    private languageService: LanguageService
-  ) {
+  constructor() {
     addIcons({
       shieldCheckmarkOutline, arrowBackOutline, personOutline, callOutline, mailOutline, languageOutline,
     });

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, HostBinding, Input } from '@angular/core';
+import { Component, HostBinding, Input, inject } from '@angular/core';
 import { AuthService } from '../../services/auth.service';
 import { AppLanguage, LanguageService } from '../../services/language.service';
 
@@ -76,6 +76,9 @@ import { AppLanguage, LanguageService } from '../../services/language.service';
   `],
 })
 export class LanguageToggleComponent {
+  private authService = inject(AuthService);
+  languageService = inject(LanguageService);
+
   @Input() placement: 'floating' | 'toolbar' = 'floating';
 
   @HostBinding('class.language-toggle-toolbar-host')
@@ -84,11 +87,6 @@ export class LanguageToggleComponent {
   }
 
   readonly language$ = this.languageService.language$;
-
-  constructor(
-    private authService: AuthService,
-    public languageService: LanguageService
-  ) {}
 
   toggle(): void {
     const next = this.languageService.toggleLanguage();

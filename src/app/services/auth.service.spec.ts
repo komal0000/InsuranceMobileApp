@@ -1,7 +1,10 @@
 import { of } from 'rxjs';
+import { TestBed } from '@angular/core/testing';
 import { AuthService } from './auth.service';
 import { ApiResponse } from '../interfaces/api-response.interface';
 import { AuthData, PendingRegistrationData, RegisterRequest } from '../interfaces/user.interface';
+import { ApiService } from './api.service';
+import { LanguageService } from './language.service';
 
 describe('AuthService', () => {
   let api: jasmine.SpyObj<{ post: (...args: unknown[]) => unknown; get: (...args: unknown[]) => unknown }>;
@@ -9,9 +12,16 @@ describe('AuthService', () => {
   let service: AuthService;
 
   beforeEach(() => {
+    TestBed.resetTestingModule();
     api = jasmine.createSpyObj('ApiService', ['post', 'get']);
     languageService = jasmine.createSpyObj('LanguageService', ['useUserPreference', 'setLanguage']);
-    service = new AuthService(api as any, languageService as any);
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: ApiService, useValue: api },
+        { provide: LanguageService, useValue: languageService },
+      ],
+    });
+    service = TestBed.inject(AuthService);
   });
 
   it('posts beneficiary registration details to /register', (done) => {

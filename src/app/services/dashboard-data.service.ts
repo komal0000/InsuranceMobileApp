@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { finalize, shareReplay, tap } from 'rxjs/operators';
 import { ApiResponse } from '../interfaces/api-response.interface';
@@ -9,14 +9,12 @@ import { nidLookupValue } from '../utils/nid-number.util';
 
 @Injectable({ providedIn: 'root' })
 export class DashboardDataService {
+  private api = inject(ApiService);
+  private authService = inject(AuthService);
+
   private cachedResponse: ApiResponse<DashboardData> | null = null;
   private inFlightRequest$: Observable<ApiResponse<DashboardData>> | null = null;
   private cachedUserId: number | null = null;
-
-  constructor(
-    private api: ApiService,
-    private authService: AuthService
-  ) {}
 
   getDashboard(forceRefresh = false): Observable<ApiResponse<DashboardData>> {
     const userId = this.authService.getCurrentUser()?.id ?? null;

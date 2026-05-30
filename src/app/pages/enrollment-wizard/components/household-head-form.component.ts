@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import {
   IonBadge,
@@ -19,6 +19,7 @@ import { BsDatePickerComponent } from '../../../components/bs-date-picker/bs-dat
 import { LanguageService } from '../../../services/language.service';
 import { ServicePointOption } from '../../../interfaces/enrollment.interface';
 import { normalizeDigitsOnly } from '../../../utils/auth-validation';
+import { trackByEntity } from '../../../utils/track-by.util';
 
 type HouseholdHeadImageField =
   | 'photo'
@@ -97,6 +98,9 @@ interface HouseholdHeadFormModel {
   styleUrls: ['../enrollment-wizard.page.scss', './household-head-form.component.scss'],
 })
 export class HouseholdHeadFormComponent {
+  readonly trackByEntity = trackByEntity;
+  private languageService = inject(LanguageService);
+
   private firstServicePointValue = '';
   private firstServicePointIdValue: string | number = '';
 
@@ -140,8 +144,6 @@ export class HouseholdHeadFormComponent {
   @Output() firstServicePointIdChange = new EventEmitter<string | number>();
   @Output() capture = new EventEmitter<HouseholdHeadImageField>();
   @Output() identityModeChange = new EventEmitter<void>();
-
-  constructor(private languageService: LanguageService) {}
 
   isHeadFieldReadonly(field: string): boolean {
     return this.lockedFields.has(field);

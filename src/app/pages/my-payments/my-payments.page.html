@@ -16,7 +16,7 @@
 
       <div class="payments-content" *ngIf="!loading">
         <div *ngIf="payments.length > 0">
-          <div class="payment-card" *ngFor="let p of payments">
+          <div class="payment-card" *ngFor="let p of payments; trackBy: trackByEntity">
             <div class="payment-icon-box" [class.paid]="p.status === 'paid'" [class.failed]="p.status === 'failed'">
               <ion-icon name="cash-outline"></ion-icon>
             </div>

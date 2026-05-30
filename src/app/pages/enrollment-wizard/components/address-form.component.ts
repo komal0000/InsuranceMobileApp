@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import {
   IonButton,
@@ -17,6 +17,7 @@ import {
 } from '@ionic/angular/standalone';
 import { PermanentAddressSource, Step1Data } from '../../../interfaces/enrollment.interface';
 import { LanguageService } from '../../../services/language.service';
+import { trackByEntity } from '../../../utils/track-by.util';
 
 type HeadAddressImageField = 'basai_sarai_front' | 'basai_sarai_back';
 type PermanentAddressSourceChoice = PermanentAddressSource | '';
@@ -44,6 +45,9 @@ type PermanentAddressSourceChoice = PermanentAddressSource | '';
   styleUrls: ['../enrollment-wizard.page.scss'],
 })
 export class AddressFormComponent {
+  readonly trackByEntity = trackByEntity;
+  private languageService = inject(LanguageService);
+
   private temporarySameAsPermanentValue = false;
 
   @Input({ required: true }) step1!: Step1Data;
@@ -85,8 +89,6 @@ export class AddressFormComponent {
   @Output() temporaryMunicipalityChange = new EventEmitter<void>();
   @Output() temporaryFullAddressChange = new EventEmitter<void>();
   @Output() capture = new EventEmitter<HeadAddressImageField>();
-
-  constructor(private languageService: LanguageService) {}
 
   isHeadFieldReadonly(field: string): boolean {
     return this.lockedFields.has(field);

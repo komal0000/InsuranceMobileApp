@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -16,6 +16,7 @@ import { ApiResponse } from '../../interfaces/api-response.interface';
 import { LanguageToggleComponent } from '../../components/language-toggle/language-toggle.component';
 import { LanguageService } from '../../services/language.service';
 import { isValidNidInput, nidLookupValue } from '../../utils/nid-number.util';
+import { trackByEntity } from '../../utils/track-by.util';
 
 @Component({
   selector: 'app-renewal-search',
@@ -30,6 +31,13 @@ import { isValidNidInput, nidLookupValue } from '../../utils/nid-number.util';
   styleUrls: ['./renewal-search.page.scss'],
 })
 export class RenewalSearchPage {
+  readonly trackByEntity = trackByEntity;
+  private api = inject(ApiService);
+  private router = inject(Router);
+  private toastCtrl = inject(ToastController);
+  private authService = inject(AuthService);
+  private languageService = inject(LanguageService);
+
   searchType: string = 'enrollment_number';
   searchValue = '';
   searching = false;
@@ -38,13 +46,7 @@ export class RenewalSearchPage {
   consentAccepted = false;
   consentAcceptanceId: number | null = null;
 
-  constructor(
-    private api: ApiService,
-    private router: Router,
-    private toastCtrl: ToastController,
-    private authService: AuthService,
-    private languageService: LanguageService
-  ) {
+  constructor() {
     addIcons({ searchOutline, arrowForwardOutline });
     const role = this.authService.getCurrentUser()?.role || '';
     this.canInitiateRenewal = ['beneficiary', 'enrollment_assistant'].includes(role);

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   IonContent, IonHeader, IonToolbar, IonTitle, IonCard, IonCardContent,
@@ -15,6 +15,7 @@ import { HibPolicySummary } from '../../interfaces/policy.interface';
 import { LanguageToggleComponent } from '../../components/language-toggle/language-toggle.component';
 import { LanguageService } from '../../services/language.service';
 import { PolicyService } from '../../services/policy.service';
+import { trackByEntity } from '../../utils/track-by.util';
 
 @Component({
   selector: 'app-my-policy',
@@ -29,15 +30,16 @@ import { PolicyService } from '../../services/policy.service';
   styleUrls: ['./my-policy.page.scss'],
 })
 export class MyPolicyPage implements OnInit {
+  readonly trackByEntity = trackByEntity;
+  private policyService = inject(PolicyService);
+  private dateService = inject(DateService);
+  private languageService = inject(LanguageService);
+
   policy: HibPolicySummary | null = null;
   history: any[] = [];
   loading = true;
 
-  constructor(
-    private policyService: PolicyService,
-    private dateService: DateService,
-    private languageService: LanguageService
-  ) {
+  constructor() {
     addIcons({
       shieldCheckmarkOutline, documentTextOutline, calendarOutline,
       peopleOutline, personOutline, locationOutline, cashOutline,

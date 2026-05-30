@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { Browser } from '@capacitor/browser';
@@ -19,6 +19,7 @@ import { DateService } from '../../services/date.service';
 import { EnrollmentService } from '../../services/enrollment.service';
 import { LanguageService } from '../../services/language.service';
 import { PolicyService } from '../../services/policy.service';
+import { trackByEntity } from '../../utils/track-by.util';
 
 @Component({
   selector: 'app-hib-profile',
@@ -33,6 +34,14 @@ import { PolicyService } from '../../services/policy.service';
   styleUrls: ['./hib-profile.page.scss'],
 })
 export class HibProfilePage implements OnInit {
+  readonly trackByEntity = trackByEntity;
+  private policyService = inject(PolicyService);
+  private enrollmentService = inject(EnrollmentService);
+  private dateService = inject(DateService);
+  private router = inject(Router);
+  private toastCtrl = inject(ToastController);
+  private languageService = inject(LanguageService);
+
   policy: HibPolicySummary | null = null;
   cardHolders: EnrollmentCardHolder[] = [];
   allCardsPdfUrl: string | null = null;
@@ -40,14 +49,7 @@ export class HibProfilePage implements OnInit {
   cardsLoading = false;
   exportingAll = false;
 
-  constructor(
-    private policyService: PolicyService,
-    private enrollmentService: EnrollmentService,
-    private dateService: DateService,
-    private router: Router,
-    private toastCtrl: ToastController,
-    private languageService: LanguageService,
-  ) {
+  constructor() {
     addIcons({
       arrowForwardOutline, calendarOutline, downloadOutline, idCardOutline,
       peopleOutline, personOutline, shieldCheckmarkOutline

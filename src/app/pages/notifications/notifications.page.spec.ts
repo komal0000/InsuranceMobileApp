@@ -1,5 +1,11 @@
 import { EMPTY, Subject, of } from 'rxjs';
+import { TestBed } from '@angular/core/testing';
 import { NotificationsPage } from './notifications.page';
+import { ApiService } from '../../services/api.service';
+import { AppSyncService } from '../../services/app-sync.service';
+import { DateService } from '../../services/date.service';
+import { LanguageService } from '../../services/language.service';
+import { PushNotificationService } from '../../services/push-notification.service';
 
 describe('NotificationsPage', () => {
   function makePage(response$: any = of({
@@ -20,13 +26,17 @@ describe('NotificationsPage', () => {
       t: (key: string) => key,
     };
 
-    const page = new NotificationsPage(
-      api,
-      { events$: EMPTY } as any,
-      pushService,
-      dateService,
-      languageService as any
-    );
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: ApiService, useValue: api },
+        { provide: AppSyncService, useValue: { events$: EMPTY } },
+        { provide: PushNotificationService, useValue: pushService },
+        { provide: DateService, useValue: dateService },
+        { provide: LanguageService, useValue: languageService },
+      ],
+    });
+    const page = TestBed.runInInjectionContext(() => new NotificationsPage());
 
     return { page, api, pushService };
   }

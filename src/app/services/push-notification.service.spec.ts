@@ -1,6 +1,9 @@
-import { NgZone } from '@angular/core';
+import { TestBed } from '@angular/core/testing';
+import { Router } from '@angular/router';
 import { of } from 'rxjs';
 import { PushNotificationService } from './push-notification.service';
+import { ApiService } from './api.service';
+import { AppSyncService } from './app-sync.service';
 
 describe('PushNotificationService', () => {
   let api: jasmine.SpyObj<any>;
@@ -9,6 +12,7 @@ describe('PushNotificationService', () => {
   let service: PushNotificationService;
 
   beforeEach(() => {
+    TestBed.resetTestingModule();
     api = jasmine.createSpyObj('ApiService', ['get', 'post', 'delete']);
     api.get.and.returnValue(of({ success: true, data: { unread_count: 4 } }));
     api.post.and.returnValue(of({ success: true }));
@@ -16,12 +20,14 @@ describe('PushNotificationService', () => {
     router = jasmine.createSpyObj('Router', ['navigate']);
     syncService = jasmine.createSpyObj('AppSyncService', ['emitFromNotificationData']);
 
-    service = new PushNotificationService(
-      api,
-      router,
-      { run: (callback: () => void) => callback() } as NgZone,
-      syncService,
-    );
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: ApiService, useValue: api },
+        { provide: Router, useValue: router },
+        { provide: AppSyncService, useValue: syncService },
+      ],
+    });
+    service = TestBed.inject(PushNotificationService);
   });
 
   it('marks the stored notification read when a push alert is tapped', () => {

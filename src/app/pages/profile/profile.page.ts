@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -40,6 +40,15 @@ type ProfilePasswordField = 'current' | 'new' | 'confirmation';
   styleUrls: ['./profile.page.scss'],
 })
 export class ProfilePage implements OnInit {
+  private authService = inject(AuthService);
+  private api = inject(ApiService);
+  private dateService = inject(DateService);
+  private router = inject(Router);
+  private toastCtrl = inject(ToastController);
+  private alertCtrl = inject(AlertController);
+  private actionSheetCtrl = inject(ActionSheetController);
+  private languageService = inject(LanguageService);
+
   user: User | null = null;
   editing = false;
   savingProfile = false;
@@ -56,16 +65,7 @@ export class ProfilePage implements OnInit {
     confirmation: false,
   };
 
-  constructor(
-    private authService: AuthService,
-    private api: ApiService,
-    private dateService: DateService,
-    private router: Router,
-    private toastCtrl: ToastController,
-    private alertCtrl: AlertController,
-    private actionSheetCtrl: ActionSheetController,
-    private languageService: LanguageService
-  ) {
+  constructor() {
     addIcons({
       personCircleOutline, logOutOutline, keyOutline, createOutline,
       callOutline, mailOutline, calendarOutline, cameraOutline, imageOutline,

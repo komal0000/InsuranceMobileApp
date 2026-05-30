@@ -1,4 +1,4 @@
-import { Injectable, NgZone } from '@angular/core';
+import { Injectable, NgZone, inject } from '@angular/core';
 import { Capacitor } from '@capacitor/core';
 import { PushNotifications, Token, PushNotificationSchema, ActionPerformed } from '@capacitor/push-notifications';
 import { Router } from '@angular/router';
@@ -8,15 +8,13 @@ import { AppSyncService } from './app-sync.service';
 
 @Injectable({ providedIn: 'root' })
 export class PushNotificationService {
+  private api = inject(ApiService);
+  private router = inject(Router);
+  private zone = inject(NgZone);
+  private syncService = inject(AppSyncService);
+
   private unreadCount$ = new BehaviorSubject<number>(0);
   unreadCount = this.unreadCount$.asObservable();
-
-  constructor(
-    private api: ApiService,
-    private router: Router,
-    private zone: NgZone,
-    private syncService: AppSyncService
-  ) {}
 
   async initialize(): Promise<void> {
     if (!Capacitor.isNativePlatform()) {

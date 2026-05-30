@@ -1,5 +1,12 @@
 import { EMPTY, of } from 'rxjs';
+import { TestBed } from '@angular/core/testing';
+import { ActivatedRoute, Router } from '@angular/router';
+import { AlertController, ToastController } from '@ionic/angular/standalone';
 import { RenewalDetailPage } from './renewal-detail.page';
+import { ApiService } from '../../services/api.service';
+import { AppSyncService } from '../../services/app-sync.service';
+import { DateService } from '../../services/date.service';
+import { LanguageService } from '../../services/language.service';
 
 describe('RenewalDetailPage', () => {
   function makePage(overrides: { dateService?: Record<string, unknown>; alertCtrl?: unknown } = {}) {
@@ -25,16 +32,20 @@ describe('RenewalDetailPage', () => {
     };
 
     const router = jasmine.createSpyObj('Router', ['navigate', 'navigateByUrl']);
-    const page = new RenewalDetailPage(
-      { snapshot: { paramMap: { get: () => '12' } } } as any,
-      router as any,
-      api,
-      { events$: EMPTY } as any,
-      dateService as any,
-      toastCtrl as any,
-      (overrides.alertCtrl || {}) as any,
-      languageService as any,
-    );
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: () => '12' } } } },
+        { provide: Router, useValue: router },
+        { provide: ApiService, useValue: api },
+        { provide: AppSyncService, useValue: { events$: EMPTY } },
+        { provide: DateService, useValue: dateService },
+        { provide: ToastController, useValue: toastCtrl },
+        { provide: AlertController, useValue: overrides.alertCtrl || {} },
+        { provide: LanguageService, useValue: languageService },
+      ],
+    });
+    const page = TestBed.runInInjectionContext(() => new RenewalDetailPage());
 
     return { page, api, router, toastCtrl };
   }

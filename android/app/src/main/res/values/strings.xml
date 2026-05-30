@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">HIB</string>
+    <string name="title_activity_main">HIB</string>
+    <string name="package_name">com.needtechnosoft.hib</string>
+    <string name="custom_url_scheme">com.needtechnosoft.hib</string>
+</resources>

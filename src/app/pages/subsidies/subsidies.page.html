@@ -32,7 +32,7 @@
       </div>
 
       <div class="subsidies-content" *ngIf="subsidies.length > 0">
-        <div class="subsidy-card" *ngFor="let s of subsidies" (click)="viewDetail(s)">
+        <div class="subsidy-card" *ngFor="let s of subsidies; trackBy: trackByEntity" (click)="viewDetail(s)">
           <div class="subsidy-icon-box">
             <ion-icon name="cash-outline"></ion-icon>
           </div>
@@ -121,7 +121,7 @@
           </div>
 
           <div class="audit-list">
-            <div class="audit-item" *ngFor="let log of selectedSubsidy.audit_log">
+            <div class="audit-item" *ngFor="let log of selectedSubsidy.audit_log; trackBy: trackByEntity">
               <strong>{{ log.action }}</strong>
               <p>{{ log.performed_by }} — {{ displayDateTime(log.created_at) }}</p>
               <p *ngIf="log.reason" class="audit-reason">{{ t('common.reason') }}: {{ log.reason }}</p>

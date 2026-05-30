@@ -1,3 +1,6 @@
+import { ElementRef } from '@angular/core';
+import { NgModel } from '@angular/forms';
+import { TestBed } from '@angular/core/testing';
 import { NepaliInputDirective } from './nepali-input.directive';
 import { TransliterateService } from '../services/transliterate.service';
 
@@ -14,11 +17,15 @@ describe('NepaliInputDirective', () => {
       },
       viewToModelUpdate: jasmine.createSpy('viewToModelUpdate'),
     };
-    const directive = new NepaliInputDirective(
-      { nativeElement: ionInput } as any,
-      ngModel as any,
-      new TransliterateService(),
-    );
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: ElementRef, useValue: { nativeElement: ionInput } },
+        { provide: NgModel, useValue: ngModel },
+        { provide: TransliterateService, useValue: new TransliterateService() },
+      ],
+    });
+    const directive = TestBed.runInInjectionContext(() => new NepaliInputDirective());
 
     return { directive, getInputElement, ionInput, nativeInput, ngModel };
   }

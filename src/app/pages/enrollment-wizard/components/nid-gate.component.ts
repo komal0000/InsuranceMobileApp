@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import {
   IonButton,
@@ -74,6 +74,8 @@ import { LanguageService } from '../../../services/language.service';
   `,
 })
 export class NidGateComponent {
+  private languageService = inject(LanguageService);
+
   @Input() title = '';
   @Input() description = '';
   @Input() nidNumber = '';
@@ -85,8 +87,6 @@ export class NidGateComponent {
   @Output() nidNumberChange = new EventEmitter<string>();
   @Output() verify = new EventEmitter<void>();
   @Output() skip = new EventEmitter<void>();
-
-  constructor(private languageService: LanguageService) {}
 
   t(key: string): string {
     return this.languageService.t(key);

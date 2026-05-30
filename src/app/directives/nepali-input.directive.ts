@@ -1,4 +1,4 @@
-import { Directive, ElementRef, HostListener, Optional, Self } from '@angular/core';
+import { Directive, ElementRef, HostListener, inject } from '@angular/core';
 import { NgModel } from '@angular/forms';
 import { TransliterateService } from '../services/transliterate.service';
 
@@ -14,13 +14,11 @@ type IonInputEvent = CustomEvent<{ value?: string | null }> & {
   standalone: true,
 })
 export class NepaliInputDirective {
-  private converting = false;
+  private host = inject<ElementRef<HTMLIonInputElement>>(ElementRef);
+  private ngModel = inject(NgModel, { optional: true, self: true });
+  private transliterateService = inject(TransliterateService);
 
-  constructor(
-    private host: ElementRef<HTMLIonInputElement>,
-    @Optional() @Self() private ngModel: NgModel,
-    private transliterateService: TransliterateService,
-  ) {}
+  private converting = false;
 
   @HostListener('ionInput', ['$event'])
   onIonInput(event: IonInputEvent) {

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy } from '@angular/core';
+import { Component, OnDestroy, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import {
   IonBackButton,
@@ -39,6 +39,7 @@ import {
 } from '../../interfaces/legacy-imis.interface';
 import { LanguageService } from '../../services/language.service';
 import { LegacyImisService } from '../../services/legacy-imis.service';
+import { trackByEntity } from '../../utils/track-by.util';
 
 type KycForm = {
   firstname: string;
@@ -104,6 +105,10 @@ interface KycDisplayField {
   styleUrls: ['./kyc-demo.page.scss'],
 })
 export class KycDemoPage implements OnDestroy {
+  readonly trackByEntity = trackByEntity;
+  private legacyImis = inject(LegacyImisService);
+  private languageService = inject(LanguageService);
+
   householdHeadChfid = '';
   memberChfid = '';
   loading = false;
@@ -145,10 +150,7 @@ export class KycDemoPage implements OnDestroy {
 
   private readonly destroy$ = new Subject<void>();
 
-  constructor(
-    private legacyImis: LegacyImisService,
-    private languageService: LanguageService
-  ) {
+  constructor() {
     addIcons({
       alertCircleOutline,
       cameraOutline,
