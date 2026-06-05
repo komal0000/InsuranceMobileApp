@@ -150,7 +150,7 @@ describe('RenewalsPage', () => {
     const { page, api, toastCtrl, router } = makePage('beneficiary');
     api.post.and.returnValue(of({ success: true, data: { id: 42 } }));
     page.canInitiateRenewal = true;
-    page.enrollment = { id: 7, status: 'active' };
+    page.enrollment = { id: 7, status: 'active', household_head: { member_number: '981234567001' } };
 
     page.initiateRenewal();
 
@@ -167,7 +167,8 @@ describe('RenewalsPage', () => {
     await Promise.resolve();
 
     expect(api.post).toHaveBeenCalledWith('/renewals/initiate', {
-      enrollment_id: 7,
+      search_type: 'hib_number',
+      search_value: '981234567001',
       consent_accepted: true,
     });
     expect(router.navigateByUrl).toHaveBeenCalledWith('/renewal-detail/42');

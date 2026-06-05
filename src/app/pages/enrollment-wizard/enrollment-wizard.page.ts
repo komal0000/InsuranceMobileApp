@@ -1,4 +1,4 @@
-﻿import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -1969,7 +1969,7 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
   }
 
   displayDate(adDate?: string | null, bsDate?: string | null): string {
-    return this.dateService.formatForDisplay(adDate, bsDate) || '—';
+    return this.dateService.formatForDisplay(adDate, bsDate) || '';
   }
 
   formatStatus(s: string): string {

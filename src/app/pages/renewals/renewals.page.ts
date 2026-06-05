@@ -270,9 +270,20 @@ export class RenewalsPage implements OnInit, OnDestroy {
       }).then(toast => toast.present());
       return;
     }
+    const householdHeadNumber = this.householdHeadNumberForRenewal();
+    if (!householdHeadNumber) {
+      this.toastCtrl.create({
+        message: this.t('renewal_search.enter_household_hib_number'),
+        duration: 2500,
+        color: 'warning',
+        position: 'top',
+      }).then(toast => toast.present());
+      return;
+    }
     this.initiating = true;
     this.api.post<ApiResponse<any>>('/renewals/initiate', {
-      enrollment_id: this.enrollment.id,
+      search_type: 'hib_number',
+      search_value: householdHeadNumber,
       consent_accepted: true,
     }).subscribe({
       next: async (res) => {
@@ -581,8 +592,22 @@ export class RenewalsPage implements OnInit, OnDestroy {
         },
       });
     } else {
+      const householdHeadNumber = this.householdHeadNumberForRenewal();
+      if (!householdHeadNumber) {
+        this.savingMember = false;
+        const toast = await this.toastCtrl.create({
+          message: this.t('renewal_search.enter_household_hib_number'),
+          duration: 2500,
+          color: 'warning',
+          position: 'top',
+        });
+        await toast.present();
+        return;
+      }
+
       this.api.post<ApiResponse<any>>('/renewals/initiate', {
-        enrollment_id: this.enrollment.id,
+        search_type: 'hib_number',
+        search_value: householdHeadNumber,
         consent_accepted: true,
       }).subscribe({
         next: (res) => {
@@ -753,6 +778,18 @@ export class RenewalsPage implements OnInit, OnDestroy {
 
       return true;
     });
+  }
+
+  private householdHeadNumberForRenewal(): string {
+    const head = this.enrollment?.household_head ?? this.enrollment?.householdHead ?? {};
+
+    return String(
+      head.member_number
+      ?? head.hib_number
+      ?? this.enrollment?.household_head_hib_number
+      ?? this.enrollment?.hib_number
+      ?? ''
+    ).trim();
   }
 
   private isRelationshipBlockedForHead(relationship: string): boolean {
