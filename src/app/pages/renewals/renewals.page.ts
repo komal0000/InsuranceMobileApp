@@ -379,6 +379,11 @@ export class RenewalsPage implements OnInit, OnDestroy {
     this.newMember.birth_certificate_number = normalizeDigitsOnly(String(event.detail?.value ?? ''));
   }
 
+  onNewMemberDocumentTypeChange(value: string): void {
+    this.newMember.document_type = value;
+    this.clearInactiveNewMemberDocumentFields(value);
+  }
+
   private fallbackRenewalMemberFileInput(field: string) {
     const input = document.createElement('input');
     input.type = 'file';
@@ -963,13 +968,17 @@ export class RenewalsPage implements OnInit, OnDestroy {
     const age = this.dateService.calculateAge(this.newMember.date_of_birth, 'bs');
     const usesBirthCertificate = Number.isFinite(age) && age < 16;
     this.newMember.document_type = usesBirthCertificate ? 'birth_certificate' : 'citizenship';
+    this.clearInactiveNewMemberDocumentFields(this.newMember.document_type);
+  }
 
-    if (usesBirthCertificate) {
+  private clearInactiveNewMemberDocumentFields(documentType: string): void {
+    if (documentType === 'birth_certificate') {
       this.newMember.citizenship_number = '';
       this.newMember.citizenship_issue_date = '';
       this.newMember.citizenship_issue_district = '';
       this.newMember.citizenship_front_image = null;
       this.newMember.citizenship_back_image = null;
+      this.newMember.occupation = '';
       this.memberCitizenshipFrontPreview = null;
       this.memberCitizenshipBackPreview = null;
       return;

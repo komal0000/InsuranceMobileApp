@@ -507,6 +507,7 @@ describe('RenewalsPage', () => {
       document_type: 'citizenship',
       citizenship_number: 'STALE-CIT',
       birth_certificate_number: 'BC-१२३',
+      occupation: 'Agriculture',
     };
 
     await page.addNewMember();
@@ -516,6 +517,7 @@ describe('RenewalsPage', () => {
     expect(submitted.get('document_type')).toBe('birth_certificate');
     expect(submitted.get('birth_certificate_number')).toBe('123');
     expect(submitted.has('citizenship_number')).toBeFalse();
+    expect(submitted.has('occupation')).toBeFalse();
     expect(toastCtrl.create).not.toHaveBeenCalledWith(jasmine.objectContaining({
       message: 'wizard.member_age_citizenship',
       color: 'warning',

@@ -2257,6 +2257,8 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
       this.headData.citizenship_issue_district = '';
       this.headData.citizenship_front_image = null;
       this.headData.citizenship_back_image = null;
+      this.headData.profession_id = '';
+      this.headData.occupation = '';
       this.citizenshipFrontPreview = '';
       this.citizenshipBackPreview = '';
       this.nidLockedHeadFields.delete('citizenship_number');
@@ -2287,6 +2289,7 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
       member['citizenship_issue_district'] = '';
       member['citizenship_front_image'] = null;
       member['citizenship_back_image'] = null;
+      member['occupation'] = '';
       if (member === this.newMember) {
         this.memberCitizenshipFrontPreview = '';
         this.memberCitizenshipBackPreview = '';

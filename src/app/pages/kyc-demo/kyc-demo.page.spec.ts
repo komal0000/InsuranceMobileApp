@@ -53,9 +53,24 @@ describe('KycDemoPage', () => {
       profession_id: 6,
       education_id: 7,
       health_facility_id: 25,
+      citizenship: 'CIT-1001',
+      national_id: '1234567890',
+      f_first_name_en: 'Hari',
+      f_last_name_en: 'Sharma',
+      m_first_name_en: 'Maya',
+      m_last_name_en: 'Sharma',
+      gf_first_name_en: 'Ram',
+      gf_last_name_en: 'Sharma',
+      f_first_name_loc: 'हरी',
+      f_last_name_loc: 'शर्मा',
+      m_first_name_loc: 'माया',
+      m_last_name_loc: 'शर्मा',
+      gf_first_name_loc: 'राम',
+      gf_last_name_loc: 'शर्मा',
+      birth_certificate: 'BC-123',
       photo_id: 7636805,
       card_issued: false,
-    },
+    } as any,
     members: [],
   });
 
@@ -114,7 +129,7 @@ describe('KycDemoPage', () => {
     expect(legacyImis.fetchKycDemoMember).toHaveBeenCalledWith('HH001', 'M002', null);
     expect(page.demoData?.household?.total_members).toBe(2);
     expect(page.demoData?.selected_member?.chfid).toBe('M002');
-    expect(page.kycForm).toEqual({
+    expect(page.kycForm as any).toEqual({
       firstname: 'Sita',
       lastname: 'Sharma',
       date_of_birth: '1992-04-20',
@@ -127,10 +142,25 @@ describe('KycDemoPage', () => {
       profession_id: '6',
       education_id: '7',
       health_facility_id: '25',
-      citizenship: '',
-      national_id: '',
+      citizenship: 'CIT-1001',
+      national_id: '1234567890',
+      f_first_name_en: 'Hari',
+      f_last_name_en: 'Sharma',
+      m_first_name_en: 'Maya',
+      m_last_name_en: 'Sharma',
+      gf_first_name_en: 'Ram',
+      gf_last_name_en: 'Sharma',
+      f_first_name_loc: 'हरी',
+      f_last_name_loc: 'शर्मा',
+      m_first_name_loc: 'माया',
+      m_last_name_loc: 'शर्मा',
+      gf_first_name_loc: 'राम',
+      gf_last_name_loc: 'शर्मा',
+      birth_certificate: 'BC-123',
       photo: '',
     });
+    expect(page.editableMemberFields.map(field => field.key)).toContain('birth_certificate' as any);
+    expect(page.editableMemberFields.map(field => field.key)).toContain('f_first_name_en' as any);
     expect(page.lockedMemberFields.map(field => field.key)).toEqual([
       'chfid',
       'legacy_id',
@@ -165,8 +195,21 @@ describe('KycDemoPage', () => {
       health_facility_id: '25',
       citizenship: 'CIT-1001',
       national_id: '1001',
+      f_first_name_en: 'Hari',
+      f_last_name_en: 'Sharma',
+      m_first_name_en: 'Maya',
+      m_last_name_en: 'Sharma',
+      gf_first_name_en: 'Ram',
+      gf_last_name_en: 'Sharma',
+      f_first_name_loc: 'हरी',
+      f_last_name_loc: 'शर्मा',
+      m_first_name_loc: 'माया',
+      m_last_name_loc: 'शर्मा',
+      gf_first_name_loc: 'राम',
+      gf_last_name_loc: 'शर्मा',
+      birth_certificate: 'BC-123',
       photo: 'data:image/jpeg;base64,aW1hZ2U=',
-    };
+    } as any;
 
     page.updateKyc();
 
@@ -188,6 +231,19 @@ describe('KycDemoPage', () => {
       health_facility_id: '25',
       citizenship: 'CIT-1001',
       national_id: '1001',
+      f_first_name_en: 'Hari',
+      f_last_name_en: 'Sharma',
+      m_first_name_en: 'Maya',
+      m_last_name_en: 'Sharma',
+      gf_first_name_en: 'Ram',
+      gf_last_name_en: 'Sharma',
+      f_first_name_loc: 'हरी',
+      f_last_name_loc: 'शर्मा',
+      m_first_name_loc: 'माया',
+      m_last_name_loc: 'शर्मा',
+      gf_first_name_loc: 'राम',
+      gf_last_name_loc: 'शर्मा',
+      birth_certificate: 'BC-123',
       photo: 'data:image/jpeg;base64,aW1hZ2U=',
     });
     expect(page.demoData?.selected_member?.phone).toBe('+9779800000000');

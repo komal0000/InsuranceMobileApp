@@ -375,7 +375,7 @@
                   <ion-select-option *ngFor="let option of servicePointOptions; trackBy: trackByEntity" [value]="option.id">{{ option.name }}</ion-select-option>
                 </ion-select>
               </ion-item>
-              <ion-item class="form-item">
+              <ion-item class="form-item" *ngIf="newMember.document_type !== 'birth_certificate'">
                 <ion-select [label]="t('wizard.occupation')" [placeholder]="t('wizard.select_profession')" labelPlacement="stacked" [(ngModel)]="newMember.occupation">
                   <ion-select-option value="">{{ t('wizard.select_profession') }}</ion-select-option>
                   <ion-select-option *ngFor="let option of professionOptions; trackBy: trackByEntity" [value]="option.label">{{ option.label }}</ion-select-option>
@@ -385,7 +385,7 @@
               <!-- Identity Document -->
               <p class="field-section-label"><ion-icon name="document-text-outline"></ion-icon> {{ t('wizard.identity_document') }}</p>
               <ion-item class="form-item">
-                <ion-select [label]="t('wizard.document_type')" labelPlacement="stacked" [(ngModel)]="newMember.document_type">
+                <ion-select [label]="t('wizard.document_type')" labelPlacement="stacked" [(ngModel)]="newMember.document_type" (ngModelChange)="onNewMemberDocumentTypeChange($event)">
                   <ion-select-option value="citizenship">{{ t('wizard.citizenship_certificate') }}</ion-select-option>
                   <ion-select-option value="birth_certificate">{{ t('wizard.birth_certificate') }}</ion-select-option>
                 </ion-select>

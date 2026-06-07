@@ -298,7 +298,7 @@
               <ion-select-option *ngFor="let option of servicePointOptions; trackBy: trackByEntity" [value]="option.id">{{ option.name }}</ion-select-option>
             </ion-select>
           </ion-item>
-          <ion-item class="form-item">
+          <ion-item class="form-item" *ngIf="!usesBirthCertificate">
             <ion-select [label]="text('wizard.profession', 'Profession')" labelPlacement="stacked" [placeholder]="text('wizard.select_profession', 'Select Profession')"
                         [(ngModel)]="headData.profession_id">
               <ion-select-option *ngFor="let option of professionOptions; trackBy: trackByEntity" [value]="option.id">{{ option.label }}</ion-select-option>

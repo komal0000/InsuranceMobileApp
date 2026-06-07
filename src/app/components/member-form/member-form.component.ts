@@ -241,7 +241,7 @@ type RelationshipNameAutofill = Record<string, Partial<Record<RelationshipNameFi
           <ion-select-option *ngFor="let option of servicePointOptions; trackBy: trackByEntity" [value]="option.id">{{ option.name }}</ion-select-option>
         </ion-select>
       </ion-item>
-      <ion-item class="form-item">
+      <ion-item class="form-item" *ngIf="member.document_type !== 'birth_certificate'">
         <ion-select [label]="text('wizard.occupation', 'Occupation')" labelPlacement="stacked"
                     [placeholder]="text('wizard.select_profession', 'Select Occupation')"
                     [(ngModel)]="member.occupation"
@@ -257,7 +257,7 @@ type RelationshipNameAutofill = Record<string, Partial<Record<RelationshipNameFi
 
       <p class="form-section-title">{{ text('wizard.identity_document', 'Identity Document') }}</p>
       <ion-item class="form-item">
-        <ion-select [label]="text('wizard.document_type', 'Document Type')" labelPlacement="stacked" [(ngModel)]="member.document_type">
+        <ion-select [label]="text('wizard.document_type', 'Document Type')" labelPlacement="stacked" [(ngModel)]="member.document_type" (ngModelChange)="onDocumentTypeChange($event)">
           <ion-select-option value="citizenship">{{ text('wizard.citizenship_certificate', 'Citizenship Certificate') }}</ion-select-option>
           <ion-select-option value="birth_certificate">{{ text('wizard.birth_certificate', 'Birth Certificate') }}</ion-select-option>
         </ion-select>
@@ -450,6 +450,15 @@ export class MemberFormComponent implements OnChanges {
     this.syncMaritalStatusForAge();
   }
 
+  onDocumentTypeChange(value: string): void {
+    if (!this.member) {
+      return;
+    }
+
+    this.member.document_type = value;
+    this.clearInactiveDocumentFields(value);
+  }
+
   isMaritalOptionDisabled(status: string): boolean {
     return !this.isSpouseMaritalStatusLocked
       && this.isMemberUnderTwenty()
@@ -587,6 +596,13 @@ export class MemberFormComponent implements OnChanges {
 
     const documentType = age < 16 ? 'birth_certificate' : 'citizenship';
     this.member.document_type = documentType;
+    this.clearInactiveDocumentFields(documentType);
+  }
+
+  private clearInactiveDocumentFields(documentType: string): void {
+    if (!this.member) {
+      return;
+    }
 
     if (documentType === 'birth_certificate') {
       this.member.citizenship_number = '';
@@ -594,6 +610,7 @@ export class MemberFormComponent implements OnChanges {
       this.member.citizenship_issue_district = '';
       this.member['citizenship_front_image'] = null;
       this.member['citizenship_back_image'] = null;
+      this.member.occupation = '';
       return;
     }
 

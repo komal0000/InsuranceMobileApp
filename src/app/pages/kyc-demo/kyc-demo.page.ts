@@ -56,6 +56,19 @@ type KycForm = {
   health_facility_id: string;
   citizenship: string;
   national_id: string;
+  f_first_name_en: string;
+  f_last_name_en: string;
+  m_first_name_en: string;
+  m_last_name_en: string;
+  gf_first_name_en: string;
+  gf_last_name_en: string;
+  f_first_name_loc: string;
+  f_last_name_loc: string;
+  m_first_name_loc: string;
+  m_last_name_loc: string;
+  gf_first_name_loc: string;
+  gf_last_name_loc: string;
+  birth_certificate: string;
   photo: string;
 };
 
@@ -136,6 +149,19 @@ export class KycDemoPage implements OnDestroy {
     { key: 'health_facility_id', labelKey: 'kyc_demo.health_facility_id' },
     { key: 'citizenship', labelKey: 'kyc_demo.citizenship' },
     { key: 'national_id', labelKey: 'kyc_demo.national_id' },
+    { key: 'f_first_name_en', labelKey: 'kyc_demo.f_first_name_en' },
+    { key: 'f_last_name_en', labelKey: 'kyc_demo.f_last_name_en' },
+    { key: 'm_first_name_en', labelKey: 'kyc_demo.m_first_name_en' },
+    { key: 'm_last_name_en', labelKey: 'kyc_demo.m_last_name_en' },
+    { key: 'gf_first_name_en', labelKey: 'kyc_demo.gf_first_name_en' },
+    { key: 'gf_last_name_en', labelKey: 'kyc_demo.gf_last_name_en' },
+    { key: 'f_first_name_loc', labelKey: 'kyc_demo.f_first_name_loc' },
+    { key: 'f_last_name_loc', labelKey: 'kyc_demo.f_last_name_loc' },
+    { key: 'm_first_name_loc', labelKey: 'kyc_demo.m_first_name_loc' },
+    { key: 'm_last_name_loc', labelKey: 'kyc_demo.m_last_name_loc' },
+    { key: 'gf_first_name_loc', labelKey: 'kyc_demo.gf_first_name_loc' },
+    { key: 'gf_last_name_loc', labelKey: 'kyc_demo.gf_last_name_loc' },
+    { key: 'birth_certificate', labelKey: 'kyc_demo.birth_certificate' },
   ];
 
   private readonly lockedMemberFieldConfigs: KycLockedField[] = [
@@ -352,6 +378,19 @@ export class KycDemoPage implements OnDestroy {
       health_facility_id: '',
       citizenship: '',
       national_id: '',
+      f_first_name_en: '',
+      f_last_name_en: '',
+      m_first_name_en: '',
+      m_last_name_en: '',
+      gf_first_name_en: '',
+      gf_last_name_en: '',
+      f_first_name_loc: '',
+      f_last_name_loc: '',
+      m_first_name_loc: '',
+      m_last_name_loc: '',
+      gf_first_name_loc: '',
+      gf_last_name_loc: '',
+      birth_certificate: '',
       photo: '',
     };
   }
@@ -370,8 +409,21 @@ export class KycDemoPage implements OnDestroy {
       profession_id: this.formValue(member?.profession_id),
       education_id: this.formValue(member?.education_id),
       health_facility_id: this.formValue(member?.health_facility_id),
-      citizenship: '',
-      national_id: '',
+      citizenship: this.formValue(member?.citizenship),
+      national_id: this.formValue(member?.national_id),
+      f_first_name_en: this.formValue(member?.f_first_name_en),
+      f_last_name_en: this.formValue(member?.f_last_name_en),
+      m_first_name_en: this.formValue(member?.m_first_name_en),
+      m_last_name_en: this.formValue(member?.m_last_name_en),
+      gf_first_name_en: this.formValue(member?.gf_first_name_en),
+      gf_last_name_en: this.formValue(member?.gf_last_name_en),
+      f_first_name_loc: this.formValue(member?.f_first_name_loc),
+      f_last_name_loc: this.formValue(member?.f_last_name_loc),
+      m_first_name_loc: this.formValue(member?.m_first_name_loc),
+      m_last_name_loc: this.formValue(member?.m_last_name_loc),
+      gf_first_name_loc: this.formValue(member?.gf_first_name_loc),
+      gf_last_name_loc: this.formValue(member?.gf_last_name_loc),
+      birth_certificate: this.formValue(member?.birth_certificate),
       photo: '',
     };
   }
@@ -392,6 +444,19 @@ export class KycDemoPage implements OnDestroy {
       health_facility_id: this.kycForm.health_facility_id.trim(),
       citizenship: this.kycForm.citizenship.trim(),
       national_id: this.kycForm.national_id.trim(),
+      f_first_name_en: this.kycForm.f_first_name_en.trim(),
+      f_last_name_en: this.kycForm.f_last_name_en.trim(),
+      m_first_name_en: this.kycForm.m_first_name_en.trim(),
+      m_last_name_en: this.kycForm.m_last_name_en.trim(),
+      gf_first_name_en: this.kycForm.gf_first_name_en.trim(),
+      gf_last_name_en: this.kycForm.gf_last_name_en.trim(),
+      f_first_name_loc: this.kycForm.f_first_name_loc.trim(),
+      f_last_name_loc: this.kycForm.f_last_name_loc.trim(),
+      m_first_name_loc: this.kycForm.m_first_name_loc.trim(),
+      m_last_name_loc: this.kycForm.m_last_name_loc.trim(),
+      gf_first_name_loc: this.kycForm.gf_first_name_loc.trim(),
+      gf_last_name_loc: this.kycForm.gf_last_name_loc.trim(),
+      birth_certificate: this.kycForm.birth_certificate.trim(),
       photo: this.kycForm.photo.trim(),
     };
   }

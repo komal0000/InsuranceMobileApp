@@ -1253,6 +1253,8 @@ describe('EnrollmentWizardPage', () => {
       birth_certificate_number: 'BC-१२३',
       birth_certificate_issue_date: '2072-02-01',
       birth_certificate_front_image: new Blob(['birth'], { type: 'image/jpeg' }),
+      occupation: 'Agriculture',
+      profession_id: 5,
     };
 
     const formData = (page as any).buildHouseholdHeadFormData() as FormData;
@@ -1266,6 +1268,8 @@ describe('EnrollmentWizardPage', () => {
     expect(formData.has('citizenship_issue_district')).toBeFalse();
     expect(formData.has('citizenship_front_image')).toBeFalse();
     expect(formData.has('citizenship_back_image')).toBeFalse();
+    expect(formData.has('occupation')).toBeFalse();
+    expect(formData.has('profession_id')).toBeFalse();
   });
 
   it('allows under-16 household heads to continue with birth-certificate details instead of citizenship details', () => {
@@ -1438,6 +1442,7 @@ describe('EnrollmentWizardPage', () => {
       document_type: 'citizenship',
       citizenship_number: 'STALE-CIT',
       birth_certificate_number: 'BC-123',
+      occupation: 'Agriculture',
     };
 
     await page.saveMember();
@@ -1447,6 +1452,7 @@ describe('EnrollmentWizardPage', () => {
     expect(submitted.get('document_type')).toBe('birth_certificate');
     expect(submitted.get('birth_certificate_number')).toBe('123');
     expect(submitted.has('citizenship_number')).toBeFalse();
+    expect(submitted.has('occupation')).toBeFalse();
     expect(page['showToast']).not.toHaveBeenCalledWith('wizard.member_age_citizenship', 'warning');
   });
 

@@ -193,6 +193,7 @@ describe('RenewalDetailPage', () => {
       marital_status: 'single',
       document_type: 'birth_certificate',
       birth_certificate_number: 'BC-१२३',
+      occupation: 'Agriculture',
     };
 
     await page.saveMember();
@@ -202,6 +203,7 @@ describe('RenewalDetailPage', () => {
     expect(submitted.get('document_type')).toBe('birth_certificate');
     expect(submitted.get('birth_certificate_number')).toBe('123');
     expect(submitted.has('citizenship_number')).toBeFalse();
+    expect(submitted.has('occupation')).toBeFalse();
   });
 
   it('uses renewal members with staged add and removal badges before enrollment fallback', () => {
