@@ -1,4 +1,4 @@
-﻿import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -1969,7 +1969,7 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
   }
 
   displayDate(adDate?: string | null, bsDate?: string | null): string {
-    return this.dateService.formatForDisplay(adDate, bsDate) || '—';
+    return this.dateService.formatForDisplay(adDate, bsDate) || '';
   }
 
   formatStatus(s: string): string {
@@ -2257,6 +2257,8 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
       this.headData.citizenship_issue_district = '';
       this.headData.citizenship_front_image = null;
       this.headData.citizenship_back_image = null;
+      this.headData.profession_id = '';
+      this.headData.occupation = '';
       this.citizenshipFrontPreview = '';
       this.citizenshipBackPreview = '';
       this.nidLockedHeadFields.delete('citizenship_number');
@@ -2287,6 +2289,7 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
       member['citizenship_issue_district'] = '';
       member['citizenship_front_image'] = null;
       member['citizenship_back_image'] = null;
+      member['occupation'] = '';
       if (member === this.newMember) {
         this.memberCitizenshipFrontPreview = '';
         this.memberCitizenshipBackPreview = '';

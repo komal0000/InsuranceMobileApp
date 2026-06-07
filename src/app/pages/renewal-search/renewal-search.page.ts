@@ -18,6 +18,8 @@ import { LanguageService } from '../../services/language.service';
 import { isValidNidInput, nidLookupValue } from '../../utils/nid-number.util';
 import { trackByEntity } from '../../utils/track-by.util';
 
+type RenewalIdentifierType = 'hib_number' | 'national_id';
+
 @Component({
   selector: 'app-renewal-search',
   standalone: true,
@@ -38,7 +40,7 @@ export class RenewalSearchPage {
   private authService = inject(AuthService);
   private languageService = inject(LanguageService);
 
-  searchType: string = 'enrollment_number';
+  searchType: RenewalIdentifierType = 'hib_number';
   searchValue = '';
   searching = false;
   results: any[] | null = null;
@@ -95,9 +97,21 @@ export class RenewalSearchPage {
 
   async initiateRenewal(enrollment: any) {
     if (!this.canInitiateRenewal) return;
+    const identifier = this.renewalIdentifierFor(enrollment);
+    if (!identifier) {
+      const toast = await this.toastCtrl.create({
+        message: this.t('renewal_search.enter_household_hib_number'),
+        duration: 2500,
+        color: 'warning',
+        position: 'top',
+      });
+      await toast.present();
+      return;
+    }
 
     this.api.post<ApiResponse>('/renewals/initiate', {
-      enrollment_id: enrollment.id,
+      search_type: identifier.search_type,
+      search_value: identifier.search_value,
       ...(this.consentAcceptanceId ? { consent_acceptance_id: this.consentAcceptanceId } : { consent_accepted: true }),
     }).subscribe({
       next: async (res) => {
@@ -110,6 +124,25 @@ export class RenewalSearchPage {
         }
       },
     });
+  }
+
+  private renewalIdentifierFor(enrollment: any): { search_type: RenewalIdentifierType; search_value: string } | null {
+    if (this.searchType === 'national_id') {
+      const value = nidLookupValue(this.searchValue.trim());
+      return value ? { search_type: 'national_id', search_value: value } : null;
+    }
+
+    const head = enrollment?.household_head ?? enrollment?.householdHead ?? {};
+    const value = String(
+      head.member_number
+      ?? head.hib_number
+      ?? enrollment?.household_head_hib_number
+      ?? enrollment?.hib_number
+      ?? this.searchValue
+      ?? ''
+    ).trim();
+
+    return value ? { search_type: 'hib_number', search_value: value } : null;
   }
 
   t(key: string): string {

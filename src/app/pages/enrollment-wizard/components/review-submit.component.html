@@ -1,6 +1,9 @@
       <ion-accordion-group [multiple]="true" value="['location','head','members','premium']">
 
         <!-- Household Info -->
+<ion-accordion-group [multiple]="true" value="['location','head','members','premium']">
+
+        <!-- Household Info -->
         <ion-accordion value="location">
           <ion-item slot="header" color="light">
             <ion-label><strong>{{ t('wizard.household_location') }}</strong></ion-label>
@@ -9,27 +12,27 @@
             <div class="review-section">
               <div class="review-item">
                 <span class="review-label">{{ t('wizard.province') }}</span>
-                <span class="review-value">{{ enrollment?.province || step1.province || '—' }}</span>
+                <span class="review-value">{{ enrollment?.province || step1.province || '' }}</span>
               </div>
               <div class="review-item">
                 <span class="review-label">{{ t('wizard.district') }}</span>
-                <span class="review-value">{{ enrollment?.district || step1.district || '—' }}</span>
+                <span class="review-value">{{ enrollment?.district || step1.district || '' }}</span>
               </div>
               <div class="review-item">
                 <span class="review-label">{{ t('wizard.municipality') }}</span>
-                <span class="review-value">{{ enrollment?.municipality || step1.municipality || '—' }}</span>
+                <span class="review-value">{{ enrollment?.municipality || step1.municipality || '' }}</span>
               </div>
               <div class="review-item">
                 <span class="review-label">{{ t('wizard.ward_number') }}</span>
-                <span class="review-value">{{ enrollment?.ward_number || step1.ward_number || '—' }}</span>
+                <span class="review-value">{{ enrollment?.ward_number || step1.ward_number || '' }}</span>
               </div>
               <div class="review-item">
                 <span class="review-label">{{ t('wizard.tole_village') }}</span>
-                <span class="review-value">{{ enrollment?.tole_village || step1.tole_village || '—' }}</span>
+                <span class="review-value">{{ enrollment?.tole_village || step1.tole_village || '' }}</span>
               </div>
               <div class="review-item">
                 <span class="review-label">{{ t('wizard.full_address') }}</span>
-                <span class="review-value">{{ enrollment?.full_address || step1.full_address || '—' }}</span>
+                <span class="review-value">{{ enrollment?.full_address || step1.full_address || '' }}</span>
               </div>
               <div class="review-item" *ngIf="isMigrationPermanentAddress">
                 <span class="review-label">{{ t('wizard.permanent_address_source') }}</span>
@@ -75,11 +78,11 @@
               </div>
               <div class="review-item">
                 <span class="review-label">{{ t('profile.date_of_birth') }}</span>
-                <span class="review-value">{{ headData.date_of_birth || '—' }}</span>
+                <span class="review-value">{{ headData.date_of_birth || '' }}</span>
               </div>
               <div class="review-item">
                 <span class="review-label">{{ t('wizard.blood_group') }}</span>
-                <span class="review-value">{{ headData.blood_group || '—' }}</span>
+                <span class="review-value">{{ headData.blood_group || '' }}</span>
               </div>
               <div class="review-item">
                 <span class="review-label">{{ t('wizard.marital_status') }}</span>
@@ -87,7 +90,7 @@
               </div>
               <div class="review-item">
                 <span class="review-label">{{ t('wizard.mobile') }}</span>
-                <span class="review-value">{{ headData.mobile_number || '—' }}</span>
+                <span class="review-value">{{ headData.mobile_number || '' }}</span>
               </div>
               <div class="review-item" *ngIf="headData.email">
                 <span class="review-label">{{ t('wizard.email') }}</span>
@@ -95,11 +98,11 @@
               </div>
               <div class="review-item" *ngIf="headData.document_type !== 'birth_certificate'">
                 <span class="review-label">{{ t('wizard.citizenship_no') }}</span>
-                <span class="review-value">{{ headData.citizenship_number || '—' }}</span>
+                <span class="review-value">{{ headData.citizenship_number || '' }}</span>
               </div>
               <div class="review-item" *ngIf="headData.document_type === 'birth_certificate'">
                 <span class="review-label">{{ t('wizard.birth_certificate_no') }}</span>
-                <span class="review-value">{{ headData.birth_certificate_number || '—' }}</span>
+                <span class="review-value">{{ headData.birth_certificate_number || '' }}</span>
               </div>
               <div class="review-item" *ngIf="headData.document_type === 'birth_certificate' && headData.birth_certificate_issue_date">
                 <span class="review-label">{{ t('wizard.birth_certificate_issue_date_label') }}</span>

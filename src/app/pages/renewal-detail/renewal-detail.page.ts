@@ -317,6 +317,9 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
     }
 
     const docType = this.newMember.document_type || null;
+    if (docType === 'birth_certificate') {
+      this.newMember.occupation = '';
+    }
     if (docType === 'citizenship' && this.newMember.date_of_birth && this.dateService.calculateAge(this.newMember.date_of_birth, 'bs') < 16) {
       this.toastCtrl.create({ message: this.t('wizard.member_age_citizenship'), duration: 2200, color: 'warning', position: 'top' }).then(t => t.present());
       return;

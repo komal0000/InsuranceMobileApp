@@ -32,7 +32,7 @@ export interface Renewal {
 }
 
 export interface RenewalSearchRequest {
-  search_type: 'enrollment_number' | 'mobile_number' | 'hib_number' | 'national_id';
+  search_type: 'hib_number' | 'national_id';
   search_value: string;
   consent_accepted?: boolean;
 }

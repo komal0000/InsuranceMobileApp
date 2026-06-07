@@ -35,6 +35,15 @@ describe('LanguageService', () => {
     expect(missingKeys).toEqual([]);
   });
 
+  it('uses user-facing KYC labels without raw ID wording', () => {
+    expect(EN_TRANSLATIONS['kyc_demo.profession_id']).toBe('Profession');
+    expect(EN_TRANSLATIONS['kyc_demo.education_id']).toBe('Education');
+    expect(EN_TRANSLATIONS['kyc_demo.health_facility_id']).toBe('Health Facility');
+    expect(NE_TRANSLATIONS['kyc_demo.profession_id']).not.toContain('ID');
+    expect(NE_TRANSLATIONS['kyc_demo.education_id']).not.toContain('ID');
+    expect(NE_TRANSLATIONS['kyc_demo.health_facility_id']).not.toContain('ID');
+  });
+
   it('uses Nepali-script labels for language names in Nepali mode', async () => {
     await service.setLocalLanguage('ne');
 

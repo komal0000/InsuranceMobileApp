@@ -16,6 +16,21 @@ export interface LegacyImisMember {
   profession_id: number | null;
   education_id: number | null;
   health_facility_id: number | null;
+  citizenship?: string | null;
+  national_id?: string | null;
+  f_first_name_loc?: string | null;
+  f_last_name_loc?: string | null;
+  m_first_name_loc?: string | null;
+  m_last_name_loc?: string | null;
+  gf_first_name_loc?: string | null;
+  gf_last_name_loc?: string | null;
+  f_first_name_en?: string | null;
+  f_last_name_en?: string | null;
+  m_first_name_en?: string | null;
+  m_last_name_en?: string | null;
+  gf_first_name_en?: string | null;
+  gf_last_name_en?: string | null;
+  birth_certificate?: string | null;
   photo_id: number | null;
   card_issued: boolean;
 }
@@ -66,6 +81,19 @@ export interface LegacyImisKycEditableFields {
   citizenship?: string | null;
   citizenship_number?: string | null;
   national_id?: string | null;
+  f_first_name_loc?: string | null;
+  f_last_name_loc?: string | null;
+  m_first_name_loc?: string | null;
+  m_last_name_loc?: string | null;
+  gf_first_name_loc?: string | null;
+  gf_last_name_loc?: string | null;
+  f_first_name_en?: string | null;
+  f_last_name_en?: string | null;
+  m_first_name_en?: string | null;
+  m_last_name_en?: string | null;
+  gf_first_name_en?: string | null;
+  gf_last_name_en?: string | null;
+  birth_certificate?: string | null;
   photo?: string | null;
 }
 
