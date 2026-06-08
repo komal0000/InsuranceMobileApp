@@ -110,7 +110,7 @@
             </div>
             <div class="head-info">
               <div class="head-avatar" *ngIf="getDocUrl(enrollment.household_head, 'photo'); else initials">
-                <ion-img [src]="getDocUrl(enrollment.household_head, 'photo')!" class="head-photo"></ion-img>
+                <img [appAuthenticatedImage]="getDocUrl(enrollment.household_head, 'photo')" class="head-photo" [alt]="t('profile.photo')">
               </div>
               <ng-template #initials>
                 <div class="head-avatar-circle">

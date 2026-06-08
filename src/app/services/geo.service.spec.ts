@@ -74,6 +74,22 @@ describe('GeoService', () => {
     expect(api.get).toHaveBeenCalledWith('/geo/service-points/Bagamati/Kathmandu');
   });
 
+  it('loads all districts', () => {
+    const response: ApiResponse<string[]> = {
+      success: true,
+      message: 'Loaded.',
+      data: ['Kathmandu', 'Lalitpur', 'Bhaktapur'],
+    };
+
+    api.get.and.returnValue(of(response));
+
+    service.allDistricts().subscribe(result => {
+      expect(result).toEqual(response);
+    });
+
+    expect(api.get).toHaveBeenCalledWith('/geo/districts');
+  });
+
   it('clears cached requests when requested', () => {
     api.get.and.returnValue(of({
       success: true,

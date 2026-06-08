@@ -86,7 +86,7 @@
 
             <div class="member-row" *ngIf="householdHead" style="margin-bottom: 12px; border-bottom: 1px solid #eef2f7; padding-bottom: 12px;">
               <div class="member-avatar" style="overflow: hidden;">
-                <img *ngIf="getHeadPhotoUrl()" [src]="getHeadPhotoUrl()" [alt]="t('Head Photo')" style="width: 100%; height: 100%; object-fit: cover;" />
+                <img *ngIf="getHeadPhotoUrl()" [appAuthenticatedImage]="getHeadPhotoUrl()" [alt]="t('Head Photo')" style="width: 100%; height: 100%; object-fit: cover;" />
                 <span *ngIf="!getHeadPhotoUrl()">{{ (householdHead.first_name || householdHead.name || '').charAt(0).toUpperCase() }}</span>
               </div>
               <div class="member-info">
@@ -99,7 +99,7 @@
             <div class="member-list" *ngIf="renewalMembers.length > 0">
               <div class="member-row" *ngFor="let member of renewalMembers; trackBy: trackByEntity">
                 <div class="member-avatar" style="overflow: hidden;">
-                  <img *ngIf="getMemberPhotoUrl(member)" [src]="getMemberPhotoUrl(member)" [alt]="t('Member Photo')" style="width: 100%; height: 100%; object-fit: cover;" />
+                  <img *ngIf="getMemberPhotoUrl(member)" [appAuthenticatedImage]="getMemberPhotoUrl(member)" [alt]="t('Member Photo')" style="width: 100%; height: 100%; object-fit: cover;" />
                   <span *ngIf="!getMemberPhotoUrl(member)">{{ (member.first_name || member.full_name || '').charAt(0).toUpperCase() }}</span>
                 </div>
                 <div class="member-info">
@@ -140,6 +140,7 @@
                                [relationshipGenderMap]="relationshipGenderMap"
                                [servicePointOptions]="servicePointOptions"
                                [professionOptions]="professionOptions"
+                               [qualificationOptions]="qualificationOptions"
                                [showRelationshipConstraintNotice]="hasBlockedRelationshipOptions"
                                [isEditing]="isEditingMember"
                                [saving]="savingMember"

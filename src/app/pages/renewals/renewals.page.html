@@ -61,7 +61,7 @@
 
               <div class="head-profile" *ngIf="enrollment.household_head">
                 <div class="head-avatar">
-                  <img *ngIf="headPhotoUrl" [src]="headPhotoUrl" [alt]="t('profile.photo')" class="head-photo" />
+                  <img *ngIf="headPhotoUrl" [appAuthenticatedImage]="headPhotoUrl" [alt]="t('profile.photo')" class="head-photo" />
                   <div *ngIf="!headPhotoUrl" class="avatar-placeholder">
                     {{ (enrollment.household_head.first_name || enrollment.household_head.name || '').charAt(0).toUpperCase() }}
                   </div>
@@ -200,7 +200,7 @@
               <div class="member-list" *ngIf="enrollment.family_members && enrollment.family_members.length > 0">
                 <div class="member-card" *ngFor="let member of enrollment.family_members; trackBy: trackByEntity">
                   <div class="member-avatar-wrapper">
-                    <img *ngIf="getMemberPhotoUrl(member)" [src]="getMemberPhotoUrl(member)" [alt]="t('profile.photo')" class="member-photo" />
+                    <img *ngIf="getMemberPhotoUrl(member)" [appAuthenticatedImage]="getMemberPhotoUrl(member)" [alt]="t('profile.photo')" class="member-photo" />
                     <div *ngIf="!getMemberPhotoUrl(member)" class="avatar-placeholder small">
                       {{ (member.first_name || '').charAt(0).toUpperCase() }}
                     </div>
@@ -300,7 +300,7 @@
                     {{ memberPhotoPreview ? t('common.change') : t('common.capture') }}
                   </ion-button>
                 </div>
-                <img *ngIf="memberPhotoPreview" [src]="memberPhotoPreview" class="preview-img" [alt]="t('profile.photo')" />
+                <img *ngIf="memberPhotoPreview" [appAuthenticatedImage]="memberPhotoPreview" class="preview-img" [alt]="t('profile.photo')" />
               </div>
 
               <!-- English Name -->
@@ -398,7 +398,12 @@
                 </ion-item>
                 <app-bs-date-picker [(ngModel)]="newMember.citizenship_issue_date" [label]="t('wizard.issue_date')" [placeholder]="t('common.select_bs_date')"></app-bs-date-picker>
                 <ion-item class="form-item">
-                  <ion-input [label]="t('wizard.issue_district')" labelPlacement="stacked" [(ngModel)]="newMember.citizenship_issue_district"></ion-input>
+                  <ion-select [label]="t('wizard.issue_district')" labelPlacement="stacked" [placeholder]="t('wizard.select_district')" [(ngModel)]="newMember.citizenship_issue_district">
+                    <ion-select-option *ngIf="newMember.citizenship_issue_district && !hasDistrictOption(newMember.citizenship_issue_district)" [value]="newMember.citizenship_issue_district">
+                      {{ newMember.citizenship_issue_district }}
+                    </ion-select-option>
+                    <ion-select-option *ngFor="let d of districtsList; trackBy: trackByEntity" [value]="d">{{ d }}</ion-select-option>
+                  </ion-select>
                 </ion-item>
                 <div class="capture-section">
                   <div class="capture-row">
@@ -408,7 +413,7 @@
                       {{ memberCitizenshipFrontPreview ? t('common.change') : t('common.capture') }}
                     </ion-button>
                   </div>
-                  <img *ngIf="memberCitizenshipFrontPreview && isImagePreview(memberCitizenshipFrontPreview)" [src]="memberCitizenshipFrontPreview" class="preview-img" [alt]="t('wizard.citizenship_front')" />
+                  <img *ngIf="memberCitizenshipFrontPreview && isImagePreview(memberCitizenshipFrontPreview)" [appAuthenticatedImage]="memberCitizenshipFrontPreview" class="preview-img" [alt]="t('wizard.citizenship_front')" />
                   <div *ngIf="memberCitizenshipFrontPreview && !isImagePreview(memberCitizenshipFrontPreview)" class="file-preview">
                     <ion-icon name="document-text-outline"></ion-icon>
                     <span>{{ filePreviewLabel(memberCitizenshipFrontPreview) }}</span>
@@ -422,7 +427,7 @@
                       {{ memberCitizenshipBackPreview ? t('common.change') : t('common.capture') }}
                     </ion-button>
                   </div>
-                  <img *ngIf="memberCitizenshipBackPreview && isImagePreview(memberCitizenshipBackPreview)" [src]="memberCitizenshipBackPreview" class="preview-img" [alt]="t('wizard.citizenship_back')" />
+                  <img *ngIf="memberCitizenshipBackPreview && isImagePreview(memberCitizenshipBackPreview)" [appAuthenticatedImage]="memberCitizenshipBackPreview" class="preview-img" [alt]="t('wizard.citizenship_back')" />
                   <div *ngIf="memberCitizenshipBackPreview && !isImagePreview(memberCitizenshipBackPreview)" class="file-preview">
                     <ion-icon name="document-text-outline"></ion-icon>
                     <span>{{ filePreviewLabel(memberCitizenshipBackPreview) }}</span>
@@ -444,7 +449,7 @@
                       {{ memberBirthCertFrontPreview ? t('common.change') : t('common.capture') }}
                     </ion-button>
                   </div>
-                  <img *ngIf="memberBirthCertFrontPreview && isImagePreview(memberBirthCertFrontPreview)" [src]="memberBirthCertFrontPreview" class="preview-img" [alt]="t('wizard.birth_certificate_front')" />
+                  <img *ngIf="memberBirthCertFrontPreview && isImagePreview(memberBirthCertFrontPreview)" [appAuthenticatedImage]="memberBirthCertFrontPreview" class="preview-img" [alt]="t('wizard.birth_certificate_front')" />
                   <div *ngIf="memberBirthCertFrontPreview && !isImagePreview(memberBirthCertFrontPreview)" class="file-preview">
                     <ion-icon name="document-text-outline"></ion-icon>
                     <span>{{ filePreviewLabel(memberBirthCertFrontPreview) }}</span>

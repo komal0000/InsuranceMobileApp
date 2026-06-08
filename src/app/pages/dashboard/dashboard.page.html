@@ -24,7 +24,7 @@
         <ng-container *ngIf="profileHead as head; else profileEmpty">
           <div class="profile-head">
             <div class="profile-photo">
-              <img *ngIf="head.photo_url; else profileInitialTpl" [src]="head.photo_url" [alt]="head.name || t('common.household_head')">
+              <img *ngIf="head.photo_url; else profileInitialTpl" [appAuthenticatedImage]="head.photo_url" [alt]="head.name || t('common.household_head')">
               <ng-template #profileInitialTpl>
                 <span>{{ profileInitial(head.name) }}</span>
               </ng-template>
@@ -79,7 +79,7 @@
             <div class="profile-member-list" *ngIf="profileMembers.length > 0; else noOtherMembers">
               <div class="profile-member-row" *ngFor="let member of profileMembers; trackBy: trackByEntity">
                 <div class="member-photo">
-                  <img *ngIf="member.photo_url; else memberInitialTpl" [src]="member.photo_url" [alt]="member.name || t('common.member')">
+                  <img *ngIf="member.photo_url; else memberInitialTpl" [appAuthenticatedImage]="member.photo_url" [alt]="member.name || t('common.member')">
                   <ng-template #memberInitialTpl>
                     <span>{{ profileInitial(member.name || member.first_name) }}</span>
                   </ng-template>

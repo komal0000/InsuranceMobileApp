@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, inject } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import {
   IonButton,
@@ -11,10 +11,12 @@ import {
   IonSpinner,
 } from '@ionic/angular/standalone';
 import { BsDatePickerComponent } from '../bs-date-picker/bs-date-picker.component';
+import { AuthenticatedImageDirective } from '../../directives/authenticated-image.directive';
 import { NepaliInputDirective } from '../../directives/nepali-input.directive';
 import { ServicePointOption } from '../../interfaces/enrollment.interface';
 import { DateService } from '../../services/date.service';
 import { LanguageService } from '../../services/language.service';
+import { GeoService } from '../../services/geo.service';
 import { normalizeDigitsOnly } from '../../utils/auth-validation';
 import { RelationshipGenderMap, genderForRelationship } from '../../utils/relationship-gender.util';
 import {
@@ -45,6 +47,7 @@ interface MemberFormModel {
   first_service_point_id?: number | string | null;
   first_service_point?: string | null;
   occupation?: string;
+  education_level?: string;
   document_type?: string;
   citizenship_number?: string;
   citizenship_issue_date?: string;
@@ -63,6 +66,7 @@ type RelationshipNameAutofill = Record<string, Partial<Record<RelationshipNameFi
   imports: [
     CommonModule,
     FormsModule,
+    AuthenticatedImageDirective,
     NepaliInputDirective,
     BsDatePickerComponent,
     IonButton,
@@ -170,7 +174,7 @@ type RelationshipNameAutofill = Record<string, Partial<Record<RelationshipNameFi
             {{ photoPreview ? text('common.change', 'Change') : text('common.capture', 'Capture') }}
           </ion-button>
         </div>
-        <img *ngIf="photoPreview" [src]="photoPreview" class="preview-img" />
+        <img *ngIf="photoPreview" [appAuthenticatedImage]="photoPreview" class="preview-img" />
       </div>
 
       <p class="form-section-title">{{ text('wizard.english_name', 'English Name') }}</p>
@@ -254,6 +258,19 @@ type RelationshipNameAutofill = Record<string, Partial<Record<RelationshipNameFi
           <ion-select-option *ngFor="let option of professionOptions; trackBy: trackByEntity" [value]="option.label">{{ option.label }}</ion-select-option>
         </ion-select>
       </ion-item>
+      <ion-item class="form-item" *ngIf="member.document_type !== 'birth_certificate'">
+        <ion-select [label]="text('wizard.qualification', 'Qualification')" labelPlacement="stacked"
+                    [placeholder]="text('wizard.select_qualification', 'Select Qualification')"
+                    [(ngModel)]="member.education_level"
+                    [disabled]="isFieldReadonly('education_level')"
+                    [attr.disabled]="isFieldReadonly('education_level') ? true : null">
+          <ion-select-option value="">{{ text('wizard.select_qualification', 'Select Qualification') }}</ion-select-option>
+          <ion-select-option *ngIf="member.education_level && !hasQualificationOption(member.education_level)" [value]="member.education_level">
+            {{ member.education_level }}
+          </ion-select-option>
+          <ion-select-option *ngFor="let option of qualificationOptions; trackBy: trackByEntity" [value]="option.label">{{ option.label }}</ion-select-option>
+        </ion-select>
+      </ion-item>
 
       <p class="form-section-title">{{ text('wizard.identity_document', 'Identity Document') }}</p>
       <ion-item class="form-item">
@@ -274,8 +291,16 @@ type RelationshipNameAutofill = Record<string, Partial<Record<RelationshipNameFi
           [errorMessage]="member.citizenship_issue_date ? citizenshipIssueDateErrorMessage : ''"
           [disabled]="isFieldReadonly('citizenship_issue_date')">
         </app-bs-date-picker>
-        <ion-item class="form-item">
-          <ion-input [label]="text('wizard.citizenship_issue_district', 'Issue District')" labelPlacement="stacked" [(ngModel)]="member.citizenship_issue_district" [readonly]="isFieldReadonly('citizenship_issue_district')" [disabled]="isFieldReadonly('citizenship_issue_district')" [attr.readonly]="isFieldReadonly('citizenship_issue_district') ? true : null"></ion-input>
+        <ion-item class="form-item" *ngIf="isFieldReadonly('citizenship_issue_district')">
+          <ion-input [label]="text('wizard.citizenship_issue_district', 'Issue District')" labelPlacement="stacked" [(ngModel)]="member.citizenship_issue_district" [readonly]="true" [disabled]="true" [attr.readonly]="true"></ion-input>
+        </ion-item>
+        <ion-item class="form-item" *ngIf="!isFieldReadonly('citizenship_issue_district')">
+          <ion-select [label]="text('wizard.citizenship_issue_district', 'Issue District')" labelPlacement="stacked" [placeholder]="text('wizard.select_district', 'Select District')" [(ngModel)]="member.citizenship_issue_district">
+            <ion-select-option *ngIf="member.citizenship_issue_district && !hasDistrictOption(member.citizenship_issue_district)" [value]="member.citizenship_issue_district">
+              {{ member.citizenship_issue_district }}
+            </ion-select-option>
+            <ion-select-option *ngFor="let d of districtsList; trackBy: trackByEntity" [value]="d">{{ d }}</ion-select-option>
+          </ion-select>
         </ion-item>
 
         <div class="capture-section">
@@ -286,7 +311,7 @@ type RelationshipNameAutofill = Record<string, Partial<Record<RelationshipNameFi
               {{ citizenshipFrontPreview ? text('common.change', 'Change') : text('common.capture', 'Capture') }}
             </ion-button>
           </div>
-          <img *ngIf="isImagePreview(citizenshipFrontPreview)" [src]="citizenshipFrontPreview" class="preview-img" />
+          <img *ngIf="isImagePreview(citizenshipFrontPreview)" [appAuthenticatedImage]="citizenshipFrontPreview" class="preview-img" />
           <div *ngIf="citizenshipFrontPreview && !isImagePreview(citizenshipFrontPreview)" class="file-preview">{{ filePreviewLabel(citizenshipFrontPreview) }}</div>
         </div>
         <div class="capture-section">
@@ -297,7 +322,7 @@ type RelationshipNameAutofill = Record<string, Partial<Record<RelationshipNameFi
               {{ citizenshipBackPreview ? text('common.change', 'Change') : text('common.capture', 'Capture') }}
             </ion-button>
           </div>
-          <img *ngIf="isImagePreview(citizenshipBackPreview)" [src]="citizenshipBackPreview" class="preview-img" />
+          <img *ngIf="isImagePreview(citizenshipBackPreview)" [appAuthenticatedImage]="citizenshipBackPreview" class="preview-img" />
           <div *ngIf="citizenshipBackPreview && !isImagePreview(citizenshipBackPreview)" class="file-preview">{{ filePreviewLabel(citizenshipBackPreview) }}</div>
         </div>
       </div>
@@ -320,7 +345,7 @@ type RelationshipNameAutofill = Record<string, Partial<Record<RelationshipNameFi
               {{ birthCertificateFrontPreview ? text('common.change', 'Change') : text('common.capture', 'Capture') }}
             </ion-button>
           </div>
-          <img *ngIf="isImagePreview(birthCertificateFrontPreview)" [src]="birthCertificateFrontPreview" class="preview-img" />
+          <img *ngIf="isImagePreview(birthCertificateFrontPreview)" [appAuthenticatedImage]="birthCertificateFrontPreview" class="preview-img" />
           <div *ngIf="birthCertificateFrontPreview && !isImagePreview(birthCertificateFrontPreview)" class="file-preview">{{ filePreviewLabel(birthCertificateFrontPreview) }}</div>
         </div>
       </div>
@@ -337,10 +362,21 @@ type RelationshipNameAutofill = Record<string, Partial<Record<RelationshipNameFi
     </div>
   `,
 })
-export class MemberFormComponent implements OnChanges {
+export class MemberFormComponent implements OnInit, OnChanges {
   readonly trackByEntity = trackByEntity;
   private languageService = inject(LanguageService);
   private dateService = inject(DateService);
+  private geoService = inject(GeoService);
+
+  districtsList: string[] = [];
+
+  ngOnInit(): void {
+    this.geoService.allDistricts().subscribe({
+      next: (res) => {
+        this.districtsList = res.data || [];
+      },
+    });
+  }
 
   @Input({ required: true }) member!: MemberFormModel;
   @Input() relationshipOptions: Array<{ value: string; label: string }> = [];
@@ -356,6 +392,7 @@ export class MemberFormComponent implements OnChanges {
   @Input() lockedFields: ReadonlySet<string> = new Set<string>();
   @Input() servicePointOptions: ServicePointOption[] = [];
   @Input() professionOptions: Array<{ id: number; label: string }> = [];
+  @Input() qualificationOptions: Array<{ id: number; label: string }> = [];
   @Input() photoPreview = '';
   @Input() citizenshipFrontPreview = '';
   @Input() citizenshipBackPreview = '';
@@ -427,6 +464,14 @@ export class MemberFormComponent implements OnChanges {
 
   hasProfessionOption(value: unknown): boolean {
     return this.professionOptions.some((option) => option.label === String(value));
+  }
+
+  hasQualificationOption(value: unknown): boolean {
+    return this.qualificationOptions.some((option) => option.label === String(value));
+  }
+
+  hasDistrictOption(value: unknown): boolean {
+    return this.districtsList.some((district) => district === String(value));
   }
 
   isFieldReadonly(field: string): boolean {

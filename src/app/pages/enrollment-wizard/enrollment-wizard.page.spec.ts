@@ -10,6 +10,7 @@ import { DateService } from '../../services/date.service';
 import { EnrollmentService } from '../../services/enrollment.service';
 import { GeoService } from '../../services/geo.service';
 import { LanguageService } from '../../services/language.service';
+import { ApiService } from '../../services/api.service';
 
 describe('EnrollmentWizardPage', () => {
   function languageService(language = 'en') {
@@ -80,6 +81,7 @@ describe('EnrollmentWizardPage', () => {
         { provide: ActivatedRoute, useValue: overrides.route || {} },
         { provide: Router, useValue: overrides.router || {} },
         { provide: EnrollmentService, useValue: overrides.enrollmentSvc || {} },
+        { provide: ApiService, useValue: { formatImageUrl: (url?: string) => url || null } },
         { provide: GeoService, useValue: { ...defaultGeoSvc, ...((overrides.geoSvc || {}) as object) } },
         { provide: DateService, useValue: { ...defaultDateService, ...((overrides.dateService || {}) as object) } },
         { provide: LanguageService, useValue: overrides.languageService || languageService() },

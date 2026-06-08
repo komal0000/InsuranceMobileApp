@@ -51,4 +51,33 @@ describe('ApiService', () => {
       done();
     });
   });
+
+  it('maps web document URLs to authenticated API document URLs', () => {
+    const service = TestBed.inject(ApiService);
+    const apiBaseUrl = service.getApiBaseUrl();
+    const serverBaseUrl = apiBaseUrl.replace(/\/api$/, '');
+
+    expect(service.formatImageUrl('/documents/member/12/photo.jpg'))
+      .toBe(`${serverBaseUrl}/api/documents/member/12/photo.jpg`);
+    expect(service.formatImageUrl('documents/enrollment/34/evidence.jpg'))
+      .toBe(`${serverBaseUrl}/api/documents/enrollment/34/evidence.jpg`);
+  });
+
+  it('rebases absolute web document URLs to the active API host', () => {
+    const service = TestBed.inject(ApiService);
+    const apiBaseUrl = service.getApiBaseUrl();
+    const serverBaseUrl = apiBaseUrl.replace(/\/api$/, '');
+
+    expect(service.formatImageUrl('https://old.example.test/documents/member/12/photo.jpg?download=1'))
+      .toBe(`${serverBaseUrl}/api/documents/member/12/photo.jpg?download=1`);
+  });
+
+  it('preserves data, blob, file, and public absolute image URLs', () => {
+    const service = TestBed.inject(ApiService);
+
+    expect(service.formatImageUrl('data:image/png;base64,abc')).toBe('data:image/png;base64,abc');
+    expect(service.formatImageUrl('blob:http://localhost/id')).toBe('blob:http://localhost/id');
+    expect(service.formatImageUrl('file:///tmp/photo.jpg')).toBe('file:///tmp/photo.jpg');
+    expect(service.formatImageUrl('https://cdn.example.test/photos/photo.jpg')).toBe('https://cdn.example.test/photos/photo.jpg');
+  });
 });

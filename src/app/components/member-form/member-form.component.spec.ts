@@ -2,6 +2,8 @@ import { TestBed } from '@angular/core/testing';
 import { MemberFormComponent } from './member-form.component';
 import { LanguageService } from '../../services/language.service';
 import { DateService } from '../../services/date.service';
+import { GeoService } from '../../services/geo.service';
+import { of } from 'rxjs';
 import { addIcons } from 'ionicons';
 import { cameraOutline } from 'ionicons/icons';
 
@@ -26,6 +28,12 @@ describe('MemberFormComponent', () => {
             adToBs: () => '2083-01-01',
             bsToAd: () => '2026-04-14',
             calculateAge: (value: string) => String(value).startsWith('207') ? 10 : 33,
+          },
+        },
+        {
+          provide: GeoService,
+          useValue: {
+            allDistricts: () => of({ success: true, data: ['Kathmandu', 'Lalitpur'] }),
           },
         },
       ],
@@ -112,6 +120,16 @@ describe('MemberFormComponent', () => {
 
     expect(text).toContain('Agriculture');
     expect(selects.some((select) => select.label === 'Occupation')).toBeTrue();
+  });
+
+  it('detects district values outside the standard issue-district list', () => {
+    const fixture = TestBed.createComponent(MemberFormComponent);
+    const component = fixture.componentInstance;
+    component.member = { relationship: '', gender: '' };
+    fixture.detectChanges();
+
+    expect(component.hasDistrictOption('Kathmandu')).toBeTrue();
+    expect(component.hasDistrictOption('Legacy District')).toBeFalse();
   });
 
   it('renders NID-locked member fields visible but readonly', () => {

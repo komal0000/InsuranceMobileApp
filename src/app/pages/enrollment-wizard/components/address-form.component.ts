@@ -15,6 +15,7 @@ import {
   IonSegmentButton,
   IonToggle,
 } from '@ionic/angular/standalone';
+import { AuthenticatedImageDirective } from '../../../directives/authenticated-image.directive';
 import { PermanentAddressSource, Step1Data } from '../../../interfaces/enrollment.interface';
 import { LanguageService } from '../../../services/language.service';
 import { trackByEntity } from '../../../utils/track-by.util';
@@ -28,6 +29,7 @@ type PermanentAddressSourceChoice = PermanentAddressSource | '';
   imports: [
     CommonModule,
     FormsModule,
+    AuthenticatedImageDirective,
     IonButton,
     IonCard,
     IonCardContent,

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import {
   IonBadge,
@@ -14,9 +14,11 @@ import {
   IonSelectOption,
   IonToggle,
 } from '@ionic/angular/standalone';
+import { AuthenticatedImageDirective } from '../../../directives/authenticated-image.directive';
 import { NepaliInputDirective } from '../../../directives/nepali-input.directive';
 import { BsDatePickerComponent } from '../../../components/bs-date-picker/bs-date-picker.component';
 import { LanguageService } from '../../../services/language.service';
+import { GeoService } from '../../../services/geo.service';
 import { ServicePointOption } from '../../../interfaces/enrollment.interface';
 import { normalizeDigitsOnly } from '../../../utils/auth-validation';
 import { trackByEntity } from '../../../utils/track-by.util';
@@ -80,6 +82,7 @@ interface HouseholdHeadFormModel {
   imports: [
     CommonModule,
     FormsModule,
+    AuthenticatedImageDirective,
     NepaliInputDirective,
     BsDatePickerComponent,
     IonBadge,
@@ -97,9 +100,24 @@ interface HouseholdHeadFormModel {
   templateUrl: './household-head-form.component.html',
   styleUrls: ['../enrollment-wizard.page.scss', './household-head-form.component.scss'],
 })
-export class HouseholdHeadFormComponent {
+export class HouseholdHeadFormComponent implements OnInit {
   readonly trackByEntity = trackByEntity;
   private languageService = inject(LanguageService);
+  private geoService = inject(GeoService);
+
+  districtsList: string[] = [];
+
+  ngOnInit(): void {
+    this.geoService.allDistricts().subscribe({
+      next: (res) => {
+        this.districtsList = res.data || [];
+      },
+    });
+  }
+
+  hasDistrictOption(value: unknown): boolean {
+    return this.districtsList.some((district) => district === String(value));
+  }
 
   private firstServicePointValue = '';
   private firstServicePointIdValue: string | number = '';

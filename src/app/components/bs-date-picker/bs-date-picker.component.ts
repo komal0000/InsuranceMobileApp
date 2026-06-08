@@ -39,25 +39,26 @@ const MAX_SELECTABLE_YEAR = 2100;
   ],
   template: `
     <div class="picker-shell">
-      <label *ngIf="label" class="picker-label">
-        {{ label }}<span *ngIf="required"> *</span>
-      </label>
-
       <div class="trigger-field" [class.is-disabled]="disabled" [class.is-invalid]="inputInvalid || !!errorMessage">
-        <input
-          type="text"
-          class="trigger-input"
-          [value]="inputValue"
-          [placeholder]="effectivePlaceholder"
-          [disabled]="disabled"
-          inputmode="numeric"
-          maxlength="10"
-          autocomplete="off"
-          [attr.aria-label]="t('common.select_bs_date')"
-          (input)="onTextInput($event)"
-          (blur)="onTextBlur()"
-          (keydown.enter)="onTextEnter($event)"
-        />
+        <div class="input-stack">
+          <label *ngIf="label" class="picker-label">
+            {{ label }}<span *ngIf="required"> *</span>
+          </label>
+          <input
+            type="text"
+            class="trigger-input"
+            [value]="inputValue"
+            [placeholder]="effectivePlaceholder"
+            [disabled]="disabled"
+            inputmode="numeric"
+            maxlength="10"
+            autocomplete="off"
+            [attr.aria-label]="t('common.select_bs_date')"
+            (input)="onTextInput($event)"
+            (blur)="onTextBlur()"
+            (keydown.enter)="onTextEnter($event)"
+          />
+        </div>
 
         <button
           type="button"
@@ -162,46 +163,57 @@ const MAX_SELECTABLE_YEAR = 2100;
     :host {
       display: block;
       width: 100%;
-      color: #4a1010;
-      font-size: 14px;
+      margin-bottom: 6px;
     }
 
     * {
       box-sizing: border-box;
     }
 
+    .picker-shell {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+    }
+
     .picker-label {
-      display: inline-block;
-      margin-bottom: 6px;
-      color: #6b0f0f;
-      font-size: 14px;
-      font-weight: 600;
+      color: #6c757d;
+      font-size: 12px;
+      font-weight: 500;
+      margin-bottom: 2px;
+      line-height: 1.2;
     }
 
     .trigger-field {
       width: 100%;
-      min-height: 48px;
+      min-height: 54px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 12px;
-      padding: 11px 12px;
-      border: 1px solid rgba(139, 26, 26, 0.18);
-      border-radius: 12px;
-      background: #fff;
-      color: inherit;
+      gap: 8px;
+      padding: 6px 12px;
+      border: 1px solid #e9ecef;
+      border-radius: 8px;
+      background: #f8f9fa;
+      color: #212529;
       text-align: left;
-      box-shadow: 0 3px 10px rgba(107, 15, 15, 0.06);
     }
 
     .trigger-field.is-disabled {
       opacity: 0.6;
-      box-shadow: none;
     }
 
     .trigger-field.is-invalid {
       border-color: #dc3545;
-      box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.12);
+      box-shadow: 0 0 0 1px #dc3545;
+    }
+
+    .input-stack {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-width: 0;
+      justify-content: center;
     }
 
     .picker-error {
@@ -212,21 +224,21 @@ const MAX_SELECTABLE_YEAR = 2100;
     }
 
     .trigger-input {
-      flex: 1;
-      min-width: 0;
-      width: 100%;
       border: 0;
       outline: none;
       background: transparent;
       font-size: 16px;
-      font-weight: 600;
+      font-weight: 400;
       line-height: 1.35;
-      color: #5d1b1b;
+      color: #212529;
+      padding: 0;
+      margin: 0;
+      width: 100%;
     }
 
     .trigger-input::placeholder {
-      color: #9a6d6d;
-      font-weight: 500;
+      color: #adb5bd;
+      font-weight: 400;
     }
 
     .trigger-input:disabled {
@@ -234,18 +246,19 @@ const MAX_SELECTABLE_YEAR = 2100;
     }
 
     .trigger-icon {
-      width: 44px;
-      height: 44px;
+      width: 32px;
+      height: 32px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       border: 0;
-      border-radius: 12px;
-      background: #8b1a1a;
-      color: #fff;
+      background: transparent;
+      color: #6c757d;
       font-size: 20px;
       flex-shrink: 0;
       cursor: pointer;
+      padding: 0;
+      margin: 0;
     }
 
     .sheet-panel {
