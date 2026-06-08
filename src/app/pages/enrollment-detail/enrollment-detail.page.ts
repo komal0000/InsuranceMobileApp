@@ -8,7 +8,6 @@ import { takeUntil } from 'rxjs/operators';
 import {
   IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton,
   IonCard, IonCardContent, IonBadge, IonCheckbox, IonIcon, IonButton, IonItem, IonLabel, IonSpinner,
-  IonImg
 } from '@ionic/angular/standalone';
 import { ToastController, AlertController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -26,6 +25,7 @@ import { LanguageService } from '../../services/language.service';
 import { ApiResponse } from '../../interfaces/api-response.interface';
 import { Enrollment } from '../../interfaces/enrollment.interface';
 import { LanguageToggleComponent } from '../../components/language-toggle/language-toggle.component';
+import { AuthenticatedImageDirective } from '../../directives/authenticated-image.directive';
 import { trackByEntity } from '../../utils/track-by.util';
 
 @Component({
@@ -33,9 +33,9 @@ import { trackByEntity } from '../../utils/track-by.util';
   standalone: true,
   imports: [
     CommonModule, FormsModule,
+    AuthenticatedImageDirective,
     IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton,
     IonCard, IonCardContent, IonBadge, IonCheckbox, IonIcon, IonButton, IonItem, IonLabel, IonSpinner,
-    IonImg,
     LanguageToggleComponent
   ],
   templateUrl: './enrollment-detail.page.html',

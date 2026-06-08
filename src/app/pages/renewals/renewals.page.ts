@@ -23,11 +23,13 @@ import { ApiService } from '../../services/api.service';
 import { AppSyncEvent, AppSyncService } from '../../services/app-sync.service';
 import { AuthService } from '../../services/auth.service';
 import { DateService } from '../../services/date.service';
+import { GeoService } from '../../services/geo.service';
 import { ApiResponse, PaginatedData } from '../../interfaces/api-response.interface';
 import { ServicePointOption } from '../../interfaces/enrollment.interface';
 import { Renewal } from '../../interfaces/renewal.interface';
 import { BsDatePickerComponent } from '../../components/bs-date-picker/bs-date-picker.component';
 import { LanguageToggleComponent } from '../../components/language-toggle/language-toggle.component';
+import { AuthenticatedImageDirective } from '../../directives/authenticated-image.directive';
 import { NepaliInputDirective } from '../../directives/nepali-input.directive';
 import { LanguageService } from '../../services/language.service';
 import { isNepaliNamePart, normalizeDigitsOnly } from '../../utils/auth-validation';
@@ -83,7 +85,7 @@ const DOCUMENT_FILE_ACCEPT = 'image/*,application/pdf';
   selector: 'app-renewals',
   standalone: true,
   imports: [
-    CommonModule, FormsModule, BsDatePickerComponent, LanguageToggleComponent, NepaliInputDirective,
+    CommonModule, FormsModule, BsDatePickerComponent, LanguageToggleComponent, AuthenticatedImageDirective, NepaliInputDirective,
     IonContent, IonHeader, IonToolbar, IonTitle, IonBadge, IonSearchbar,
     IonSegment, IonSegmentButton, IonRefresher, IonRefresherContent,
     IonInfiniteScroll, IonInfiniteScrollContent, IonFab, IonFabButton,
@@ -102,6 +104,9 @@ export class RenewalsPage implements OnInit, OnDestroy {
   private router = inject(Router);
   private toastCtrl = inject(ToastController);
   private languageService = inject(LanguageService);
+  private geoService = inject(GeoService);
+
+  districtsList: string[] = [];
 
   renewals: Renewal[] = [];
   search = '';
@@ -154,6 +159,11 @@ export class RenewalsPage implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.loadRelationshipOptions();
+    this.geoService.allDistricts().subscribe({
+      next: (res) => {
+        this.districtsList = res.data || [];
+      },
+    });
 
     const user = this.authService.getCurrentUser();
     const role = user?.role || '';
@@ -226,11 +236,11 @@ export class RenewalsPage implements OnInit, OnDestroy {
     if (!head) return null;
     // 1. MemberDocument photo
     const doc = head.documents?.find((d: any) => d.document_type === 'photo');
-    if (doc?.url) return doc.url;
+    if (doc?.url) return this.api.formatImageUrl(doc.url);
     // 2. Profile image from user account
-    if (head.profile_image_url) return head.profile_image_url;
+    if (head.profile_image_url) return this.api.formatImageUrl(head.profile_image_url);
     // 3. Legacy photo field
-    if (head.photo) return head.photo;
+    if (head.photo) return this.api.formatImageUrl(head.photo);
     return null;
   }
 
@@ -238,9 +248,9 @@ export class RenewalsPage implements OnInit, OnDestroy {
     if (!member) return null;
     // 1. MemberDocument photo
     const doc = member.documents?.find((d: any) => d.document_type === 'photo');
-    if (doc?.url) return doc.url;
+    if (doc?.url) return this.api.formatImageUrl(doc.url);
     // 2. Legacy photo field
-    if (member.photo) return member.photo;
+    if (member.photo) return this.api.formatImageUrl(member.photo);
     return null;
   }
 
@@ -751,6 +761,10 @@ export class RenewalsPage implements OnInit, OnDestroy {
 
   formatMemberStatus(status: string): string {
     return this.languageService.label('status', status);
+  }
+
+  hasDistrictOption(value: unknown): boolean {
+    return this.districtsList.some((district) => district === String(value));
   }
 
   get isHeadSingle(): boolean {

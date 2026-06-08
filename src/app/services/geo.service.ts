@@ -15,6 +15,10 @@ export class GeoService {
     return this.cached<string[]>('/geo/provinces');
   }
 
+  allDistricts(): Observable<ApiResponse<string[]>> {
+    return this.cached<string[]>('/geo/districts');
+  }
+
   districts(province: string): Observable<ApiResponse<string[]>> {
     return this.cached<string[]>(`/geo/districts/${encodeURIComponent(province)}`);
   }

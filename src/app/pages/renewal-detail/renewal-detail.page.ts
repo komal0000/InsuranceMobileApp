@@ -23,6 +23,7 @@ import { ServicePointOption } from '../../interfaces/enrollment.interface';
 import { Renewal } from '../../interfaces/renewal.interface';
 import { MemberFormComponent } from '../../components/member-form/member-form.component';
 import { LanguageToggleComponent } from '../../components/language-toggle/language-toggle.component';
+import { AuthenticatedImageDirective } from '../../directives/authenticated-image.directive';
 import { LanguageService } from '../../services/language.service';
 import { isNepaliNamePart, normalizeDigitsOnly } from '../../utils/auth-validation';
 import {
@@ -74,7 +75,7 @@ const DOCUMENT_FILE_ACCEPT = 'image/*,application/pdf';
   selector: 'app-renewal-detail',
   standalone: true,
   imports: [
-    CommonModule, FormsModule, MemberFormComponent, LanguageToggleComponent,
+    CommonModule, FormsModule, MemberFormComponent, LanguageToggleComponent, AuthenticatedImageDirective,
     IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton,
     IonCard, IonCardContent, IonBadge, IonCheckbox, IonIcon, IonButton, IonItem, IonLabel, IonSpinner,
   ],
@@ -113,6 +114,16 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
     { id: 6, label: 'Other' },
     { id: 7, label: 'Foreign employment' },
   ];
+  qualificationOptions: Array<{ id: number; label: string }> = [
+    { id: 1, label: 'Nursery' },
+    { id: 2, label: 'Primary' },
+    { id: 3, label: 'Secondary' },
+    { id: 4, label: 'University' },
+    { id: 5, label: 'Post Graduate' },
+    { id: 6, label: 'PHD' },
+    { id: 7, label: 'Other' },
+    { id: 8, label: 'Un-Educated' },
+  ];
   newMember: any = {
     first_name: '', middle_name: '', last_name: '',
     first_name_ne: '', middle_name_ne: '', last_name_ne: '',
@@ -120,6 +131,7 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
     blood_group: '', marital_status: '', mobile_number: '', email: '',
     first_service_point_id: '',
     occupation: '',
+    education_level: '',
     document_type: '',
     citizenship_number: '', citizenship_issue_date: '', citizenship_issue_district: '',
     birth_certificate_number: '', birth_certificate_issue_date: '',
@@ -236,6 +248,7 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
       first_service_point_id: member.first_service_point_id || '',
       first_service_point: member.first_service_point || '',
       occupation: member.occupation || '',
+      education_level: member.education_level || '',
       document_type: member.document_type || '',
       citizenship_number: member.citizenship_number || '',
       citizenship_issue_date: this.dateService.formatForDisplay(
@@ -728,15 +741,15 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
 
     const photoDoc = head.documents?.find((doc: any) => doc.document_type === 'photo');
     if (photoDoc?.url) {
-      return photoDoc.url;
+      return this.api.formatImageUrl(photoDoc.url);
     }
 
     if (head.profile_image_url) {
-      return head.profile_image_url;
+      return this.api.formatImageUrl(head.profile_image_url);
     }
 
     if (head.photo) {
-      return head.photo;
+      return this.api.formatImageUrl(head.photo);
     }
 
     return null;
@@ -749,11 +762,11 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
 
     const photoDoc = member.documents?.find((doc: any) => doc.document_type === 'photo');
     if (photoDoc?.url) {
-      return photoDoc.url;
+      return this.api.formatImageUrl(photoDoc.url);
     }
 
     if (member.photo) {
-      return member.photo;
+      return this.api.formatImageUrl(member.photo);
     }
 
     return null;
@@ -788,6 +801,7 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
           res?.data?.relationship_blocked_by_head_marital_status,
         );
         this.professionOptions = this.optionRecordToArray(res?.data?.profession_options, this.professionOptions);
+        this.qualificationOptions = this.optionRecordToArray(res?.data?.qualification_options, this.qualificationOptions);
       },
     });
   }
@@ -885,6 +899,7 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
       blood_group: '', marital_status: '', mobile_number: '', email: '',
       first_service_point_id: '',
       occupation: '',
+      education_level: '',
       document_type: '',
       citizenship_number: '', citizenship_issue_date: currentBs, citizenship_issue_district: '',
       birth_certificate_number: '', birth_certificate_issue_date: currentBs,
@@ -915,7 +930,7 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
   getDocUrl(member: any, type: string): string | null {
     if (!member?.documents?.length) return null;
     const doc = member.documents.find((item: any) => item.document_type === type);
-    return doc?.url || null;
+    return this.api.formatImageUrl(doc?.url) || null;
   }
 
   private dataUrlToBlob(dataUrl: string): Blob {

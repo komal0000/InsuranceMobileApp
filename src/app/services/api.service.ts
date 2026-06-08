@@ -30,6 +30,48 @@ export class ApiService {
   private readonly preferredBaseUrlStorageKey = 'hib_api_preferred_base_url';
   private preferredBaseUrlIndex = this.resolvePreferredBaseUrlIndex();
 
+  getApiBaseUrl(): string {
+    const baseUrlIndex = this.preferredBaseUrlIndex ?? 0;
+    return this.baseUrls[baseUrlIndex] ?? this.baseUrls[0] ?? '';
+  }
+
+  formatImageUrl(url: string | null | undefined): string | null {
+    if (!url) return null;
+    if (/^(data|blob|file):/i.test(url)) return url;
+
+    const activeApiUrl = this.getApiBaseUrl();
+    if (!activeApiUrl) return url;
+
+    const serverBaseUrl = activeApiUrl.replace(/\/api$/, '');
+    const documentApiPath = (path: string): string => path.startsWith('/documents/')
+      ? `/api${path}`
+      : path;
+
+    if (url.startsWith('/')) {
+      return `${serverBaseUrl}${documentApiPath(url)}`;
+    }
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      const normalizedPath = `/${url.replace(/^\/+/, '')}`;
+      return `${serverBaseUrl}${documentApiPath(normalizedPath)}`;
+    }
+
+    try {
+      const parsedUrl = new URL(url);
+      const parsedServerUrl = new URL(serverBaseUrl);
+
+      if (parsedUrl.pathname.startsWith('/documents/')) {
+        parsedUrl.protocol = parsedServerUrl.protocol;
+        parsedUrl.host = parsedServerUrl.host;
+        parsedUrl.pathname = documentApiPath(parsedUrl.pathname);
+        return parsedUrl.toString();
+      }
+    } catch (e) {
+      // Ignore URL parsing errors
+    }
+
+    return url;
+  }
+
   get<T>(path: string, params?: Record<string, any>): Observable<T> {
     let httpParams = new HttpParams();
     if (params) {

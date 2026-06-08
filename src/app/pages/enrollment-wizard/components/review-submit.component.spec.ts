@@ -1,8 +1,10 @@
+import { HttpClient } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { addIcons } from 'ionicons';
 import { arrowBackOutline, cardOutline, checkmarkCircleOutline, createOutline } from 'ionicons/icons';
 import { DateService } from '../../../services/date.service';
 import { LanguageService } from '../../../services/language.service';
+import { ApiService } from '../../../services/api.service';
 import { ReviewSubmitComponent } from './review-submit.component';
 
 describe('ReviewSubmitComponent', () => {
@@ -24,6 +26,8 @@ describe('ReviewSubmitComponent', () => {
       imports: [ReviewSubmitComponent],
       providers: [
         { provide: LanguageService, useValue: languageService },
+        { provide: ApiService, useValue: { formatImageUrl: (url: string) => url } },
+        { provide: HttpClient, useValue: jasmine.createSpyObj('HttpClient', ['get']) },
         {
           provide: DateService,
           useValue: {

@@ -2,6 +2,8 @@ import { TestBed } from '@angular/core/testing';
 import { HouseholdHeadFormComponent } from './household-head-form.component';
 import { LanguageService } from '../../../services/language.service';
 import { DateService } from '../../../services/date.service';
+import { GeoService } from '../../../services/geo.service';
+import { of } from 'rxjs';
 import { addIcons } from 'ionicons';
 import {
   cameraOutline,
@@ -41,6 +43,12 @@ describe('HouseholdHeadFormComponent', () => {
             getCurrentBs: () => '2083-01-01',
             adToBs: () => '2083-01-01',
             bsToAd: () => '2026-04-14',
+          },
+        },
+        {
+          provide: GeoService,
+          useValue: {
+            allDistricts: () => of({ success: true, data: ['Kathmandu', 'Lalitpur'] }),
           },
         },
       ],
@@ -105,6 +113,16 @@ describe('HouseholdHeadFormComponent', () => {
     fixture.detectChanges();
 
     expect(fixture.nativeElement.textContent).toContain('Citizenship issue date must be after date of birth.');
+  });
+
+  it('detects household issue districts outside the standard list', () => {
+    const fixture = TestBed.createComponent(HouseholdHeadFormComponent);
+    const component = fixture.componentInstance;
+    component.headData = {};
+    fixture.detectChanges();
+
+    expect(component.hasDistrictOption('Kathmandu')).toBeTrue();
+    expect(component.hasDistrictOption('Legacy District')).toBeFalse();
   });
 
   it('normalizes household birth certificate number input to digits', () => {

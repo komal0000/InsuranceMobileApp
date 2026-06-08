@@ -22,6 +22,7 @@ import { ApiResponse } from '../../interfaces/api-response.interface';
 import { Enrollment } from '../../interfaces/enrollment.interface';
 import { User } from '../../interfaces/user.interface';
 import { LanguageToggleComponent } from '../../components/language-toggle/language-toggle.component';
+import { AuthenticatedImageDirective } from '../../directives/authenticated-image.directive';
 import { DashboardDataService } from '../../services/dashboard-data.service';
 import { LanguageService } from '../../services/language.service';
 import {
@@ -39,6 +40,7 @@ import { trackByEntity } from '../../utils/track-by.util';
   standalone: true,
   imports: [
     CommonModule, FormsModule,
+    AuthenticatedImageDirective,
     IonContent, IonHeader, IonToolbar, IonTitle, IonCard, IonCardContent,
     IonIcon, IonRefresher, IonRefresherContent, IonSpinner, IonInput, IonButton,
     LanguageToggleComponent

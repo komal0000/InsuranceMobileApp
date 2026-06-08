@@ -8,6 +8,7 @@ import { AppSyncService } from '../../services/app-sync.service';
 import { AuthService } from '../../services/auth.service';
 import { DateService } from '../../services/date.service';
 import { LanguageService } from '../../services/language.service';
+import { GeoService } from '../../services/geo.service';
 
 describe('RenewalsPage', () => {
   function makePage(role: string, overrides: { dateService?: Record<string, unknown> } = {}) {
@@ -42,6 +43,12 @@ describe('RenewalsPage', () => {
         { provide: Router, useValue: router },
         { provide: ToastController, useValue: toastCtrl },
         { provide: LanguageService, useValue: languageService },
+        {
+          provide: GeoService,
+          useValue: {
+            allDistricts: () => of({ success: true, data: ['Kathmandu', 'Lalitpur'] }),
+          },
+        },
       ],
     });
     const page = TestBed.runInInjectionContext(() => new RenewalsPage());
@@ -85,6 +92,14 @@ describe('RenewalsPage', () => {
 
     expect(page.canInitiateRenewal).toBeTrue();
     expect(router.navigateByUrl).toHaveBeenCalledWith('/renewal-search');
+  });
+
+  it('detects renewal issue districts outside the standard list', () => {
+    const { page } = makePage('beneficiary');
+    page.districtsList = ['Kathmandu', 'Lalitpur'];
+
+    expect(page.hasDistrictOption('Kathmandu')).toBeTrue();
+    expect(page.hasDistrictOption('Legacy District')).toBeFalse();
   });
 
   it('loads service point options when opening the direct add-member form', () => {

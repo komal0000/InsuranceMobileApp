@@ -14,6 +14,8 @@ import {
   IonLabel,
   IonSpinner,
 } from '@ionic/angular/standalone';
+import { AuthenticatedImageDirective } from '../../../directives/authenticated-image.directive';
+import { ApiService } from '../../../services/api.service';
 import { DateService } from '../../../services/date.service';
 import { LanguageService } from '../../../services/language.service';
 import {
@@ -64,6 +66,7 @@ interface ReviewHeadData {
   imports: [
     CommonModule,
     FormsModule,
+    AuthenticatedImageDirective,
     IonAccordion,
     IonAccordionGroup,
     IonBadge,
@@ -83,6 +86,7 @@ export class ReviewSubmitComponent {
   readonly trackByEntity = trackByEntity;
   private dateService = inject(DateService);
   private languageService = inject(LanguageService);
+  private api = inject(ApiService);
 
   private confirmedValue = false;
 
@@ -205,6 +209,6 @@ export class ReviewSubmitComponent {
   private enrollmentDocumentUrl(type: string): string {
     const document = this.enrollment?.documents?.find((item) => item.document_type === type);
 
-    return document?.url || document?.file_url || '';
+    return this.api.formatImageUrl(document?.url || document?.file_url) || '';
   }
 }

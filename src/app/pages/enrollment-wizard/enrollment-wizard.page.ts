@@ -17,6 +17,7 @@ import {
   arrowForwardOutline, arrowBackOutline, searchOutline,
   cardOutline, documentTextOutline, createOutline, addOutline
 } from 'ionicons/icons';
+import { ApiService } from '../../services/api.service';
 import { EnrollmentService } from '../../services/enrollment.service';
 import { GeoService } from '../../services/geo.service';
 import { DateService } from '../../services/date.service';
@@ -171,6 +172,7 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private enrollmentSvc = inject(EnrollmentService);
+  private api = inject(ApiService);
   private geoSvc = inject(GeoService);
   private dateService = inject(DateService);
   private languageService = inject(LanguageService);
@@ -1955,13 +1957,13 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
   getDocUrl(member: any, type: string): string | null {
     if (!member?.documents?.length) return null;
     const doc = member.documents.find((d: any) => d.document_type === type);
-    return doc?.url || null;
+    return this.api.formatImageUrl(doc?.url) || null;
   }
 
   getEnrollmentDocUrl(enrollment: Enrollment | null, type: string): string | null {
     if (!enrollment?.documents?.length) return null;
     const doc = enrollment.documents.find((d: any) => d.document_type === type);
-    return doc?.url || doc?.file_url || null;
+    return this.api.formatImageUrl(doc?.url || doc?.file_url) || null;
   }
 
   getAge(adDate?: string | null, bsDate?: string | null): number {

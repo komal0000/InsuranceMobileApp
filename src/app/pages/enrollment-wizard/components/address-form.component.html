@@ -116,7 +116,7 @@
                 {{ basaiSaraiFrontPreview ? text('common.change', 'Change') : text('common.capture', 'Capture') }}
               </ion-button>
             </div>
-            <img *ngIf="basaiSaraiFrontPreview" [src]="basaiSaraiFrontPreview" class="preview-img" />
+            <img *ngIf="basaiSaraiFrontPreview" [appAuthenticatedImage]="basaiSaraiFrontPreview" class="preview-img" />
           </div>
 
           <div class="capture-section">
@@ -127,7 +127,7 @@
                 {{ basaiSaraiBackPreview ? text('common.change', 'Change') : text('common.capture', 'Capture') }}
               </ion-button>
             </div>
-            <img *ngIf="basaiSaraiBackPreview" [src]="basaiSaraiBackPreview" class="preview-img" />
+            <img *ngIf="basaiSaraiBackPreview" [appAuthenticatedImage]="basaiSaraiBackPreview" class="preview-img" />
           </div>
         </ion-card-content>
       </ion-card>
