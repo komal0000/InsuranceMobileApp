@@ -8,6 +8,14 @@ import { Preferences } from '@capacitor/preferences';
 import { environment } from '../../environments/environment';
 import {
   User,
+  AffiliationCompleteData,
+  AffiliationCompleteRequest,
+  AffiliationOtpData,
+  AffiliationOtpRequest,
+  AffiliationPasswordData,
+  AffiliationPasswordRequest,
+  AffiliationSyncData,
+  AffiliationSyncRequest,
   AuthData,
   LoginRequest,
   RegisterRequest,
@@ -29,6 +37,7 @@ import { AppLanguage, LanguageService } from './language.service';
 
 const TOKEN_KEY = 'auth_token';
 const USER_KEY = 'auth_user';
+const AFFILIATION_SETUP_KEY = 'affiliation_setup';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -39,6 +48,7 @@ export class AuthService {
   private tokenSubject = new BehaviorSubject<string | null>(null);
   private initialized = false;
   private persistedSecureSession = false;
+  private pendingAffiliationSetup: AffiliationSyncData | null = null;
 
   currentUser$ = this.currentUserSubject.asObservable();
   isAuthenticated$ = this.tokenSubject.pipe(map(t => !!t));
@@ -139,6 +149,99 @@ export class AuthService {
         );
       })
     );
+  }
+
+  affiliationSync(data: AffiliationSyncRequest): Observable<ApiResponse<AffiliationSyncData>> {
+    return this.api.post<ApiResponse<AffiliationSyncData>>('/affiliation/sync', {
+      household_head_hib_number: data.household_head_hib_number,
+      member_hib_number: data.member_hib_number,
+    });
+  }
+
+  affiliationSendOtp(data: AffiliationOtpRequest): Observable<ApiResponse<AffiliationOtpData>> {
+    return this.api.post<ApiResponse<AffiliationOtpData>>('/affiliation/otp/send', data);
+  }
+
+  affiliationComplete(data: AffiliationCompleteRequest): Observable<ApiResponse<AffiliationCompleteData>> {
+    const remember = data.remember ?? false;
+    const payload = {
+      verification_token: data.verification_token,
+      otp: data.otp,
+      password: data.password,
+      password_confirmation: data.password_confirmation,
+      remember,
+    };
+
+    return this.api.post<ApiResponse<AffiliationCompleteData>>('/affiliation/complete', payload).pipe(
+      switchMap(res => {
+        if (!res.success) {
+          return of(res);
+        }
+
+        return from(this.setSession(res.data, remember)).pipe(
+          map(() => res)
+        );
+      })
+    );
+  }
+
+  affiliationPassword(data: AffiliationPasswordRequest): Observable<ApiResponse<AffiliationPasswordData>> {
+    const remember = data.remember ?? false;
+
+    return this.api.post<ApiResponse<AffiliationPasswordData>>('/affiliation/password', {
+      setup_token: data.setup_token,
+      password: data.password,
+      password_confirmation: data.password_confirmation,
+      remember,
+    }).pipe(
+      switchMap(res => {
+        if (!res.success) {
+          return of(res);
+        }
+
+        return from(this.setSession(res.data, remember)).pipe(
+          map(() => res)
+        );
+      })
+    );
+  }
+
+  storeAffiliationSetup(data: AffiliationSyncData): void {
+    this.pendingAffiliationSetup = data;
+
+    if (this.canUseBrowserSessionStorage()) {
+      sessionStorage.setItem(AFFILIATION_SETUP_KEY, JSON.stringify(data));
+    }
+  }
+
+  getAffiliationSetup(): AffiliationSyncData | null {
+    if (this.pendingAffiliationSetup) {
+      return this.pendingAffiliationSetup;
+    }
+
+    if (!this.canUseBrowserSessionStorage()) {
+      return null;
+    }
+
+    const value = sessionStorage.getItem(AFFILIATION_SETUP_KEY);
+    if (!value) {
+      return null;
+    }
+
+    try {
+      return JSON.parse(value) as AffiliationSyncData;
+    } catch {
+      sessionStorage.removeItem(AFFILIATION_SETUP_KEY);
+      return null;
+    }
+  }
+
+  clearAffiliationSetup(): void {
+    this.pendingAffiliationSetup = null;
+
+    if (typeof sessionStorage !== 'undefined') {
+      sessionStorage.removeItem(AFFILIATION_SETUP_KEY);
+    }
   }
 
   sendPasswordOtp(data: PasswordOtpSendRequest): Observable<ApiResponse<{ mobile_number: string; expires_at?: string }>> {

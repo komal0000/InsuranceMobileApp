@@ -10,7 +10,7 @@ import { ToastController } from '@ionic/angular/standalone';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { AuthService } from '../../services/auth.service';
-import { LoginRequest } from '../../interfaces/user.interface';
+import { LoginRequest, User } from '../../interfaces/user.interface';
 import { LanguageService } from '../../services/language.service';
 import { isStrongPassword } from '../../utils/auth-validation';
 import { addIcons } from 'ionicons';
@@ -162,7 +162,7 @@ export class LoginPage implements OnDestroy {
         this.loading = false;
         if (res.success) {
           await this.presentToast(this.t('login.success'), 'success');
-          void this.router.navigateByUrl('/tabs/dashboard', { replaceUrl: true });
+          void this.router.navigateByUrl(this.postLoginTarget(res.data.user), { replaceUrl: true });
         }
       },
       error: () => {
@@ -243,7 +243,7 @@ export class LoginPage implements OnDestroy {
         this.setupLoadingAction = null;
         if (res.success) {
           await this.presentToast(this.t('login.password_created'), 'success');
-          void this.router.navigateByUrl('/tabs/dashboard', { replaceUrl: true });
+          void this.router.navigateByUrl(this.postLoginTarget(res.data.user), { replaceUrl: true });
         }
       },
       error: () => {
@@ -266,6 +266,10 @@ export class LoginPage implements OnDestroy {
     this.setupPasswordConfirmation = '';
     this.passwordVisibility.setup = false;
     this.passwordVisibility.setupConfirmation = false;
+  }
+
+  private postLoginTarget(user?: User | null): string {
+    return user?.kyc_required && !user?.kyc_submitted ? '/kyc' : '/tabs/dashboard';
   }
 
   private async presentToast(message: string, color: 'success' | 'warning' | 'danger') {

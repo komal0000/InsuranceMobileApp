@@ -4,6 +4,7 @@ import { KycDemoPage } from './kyc-demo.page';
 import { LegacyImisKycDemoResponse } from '../../interfaces/legacy-imis.interface';
 import { LanguageService } from '../../services/language.service';
 import { LegacyImisService } from '../../services/legacy-imis.service';
+import { AuthService } from '../../services/auth.service';
 
 describe('KycDemoPage', () => {
   const demoResponse = (phone = '9811111111'): LegacyImisKycDemoResponse => ({
@@ -79,7 +80,10 @@ describe('KycDemoPage', () => {
     translateText: (value?: string) => value || '',
   };
 
-  function makePage(serviceOverrides: Partial<Record<'fetchKycDemoMember' | 'updateKycDemo', jasmine.Spy>> = {}) {
+  function makePage(
+    serviceOverrides: Partial<Record<'fetchKycDemoMember' | 'updateKycDemo', jasmine.Spy>> = {},
+    authOverrides: Partial<Record<'getCurrentUser' | 'fetchProfile', jasmine.Spy>> = {},
+  ) {
     const legacyImis = {
       fetchKycDemoMember: jasmine.createSpy('fetchKycDemoMember').and.returnValue(of({
         success: true,
@@ -93,13 +97,28 @@ describe('KycDemoPage', () => {
       })),
       ...serviceOverrides,
     };
+    const authService = {
+      getCurrentUser: jasmine.createSpy('getCurrentUser').and.returnValue(null),
+      fetchProfile: jasmine.createSpy('fetchProfile').and.returnValue(of({
+        id: 1,
+        name: 'Sita Sharma',
+        mobile_number: '9800000000',
+        role: 'beneficiary',
+        permissions: [],
+        kyc_required: true,
+        kyc_submitted: true,
+      })),
+      ...authOverrides,
+    };
 
     return {
+      authService,
       legacyImis,
       page: (() => {
         TestBed.resetTestingModule();
         TestBed.configureTestingModule({
           providers: [
+            { provide: AuthService, useValue: authService },
             { provide: LegacyImisService, useValue: legacyImis },
             { provide: LanguageService, useValue: languageService },
           ],
@@ -109,8 +128,26 @@ describe('KycDemoPage', () => {
     };
   }
 
+  it('prefills imported household identifiers from the current user HIB number', () => {
+    const { page } = makePage({}, {
+      getCurrentUser: jasmine.createSpy('getCurrentUser').and.returnValue({
+        id: 2,
+        name: 'Sita Sharma',
+        mobile_number: '9800000000',
+        hib_number: 'HH001',
+        role: 'beneficiary',
+        permissions: [],
+        kyc_required: true,
+        kyc_submitted: false,
+      }),
+    });
+
+    expect(page.householdHeadChfid).toBe('HH001');
+    expect(page.memberChfid).toBe('HH001');
+  });
+
   it('validates required CHFID fields before fetching', () => {
-    const { legacyImis, page } = makePage();
+    const { authService, legacyImis, page } = makePage();
 
     page.fetchMember();
 
@@ -174,7 +211,7 @@ describe('KycDemoPage', () => {
   });
 
   it('updates KYC and refreshes displayed data from the backend response', () => {
-    const { legacyImis, page } = makePage();
+    const { authService, legacyImis, page } = makePage();
     page.householdHeadChfid = 'HH001';
     page.memberChfid = 'M002';
     page.consentAccepted = true;
@@ -248,6 +285,7 @@ describe('KycDemoPage', () => {
     });
     expect(page.demoData?.selected_member?.phone).toBe('+9779800000000');
     expect(page.successMessage).toBe('Updated');
+    expect(authService.fetchProfile).toHaveBeenCalled();
   });
 
   it('applies captured KYC photo to the update form and preview', () => {

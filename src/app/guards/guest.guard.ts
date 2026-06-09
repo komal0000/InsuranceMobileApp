@@ -13,6 +13,9 @@ export const guestGuard: CanActivateFn = async () => {
     return true;
   }
 
-  router.navigateByUrl('/tabs/dashboard', { replaceUrl: true });
+  const user = authService.getCurrentUser();
+  const targetUrl = user?.kyc_required && !user?.kyc_submitted ? '/kyc' : '/tabs/dashboard';
+
+  router.navigateByUrl(targetUrl, { replaceUrl: true });
   return false;
 };

@@ -38,6 +38,7 @@ import {
   LegacyImisMember,
 } from '../../interfaces/legacy-imis.interface';
 import { LanguageService } from '../../services/language.service';
+import { AuthService } from '../../services/auth.service';
 import { LegacyImisService } from '../../services/legacy-imis.service';
 import { trackByEntity } from '../../utils/track-by.util';
 
@@ -119,6 +120,7 @@ interface KycDisplayField {
 })
 export class KycDemoPage implements OnDestroy {
   readonly trackByEntity = trackByEntity;
+  private authService = inject(AuthService);
   private legacyImis = inject(LegacyImisService);
   private languageService = inject(LanguageService);
 
@@ -187,6 +189,12 @@ export class KycDemoPage implements OnDestroy {
       searchOutline,
       sendOutline,
     });
+
+    const userHibNumber = this.authService.getCurrentUser()?.hib_number?.trim();
+    if (userHibNumber) {
+      this.householdHeadChfid = userHibNumber;
+      this.memberChfid = userHibNumber;
+    }
   }
 
   ngOnDestroy(): void {
@@ -263,6 +271,7 @@ export class KycDemoPage implements OnDestroy {
           this.updating = false;
           this.applyDemoData(res.data);
           this.successMessage = res.message || this.t('kyc_demo.update_success');
+          this.refreshProfileAfterKycSubmission();
         },
         error: (error) => {
           this.updating = false;
@@ -482,5 +491,14 @@ export class KycDemoPage implements OnDestroy {
     }
 
     return String(value);
+  }
+
+  private refreshProfileAfterKycSubmission(): void {
+    this.authService.fetchProfile()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {},
+        error: () => {},
+      });
   }
 }

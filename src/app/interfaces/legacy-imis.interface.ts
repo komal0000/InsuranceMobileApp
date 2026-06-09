@@ -49,6 +49,10 @@ export interface LegacyImisKycDemoHousehold {
 
 export interface LegacyImisKycDemoResponse {
   consent_acceptance_id?: number | null;
+  kyc_request_id?: number | null;
+  kyc_request_number?: string | null;
+  kyc_submitted?: boolean;
+  redirect_to?: string | null;
   household_head_chfid: string;
   member_chfid: string;
   household: LegacyImisKycDemoHousehold | null;
