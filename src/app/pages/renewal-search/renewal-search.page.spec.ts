@@ -5,6 +5,7 @@ import { of } from 'rxjs';
 import { ApiService } from '../../services/api.service';
 import { AuthService } from '../../services/auth.service';
 import { LanguageService } from '../../services/language.service';
+import { TermsService } from '../../services/terms.service';
 import { RenewalSearchPage } from './renewal-search.page';
 
 describe('RenewalSearchPage', () => {
@@ -17,6 +18,9 @@ describe('RenewalSearchPage', () => {
       create: jasmine.createSpy().and.returnValue(Promise.resolve(toast)),
     };
     const languageService = { t: (key: string) => key };
+    const termsService = {
+      confirm: jasmine.createSpy('confirm').and.returnValue(Promise.resolve(true)),
+    };
 
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
@@ -26,16 +30,17 @@ describe('RenewalSearchPage', () => {
         { provide: Router, useValue: router },
         { provide: ToastController, useValue: toastCtrl },
         { provide: LanguageService, useValue: languageService },
+        { provide: TermsService, useValue: termsService },
       ],
     });
 
     const page = TestBed.runInInjectionContext(() => new RenewalSearchPage());
 
-    return { page, api, router };
+    return { page, api, router, termsService };
   }
 
   it('searches and initiates renewal by household head number', async () => {
-    const { page, api, router } = makePage();
+    const { page, api, router, termsService } = makePage();
     api.post.and.callFake((path: string) => {
       if (path === '/renewals/search') {
         return of({
@@ -50,19 +55,19 @@ describe('RenewalSearchPage', () => {
       return of({ success: true, data: { id: 42 } });
     });
 
-    page.consentAccepted = true;
     page.searchType = 'hib_number';
     page.searchValue = '९८१-२३४-५६७-००१';
 
-    page.searchPolicy();
+    await page.searchPolicy();
 
+    expect(termsService.confirm).toHaveBeenCalledOnceWith('renewal');
     expect(api.post).toHaveBeenCalledWith('/renewals/search', {
       search_type: 'hib_number',
       search_value: '९८१-२३४-५६७-००१',
       consent_accepted: true,
     });
 
-    page.initiateRenewal({ id: 11, household_head: { member_number: '981234567001' } });
+    await page.initiateRenewal({ id: 11, household_head: { member_number: '981234567001' } });
     await Promise.resolve();
     await Promise.resolve();
 

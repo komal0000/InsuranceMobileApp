@@ -4,8 +4,8 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import {
   IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton,
-  IonButton, IonCard, IonCardContent, IonCheckbox,
-  IonIcon, IonSpinner, IonBadge, IonItem, IonLabel
+  IonButton, IonCard, IonCardContent,
+  IonIcon, IonSpinner, IonBadge
 } from '@ionic/angular/standalone';
 import { ToastController, AlertController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -19,6 +19,7 @@ import { ApiResponse } from '../../interfaces/api-response.interface';
 import { PaymentStatusResponse } from '../../interfaces/payment.interface';
 import { LanguageToggleComponent } from '../../components/language-toggle/language-toggle.component';
 import { LanguageService } from '../../services/language.service';
+import { TermsService } from '../../services/terms.service';
 import { trackByEntity } from '../../utils/track-by.util';
 
 interface GatewayOption {
@@ -35,8 +36,8 @@ interface GatewayOption {
   imports: [
     CommonModule, FormsModule,
     IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton,
-    IonButton, IonCard, IonCardContent, IonCheckbox,
-    IonIcon, IonSpinner, IonBadge, IonItem, IonLabel,
+    IonButton, IonCard, IonCardContent,
+    IonIcon, IonSpinner, IonBadge,
     LanguageToggleComponent
   ],
   templateUrl: './payment.page.html',
@@ -50,6 +51,7 @@ export class PaymentPage implements OnInit {
   private toastCtrl = inject(ToastController);
   private alertCtrl = inject(AlertController);
   private languageService = inject(LanguageService);
+  private termsService = inject(TermsService);
 
 
   gateways: GatewayOption[] = [
@@ -74,7 +76,6 @@ export class PaymentPage implements OnInit {
   maxPolls = 10;
   paymentStatus: string | null = null;
   activeReferenceId: string | null = null;
-  consentAccepted = false;
 
   constructor() {
     addIcons({
@@ -99,14 +100,8 @@ export class PaymentPage implements OnInit {
 
   async proceedToPay() {
     if (!this.selectedGateway) return;
-    if (!this.consentAccepted) {
-      const toast = await this.toastCtrl.create({
-        message: this.t('consent.required'),
-        duration: 2500,
-        color: 'warning',
-        position: 'top',
-      });
-      await toast.present();
+    const termsFlow = this.paymentType === 'renewal' ? 'renewal' : 'enrollment';
+    if (!await this.termsService.confirm(termsFlow)) {
       return;
     }
 

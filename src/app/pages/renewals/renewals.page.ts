@@ -9,7 +9,7 @@ import {
   IonSegment, IonSegmentButton, IonRefresher, IonRefresherContent,
   IonInfiniteScroll, IonInfiniteScrollContent, IonFab, IonFabButton,
   IonIcon, IonSpinner, IonCard, IonCardContent, IonButton, IonButtons,
-  IonCheckbox, IonInput, IonItem, IonLabel, IonSelect, IonSelectOption
+  IonInput, IonItem, IonLabel, IonSelect, IonSelectOption
 } from '@ionic/angular/standalone';
 import { ToastController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -32,6 +32,7 @@ import { LanguageToggleComponent } from '../../components/language-toggle/langua
 import { AuthenticatedImageDirective } from '../../directives/authenticated-image.directive';
 import { NepaliInputDirective } from '../../directives/nepali-input.directive';
 import { LanguageService } from '../../services/language.service';
+import { TermsService } from '../../services/terms.service';
 import { isNepaliNamePart, normalizeDigitsOnly } from '../../utils/auth-validation';
 import {
   RelationshipGenderMap,
@@ -90,7 +91,7 @@ const DOCUMENT_FILE_ACCEPT = 'image/*,application/pdf';
     IonSegment, IonSegmentButton, IonRefresher, IonRefresherContent,
     IonInfiniteScroll, IonInfiniteScrollContent, IonFab, IonFabButton,
     IonIcon, IonSpinner, IonCard, IonCardContent, IonButton, IonButtons,
-    IonCheckbox, IonInput, IonItem, IonLabel, IonSelect, IonSelectOption
+    IonInput, IonItem, IonLabel, IonSelect, IonSelectOption
   ],
   templateUrl: './renewals.page.html',
   styleUrls: ['./renewals.page.scss'],
@@ -105,6 +106,7 @@ export class RenewalsPage implements OnInit, OnDestroy {
   private toastCtrl = inject(ToastController);
   private languageService = inject(LanguageService);
   private geoService = inject(GeoService);
+  private termsService = inject(TermsService);
 
   districtsList: string[] = [];
 
@@ -114,7 +116,6 @@ export class RenewalsPage implements OnInit, OnDestroy {
   page = 1;
   lastPage = 1;
   loading = false;
-  consentAccepted = false;
   isBeneficiary = false;
   canInitiateRenewal = false;
   enrollment: any = null;
@@ -269,17 +270,13 @@ export class RenewalsPage implements OnInit, OnDestroy {
     return 0;
   }
 
-  initiateRenewal() {
+  async initiateRenewal() {
     if (!this.canInitiateRenewal || !this.enrollment) return;
-    if (!this.consentAccepted) {
-      this.toastCtrl.create({
-        message: this.t('consent.required'),
-        duration: 2500,
-        color: 'warning',
-        position: 'top',
-      }).then(toast => toast.present());
+
+    if (!await this.termsService.confirm('renewal')) {
       return;
     }
+
     const householdHeadNumber = this.householdHeadNumberForRenewal();
     if (!householdHeadNumber) {
       this.toastCtrl.create({
@@ -457,14 +454,7 @@ export class RenewalsPage implements OnInit, OnDestroy {
 
   async addNewMember() {
     if (!this.canInitiateRenewal || !this.enrollment) return;
-    if (!this.consentAccepted) {
-      const toast = await this.toastCtrl.create({
-        message: this.t('consent.required'),
-        duration: 2500,
-        color: 'warning',
-        position: 'top',
-      });
-      await toast.present();
+    if (!await this.termsService.confirm('renewal')) {
       return;
     }
 

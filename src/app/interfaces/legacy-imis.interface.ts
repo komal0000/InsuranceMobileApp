@@ -108,7 +108,7 @@ export interface LegacyImisKycUpdatePayload extends LegacyImisKycEditableFields 
 }
 
 export interface LegacyImisKycDemoUpdatePayload extends LegacyImisKycEditableFields {
-  household_head_chfid: string;
+  household_head_chfid?: string | null;
   member_chfid: string;
   consent_accepted?: boolean;
   consent_acceptance_id?: number | null;

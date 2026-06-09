@@ -249,17 +249,9 @@
 
           <!-- ─── Action Buttons ─── -->
           <div class="action-section">
-            <ion-item lines="none" *ngIf="canInitiateRenewal && ['approved', 'active', 'expired'].includes(enrollment.status)">
-              <ion-checkbox slot="start" [(ngModel)]="consentAccepted"></ion-checkbox>
-              <ion-label class="ion-text-wrap">
-                <strong>{{ t('consent.title') }}</strong>
-                <p>{{ t('consent.body') }}</p>
-              </ion-label>
-            </ion-item>
-
             <!-- Renew Button -->
             <ion-button expand="block" color="primary"
-                        (click)="initiateRenewal()" [disabled]="initiating || !consentAccepted"
+                        (click)="initiateRenewal()" [disabled]="initiating"
                         *ngIf="canInitiateRenewal && ['approved', 'active', 'expired'].includes(enrollment.status)">
               <ion-spinner *ngIf="initiating" name="crescent" slot="start"></ion-spinner>
               <ion-icon name="refresh-outline" slot="start" *ngIf="!initiating"></ion-icon>

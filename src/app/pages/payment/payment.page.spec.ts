@@ -5,6 +5,7 @@ import { of } from 'rxjs';
 import { PaymentPage } from './payment.page';
 import { LanguageService } from '../../services/language.service';
 import { PaymentService } from '../../services/payment.service';
+import { TermsService } from '../../services/terms.service';
 
 describe('PaymentPage', () => {
   function makePage(
@@ -36,6 +37,9 @@ describe('PaymentPage', () => {
     }));
     const toastCtrl = jasmine.createSpyObj('ToastController', ['create']);
     const alertCtrl = jasmine.createSpyObj('AlertController', ['create']);
+    const termsService = {
+      confirm: jasmine.createSpy('confirm').and.returnValue(Promise.resolve(true)),
+    };
     const languageService = {
       t: (key: string) => key,
       translateText: (value: string) => value,
@@ -51,13 +55,13 @@ describe('PaymentPage', () => {
         { provide: ToastController, useValue: toastCtrl },
         { provide: AlertController, useValue: alertCtrl },
         { provide: LanguageService, useValue: languageService },
+        { provide: TermsService, useValue: termsService },
       ],
     });
     const page = TestBed.runInInjectionContext(() => new PaymentPage());
     page.ngOnInit();
-    page.consentAccepted = true;
 
-    return { page, router, paymentSvc };
+    return { page, router, paymentSvc, termsService };
   }
 
   it('routes exhausted payment polling to the pending result state', fakeAsync(() => {
@@ -81,7 +85,7 @@ describe('PaymentPage', () => {
   }));
 
   it('uses the returned reference for a no-payment renewal response', async () => {
-    const { page, router, paymentSvc } = makePage('pending', {
+    const { page, router, paymentSvc, termsService } = makePage('pending', {
       type: 'renewal',
       renewalId: '42',
     });
@@ -98,6 +102,7 @@ describe('PaymentPage', () => {
 
     await page.proceedToPay();
 
+    expect(termsService.confirm).toHaveBeenCalledOnceWith('renewal');
     expect(paymentSvc.createPayment).toHaveBeenCalledOnceWith('khalti', 'renewal', {
       renewal_id: 42,
       consent_accepted: true,

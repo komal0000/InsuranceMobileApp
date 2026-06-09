@@ -236,6 +236,7 @@ export interface EnrollmentConfig {
   base_premium_amount: number;
   base_premium_member_count: number;
   additional_member_premium: number;
+  terms?: Record<TermsFlow, TermsConfigItem>;
   upload_limits?: {
     max_file_bytes: number;
     max_post_bytes: number;
@@ -250,6 +251,15 @@ export interface EnrollmentConfig {
   qualification_options?: Record<number, string>;
   enrollment_steps: EnrollmentStep[];
   total_steps: number;
+}
+
+export type TermsFlow = 'enrollment' | 'kyc' | 'renewal';
+
+export interface TermsConfigItem {
+  flow: TermsFlow;
+  label: string;
+  text: string;
+  version: number;
 }
 
 export interface EnrollmentStep {

@@ -39,14 +39,7 @@
                 [attr.maxlength]="searchType === 'national_id' ? '32' : null"
                 [(ngModel)]="searchValue"></ion-input>
             </ion-item>
-            <ion-item lines="none" class="form-item">
-              <ion-checkbox slot="start" [(ngModel)]="consentAccepted"></ion-checkbox>
-              <ion-label class="ion-text-wrap">
-                <strong>{{ t('consent.title') }}</strong>
-                <p>{{ t('consent.body') }}</p>
-              </ion-label>
-            </ion-item>
-            <ion-button expand="block" (click)="searchPolicy()" [disabled]="searching || !consentAccepted" class="ion-margin-top">
+            <ion-button expand="block" (click)="searchPolicy()" [disabled]="searching" class="ion-margin-top">
               <ion-spinner *ngIf="searching" name="crescent" slot="start"></ion-spinner>
               {{ searching ? t('renewal_search.searching') : t('common.search') }}
             </ion-button>

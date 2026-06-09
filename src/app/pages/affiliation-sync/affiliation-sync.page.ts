@@ -170,7 +170,7 @@ export class AffiliationSyncPage {
 
         this.authService.clearAffiliationSetup();
         await this.presentToast(this.t('affiliation_sync.complete_success'), 'success');
-        void this.router.navigateByUrl(res.data.redirect_to || '/kyc', { replaceUrl: true });
+        void this.router.navigateByUrl(res.data.redirect_to || '/tabs/dashboard', { replaceUrl: true });
       },
       error: () => {
         this.loadingAction = null;

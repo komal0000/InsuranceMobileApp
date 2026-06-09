@@ -14,7 +14,7 @@ describe('AffiliationSyncPage', () => {
     create: jasmine.createSpy().and.resolveTo({ present: jasmine.createSpy().and.resolveTo() }),
   };
 
-  it('matches HIB numbers, sends OTP, completes import, and routes to KYC', async () => {
+  it('matches HIB numbers, sends OTP, completes import, and routes to dashboard', async () => {
     const authService = jasmine.createSpyObj('AuthService', [
       'affiliationSync',
       'affiliationSendOtp',
@@ -48,14 +48,13 @@ describe('AffiliationSyncPage', () => {
       message: 'Synced.',
       data: {
         token: 'mobile-token',
-        redirect_to: '/kyc',
         user: {
           id: 2,
           name: 'Sita Sharma',
           mobile_number: '9822222222',
           role: 'beneficiary',
           permissions: [],
-          kyc_required: true,
+          kyc_required: false,
           kyc_submitted: false,
         },
       },
@@ -114,6 +113,6 @@ describe('AffiliationSyncPage', () => {
       remember: true,
     });
     expect(authService.clearAffiliationSetup).toHaveBeenCalled();
-    expect(router.navigateByUrl).toHaveBeenCalledWith('/kyc', { replaceUrl: true });
+    expect(router.navigateByUrl).toHaveBeenCalledWith('/tabs/dashboard', { replaceUrl: true });
   });
 });

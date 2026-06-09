@@ -9,6 +9,7 @@ import { AuthService } from '../../services/auth.service';
 import { DateService } from '../../services/date.service';
 import { LanguageService } from '../../services/language.service';
 import { GeoService } from '../../services/geo.service';
+import { TermsService } from '../../services/terms.service';
 
 describe('RenewalsPage', () => {
   function makePage(role: string, overrides: { dateService?: Record<string, unknown> } = {}) {
@@ -18,6 +19,9 @@ describe('RenewalsPage', () => {
     const toast = { present: jasmine.createSpy().and.returnValue(Promise.resolve()) };
     const toastCtrl = {
       create: jasmine.createSpy().and.returnValue(Promise.resolve(toast)),
+    };
+    const termsService = {
+      confirm: jasmine.createSpy('confirm').and.returnValue(Promise.resolve(true)),
     };
     const languageService = {
       t: (key: string) => key,
@@ -43,6 +47,7 @@ describe('RenewalsPage', () => {
         { provide: Router, useValue: router },
         { provide: ToastController, useValue: toastCtrl },
         { provide: LanguageService, useValue: languageService },
+        { provide: TermsService, useValue: termsService },
         {
           provide: GeoService,
           useValue: {
@@ -53,7 +58,7 @@ describe('RenewalsPage', () => {
     });
     const page = TestBed.runInInjectionContext(() => new RenewalsPage());
 
-    return { page, router, api, toastCtrl };
+    return { page, router, api, toastCtrl, termsService };
   }
 
   function relationshipOptions() {
@@ -161,22 +166,19 @@ describe('RenewalsPage', () => {
     expect(input.accept).toBe('image/*');
   });
 
-  it('initiates beneficiary renewal only after consent is accepted', async () => {
-    const { page, api, toastCtrl, router } = makePage('beneficiary');
+  it('initiates beneficiary renewal only after renewal terms are accepted', async () => {
+    const { page, api, termsService, router } = makePage('beneficiary');
     api.post.and.returnValue(of({ success: true, data: { id: 42 } }));
     page.canInitiateRenewal = true;
     page.enrollment = { id: 7, status: 'active', household_head: { member_number: '981234567001' } };
 
-    page.initiateRenewal();
+    termsService.confirm.and.returnValues(Promise.resolve(false), Promise.resolve(true));
+    await page.initiateRenewal();
 
     expect(api.post).not.toHaveBeenCalled();
-    expect(toastCtrl.create).toHaveBeenCalledWith(jasmine.objectContaining({
-      message: 'consent.required',
-      color: 'warning',
-    }));
+    expect(termsService.confirm).toHaveBeenCalledOnceWith('renewal');
 
-    page.consentAccepted = true;
-    page.initiateRenewal();
+    await page.initiateRenewal();
     await Promise.resolve();
     await Promise.resolve();
     await Promise.resolve();
@@ -285,7 +287,6 @@ describe('RenewalsPage', () => {
       dateService: { calculateAge: () => 19 },
     });
     page.canInitiateRenewal = true;
-    page.consentAccepted = true;
     page.enrollment = { id: 7, status: 'active', household_head: { marital_status: 'married', gender: 'male' } };
     page.relationshipOptions = relationshipOptions();
     page.newMember = {
@@ -313,7 +314,6 @@ describe('RenewalsPage', () => {
       dateService: { calculateAge: () => 19 },
     });
     page.canInitiateRenewal = true;
-    page.consentAccepted = true;
     page.enrollment = { id: 7, status: 'active', household_head: { marital_status: 'married' } };
     page.relationshipOptions = relationshipOptions();
     page.newMember = {
@@ -356,7 +356,6 @@ describe('RenewalsPage', () => {
   it('blocks renewal add-member grandchild without a married son', async () => {
     const { page, api, toastCtrl } = makePage('beneficiary');
     page.canInitiateRenewal = true;
-    page.consentAccepted = true;
     page.enrollment = { id: 7, status: 'active', household_head: { marital_status: 'married' }, family_members: [] };
     page.relationshipOptions = relationshipOptions();
     page.newMember = {
@@ -421,7 +420,6 @@ describe('RenewalsPage', () => {
   it('rejects stale relationship selections blocked by household head marital status', async () => {
     const { page, api, toastCtrl } = makePage('beneficiary');
     page.canInitiateRenewal = true;
-    page.consentAccepted = true;
     page.enrollment = { id: 7, status: 'active', household_head: { marital_status: 'separated' } };
     page.relationshipOptions = relationshipOptions();
     page.newMember = {
@@ -446,7 +444,6 @@ describe('RenewalsPage', () => {
   it('blocks non-Devanagari Nepali names before direct add-member submit', async () => {
     const { page, api, toastCtrl } = makePage('beneficiary');
     page.canInitiateRenewal = true;
-    page.consentAccepted = true;
     page.enrollment = { id: 7, status: 'active', household_head: { marital_status: 'married' } };
     page.relationshipOptions = relationshipOptions();
     page.newMember = {
@@ -474,7 +471,6 @@ describe('RenewalsPage', () => {
     const { page, api, router } = makePage('beneficiary');
     api.postFormData.and.returnValue(of({ success: true, data: {} }));
     page.canInitiateRenewal = true;
-    page.consentAccepted = true;
     page.enrollment = { id: 7, status: 'active', household_head: { marital_status: 'married' } };
     page.renewals = [{ id: 42, status: 'draft' }] as any;
     page.relationshipOptions = relationshipOptions();
@@ -508,7 +504,6 @@ describe('RenewalsPage', () => {
     });
     api.postFormData.and.returnValue(of({ success: true, data: {} }));
     page.canInitiateRenewal = true;
-    page.consentAccepted = true;
     page.enrollment = { id: 7, status: 'active', household_head: { marital_status: 'married' } };
     page.renewals = [{ id: 42, status: 'draft' }] as any;
     page.relationshipOptions = relationshipOptions();
@@ -543,7 +538,6 @@ describe('RenewalsPage', () => {
     const { page, api } = makePage('beneficiary');
     api.postFormData.and.returnValue(of({ success: true, data: {} }));
     page.canInitiateRenewal = true;
-    page.consentAccepted = true;
     page.enrollment = { id: 7, status: 'active', household_head: { marital_status: 'married' } };
     page.renewals = [{ id: 42, status: 'draft' }] as any;
     page.relationshipOptions = relationshipOptions();
@@ -569,7 +563,6 @@ describe('RenewalsPage', () => {
       dateService: { isCitizenshipIssueDateValid },
     });
     page.canInitiateRenewal = true;
-    page.consentAccepted = true;
     page.enrollment = { id: 7, status: 'active', household_head: { marital_status: 'married' } };
     page.relationshipOptions = relationshipOptions();
     page.newMember = {
