@@ -14,6 +14,10 @@ export interface User {
   hib_number?: string;
   registration_status?: RegistrationStatus;
   preferred_language?: 'en' | 'ne';
+  kyc_required?: boolean;
+  kyc_required_at?: string | null;
+  kyc_submitted?: boolean;
+  kyc_submitted_at?: string | null;
   role: UserRole;
   permissions: string[];
   created_at?: string;
@@ -46,6 +50,51 @@ export interface AuthData {
   user: User;
   token: string;
 }
+
+export interface AffiliationSyncRequest {
+  household_head_hib_number: string;
+  member_hib_number: string;
+}
+
+export interface AffiliationSyncData {
+  verification_token: string;
+  redirect_to?: string;
+  household_head_chfid: string;
+  member_chfid: string;
+}
+
+export interface AffiliationOtpRequest {
+  verification_token: string;
+  mobile_number: string;
+}
+
+export interface AffiliationOtpData {
+  mobile_number: string;
+  expires_at?: string;
+}
+
+export interface AffiliationCompleteRequest {
+  verification_token: string;
+  otp: string;
+  password: string;
+  password_confirmation: string;
+  remember?: boolean;
+}
+
+export interface AffiliationCompleteData extends AuthData {
+  redirect_to?: string;
+  kyc_required?: boolean;
+  kyc_submitted?: boolean;
+}
+
+export interface AffiliationPasswordRequest {
+  setup_token: string;
+  password: string;
+  password_confirmation: string;
+  remember?: boolean;
+}
+
+export type AffiliationPasswordData = AffiliationCompleteData;
 
 export type RegistrationStatus = 'pending_otp' | 'pending_password' | 'active';
 

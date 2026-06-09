@@ -1,0 +1,26 @@
+<ion-content [fullscreen]="false" [scrollY]="true" class="affiliation-content">
+  <section class="brand-band">
+    <div class="logo-circle">
+      <ion-icon name="shield-checkmark-outline"></ion-icon>
+    </div>
+    <p>{{ t('brand.board_np') }}</p>
+    <span></span>
+    <p>{{ t('brand.board') }}</p>
+  </section>
+
+  <section class="choice-panel">
+    <h1>{{ t('affiliation.heading') }}</h1>
+    <p>{{ t('affiliation.subtitle') }}</p>
+
+    <div class="actions">
+      <ion-button expand="block" routerLink="/affiliation/sync">
+        <ion-icon name="shield-checkmark-outline" slot="start"></ion-icon>
+        {{ t('affiliation.affiliated') }}
+      </ion-button>
+      <ion-button expand="block" fill="outline" routerLink="/login">
+        <ion-icon name="log-in-outline" slot="start"></ion-icon>
+        {{ t('affiliation.not_affiliated') }}
+      </ion-button>
+    </div>
+  </section>
+</ion-content>

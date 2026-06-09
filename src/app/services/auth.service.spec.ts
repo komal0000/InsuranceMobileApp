@@ -2,7 +2,7 @@ import { of } from 'rxjs';
 import { TestBed } from '@angular/core/testing';
 import { AuthService } from './auth.service';
 import { ApiResponse } from '../interfaces/api-response.interface';
-import { AuthData, PendingRegistrationData, RegisterRequest } from '../interfaces/user.interface';
+import { AffiliationCompleteData, AffiliationPasswordData, AffiliationSyncData, AuthData, PendingRegistrationData, RegisterRequest } from '../interfaces/user.interface';
 import { ApiService } from './api.service';
 import { LanguageService } from './language.service';
 
@@ -128,6 +128,149 @@ describe('AuthService', () => {
       expect(api.post).toHaveBeenCalledWith('/login/password/create', payload);
       expect(service.getToken()).toBe('token-123');
       expect(languageService.useUserPreference).toHaveBeenCalledWith('ne');
+      done();
+    });
+  });
+
+  it('posts affiliation sync details with household head and member HIB numbers', (done) => {
+    const payload = {
+      household_head_hib_number: 'HH001',
+      member_hib_number: 'M002',
+    };
+    const response: ApiResponse<AffiliationSyncData> = {
+      success: true,
+      message: 'Legacy household matched.',
+      data: {
+        verification_token: 'verification-token-123',
+        redirect_to: '/affiliation/sync',
+        household_head_chfid: 'HH001',
+        member_chfid: 'M002',
+      },
+    };
+
+    api.post.and.returnValue(of(response));
+
+    service.affiliationSync(payload).subscribe((result) => {
+      expect(result).toEqual(response);
+      expect(api.post).toHaveBeenCalledWith('/affiliation/sync', {
+        household_head_hib_number: 'HH001',
+        member_hib_number: 'M002',
+      });
+      done();
+    });
+  });
+
+  it('posts affiliation OTP phone details', (done) => {
+    const payload = {
+      verification_token: 'verification-token-123',
+      mobile_number: '9822222222',
+    };
+    const response: ApiResponse<{ mobile_number: string; expires_at?: string }> = {
+      success: true,
+      message: 'OTP sent successfully.',
+      data: {
+        mobile_number: '9822222222',
+        expires_at: '2026-06-09T10:00:00+05:45',
+      },
+    };
+
+    api.post.and.returnValue(of(response));
+
+    service.affiliationSendOtp(payload).subscribe((result) => {
+      expect(result).toEqual(response);
+      expect(api.post).toHaveBeenCalledWith('/affiliation/otp/send', payload);
+      done();
+    });
+  });
+
+  it('posts affiliation completion details and stores the returned session', (done) => {
+    const payload = {
+      verification_token: 'verification-token-123',
+      otp: '123456',
+      password: 'Password123!',
+      password_confirmation: 'Password123!',
+      remember: false,
+    };
+    const response: ApiResponse<AffiliationCompleteData> = {
+      success: true,
+      message: 'Legacy IMIS household synced successfully.',
+      data: {
+        token: 'legacy-token-123',
+        redirect_to: '/kyc',
+        kyc_required: true,
+        kyc_submitted: false,
+        user: {
+          id: 2,
+          name: 'Sita Sharma',
+          mobile_number: '9800000000',
+          hib_number: 'HH001',
+          preferred_language: 'en',
+          role: 'beneficiary',
+          permissions: [],
+          kyc_required: true,
+          kyc_submitted: false,
+        },
+      },
+    };
+
+    api.post.and.returnValue(of(response));
+
+    service.affiliationComplete(payload).subscribe((result) => {
+      expect(result).toEqual(response);
+      expect(api.post).toHaveBeenCalledWith('/affiliation/complete', {
+        verification_token: 'verification-token-123',
+        otp: '123456',
+        password: 'Password123!',
+        password_confirmation: 'Password123!',
+        remember: false,
+      });
+      expect(service.getToken()).toBe('legacy-token-123');
+      expect(service.getCurrentUser()?.kyc_required).toBeTrue();
+      expect(languageService.useUserPreference).toHaveBeenCalledWith('en');
+      done();
+    });
+  });
+
+  it('posts affiliation password setup details and stores the returned session', (done) => {
+    const payload = {
+      setup_token: 'setup-token-123',
+      password: 'Password123!',
+      password_confirmation: 'Password123!',
+      remember: true,
+    };
+    const response: ApiResponse<AffiliationPasswordData> = {
+      success: true,
+      message: 'Password created successfully.',
+      data: {
+        token: 'password-token-123',
+        redirect_to: '/kyc',
+        kyc_required: true,
+        kyc_submitted: false,
+        user: {
+          id: 2,
+          name: 'Sita Sharma',
+          mobile_number: '9800000000',
+          hib_number: 'HH001',
+          preferred_language: 'en',
+          role: 'beneficiary',
+          permissions: [],
+          kyc_required: true,
+          kyc_submitted: false,
+        },
+      },
+    };
+
+    api.post.and.returnValue(of(response));
+
+    service.affiliationPassword(payload).subscribe((result) => {
+      expect(result).toEqual(response);
+      expect(api.post).toHaveBeenCalledWith('/affiliation/password', {
+        setup_token: 'setup-token-123',
+        password: 'Password123!',
+        password_confirmation: 'Password123!',
+        remember: true,
+      });
+      expect(service.getToken()).toBe('password-token-123');
       done();
     });
   });

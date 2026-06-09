@@ -4,6 +4,23 @@ import { guestGuard } from './guards/guest.guard';
 
 export const routes: Routes = [
   {
+    path: 'affiliation',
+    canActivate: [guestGuard],
+    loadComponent: () =>
+      import('./pages/affiliation/affiliation.page').then(m => m.AffiliationPage),
+  },
+  {
+    path: 'affiliation/sync',
+    canActivate: [guestGuard],
+    loadComponent: () =>
+      import('./pages/affiliation-sync/affiliation-sync.page').then(m => m.AffiliationSyncPage),
+  },
+  {
+    path: 'affiliation/password',
+    redirectTo: '/affiliation/sync',
+    pathMatch: 'full',
+  },
+  {
     path: 'login',
     canActivate: [guestGuard],
     loadComponent: () =>
@@ -88,7 +105,7 @@ export const routes: Routes = [
   },
   {
     path: '',
-    redirectTo: 'login',
+    redirectTo: 'affiliation',
     pathMatch: 'full',
   },
 ];

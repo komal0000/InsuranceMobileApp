@@ -262,12 +262,15 @@ describe('LoginPage', () => {
     expect(page.passwordInputType('login')).toBe('text');
     expect(page.passwordInputType('setup')).toBe('text');
     expect(page.passwordInputType('setupConfirmation')).toBe('password');
+
   });
 
   it('renders normal password login controls on direct login', async () => {
     const fixture = await renderPage();
     const element: HTMLElement = fixture.nativeElement;
 
+    expect(element.textContent).not.toContain('legacy_import.heading');
+    expect(element.querySelector('.legacy-panel')).toBeNull();
     expect(element.querySelector('.login-btn')).not.toBeNull();
     expect(element.querySelector('.remember-row')).not.toBeNull();
     expect(element.textContent).toContain('login.password');
