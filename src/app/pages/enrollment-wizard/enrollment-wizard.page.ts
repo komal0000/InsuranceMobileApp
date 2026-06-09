@@ -23,6 +23,7 @@ import { GeoService } from '../../services/geo.service';
 import { DateService } from '../../services/date.service';
 import { LanguageService } from '../../services/language.service';
 import { AuthService } from '../../services/auth.service';
+import { TermsService } from '../../services/terms.service';
 import { ApiResponse } from '../../interfaces/api-response.interface';
 import { LanguageToggleComponent } from '../../components/language-toggle/language-toggle.component';
 import { MemberFormComponent } from '../../components/member-form/member-form.component';
@@ -179,6 +180,7 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
   private authService = inject(AuthService);
   private toastCtrl = inject(ToastController);
   private alertCtrl = inject(AlertController);
+  private termsService = inject(TermsService);
 
   private readonly destroy$ = new Subject<void>();
 
@@ -1807,6 +1809,11 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
       this.showToast(this.t('wizard.confirm_information'), 'warning');
       return;
     }
+
+    if (!await this.termsService.confirm('enrollment')) {
+      return;
+    }
+
     // Use subsidy-adjusted premium if available, otherwise raw premium
     const amount = this.subsidySummary
       ? this.subsidySummary.final_premium
@@ -1824,6 +1831,7 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
 
   async submitEnrollment() {
     if (!this.confirmed) { this.showToast(this.t('wizard.confirm_information'), 'warning'); return; }
+    if (!await this.termsService.confirm('enrollment')) { return; }
     this.submitting = true;
     this.enrollmentSvc.submit(this.enrollmentId).subscribe({
       next: async (res) => {

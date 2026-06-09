@@ -9,6 +9,7 @@ import { AuthService } from '../../services/auth.service';
 import { DateService } from '../../services/date.service';
 import { EnrollmentService } from '../../services/enrollment.service';
 import { LanguageService } from '../../services/language.service';
+import { TermsService } from '../../services/terms.service';
 
 describe('EnrollmentDetailPage', () => {
   function makePage() {
@@ -40,6 +41,9 @@ describe('EnrollmentDetailPage', () => {
       create: jasmine.createSpy().and.returnValue(Promise.resolve(toast)),
     };
     const alertCtrl = jasmine.createSpyObj('AlertController', ['create']);
+    const termsService = {
+      confirm: jasmine.createSpy('confirm').and.returnValue(Promise.resolve(true)),
+    };
 
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
@@ -54,25 +58,23 @@ describe('EnrollmentDetailPage', () => {
         { provide: LanguageService, useValue: languageService },
         { provide: ToastController, useValue: toastCtrl },
         { provide: AlertController, useValue: alertCtrl },
+        { provide: TermsService, useValue: termsService },
       ],
     });
     const page = TestBed.runInInjectionContext(() => new EnrollmentDetailPage());
     page.enrollmentId = 12;
 
-    return { page, api, toastCtrl };
+    return { page, api, toastCtrl, termsService };
   }
 
-  it('requires consent before direct draft submit', async () => {
-    const { page, api, toastCtrl } = makePage();
-    (page as any).consentAccepted = false;
+  it('blocks direct draft submit when enrollment terms are declined', async () => {
+    const { page, api, termsService } = makePage();
+    termsService.confirm.and.returnValue(Promise.resolve(false));
 
     await page.submitEnrollment();
 
     expect(api.post).not.toHaveBeenCalled();
-    expect(toastCtrl.create).toHaveBeenCalledWith(jasmine.objectContaining({
-      message: 'consent.required',
-      color: 'warning',
-    }));
+    expect(termsService.confirm).toHaveBeenCalledOnceWith('enrollment');
   });
 
   it('displays submitted date when the enrollment has been submitted later', () => {

@@ -39,12 +39,10 @@ export class LegacyImisService {
   }
 
   fetchKycDemoMember(
-    householdHeadChfid: string,
     memberChfid: string,
     consentAcceptanceId?: number | null,
   ): Observable<ApiResponse<LegacyImisKycDemoResponse>> {
     return this.api.get<ApiResponse<LegacyImisKycDemoResponse>>('/legacy-imis/kyc-demo/member', {
-      household_head_chfid: householdHeadChfid.trim(),
       member_chfid: memberChfid.trim(),
       ...this.consentPayload({ consent_acceptance_id: consentAcceptanceId }),
     });
@@ -52,7 +50,7 @@ export class LegacyImisService {
 
   updateKycDemo(payload: LegacyImisKycDemoUpdatePayload): Observable<ApiResponse<LegacyImisKycDemoResponse>> {
     return this.api.post<ApiResponse<LegacyImisKycDemoResponse>>('/legacy-imis/kyc-demo/update', {
-      household_head_chfid: payload.household_head_chfid.trim(),
+      ...(payload.household_head_chfid ? { household_head_chfid: payload.household_head_chfid.trim() } : {}),
       member_chfid: payload.member_chfid.trim(),
       ...this.kycEditableFields(payload),
       ...this.consentPayload(payload),

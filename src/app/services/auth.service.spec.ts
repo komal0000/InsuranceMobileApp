@@ -196,8 +196,8 @@ describe('AuthService', () => {
       message: 'Legacy IMIS household synced successfully.',
       data: {
         token: 'legacy-token-123',
-        redirect_to: '/kyc',
-        kyc_required: true,
+        redirect_to: '/tabs/dashboard',
+        kyc_required: false,
         kyc_submitted: false,
         user: {
           id: 2,
@@ -207,7 +207,7 @@ describe('AuthService', () => {
           preferred_language: 'en',
           role: 'beneficiary',
           permissions: [],
-          kyc_required: true,
+          kyc_required: false,
           kyc_submitted: false,
         },
       },
@@ -225,7 +225,7 @@ describe('AuthService', () => {
         remember: false,
       });
       expect(service.getToken()).toBe('legacy-token-123');
-      expect(service.getCurrentUser()?.kyc_required).toBeTrue();
+      expect(service.getCurrentUser()?.kyc_required).toBeFalse();
       expect(languageService.useUserPreference).toHaveBeenCalledWith('en');
       done();
     });
@@ -243,8 +243,8 @@ describe('AuthService', () => {
       message: 'Password created successfully.',
       data: {
         token: 'password-token-123',
-        redirect_to: '/kyc',
-        kyc_required: true,
+        redirect_to: '/tabs/dashboard',
+        kyc_required: false,
         kyc_submitted: false,
         user: {
           id: 2,
@@ -254,7 +254,7 @@ describe('AuthService', () => {
           preferred_language: 'en',
           role: 'beneficiary',
           permissions: [],
-          kyc_required: true,
+          kyc_required: false,
           kyc_submitted: false,
         },
       },

@@ -7,7 +7,6 @@ import {
   IonButtons,
   IonCard,
   IonCardContent,
-  IonCheckbox,
   IonContent,
   IonHeader,
   IonIcon,
@@ -40,6 +39,7 @@ import {
 import { LanguageService } from '../../services/language.service';
 import { AuthService } from '../../services/auth.service';
 import { LegacyImisService } from '../../services/legacy-imis.service';
+import { TermsService } from '../../services/terms.service';
 import { trackByEntity } from '../../utils/track-by.util';
 
 type KycForm = {
@@ -102,7 +102,6 @@ interface KycDisplayField {
     IonButtons,
     IonCard,
     IonCardContent,
-    IonCheckbox,
     IonContent,
     IonHeader,
     IonIcon,
@@ -123,6 +122,7 @@ export class KycDemoPage implements OnDestroy {
   private authService = inject(AuthService);
   private legacyImis = inject(LegacyImisService);
   private languageService = inject(LanguageService);
+  private termsService = inject(TermsService);
 
   householdHeadChfid = '';
   memberChfid = '';
@@ -130,7 +130,6 @@ export class KycDemoPage implements OnDestroy {
   updating = false;
   errorMessage = '';
   successMessage = '';
-  consentAccepted = false;
   consentAcceptanceId: number | null = null;
   demoData: LegacyImisKycDemoResponse | null = null;
   kycForm: KycForm = this.blankKycForm();
@@ -193,7 +192,6 @@ export class KycDemoPage implements OnDestroy {
     const userHibNumber = this.authService.getCurrentUser()?.hib_number?.trim();
     if (userHibNumber) {
       this.householdHeadChfid = userHibNumber;
-      this.memberChfid = userHibNumber;
     }
   }
 
@@ -202,26 +200,24 @@ export class KycDemoPage implements OnDestroy {
     this.destroy$.complete();
   }
 
-  fetchMember(): void {
-    const householdHeadChfid = this.householdHeadChfid.trim();
+  async fetchMember(): Promise<void> {
     const memberChfid = this.memberChfid.trim();
 
     this.clearMessages();
 
-    if (!householdHeadChfid || !memberChfid) {
-      this.errorMessage = this.t('kyc_demo.required_chfids');
+    if (!memberChfid) {
+      this.errorMessage = this.t('kyc_demo.required_member_chfid');
       return;
     }
 
-    if (!this.consentAccepted) {
-      this.errorMessage = this.t('consent.required');
+    if (!await this.termsService.confirm('kyc')) {
       return;
     }
 
     this.loading = true;
     this.demoData = null;
 
-    this.legacyImis.fetchKycDemoMember(householdHeadChfid, memberChfid, this.consentAcceptanceId)
+    this.legacyImis.fetchKycDemoMember(memberChfid, this.consentAcceptanceId)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (res) => {
@@ -236,20 +232,14 @@ export class KycDemoPage implements OnDestroy {
       });
   }
 
-  updateKyc(): void {
-    const householdHeadChfid = this.householdHeadChfid.trim();
+  async updateKyc(): Promise<void> {
     const memberChfid = (this.demoData?.selected_member?.chfid || this.memberChfid).trim();
     const editableFields = this.trimmedKycForm();
 
     this.clearMessages();
 
-    if (!this.demoData?.selected_member || !householdHeadChfid || !memberChfid) {
+    if (!this.demoData?.selected_member || !memberChfid) {
       this.errorMessage = this.t('kyc_demo.fetch_first');
-      return;
-    }
-
-    if (!this.consentAccepted) {
-      this.errorMessage = this.t('consent.required');
       return;
     }
 
@@ -258,10 +248,13 @@ export class KycDemoPage implements OnDestroy {
       return;
     }
 
+    if (!await this.termsService.confirm('kyc')) {
+      return;
+    }
+
     this.updating = true;
 
     this.legacyImis.updateKycDemo({
-      household_head_chfid: householdHeadChfid,
       member_chfid: memberChfid,
       ...(this.consentAcceptanceId ? { consent_acceptance_id: this.consentAcceptanceId } : { consent_accepted: true }),
       ...editableFields,

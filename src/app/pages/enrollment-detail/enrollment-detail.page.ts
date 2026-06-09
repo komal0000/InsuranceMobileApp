@@ -7,7 +7,7 @@ import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import {
   IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton,
-  IonCard, IonCardContent, IonBadge, IonCheckbox, IonIcon, IonButton, IonItem, IonLabel, IonSpinner,
+  IonCard, IonCardContent, IonBadge, IonIcon, IonButton, IonSpinner,
 } from '@ionic/angular/standalone';
 import { ToastController, AlertController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -22,6 +22,7 @@ import { AuthService } from '../../services/auth.service';
 import { DateService } from '../../services/date.service';
 import { EnrollmentService } from '../../services/enrollment.service';
 import { LanguageService } from '../../services/language.service';
+import { TermsService } from '../../services/terms.service';
 import { ApiResponse } from '../../interfaces/api-response.interface';
 import { Enrollment } from '../../interfaces/enrollment.interface';
 import { LanguageToggleComponent } from '../../components/language-toggle/language-toggle.component';
@@ -35,7 +36,7 @@ import { trackByEntity } from '../../utils/track-by.util';
     CommonModule, FormsModule,
     AuthenticatedImageDirective,
     IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton,
-    IonCard, IonCardContent, IonBadge, IonCheckbox, IonIcon, IonButton, IonItem, IonLabel, IonSpinner,
+    IonCard, IonCardContent, IonBadge, IonIcon, IonButton, IonSpinner,
     LanguageToggleComponent
   ],
   templateUrl: './enrollment-detail.page.html',
@@ -53,6 +54,7 @@ export class EnrollmentDetailPage implements OnInit, OnDestroy {
   private languageService = inject(LanguageService);
   private toastCtrl = inject(ToastController);
   private alertCtrl = inject(AlertController);
+  private termsService = inject(TermsService);
 
   enrollment: Enrollment | null = null;
   loading = true;
@@ -60,7 +62,6 @@ export class EnrollmentDetailPage implements OnInit, OnDestroy {
   canVerify = false;
   canApprove = false;
   canReject = false;
-  consentAccepted = false;
   private readonly destroy$ = new Subject<void>();
   private hasEnteredView = false;
 
@@ -108,7 +109,6 @@ export class EnrollmentDetailPage implements OnInit, OnDestroy {
     this.api.get<ApiResponse<Enrollment>>(`/enrollments/${this.enrollmentId}`).subscribe({
       next: (res) => {
         this.enrollment = res.data;
-        this.consentAccepted = Boolean(this.enrollment?.consent_acceptance_id);
         if ((res as any).pdf_download_url) {
           this.enrollment.pdf_download_url = (res as any).pdf_download_url;
         }
@@ -126,14 +126,7 @@ export class EnrollmentDetailPage implements OnInit, OnDestroy {
   }
 
   async submitEnrollment() {
-    if (!this.enrollment?.consent_acceptance_id && !this.consentAccepted) {
-      const toast = await this.toastCtrl.create({
-        message: this.t('consent.required'),
-        duration: 2500,
-        color: 'warning',
-        position: 'top',
-      });
-      await toast.present();
+    if (!this.enrollment?.consent_acceptance_id && !await this.termsService.confirm('enrollment')) {
       return;
     }
 

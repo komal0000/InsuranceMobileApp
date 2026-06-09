@@ -6,7 +6,7 @@ import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import {
   IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton,
-  IonCard, IonCardContent, IonBadge, IonCheckbox, IonIcon, IonButton, IonItem, IonLabel, IonSpinner,
+  IonCard, IonCardContent, IonBadge, IonIcon, IonButton, IonSpinner,
 } from '@ionic/angular/standalone';
 import { ToastController, AlertController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -25,6 +25,7 @@ import { MemberFormComponent } from '../../components/member-form/member-form.co
 import { LanguageToggleComponent } from '../../components/language-toggle/language-toggle.component';
 import { AuthenticatedImageDirective } from '../../directives/authenticated-image.directive';
 import { LanguageService } from '../../services/language.service';
+import { TermsService } from '../../services/terms.service';
 import { isNepaliNamePart, normalizeDigitsOnly } from '../../utils/auth-validation';
 import {
   RelationshipGenderMap,
@@ -77,7 +78,7 @@ const DOCUMENT_FILE_ACCEPT = 'image/*,application/pdf';
   imports: [
     CommonModule, FormsModule, MemberFormComponent, LanguageToggleComponent, AuthenticatedImageDirective,
     IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton,
-    IonCard, IonCardContent, IonBadge, IonCheckbox, IonIcon, IonButton, IonItem, IonLabel, IonSpinner,
+    IonCard, IonCardContent, IonBadge, IonIcon, IonButton, IonSpinner,
   ],
   templateUrl: './renewal-detail.page.html',
   styleUrls: ['./renewal-detail.page.scss'],
@@ -92,11 +93,11 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
   private toastCtrl = inject(ToastController);
   private alertCtrl = inject(AlertController);
   private languageService = inject(LanguageService);
+  private termsService = inject(TermsService);
 
   renewal: Renewal | null = null;
   loading = true;
   submitting = false;
-  consentAccepted = false;
   renewalId!: number;
   showMemberForm = false;
   editingMemberId: number | null = null;
@@ -599,19 +600,12 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
   }
 
   async submitRenewal() {
-    if (!this.consentAccepted) {
-      const toast = await this.toastCtrl.create({
-        message: this.t('consent.required'),
-        duration: 2500,
-        color: 'warning',
-        position: 'top',
-      });
-      await toast.present();
+    if (!await this.termsService.confirm('renewal')) {
       return;
     }
 
     if (!this.isFreeRenewal) {
-      this.goToPay();
+      await this.goToPay(true);
       return;
     }
 
@@ -651,14 +645,8 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
     });
   }
 
-  goToPay() {
-    if (!this.consentAccepted) {
-      this.toastCtrl.create({
-        message: this.t('consent.required'),
-        duration: 2500,
-        color: 'warning',
-        position: 'top',
-      }).then(toast => toast.present());
+  async goToPay(termsConfirmed = false): Promise<void> {
+    if (!termsConfirmed && !await this.termsService.confirm('renewal')) {
       return;
     }
 

@@ -7,6 +7,7 @@ import { ApiService } from '../../services/api.service';
 import { AppSyncService } from '../../services/app-sync.service';
 import { DateService } from '../../services/date.service';
 import { LanguageService } from '../../services/language.service';
+import { TermsService } from '../../services/terms.service';
 
 describe('RenewalDetailPage', () => {
   function makePage(overrides: { dateService?: Record<string, unknown>; alertCtrl?: unknown } = {}) {
@@ -32,6 +33,9 @@ describe('RenewalDetailPage', () => {
     };
 
     const router = jasmine.createSpyObj('Router', ['navigate', 'navigateByUrl']);
+    const termsService = {
+      confirm: jasmine.createSpy('confirm').and.returnValue(Promise.resolve(true)),
+    };
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
       providers: [
@@ -43,11 +47,12 @@ describe('RenewalDetailPage', () => {
         { provide: ToastController, useValue: toastCtrl },
         { provide: AlertController, useValue: overrides.alertCtrl || {} },
         { provide: LanguageService, useValue: languageService },
+        { provide: TermsService, useValue: termsService },
       ],
     });
     const page = TestBed.runInInjectionContext(() => new RenewalDetailPage());
 
-    return { page, api, router, toastCtrl };
+    return { page, api, router, toastCtrl, termsService };
   }
 
   function relationshipOptions() {
@@ -331,7 +336,6 @@ describe('RenewalDetailPage', () => {
   it('routes paid eligible renewals directly to payment instead of submit API', async () => {
     const { page, api, router } = makePage();
     page.renewalId = 12;
-    page.consentAccepted = true;
     page.renewal = {
       id: 12,
       status: 'eligible',
@@ -355,7 +359,6 @@ describe('RenewalDetailPage', () => {
   it('keeps zero-pay renewals on the submit-to-review API path', async () => {
     const { page, api, router } = makePage();
     page.renewalId = 12;
-    page.consentAccepted = true;
     page.renewal = {
       id: 12,
       status: 'eligible',

@@ -9,8 +9,7 @@ import {
   IonBadge, IonSearchbar, IonSegment, IonSegmentButton,
   IonRefresher, IonRefresherContent, IonInfiniteScroll,
   IonInfiniteScrollContent, IonFab, IonFabButton, IonIcon,
-  IonSpinner, IonCard, IonCardContent, IonButton, IonCheckbox,
-  IonItem, IonLabel
+  IonSpinner, IonCard, IonCardContent, IonButton
 } from '@ionic/angular/standalone';
 import { ToastController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -20,6 +19,7 @@ import { AppSyncEvent, AppSyncService } from '../../services/app-sync.service';
 import { AuthService } from '../../services/auth.service';
 import { DateService } from '../../services/date.service';
 import { LanguageService } from '../../services/language.service';
+import { TermsService } from '../../services/terms.service';
 import { ApiResponse, PaginatedData } from '../../interfaces/api-response.interface';
 import { Enrollment, EnrollmentStatus } from '../../interfaces/enrollment.interface';
 import { LanguageToggleComponent } from '../../components/language-toggle/language-toggle.component';
@@ -34,8 +34,7 @@ import { trackByEntity } from '../../utils/track-by.util';
     IonBadge, IonSearchbar, IonSegment, IonSegmentButton,
     IonRefresher, IonRefresherContent, IonInfiniteScroll,
     IonInfiniteScrollContent, IonFab, IonFabButton, IonIcon,
-    IonSpinner, IonCard, IonCardContent, IonButton, IonCheckbox,
-    IonItem, IonLabel,
+    IonSpinner, IonCard, IonCardContent, IonButton,
     LanguageToggleComponent
   ],
   templateUrl: './enrollments.page.html',
@@ -50,6 +49,7 @@ export class EnrollmentsPage implements OnInit, OnDestroy {
   private router = inject(Router);
   private toastCtrl = inject(ToastController);
   private languageService = inject(LanguageService);
+  private termsService = inject(TermsService);
 
   enrollments: Enrollment[] = [];
   search = '';
@@ -59,7 +59,6 @@ export class EnrollmentsPage implements OnInit, OnDestroy {
   loading = false;
   canCreate = true;
   isBeneficiary = false;
-  consentAccepted = false;
   private readonly destroy$ = new Subject<void>();
   private hasEnteredView = false;
 
@@ -172,14 +171,7 @@ export class EnrollmentsPage implements OnInit, OnDestroy {
   }
 
   async createNew() {
-    if (!this.consentAccepted) {
-      const toast = await this.toastCtrl.create({
-        message: this.t('consent.required'),
-        duration: 2500,
-        color: 'warning',
-        position: 'top',
-      });
-      await toast.present();
+    if (!await this.termsService.confirm('enrollment')) {
       return;
     }
 

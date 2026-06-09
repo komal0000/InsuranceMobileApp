@@ -5,6 +5,7 @@ import { LegacyImisKycDemoResponse } from '../../interfaces/legacy-imis.interfac
 import { LanguageService } from '../../services/language.service';
 import { LegacyImisService } from '../../services/legacy-imis.service';
 import { AuthService } from '../../services/auth.service';
+import { TermsService } from '../../services/terms.service';
 
 describe('KycDemoPage', () => {
   const demoResponse = (phone = '9811111111'): LegacyImisKycDemoResponse => ({
@@ -110,10 +111,14 @@ describe('KycDemoPage', () => {
       })),
       ...authOverrides,
     };
+    const termsService = {
+      confirm: jasmine.createSpy('confirm').and.returnValue(Promise.resolve(true)),
+    };
 
     return {
       authService,
       legacyImis,
+      termsService,
       page: (() => {
         TestBed.resetTestingModule();
         TestBed.configureTestingModule({
@@ -121,6 +126,7 @@ describe('KycDemoPage', () => {
             { provide: AuthService, useValue: authService },
             { provide: LegacyImisService, useValue: legacyImis },
             { provide: LanguageService, useValue: languageService },
+            { provide: TermsService, useValue: termsService },
           ],
         });
         return TestBed.runInInjectionContext(() => new KycDemoPage());
@@ -143,27 +149,36 @@ describe('KycDemoPage', () => {
     });
 
     expect(page.householdHeadChfid).toBe('HH001');
-    expect(page.memberChfid).toBe('HH001');
+    expect(page.memberChfid).toBe('');
   });
 
-  it('validates required CHFID fields before fetching', () => {
-    const { authService, legacyImis, page } = makePage();
+  it('validates required member CHFID before fetching', () => {
+    const { legacyImis, page } = makePage({}, {
+      getCurrentUser: jasmine.createSpy('getCurrentUser').and.returnValue({
+        id: 2,
+        name: 'Sita Sharma',
+        mobile_number: '9800000000',
+        hib_number: 'HH001',
+        role: 'beneficiary',
+        permissions: [],
+      }),
+    });
 
     page.fetchMember();
 
     expect(legacyImis.fetchKycDemoMember).not.toHaveBeenCalled();
-    expect(page.errorMessage).toBe('kyc_demo.required_chfids');
+    expect(page.errorMessage).toBe('kyc_demo.required_member_chfid');
   });
 
-  it('displays fetched household and selected member data and prefills editable fields', () => {
-    const { legacyImis, page } = makePage();
+  it('displays fetched household and selected member data and prefills editable fields', async () => {
+    const { legacyImis, page, termsService } = makePage();
     page.householdHeadChfid = 'HH001';
     page.memberChfid = 'M002';
-    page.consentAccepted = true;
 
-    page.fetchMember();
+    await page.fetchMember();
 
-    expect(legacyImis.fetchKycDemoMember).toHaveBeenCalledWith('HH001', 'M002', null);
+    expect(termsService.confirm).toHaveBeenCalledOnceWith('kyc');
+    expect(legacyImis.fetchKycDemoMember).toHaveBeenCalledWith('M002', null);
     expect(page.demoData?.household?.total_members).toBe(2);
     expect(page.demoData?.selected_member?.chfid).toBe('M002');
     expect(page.kycForm as any).toEqual({
@@ -210,11 +225,10 @@ describe('KycDemoPage', () => {
     expect(page.errorMessage).toBe('');
   });
 
-  it('updates KYC and refreshes displayed data from the backend response', () => {
-    const { authService, legacyImis, page } = makePage();
+  it('updates KYC and refreshes displayed data from the backend response', async () => {
+    const { authService, legacyImis, page, termsService } = makePage();
     page.householdHeadChfid = 'HH001';
     page.memberChfid = 'M002';
-    page.consentAccepted = true;
     page.consentAcceptanceId = 44;
     page.demoData = demoResponse();
     page.kycForm = {
@@ -248,10 +262,10 @@ describe('KycDemoPage', () => {
       photo: 'data:image/jpeg;base64,aW1hZ2U=',
     } as any;
 
-    page.updateKyc();
+    await page.updateKyc();
 
+    expect(termsService.confirm).toHaveBeenCalledOnceWith('kyc');
     expect(legacyImis.updateKycDemo).toHaveBeenCalledWith({
-      household_head_chfid: 'HH001',
       member_chfid: 'M002',
       consent_acceptance_id: 44,
       firstname: 'Sita',
@@ -297,7 +311,7 @@ describe('KycDemoPage', () => {
     expect(page.photoPreview).toBe('data:image/jpeg;base64,aW1hZ2U=');
   });
 
-  it('shows backend member CHFID validation errors clearly', () => {
+  it('shows backend member CHFID validation errors clearly', async () => {
     const { page } = makePage({
       fetchKycDemoMember: jasmine.createSpy('fetchKycDemoMember').and.returnValue(throwError(() => ({
         error: {
@@ -308,24 +322,22 @@ describe('KycDemoPage', () => {
         },
       }))),
     });
-    page.householdHeadChfid = 'HH001';
     page.memberChfid = 'UNKNOWN';
-    page.consentAccepted = true;
 
-    page.fetchMember();
+    await page.fetchMember();
 
     expect(page.errorMessage).toBe('No member was found for the entered member CHFID.');
     expect(page.demoData).toBeNull();
   });
 
-  it('blocks fetch until consent is accepted', () => {
-    const { legacyImis, page } = makePage();
-    page.householdHeadChfid = 'HH001';
+  it('blocks fetch when terms are declined', async () => {
+    const { legacyImis, page, termsService } = makePage();
+    termsService.confirm.and.returnValue(Promise.resolve(false));
     page.memberChfid = 'M002';
 
-    page.fetchMember();
+    await page.fetchMember();
 
     expect(legacyImis.fetchKycDemoMember).not.toHaveBeenCalled();
-    expect(page.errorMessage).toBe('consent.required');
+    expect(page.errorMessage).toBe('');
   });
 });

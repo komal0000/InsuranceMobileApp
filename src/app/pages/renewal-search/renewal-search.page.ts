@@ -5,7 +5,7 @@ import { Router } from '@angular/router';
 import {
   IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton,
   IonButton, IonItem, IonInput, IonSelect, IonSelectOption,
-  IonCard, IonCardContent, IonCheckbox, IonIcon, IonLabel, IonSpinner, IonText
+  IonCard, IonCardContent, IonIcon, IonSpinner, IonText
 } from '@ionic/angular/standalone';
 import { ToastController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -15,6 +15,7 @@ import { AuthService } from '../../services/auth.service';
 import { ApiResponse } from '../../interfaces/api-response.interface';
 import { LanguageToggleComponent } from '../../components/language-toggle/language-toggle.component';
 import { LanguageService } from '../../services/language.service';
+import { TermsService } from '../../services/terms.service';
 import { isValidNidInput, nidLookupValue } from '../../utils/nid-number.util';
 import { trackByEntity } from '../../utils/track-by.util';
 
@@ -27,7 +28,7 @@ type RenewalIdentifierType = 'hib_number' | 'national_id';
     CommonModule, FormsModule, LanguageToggleComponent,
     IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton,
     IonButton, IonItem, IonInput, IonSelect, IonSelectOption,
-    IonCard, IonCardContent, IonCheckbox, IonIcon, IonLabel, IonSpinner, IonText
+    IonCard, IonCardContent, IonIcon, IonSpinner, IonText
   ],
   templateUrl: './renewal-search.page.html',
   styleUrls: ['./renewal-search.page.scss'],
@@ -39,13 +40,13 @@ export class RenewalSearchPage {
   private toastCtrl = inject(ToastController);
   private authService = inject(AuthService);
   private languageService = inject(LanguageService);
+  private termsService = inject(TermsService);
 
   searchType: RenewalIdentifierType = 'hib_number';
   searchValue = '';
   searching = false;
   results: any[] | null = null;
   canInitiateRenewal = false;
-  consentAccepted = false;
   consentAcceptanceId: number | null = null;
 
   constructor() {
@@ -57,16 +58,6 @@ export class RenewalSearchPage {
   async searchPolicy() {
     const value = this.searchValue.trim();
     if (!this.canInitiateRenewal || !value) return;
-    if (!this.consentAccepted) {
-      const toast = await this.toastCtrl.create({
-        message: this.t('consent.required'),
-        duration: 2500,
-        color: 'warning',
-        position: 'top',
-      });
-      await toast.present();
-      return;
-    }
     if (this.searchType === 'national_id' && !isValidNidInput(value)) {
       const toast = await this.toastCtrl.create({
         message: this.t('wizard.nid_invalid_length'),
@@ -75,6 +66,10 @@ export class RenewalSearchPage {
         position: 'top',
       });
       await toast.present();
+      return;
+    }
+
+    if (!await this.termsService.confirm('renewal')) {
       return;
     }
 
@@ -97,6 +92,10 @@ export class RenewalSearchPage {
 
   async initiateRenewal(enrollment: any) {
     if (!this.canInitiateRenewal) return;
+    if (!this.consentAcceptanceId && !await this.termsService.confirm('renewal')) {
+      return;
+    }
+
     const identifier = this.renewalIdentifierFor(enrollment);
     if (!identifier) {
       const toast = await this.toastCtrl.create({

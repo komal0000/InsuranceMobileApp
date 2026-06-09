@@ -11,6 +11,7 @@ import { EnrollmentService } from '../../services/enrollment.service';
 import { GeoService } from '../../services/geo.service';
 import { LanguageService } from '../../services/language.service';
 import { ApiService } from '../../services/api.service';
+import { TermsService } from '../../services/terms.service';
 
 describe('EnrollmentWizardPage', () => {
   function languageService(language = 'en') {
@@ -58,6 +59,7 @@ describe('EnrollmentWizardPage', () => {
     authService?: unknown;
     alertCtrl?: unknown;
     route?: unknown;
+    termsService?: unknown;
   } = {}) {
     const defaultGeoSvc = {
       provinces: jasmine.createSpy().and.returnValue(of(response([]))),
@@ -88,6 +90,7 @@ describe('EnrollmentWizardPage', () => {
         { provide: AuthService, useValue: overrides.authService || { getCurrentUser: () => null } },
         { provide: ToastController, useValue: toastController() },
         { provide: AlertController, useValue: overrides.alertCtrl || {} },
+        { provide: TermsService, useValue: overrides.termsService || { confirm: jasmine.createSpy('confirm').and.returnValue(Promise.resolve(true)) } },
       ],
     });
 

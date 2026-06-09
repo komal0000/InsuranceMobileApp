@@ -131,7 +131,7 @@ describe('LegacyImisService', () => {
     });
   });
 
-  it('fetches a KYC demo member through the backend by household and member CHFID', () => {
+  it('fetches a KYC demo member through the backend by member CHFID only', () => {
     const response: ApiResponse<LegacyImisKycDemoResponse> = {
       success: true,
       message: 'Loaded.',
@@ -150,12 +150,11 @@ describe('LegacyImisService', () => {
     };
     api.get.and.returnValue(of(response));
 
-    service.fetchKycDemoMember(' HH001 ', ' M002 ').subscribe(result => {
+    service.fetchKycDemoMember(' M002 ').subscribe(result => {
       expect(result).toEqual(response);
     });
 
     expect(api.get).toHaveBeenCalledOnceWith('/legacy-imis/kyc-demo/member', {
-      household_head_chfid: 'HH001',
       member_chfid: 'M002',
       consent_accepted: true,
     });
@@ -176,7 +175,6 @@ describe('LegacyImisService', () => {
     api.post.and.returnValue(of(response));
 
     service.updateKycDemo({
-      household_head_chfid: ' HH001 ',
       member_chfid: ' M002 ',
       firstname: 'Sita',
       lastname: 'Sharma',
@@ -214,7 +212,6 @@ describe('LegacyImisService', () => {
     });
 
     expect(api.post).toHaveBeenCalledOnceWith('/legacy-imis/kyc-demo/update', {
-      household_head_chfid: 'HH001',
       member_chfid: 'M002',
       firstname: 'Sita',
       lastname: 'Sharma',
@@ -267,14 +264,12 @@ describe('LegacyImisService', () => {
     api.post.and.returnValue(of(response));
 
     service.updateKycDemo({
-      household_head_chfid: 'HH001',
       member_chfid: 'M002',
       phone: '+9779800000000',
       consent_acceptance_id: 44,
     }).subscribe(result => expect(result).toEqual(response));
 
     expect(api.post).toHaveBeenCalledOnceWith('/legacy-imis/kyc-demo/update', jasmine.objectContaining({
-      household_head_chfid: 'HH001',
       member_chfid: 'M002',
       phone: '+9779800000000',
       consent_acceptance_id: 44,
