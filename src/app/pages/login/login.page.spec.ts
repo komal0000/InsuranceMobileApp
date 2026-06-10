@@ -14,10 +14,12 @@ describe('LoginPage', () => {
       en: {
         'login.enter_mobile_number': 'Enter mobile number',
         'login.enter_hib_number': 'Enter HIB number',
+        'login.sync_previous_hib_data': 'Sync previous HIB data',
       },
       ne: {
         'login.enter_mobile_number': 'मोबाइल नम्बर लेख्नुहोस्',
         'login.enter_hib_number': 'HIB नम्बर लेख्नुहोस्',
+        'login.sync_previous_hib_data': 'पुरानो HIB विवरण ल्याउनुहोस्',
       },
     };
     const languageService = {
@@ -269,8 +271,8 @@ describe('LoginPage', () => {
     const fixture = await renderPage();
     const element: HTMLElement = fixture.nativeElement;
 
-    expect(element.textContent).not.toContain('legacy_import.heading');
-    expect(element.querySelector('.legacy-panel')).toBeNull();
+    expect(element.textContent).toContain('Sync previous HIB data');
+    expect(element.querySelector('.sync-previous-hib-btn')).not.toBeNull();
     expect(element.querySelector('.login-btn')).not.toBeNull();
     expect(element.querySelector('.remember-row')).not.toBeNull();
     expect(element.textContent).toContain('login.password');
@@ -286,6 +288,7 @@ describe('LoginPage', () => {
     const element: HTMLElement = fixture.nativeElement;
 
     expect(element.querySelector('.send-otp-btn')).not.toBeNull();
+    expect(element.querySelector('.sync-previous-hib-btn')).toBeNull();
     expect(element.querySelector('.login-btn')).toBeNull();
     expect(element.querySelector('.remember-row')).toBeNull();
     expect(element.textContent).not.toContain('login.password');
