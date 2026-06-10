@@ -5,9 +5,8 @@ import { guestGuard } from './guards/guest.guard';
 export const routes: Routes = [
   {
     path: 'affiliation',
-    canActivate: [guestGuard],
-    loadComponent: () =>
-      import('./pages/affiliation/affiliation.page').then(m => m.AffiliationPage),
+    redirectTo: '/login',
+    pathMatch: 'full',
   },
   {
     path: 'affiliation/sync',
@@ -105,7 +104,7 @@ export const routes: Routes = [
   },
   {
     path: '',
-    redirectTo: 'affiliation',
+    redirectTo: 'login',
     pathMatch: 'full',
   },
 ];

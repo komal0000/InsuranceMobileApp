@@ -16,7 +16,7 @@ import { isStrongPassword } from '../../utils/auth-validation';
 import { addIcons } from 'ionicons';
 import {
   logInOutline, personOutline, lockClosedOutline, eyeOutline,
-  eyeOffOutline, shieldCheckmarkOutline, languageOutline, keyOutline
+  eyeOffOutline, shieldCheckmarkOutline, languageOutline, keyOutline, cloudDownloadOutline
 } from 'ionicons/icons';
 
 type SetupLoadingAction = 'sendOtp' | 'verifyOtp' | 'createPassword' | null;
@@ -67,7 +67,7 @@ export class LoginPage implements OnDestroy {
   constructor() {
     addIcons({
       logInOutline, personOutline, lockClosedOutline, eyeOutline,
-      eyeOffOutline, shieldCheckmarkOutline, languageOutline, keyOutline,
+      eyeOffOutline, shieldCheckmarkOutline, languageOutline, keyOutline, cloudDownloadOutline,
     });
 
     this.route.queryParamMap
