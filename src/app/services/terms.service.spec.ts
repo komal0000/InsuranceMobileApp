@@ -19,7 +19,12 @@ describe('TermsService', () => {
       data: {
         terms: {
           enrollment: { flow: 'enrollment', label: 'Enrollment', text: 'Enrollment-specific admin terms.', version: 2 },
-          kyc: { flow: 'kyc', label: 'KYC', text: 'KYC-specific admin terms.', version: 4 },
+          kyc: {
+            flow: 'kyc',
+            label: 'KYC',
+            text: "English:\nKYC-specific admin terms.\n\nनेपाली:\nKYC का नियम तथा सर्तहरू।",
+            version: 4,
+          },
           renewal: { flow: 'renewal', label: 'Renewal', text: 'Renewal-specific admin terms.', version: 6 },
         },
       },
@@ -55,6 +60,9 @@ describe('TermsService', () => {
       header: 'KYC Terms and Conditions',
       message: jasmine.stringContaining('KYC-specific admin terms.'),
       inputs: [jasmine.objectContaining({ type: 'checkbox', value: 'accepted' })],
+    }));
+    expect(alertCtrl.create).toHaveBeenCalledOnceWith(jasmine.objectContaining({
+      message: jasmine.stringContaining('English:<br>KYC-specific admin terms.<br><br>नेपाली:<br>KYC का नियम तथा सर्तहरू।'),
     }));
   });
 

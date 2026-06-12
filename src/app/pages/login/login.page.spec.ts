@@ -244,6 +244,73 @@ describe('LoginPage', () => {
     }));
   });
 
+  it('does not redirect login to KYC when the user cannot perform KYC yet', async () => {
+    const authService = createAuthService();
+    const router = jasmine.createSpyObj('Router', ['navigateByUrl']);
+    router.navigateByUrl.and.resolveTo(true);
+    const page = createPage(authService, router);
+
+    authService.login.and.returnValue(of({
+      success: true,
+      message: 'Login successful',
+      data: {
+        token: 'token-123',
+        user: {
+          id: 1,
+          name: 'Komal Shrestha',
+          mobile_number: '9812345678',
+          role: 'beneficiary',
+          permissions: [],
+          kyc_required: true,
+          kyc_submitted: false,
+          can_perform_kyc: false,
+        },
+      },
+    }));
+
+    page.loginData.identifier = '9812345678';
+    page.loginData.password = 'Password123!';
+
+    await page.login();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(router.navigateByUrl).toHaveBeenCalledWith('/tabs/dashboard', { replaceUrl: true });
+  });
+
+  it('redirects login to KYC when KYC eligibility is missing from the user payload', async () => {
+    const authService = createAuthService();
+    const router = jasmine.createSpyObj('Router', ['navigateByUrl']);
+    router.navigateByUrl.and.resolveTo(true);
+    const page = createPage(authService, router);
+
+    authService.login.and.returnValue(of({
+      success: true,
+      message: 'Login successful',
+      data: {
+        token: 'token-123',
+        user: {
+          id: 1,
+          name: 'Komal Shrestha',
+          mobile_number: '9812345678',
+          role: 'beneficiary',
+          permissions: [],
+          kyc_required: true,
+          kyc_submitted: false,
+        },
+      },
+    }));
+
+    page.loginData.identifier = '9812345678';
+    page.loginData.password = 'Password123!';
+
+    await page.login();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(router.navigateByUrl).toHaveBeenCalledWith('/kyc', { replaceUrl: true });
+  });
+
   it('toggles each login password field independently', () => {
     const authService = createAuthService();
     const router = jasmine.createSpyObj('Router', ['navigateByUrl']);

@@ -9,6 +9,7 @@ export interface DashboardData {
   enrollments_today?: number;
   total_enrollments?: number;
   completed_renewals?: number;
+  can_perform_kyc?: boolean;
   profile?: BeneficiaryDashboardProfile | null;
 }
 

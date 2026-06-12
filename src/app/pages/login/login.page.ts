@@ -269,7 +269,7 @@ export class LoginPage implements OnDestroy {
   }
 
   private postLoginTarget(user?: User | null): string {
-    return user?.kyc_required && !user?.kyc_submitted ? '/kyc' : '/tabs/dashboard';
+    return user?.kyc_required && !user?.kyc_submitted && (user.can_perform_kyc ?? true) ? '/kyc' : '/tabs/dashboard';
   }
 
   private async presentToast(message: string, color: 'success' | 'warning' | 'danger') {

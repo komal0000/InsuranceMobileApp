@@ -211,6 +211,10 @@ export class DashboardPage implements OnInit, OnDestroy {
     return this.isBeneficiary;
   }
 
+  get canPerformKyc(): boolean {
+    return !!(this.stats?.can_perform_kyc ?? this.user?.can_perform_kyc);
+  }
+
   checkInsurance() {
     const nid = this.insuranceCheckNid.trim();
 

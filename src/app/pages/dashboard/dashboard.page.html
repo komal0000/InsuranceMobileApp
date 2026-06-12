@@ -302,7 +302,7 @@
       </ion-card-content>
     </ion-card>
 
-    <ion-card button (click)="openKycDemo()" *ngIf="isBeneficiary" class="action-card">
+    <ion-card button (click)="openKycDemo()" *ngIf="isBeneficiary && canPerformKyc" class="action-card">
       <ion-card-content class="action-content">
         <div class="action-icon-box" style="background: rgba(13,110,253,0.08);">
           <ion-icon name="person-circle-outline" style="color: #0d6efd;"></ion-icon>

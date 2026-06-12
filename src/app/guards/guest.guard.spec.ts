@@ -29,6 +29,7 @@ describe('guestGuard', () => {
         role: 'beneficiary',
         kyc_required: true,
         kyc_submitted: false,
+        can_perform_kyc: true,
       }),
     };
 
@@ -36,5 +37,40 @@ describe('guestGuard', () => {
 
     expect(await result).toBeFalse();
     expect(router.navigateByUrl).toHaveBeenCalledWith('/kyc', { replaceUrl: true });
+  });
+
+  it('redirects older persisted KYC-required users from login to KYC when KYC eligibility is missing', async () => {
+    const authService = {
+      init: jasmine.createSpy('init').and.resolveTo(),
+      isAuthenticated: jasmine.createSpy('isAuthenticated').and.returnValue(true),
+      getCurrentUser: jasmine.createSpy('getCurrentUser').and.returnValue({
+        role: 'beneficiary',
+        kyc_required: true,
+        kyc_submitted: false,
+      }),
+    };
+
+    const { router, result } = runGuard(authService);
+
+    expect(await result).toBeFalse();
+    expect(router.navigateByUrl).toHaveBeenCalledWith('/kyc', { replaceUrl: true });
+  });
+
+  it('redirects authenticated imported users from login to dashboard when they cannot perform KYC yet', async () => {
+    const authService = {
+      init: jasmine.createSpy('init').and.resolveTo(),
+      isAuthenticated: jasmine.createSpy('isAuthenticated').and.returnValue(true),
+      getCurrentUser: jasmine.createSpy('getCurrentUser').and.returnValue({
+        role: 'beneficiary',
+        kyc_required: true,
+        kyc_submitted: false,
+        can_perform_kyc: false,
+      }),
+    };
+
+    const { router, result } = runGuard(authService);
+
+    expect(await result).toBeFalse();
+    expect(router.navigateByUrl).toHaveBeenCalledWith('/tabs/dashboard', { replaceUrl: true });
   });
 });

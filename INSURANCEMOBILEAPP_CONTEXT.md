@@ -1,6 +1,6 @@
 # InsuranceMobileApp Current Context
 
-Last updated: 2026-05-24
+Last updated: 2026-06-12
 
 This file captures the current Ionic/Angular state so future conversations do not need to rediscover the mobile app.
 
@@ -46,6 +46,7 @@ This file captures the current Ionic/Angular state so future conversations do no
 - Renewal search/initiation includes consent. `RenewalSearchPage` sends `consent_accepted=true` on search, stores `data.consent_acceptance_id`, and passes it to initiation. The renewals tab and renewal detail also require the checkbox before initiation, submit, or payment fallback actions.
 - Mobile KYC lookup/update requires consent. `LegacyImisService.fetchKycDemoMember()` and `updateKycDemo()` include `consent_accepted=true` or the returned `consent_acceptance_id`; direct `updateKyc()` also sends consent.
 - Payment fallback includes `consent_accepted=true` in `PaymentService.createPayment()` options so existing enrollment/renewal records without linked consent can be linked before gateway initiation.
+- Backend enrollment config still returns one `terms[flow].text` string per `enrollment`, `kyc`, and `renewal` flow, but the default content is now bilingual English/Nepali with line breaks. `TermsService` renders those line breaks in the Ionic alert body; no mobile API contract change is required.
 - Consent translations live under `consent.title`, `consent.body`, and `consent.required` in `src\app\i18n\en.ts` and `src\app\i18n\ne.ts`.
 
 ## Recent Auth Flow Changes

@@ -1,8 +1,7 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://insurance.needtechnosoft.com/api',
+  apiUrl: 'https://enrollment.hib.gov.np/api',
   apiUrls: [
-    'https://insurance.needtechnosoft.com/api'
+    'https://enrollment.hib.gov.np/api'
   ]
 };
-

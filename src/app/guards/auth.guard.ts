@@ -13,7 +13,7 @@ export const authGuard: CanActivateFn = async (_route, state) => {
     const user = authService.getCurrentUser();
     const targetUrl = state.url || '';
 
-    if (user?.kyc_required && !user?.kyc_submitted && !targetUrl.startsWith('/kyc')) {
+    if (user?.kyc_required && !user?.kyc_submitted && (user.can_perform_kyc ?? true) && !targetUrl.startsWith('/kyc')) {
       router.navigateByUrl('/kyc', { replaceUrl: true });
       return false;
     }

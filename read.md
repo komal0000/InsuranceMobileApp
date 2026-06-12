@@ -34,7 +34,7 @@ The mobile app calls the backend API from these files:
 Current value:
 
 ```ts
-apiUrl: 'https://insurance.needtechnosoft.com/api'
+apiUrl: 'https://enrollment.hib.gov.np/api'
 ```
 
 Update this value if your Laravel backend is running on a different IP address, host, or port.

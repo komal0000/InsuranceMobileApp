@@ -18,6 +18,7 @@ export interface User {
   kyc_required_at?: string | null;
   kyc_submitted?: boolean;
   kyc_submitted_at?: string | null;
+  can_perform_kyc?: boolean;
   role: UserRole;
   permissions: string[];
   created_at?: string;
@@ -85,6 +86,7 @@ export interface AffiliationCompleteData extends AuthData {
   redirect_to?: string;
   kyc_required?: boolean;
   kyc_submitted?: boolean;
+  can_perform_kyc?: boolean;
 }
 
 export interface AffiliationPasswordRequest {

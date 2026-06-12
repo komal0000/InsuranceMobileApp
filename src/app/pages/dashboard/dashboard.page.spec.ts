@@ -112,6 +112,17 @@ describe('DashboardPage', () => {
     expect(router.navigateByUrl).toHaveBeenCalledOnceWith('/kyc');
   });
 
+  it('exposes the KYC dashboard action only when the API says KYC can be performed', () => {
+    const page = makePage();
+    page.isBeneficiary = true;
+
+    page.stats = { can_perform_kyc: false };
+    expect(page.canPerformKyc).toBeFalse();
+
+    page.stats = { can_perform_kyc: true };
+    expect(page.canPerformKyc).toBeTrue();
+  });
+
   it('navigates to the HIB Profile page from the dashboard action', () => {
     const router = jasmine.createSpyObj('Router', ['navigateByUrl']);
     const page = makePage({ router });
