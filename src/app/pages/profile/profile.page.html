@@ -98,8 +98,18 @@
               [(ngModel)]="profileData.date_of_birth"
               [label]="t('profile.date_of_birth')"
               [placeholder]="t('common.select_bs_date')"
-              [disabled]="!editing">
+              [disabled]="!editing || isProfileFieldLocked('date_of_birth')">
             </app-bs-date-picker>
+            <p class="locked-note" *ngIf="isProfileFieldLocked('date_of_birth')">{{ t('profile.managed_from_enrollment') }}</p>
+            <ion-item class="form-item" *ngIf="isProfileFieldLocked('province') || profileData.province">
+              <ion-input [label]="t('wizard.province')" labelPlacement="stacked"
+                [(ngModel)]="profileData.province" [readonly]="true" [disabled]="true"></ion-input>
+            </ion-item>
+            <ion-item class="form-item" *ngIf="isProfileFieldLocked('district') || profileData.district">
+              <ion-input [label]="t('wizard.district')" labelPlacement="stacked"
+                [(ngModel)]="profileData.district" [readonly]="true" [disabled]="true"></ion-input>
+            </ion-item>
+            <p class="locked-note" *ngIf="isProfileFieldLocked('province') || isProfileFieldLocked('district')">{{ t('profile.managed_from_enrollment') }}</p>
 
             <div class="btn-row">
               <ion-button expand="block" *ngIf="!editing" (click)="editing = true">

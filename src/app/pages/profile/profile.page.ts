@@ -27,6 +27,7 @@ import { isNepaliFullName, isStrongPassword, normalizeSpaces } from '../../utils
 import { prepareUploadFile } from '../../utils/upload-file.util';
 
 type ProfilePasswordField = 'current' | 'new' | 'confirmation';
+type ProfileLockedField = 'date_of_birth' | 'province' | 'district' | 'email' | 'mobile_number' | 'name' | 'name_ne';
 
 @Component({
   selector: 'app-profile',
@@ -177,6 +178,7 @@ export class ProfilePage implements OnInit {
       this.profileData as Record<string, unknown>,
       ['date_of_birth']
     );
+    this.stripLockedProfileFields(payload);
     this.api.put<ApiResponse>('/profile', payload).subscribe({
       next: async (res) => {
         this.savingProfile = false;
@@ -263,6 +265,11 @@ export class ProfilePage implements OnInit {
     return this.dateService.formatForDisplay(adDate, bsDate) || '';
   }
 
+  isProfileFieldLocked(field: ProfileLockedField): boolean {
+    return Array.isArray(this.user?.profile_locked_fields)
+      && this.user.profile_locked_fields.includes(field);
+  }
+
   get showKycShortcut(): boolean {
     return this.user?.role === 'beneficiary';
   }
@@ -293,5 +300,14 @@ export class ProfilePage implements OnInit {
 
   t(key: string): string {
     return this.languageService.t(key);
+  }
+
+  private stripLockedProfileFields(payload: Record<string, unknown>): void {
+    for (const field of this.user?.profile_locked_fields || []) {
+      delete payload[field];
+      if (field === 'date_of_birth') {
+        delete payload['date_of_birth_bs'];
+      }
+    }
   }
 }

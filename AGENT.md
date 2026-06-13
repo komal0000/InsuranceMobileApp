@@ -9,12 +9,14 @@ Use this file first when starting mobile work in `C:\Insurance\InsuranceMobileAp
 - Consumes Laravel API from sibling backend: `C:\Insurance\InsuranceApp`.
 
 ## Working Rules
-- Read `INSURANCEMOBILEAPP_CONTEXT.md` before broad code searches.
-- After meaningful mobile changes, update `INSURANCEMOBILEAPP_CONTEXT.md` before finishing.
-- If mobile work depends on or changes backend API expectations, also update `C:\Insurance\InsuranceApp\INSURANCEAPP_CONTEXT.md` with a short backend/API note.
-- If API contracts change, check backend files and `C:\Insurance\InsuranceApp\INSURANCEAPP_CONTEXT.md`.
+- Read `INSURANCEMOBILEAPP_CONTEXT_SUMMARY.md` before broad code searches.
+- Treat `INSURANCEMOBILEAPP_CONTEXT.md` as a router to choose the relevant file under `docs/context/`.
+- After meaningful mobile changes, update the smallest relevant file under `docs/context/` before finishing.
+- If mobile work depends on or changes backend API expectations, also update `../docs/context/api-contracts.md` and the relevant backend domain context under `../InsuranceApp/docs/context/`.
+- If API contracts change, check backend files, `../InsuranceApp/INSURANCEAPP_CONTEXT.md`, and `../docs/context/api-contracts.md`.
 - Prefer `npm run build` after template/TypeScript changes.
 - Prefer `npm test -- --watch=false --browsers=ChromeHeadless` after service/page test changes.
+- Follow `.aiexclude` and `.cursorignore`; do not search generated caches, dependency folders, build outputs, logs, screenshots, secrets, or `package-lock.json` unless the task requires them.
 - Keep direct login password-only unless a registration handoff explicitly requests OTP setup UI.
 - Do not reintroduce family-member target-group controls in enrollment or renewal member forms.
 - Context updates are required for meaningful route, API, interface, flow, service, config, command, or verification changes; skip them for trivial formatting-only edits.
@@ -43,5 +45,6 @@ Expected current result:
 
 ## Cross-Project Dependency
 - Backend root: `C:\Insurance\InsuranceApp`.
-- Backend context file: `C:\Insurance\InsuranceApp\INSURANCEAPP_CONTEXT.md`.
+- Backend context router: `C:\Insurance\InsuranceApp\INSURANCEAPP_CONTEXT.md`.
+- Shared API contract context: `..\docs\context\api-contracts.md`.
 - Relevant backend endpoints for enrollment are in `routes\api.php` and `app\Http\Controllers\Api\EnrollmentController.php`.

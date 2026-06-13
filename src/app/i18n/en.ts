@@ -141,6 +141,7 @@ export const EN_TRANSLATIONS: Record<string, string> = {
   'profile.updated': 'Profile updated',
   'profile.password_fields': 'Please fill in all password fields',
   'profile.password_changed': 'Password changed',
+  'profile.managed_from_enrollment': 'Managed from verified enrollment',
   'profile.photo': 'Profile Photo',
   'profile.hib_profile': 'HIB Profile',
   'profile.hib_profile_help': 'View household HIB cards and member profiles',

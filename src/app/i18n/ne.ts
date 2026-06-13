@@ -376,6 +376,7 @@
   'profile.updated': 'प्रोफाइल अद्यावधिक भयो',
   'profile.password_fields': 'कृपया सबै पासवर्ड फिल्डहरू भर्नुहोस्',
   'profile.password_changed': 'पासवर्ड परिवर्तन भयो',
+  'profile.managed_from_enrollment': 'प्रमाणित नामांकनबाट व्यवस्थापन गरिएको',
   'profile.hib_profile': 'HIB प्रोफाइल',
   'profile.hib_profile_help': 'घरपरिवार HIB कार्ड र सदस्य प्रोफाइल हेर्नुहोस्',
 

@@ -1,0 +1,26 @@
+# AI/code-agent exclude rules for the Ionic/Angular mobile app.
+
+/node_modules/
+/.angular/
+/.angular/cache/
+/www/
+/dist/
+/coverage/
+/android/.gradle/
+/android/**/build/
+/android/app/src/main/assets/
+/.gstack/
+/.codex/
+/.idea/
+/.vscode/
+*.log
+*.jsonl
+*.jks
+google-services.json
+GoogleService-Info.plist
+android/app/google-services.json
+android/key.properties
+android/release-keystore.jks
+
+# Conditional-read only. Do not include in broad indexing/search context.
+/package-lock.json

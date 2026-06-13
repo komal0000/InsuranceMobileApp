@@ -137,6 +137,55 @@ describe('ProfilePage', () => {
     expect(payload['date_of_birth_bs']).toBe('2054/01/15');
   });
 
+  it('detects enrollment-locked identity fields from the profile payload', () => {
+    const user = {
+      name: 'Sita Sharma',
+      mobile_number: '9812345678',
+      profile_locked_fields: ['date_of_birth', 'province', 'district'],
+    };
+    const { page } = createPage(user);
+    page.user = user as any;
+
+    expect((page as any).isProfileFieldLocked('date_of_birth')).toBeTrue();
+    expect((page as any).isProfileFieldLocked('province')).toBeTrue();
+    expect((page as any).isProfileFieldLocked('district')).toBeTrue();
+    expect((page as any).isProfileFieldLocked('email')).toBeFalse();
+  });
+
+  it('omits enrollment-locked identity fields when saving profile changes', async () => {
+    const user = {
+      name: 'Sita Sharma',
+      name_ne: 'सीता शर्मा',
+      email: 'sita@example.test',
+      mobile_number: '9812345678',
+      date_of_birth: '2047/03/01',
+      province: 'Bagmati',
+      district: 'Kathmandu',
+      profile_locked_fields: ['date_of_birth', 'province', 'district'],
+    };
+    const { page, api } = createPage(user);
+    page.user = user as any;
+    page.profileData = {
+      name: 'Sita Sharma Updated',
+      name_ne: 'सीता शर्मा',
+      email: 'sita-updated@example.test',
+      mobile_number: '9812345678',
+      date_of_birth: '2054/01/15',
+      province: 'Koshi',
+      district: 'Morang',
+    };
+
+    await page.saveProfile();
+
+    const payload = api.put.calls.mostRecent().args[1] as Record<string, unknown>;
+    expect(payload['name']).toBe('Sita Sharma Updated');
+    expect(payload['email']).toBe('sita-updated@example.test');
+    expect(payload['date_of_birth']).toBeUndefined();
+    expect(payload['date_of_birth_bs']).toBeUndefined();
+    expect(payload['province']).toBeUndefined();
+    expect(payload['district']).toBeUndefined();
+  });
+
   it('toggles profile password fields independently', () => {
     const { page } = createPage();
 

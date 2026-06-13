@@ -11,6 +11,7 @@ export interface User {
   province?: string;
   district?: string;
   profile_image?: string;
+  profile_locked_fields?: string[];
   hib_number?: string;
   registration_status?: RegistrationStatus;
   preferred_language?: 'en' | 'ne';
