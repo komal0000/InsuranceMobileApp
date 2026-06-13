@@ -3,7 +3,7 @@ import { AlertController } from '@ionic/angular/standalone';
 import { firstValueFrom } from 'rxjs';
 import { TermsFlow } from '../interfaces/enrollment.interface';
 import { EnrollmentService } from './enrollment.service';
-import { LanguageService } from './language.service';
+import { AppLanguage, LanguageService } from './language.service';
 
 const FALLBACK_LABELS: Record<TermsFlow, string> = {
   enrollment: 'Enrollment',
@@ -29,7 +29,7 @@ export class TermsService {
 
     const label = terms.label || FALLBACK_LABELS[flow];
     const alert = await this.alertCtrl.create({
-      header: `${label} Terms and Conditions`,
+      header: this.headerFor(label),
       message: this.messageHtml(terms.text),
       inputs: [
         {
@@ -62,13 +62,16 @@ export class TermsService {
       const response = await firstValueFrom(this.enrollmentService.getConfig());
       const terms = response.data?.terms?.[flow];
 
-      if (!terms?.text?.trim()) {
+      const language = this.languageService.currentLanguage;
+      const text = this.localizedValue(terms?.text_en, terms?.text_ne, terms?.text, language);
+
+      if (!text.trim()) {
         return null;
       }
 
       return {
-        label: terms?.label || FALLBACK_LABELS[flow],
-        text: terms.text,
+        label: this.localizedValue(terms?.label_en, terms?.label_ne, terms?.label || FALLBACK_LABELS[flow], language),
+        text,
       };
     } catch {
       return null;
@@ -77,7 +80,7 @@ export class TermsService {
 
   private async presentUnavailable(flow: TermsFlow): Promise<void> {
     const alert = await this.alertCtrl.create({
-      header: `${FALLBACK_LABELS[flow]} Terms and Conditions`,
+      header: this.headerFor(FALLBACK_LABELS[flow]),
       message: this.languageService.t('terms.unavailable'),
       buttons: [this.languageService.t('common.ok')],
     });
@@ -88,6 +91,20 @@ export class TermsService {
 
   private messageHtml(text: string): string {
     return `<div class="terms-modal-body">${this.escapeHtml(text).replace(/\r?\n/g, '<br>')}</div>`;
+  }
+
+  private localizedValue(english: string | undefined, nepali: string | undefined, fallback: string | undefined, language: AppLanguage): string {
+    if (language === 'ne') {
+      return nepali?.trim() || fallback?.trim() || english?.trim() || '';
+    }
+
+    return english?.trim() || fallback?.trim() || nepali?.trim() || '';
+  }
+
+  private headerFor(label: string): string {
+    return this.languageService.currentLanguage === 'ne'
+      ? `${label} नियम तथा सर्तहरू`
+      : `${label} Terms and Conditions`;
   }
 
   private escapeHtml(text: string): string {

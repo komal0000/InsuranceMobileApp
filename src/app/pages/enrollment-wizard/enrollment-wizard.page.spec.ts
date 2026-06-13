@@ -1526,7 +1526,7 @@ describe('EnrollmentWizardPage', () => {
     expect(input.accept).toBe('image/*');
   });
 
-  it('preserves PDF filenames when submitting member identity documents', async () => {
+  it('renames PDF identity documents when submitting member uploads', async () => {
     const enrollmentSvc = {
       addMember: jasmine.createSpy().and.returnValue(of({ success: true, message: 'Saved.', data: { id: 10 } })),
     };
@@ -1550,10 +1550,10 @@ describe('EnrollmentWizardPage', () => {
 
     const submitted = enrollmentSvc.addMember.calls.mostRecent().args[1] as FormData;
     const file = submitted.get('citizenship_front_image') as File;
-    expect(file.name).toBe('citizenship-front.pdf');
+    expect(file.name).toMatch(/^citizen_front_\d{8}_\d{6}\.pdf$/);
   });
 
-  it('uses image filenames for captured member image blobs', async () => {
+  it('uses deterministic filenames for captured member image blobs', async () => {
     const enrollmentSvc = {
       addMember: jasmine.createSpy().and.returnValue(of({ success: true, message: 'Saved.', data: { id: 10 } })),
     };
@@ -1577,7 +1577,7 @@ describe('EnrollmentWizardPage', () => {
 
     const submitted = enrollmentSvc.addMember.calls.mostRecent().args[1] as FormData;
     const file = submitted.get('photo') as File;
-    expect(file.name).toBe('photo.jpg');
+    expect(file.name).toMatch(/^photo_\d{8}_\d{6}\.jpg$/);
   });
 
   it('blocks spouse younger than twenty before saving', async () => {

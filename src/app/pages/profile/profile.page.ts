@@ -24,6 +24,7 @@ import { LanguageToggleComponent } from '../../components/language-toggle/langua
 import { NepaliInputDirective } from '../../directives/nepali-input.directive';
 import { LanguageService } from '../../services/language.service';
 import { isNepaliFullName, isStrongPassword, normalizeSpaces } from '../../utils/auth-validation';
+import { prepareUploadFile } from '../../utils/upload-file.util';
 
 type ProfilePasswordField = 'current' | 'new' | 'confirmation';
 
@@ -108,16 +109,20 @@ export class ProfilePage implements OnInit {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/*';
-    input.onchange = () => {
+    input.onchange = async () => {
       const file = input.files?.[0];
       if (file) {
-        if (file.size > 2 * 1024 * 1024) {
+        const prepared = await prepareUploadFile(file, 'profile_image', {
+          maxDimension: 800,
+          quality: 0.72,
+        });
+        if (prepared.size > 2 * 1024 * 1024) {
           this.toastCtrl.create({
             message: this.t('Image must be less than 2MB'), duration: 2000, color: 'warning', position: 'top',
           }).then(t => t.present());
           return;
         }
-        this.uploadImage(file);
+        this.uploadImage(prepared);
       }
     };
     input.click();

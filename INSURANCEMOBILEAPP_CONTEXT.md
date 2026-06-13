@@ -46,7 +46,7 @@ This file captures the current Ionic/Angular state so future conversations do no
 - Renewal search/initiation includes consent. `RenewalSearchPage` sends `consent_accepted=true` on search, stores `data.consent_acceptance_id`, and passes it to initiation. The renewals tab and renewal detail also require the checkbox before initiation, submit, or payment fallback actions.
 - Mobile KYC lookup/update requires consent. `LegacyImisService.fetchKycDemoMember()` and `updateKycDemo()` include `consent_accepted=true` or the returned `consent_acceptance_id`; direct `updateKyc()` also sends consent.
 - Payment fallback includes `consent_accepted=true` in `PaymentService.createPayment()` options so existing enrollment/renewal records without linked consent can be linked before gateway initiation.
-- Backend enrollment config still returns one `terms[flow].text` string per `enrollment`, `kyc`, and `renewal` flow, but the default content is now bilingual English/Nepali with line breaks. `TermsService` renders those line breaks in the Ionic alert body; no mobile API contract change is required.
+- Backend enrollment config still returns backward-compatible `terms[flow].text` for `enrollment`, `kyc`, and `renewal`, but it is now locale-selected and accompanied by additive `text_en`, `text_ne`, `label_en`, and `label_ne` fields. `TermsService` chooses `text_ne` in Nepali mode and `text_en` in English mode, with fallback to legacy `text`, so the alert body does not show mixed bilingual content after a language toggle.
 - Consent translations live under `consent.title`, `consent.body`, and `consent.required` in `src\app\i18n\en.ts` and `src\app\i18n\ne.ts`.
 
 ## Recent Auth Flow Changes
@@ -180,6 +180,7 @@ Save behavior:
 - Old `saveStep1`, `saveStep2`, and generic `nidLookup` methods remain for compatibility.
 - Step 1 save sends permanent address, temporary address, selected household `first_service_point_id`, household-head fields, optional split parent/grandparent name fields, qualification ID, target-group fields, and files. For household heads 16+, it also sends profession ID when selected. Legacy combined parent/grandparent name fields are composed from the split fields before submit for compatibility when values are provided. The backend resolves the selected household service-point ID to the service-point name snapshot.
 - The wizard consumes optional `/api/enrollment-config.upload_limits` and falls back to `2 MB` per file / `20 MB` total. Before household-head save it clears inactive uploads, skips files not applicable to the current NID/document/target-group/temporary-address mode, blocks oversized selected/captured files locally, and surfaces backend `413` upload messages when a direct oversized request still reaches the API.
+- Mobile upload preparation uses `src/app/utils/upload-file.util.ts` for enrollment, renewal, renewal-detail, profile image, and death/removal evidence paths. Camera/file images are compressed to WebP client-side before per-file size checks when browser canvas/WebP support is available; PDFs are renamed only and not converted. FormData filenames use `keyword[_side]_YYYYMMDD_HHmmss.ext`, with household target-group evidence using the sanitized selected target-group type as the keyword.
 - Backend API save/submit endpoints now also accept an enrollment in `rejected` status when the rejection actor was `district_eo` or `province` and the authenticated user is the household head or original enroller. Resubmission returns the enrollment to `pending_verification` and clears stale rejection/verification fields; response shapes are unchanged.
 
 Enrollment PDF behavior:
@@ -321,6 +322,7 @@ Family members:
 - No-pay renewal payment creation may return `requires_payment=false` with `reference_id` and `payment_method=subsidy`; the app treats this as success and passes the returned reference to the payment result page without expecting a `payment_id`.
 - Enrollment detail, renewal detail, and My Policy display saved subsidy/payment references when the backend includes `payment_reference`.
 - Payment result pending copy is translated through the English/Nepali dictionaries.
+- `GET /api/my-payments` payment rows may include `gateway_label`; `MyPaymentsPage` displays that label when present so imported legacy HIB contribution payments show as `Legacy HIB` instead of raw `legacy_imis`, while existing gateway rows still fall back to the uppercased `gateway` value.
 - Relevant files:
   - `src\app\pages\payment\payment.page.ts`
   - `src\app\pages\payment\payment.page.spec.ts`
@@ -869,9 +871,20 @@ npm run build
 
 Result:
 - Profile, enrollment wizard, renewal list/detail, and enrollment service specs passed with picker assertions for `image/*` photo uploads and `image/*,application/pdf` document uploads.
-- PDF `File` uploads keep their original filename in FormData; image/camera blobs still use image fallback filenames.
+- Upload utility coverage verifies deterministic `citizen_*`, target-group, and PDF pass-through filenames. Enrollment, renewal, renewal-detail, profile, and enrollment-service paths now send deterministic FormData filenames; PDFs stay PDF bytes while images are compressed to WebP when supported.
 - `npm run build` succeeds and writes to `www`.
 - Existing build warning remains: `src/app/components/bs-date-picker/bs-date-picker.component.ts` style budget exceeded by 131 bytes (`4.13 kB` total against `4.00 kB`).
+
+Upload compression and filename verification on 2026-06-13:
+```bash
+cd /Users/rahkehs/Downloads/Other/2026/Insurance/InsuranceMobileApp
+npm test -- --watch=false --browsers=ChromeHeadless --include=src/app/utils/upload-file.util.spec.ts --include=src/app/services/enrollment.service.spec.ts --include=src/app/pages/enrollment-wizard/enrollment-wizard.page.spec.ts --include=src/app/pages/renewals/renewals.page.spec.ts --include=src/app/pages/renewal-detail/renewal-detail.page.spec.ts --include=src/app/pages/profile/profile.page.spec.ts
+npm run build
+```
+
+Result:
+- Focused upload/service/page specs passed (`133 SUCCESS`) after adding WebP preparation and deterministic filename coverage.
+- `npm run build` succeeds and writes to `www`; current warnings are the existing BS date-picker style budget warning and an unused `IonLabel` warning in `RenewalsPage`.
 
 ## Deployment Notes
 - Environment API URL is configured in:

@@ -7,6 +7,7 @@ import {
   Enrollment, EnrollmentCardsResponse, EnrollmentConfig, EnrollmentShowResponse, EnrollmentSubmitResponse, FamilyMember, NidLookupResponse
 } from '../interfaces/enrollment.interface';
 import { DateService } from './date.service';
+import { uploadExtensionForFile, uploadFilenameForField } from '../utils/upload-file.util';
 
 @Injectable({ providedIn: 'root' })
 export class EnrollmentService {
@@ -104,7 +105,7 @@ export class EnrollmentService {
     const formData = new FormData();
     formData.append('_method', 'DELETE');
     if (deathDocument) {
-      formData.append('death_document', deathDocument, this.fileNameFor(deathDocument, 'death-document'));
+      formData.append('death_document', deathDocument, this.fileNameFor(deathDocument, 'death_document'));
     }
 
     return this.api.postFormData<ApiResponse<any>>(`/enrollments/${enrollmentId}/members/${memberId}`, formData);
@@ -144,7 +145,7 @@ export class EnrollmentService {
     return this.api.post<NidLookupResponse>('/nid-lookup', { national_id: nationalId });
   }
 
-  private fileNameFor(file: File | Blob, fallback: string): string {
-    return typeof File !== 'undefined' && file instanceof File && file.name ? file.name : fallback;
+  private fileNameFor(file: File | Blob, field: string): string {
+    return uploadFilenameForField(field, uploadExtensionForFile(file));
   }
 }

@@ -41,6 +41,7 @@ import {
 } from '../../utils/relationship-marital-status.util';
 import { requiresRemovalDocument } from '../../utils/member-removal-document.util';
 import { trackByEntity } from '../../utils/track-by.util';
+import { prepareUploadFile, readBlobAsDataUrl, uploadExtensionForFile, uploadFilenameForField } from '../../utils/upload-file.util';
 
 const DEFAULT_MEMBER_RELATIONSHIPS: Array<{ value: string; label: string }> = [
   { value: 'spouse', label: 'Spouse' },
@@ -358,7 +359,7 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
         return;
       }
       if (val instanceof Blob) {
-        fd.append(key, val, this.fileNameFor(val, `${key}.jpg`));
+        fd.append(key, val, this.fileNameFor(val, key));
         return;
       }
       if (key === 'citizenship_number') {
@@ -434,7 +435,12 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
       });
 
       if (image.dataUrl) {
-        this.applyImage(field, this.dataUrlToBlob(image.dataUrl), image.dataUrl);
+        const prepared = await this.prepareRenewalDetailUploadFile(this.dataUrlToBlob(image.dataUrl), field);
+        if (!this.isWithinPerFileLimit(prepared)) {
+          this.toastCtrl.create({ message: this.t('wizard.image_size'), duration: 2000, color: 'danger', position: 'top' }).then(t => t.present());
+          return;
+        }
+        this.applyImage(field, prepared, await readBlobAsDataUrl(prepared));
       }
     } catch {
       this.fallbackFileInput(field);
@@ -448,25 +454,20 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = this.fileAcceptForField(field);
-    input.onchange = (event: Event) => {
+    input.onchange = async (event: Event) => {
       const target = event.target as HTMLInputElement | null;
       const file = target?.files?.[0];
       if (!file) return;
-      if (file.size > 2 * 1024 * 1024) {
+      const prepared = await this.prepareRenewalDetailUploadFile(file, field);
+      if (!this.isWithinPerFileLimit(prepared)) {
         this.toastCtrl.create({ message: this.t('wizard.image_size'), duration: 2000, color: 'danger', position: 'top' }).then(t => t.present());
         return;
       }
 
-      if (!file.type.startsWith('image/')) {
-        this.applyImage(field, file, file.name);
-        return;
-      }
-
-      const reader = new FileReader();
-      reader.onload = () => {
-        this.applyImage(field, file, reader.result as string);
-      };
-      reader.readAsDataURL(file);
+      const preview = prepared.type.startsWith('image/')
+        ? await readBlobAsDataUrl(prepared)
+        : prepared.name;
+      this.applyImage(field, prepared, preview);
     };
     input.click();
   }
@@ -513,7 +514,7 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
             const formData = new FormData();
             formData.append('_method', 'DELETE');
             if (deathDocument) {
-              formData.append('death_document', deathDocument, this.fileNameFor(deathDocument, 'death-document'));
+              formData.append('death_document', deathDocument, this.fileNameFor(deathDocument, 'death_document'));
             }
             this.api.postFormData<ApiResponse>(`/renewals/${this.renewalId}/members/${member.id}`, formData).subscribe({
               next: async () => {
@@ -591,8 +592,19 @@ export class RenewalDetailPage implements OnInit, OnDestroy {
     });
   }
 
-  private fileNameFor(file: File | Blob, fallback: string): string {
-    return typeof File !== 'undefined' && file instanceof File && file.name ? file.name : fallback;
+  private async prepareRenewalDetailUploadFile(file: File | Blob, field: string): Promise<File> {
+    return prepareUploadFile(file, field, {
+      maxDimension: field === 'photo' ? 800 : 1280,
+      quality: 0.72,
+    });
+  }
+
+  private isWithinPerFileLimit(file: Blob): boolean {
+    return file.size <= 2 * 1024 * 1024;
+  }
+
+  private fileNameFor(file: File | Blob, field: string): string {
+    return uploadFilenameForField(field, uploadExtensionForFile(file));
   }
 
   private fileAcceptForField(field: string): string {

@@ -96,6 +96,10 @@ export class MyPaymentsPage implements OnInit {
     return this.languageService.label(namespace, value, fallback);
   }
 
+  paymentGatewayLabel(payment: { gateway?: string | null; gateway_label?: string | null }): string {
+    return payment.gateway_label || (payment.gateway ? payment.gateway.toUpperCase() : '');
+  }
+
   formatCurrency(value: string | number | null | undefined, decimals = 2): string {
     return `${this.t('common.currency')} ${this.languageService.formatNumber(value ?? 0, decimals)}`;
   }

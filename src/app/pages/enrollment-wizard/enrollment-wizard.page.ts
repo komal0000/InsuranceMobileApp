@@ -55,6 +55,7 @@ import {
   spouseGenderForHead,
 } from '../../utils/relationship-marital-status.util';
 import { requiresRemovalDocument } from '../../utils/member-removal-document.util';
+import { prepareUploadFile, readBlobAsDataUrl, uploadExtensionForFile, uploadFilenameForField } from '../../utils/upload-file.util';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { trackByEntity } from '../../utils/track-by.util';
@@ -1428,7 +1429,7 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
       if (typeof val === 'boolean') { fd.append(key, val ? '1' : '0'); return; }
       if (val instanceof Blob) {
         if (!activeUploadFields.has(key)) return;
-        fd.append(key, val, this.fileNameFor(val, `${key}.jpg`)); return;
+        fd.append(key, val, this.fileNameFor(val, key, this.headData.target_group_type)); return;
       }
       if (val !== null && val !== undefined && (options.includeEmpty || val !== '')) {
         const stringValue = key === 'national_id'
@@ -1683,7 +1684,7 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
       }
       if (val === null || val === undefined || val === '') return;
       if (typeof val === 'boolean') { fd.append(key, val ? '1' : '0'); return; }
-      if (val instanceof Blob) { fd.append(key, val, this.fileNameFor(val, `${key}.jpg`)); return; }
+      if (val instanceof Blob) { fd.append(key, val, this.fileNameFor(val, key)); return; }
       if (key === 'citizenship_number') {
         const digits = normalizeDigitsOnly(String(val));
         if (digits !== '') fd.append(key, digits);
@@ -1874,7 +1875,14 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
         quality: 80, allowEditing: false, resultType: CameraResultType.DataUrl,
         source: CameraSource.Prompt, width: 1024,
       });
-      if (image.dataUrl) this.applyImage(target, field, this.dataUrlToBlob(image.dataUrl), image.dataUrl);
+      if (image.dataUrl) {
+        const prepared = await this.prepareUploadBlob(this.dataUrlToBlob(image.dataUrl), field, target);
+        if (!this.isWithinPerFileLimit(prepared)) {
+          this.showToast(this.t('wizard.image_size'), 'danger');
+          return;
+        }
+        this.applyImage(target, field, prepared, await readBlobAsDataUrl(prepared));
+      }
     } catch {
       this.fallbackFileInput(target, field);
     }
@@ -1884,19 +1892,19 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = this.fileAcceptForField(field);
-    input.onchange = (event: any) => {
+    input.onchange = async (event: any) => {
       const file: File = event.target.files[0];
       if (!file) return;
-      const maxFileBytes = this.uploadLimits().max_file_bytes;
-      if (maxFileBytes > 0 && file.size > maxFileBytes) { this.showToast(this.t('wizard.image_size'), 'danger'); return; }
-      if (!file.type.startsWith('image/')) {
-        this.applyImage(target, field as any, file, file.name);
+      const prepared = await this.prepareUploadBlob(file, field, target);
+      if (!this.isWithinPerFileLimit(prepared)) {
+        this.showToast(this.t('wizard.image_size'), 'danger');
         return;
       }
 
-      const reader = new FileReader();
-      reader.onload = () => this.applyImage(target, field as any, file, reader.result as string);
-      reader.readAsDataURL(file);
+      const preview = prepared.type.startsWith('image/')
+        ? await readBlobAsDataUrl(prepared)
+        : prepared.name;
+      this.applyImage(target, field as any, prepared, preview);
     };
     input.click();
   }
@@ -1939,8 +1947,23 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
     return field === 'photo' ? IMAGE_FILE_ACCEPT : DOCUMENT_FILE_ACCEPT;
   }
 
-  private fileNameFor(file: File | Blob, fallback: string): string {
-    return typeof File !== 'undefined' && file instanceof File && file.name ? file.name : fallback;
+  private async prepareUploadBlob(file: File | Blob, field: string, target: 'head' | 'member'): Promise<File> {
+    return prepareUploadFile(file, field, {
+      maxDimension: field === 'photo' ? 800 : 1280,
+      quality: 0.72,
+      targetGroupType: target === 'head' ? this.headData.target_group_type : null,
+    });
+  }
+
+  private isWithinPerFileLimit(file: Blob): boolean {
+    const maxFileBytes = this.uploadLimits().max_file_bytes;
+    return maxFileBytes <= 0 || file.size <= maxFileBytes;
+  }
+
+  private fileNameFor(file: File | Blob, field: string, targetGroupType?: string | null): string {
+    return uploadFilenameForField(field, uploadExtensionForFile(file), {
+      targetGroupType,
+    });
   }
 
   get householdHeadRelationshipNameAutofill(): Record<string, Partial<Record<'first_name' | 'last_name' | 'first_name_ne' | 'last_name_ne', string>>> {

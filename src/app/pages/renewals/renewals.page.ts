@@ -51,6 +51,7 @@ import {
   spouseGenderForHead,
 } from '../../utils/relationship-marital-status.util';
 import { trackByEntity } from '../../utils/track-by.util';
+import { prepareUploadFile, readBlobAsDataUrl, uploadExtensionForFile, uploadFilenameForField } from '../../utils/upload-file.util';
 
 const DEFAULT_MEMBER_RELATIONSHIPS: Array<{ value: string; label: string }> = [
   { value: 'spouse', label: 'Spouse' },
@@ -376,7 +377,14 @@ export class RenewalsPage implements OnInit, OnDestroy {
         quality: 80, allowEditing: false, resultType: CameraResultType.DataUrl,
         source: CameraSource.Prompt, width: 1024,
       });
-      if (image.dataUrl) this.applyRenewalMemberImage(field, this.dataUrlToBlob(image.dataUrl), image.dataUrl);
+      if (image.dataUrl) {
+        const prepared = await this.prepareRenewalUploadFile(this.dataUrlToBlob(image.dataUrl), field);
+        if (!this.isWithinPerFileLimit(prepared)) {
+          this.toastCtrl.create({ message: this.t('wizard.image_size'), duration: 2000, color: 'danger', position: 'top' }).then(t => t.present());
+          return;
+        }
+        this.applyRenewalMemberImage(field, prepared, await readBlobAsDataUrl(prepared));
+      }
     } catch {
       this.fallbackRenewalMemberFileInput(field);
     }
@@ -395,21 +403,18 @@ export class RenewalsPage implements OnInit, OnDestroy {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = this.fileAcceptForField(field);
-    input.onchange = (event: any) => {
+    input.onchange = async (event: any) => {
       const file: File = event.target.files[0];
       if (!file) return;
-      if (file.size > 2 * 1024 * 1024) {
+      const prepared = await this.prepareRenewalUploadFile(file, field);
+      if (!this.isWithinPerFileLimit(prepared)) {
         this.toastCtrl.create({ message: this.t('wizard.image_size'), duration: 2000, color: 'danger', position: 'top' }).then(t => t.present());
         return;
       }
-      if (!file.type.startsWith('image/')) {
-        this.applyRenewalMemberImage(field as any, file, file.name);
-        return;
-      }
-
-      const reader = new FileReader();
-      reader.onload = () => this.applyRenewalMemberImage(field as any, file, reader.result as string);
-      reader.readAsDataURL(file);
+      const preview = prepared.type.startsWith('image/')
+        ? await readBlobAsDataUrl(prepared)
+        : prepared.name;
+      this.applyRenewalMemberImage(field as any, prepared, preview);
     };
     input.click();
   }
@@ -438,8 +443,19 @@ export class RenewalsPage implements OnInit, OnDestroy {
     return value.split('/').pop()?.split('?')[0] || this.t('common.file');
   }
 
-  private fileNameFor(file: File | Blob, fallback: string): string {
-    return typeof File !== 'undefined' && file instanceof File && file.name ? file.name : fallback;
+  private async prepareRenewalUploadFile(file: File | Blob, field: string): Promise<File> {
+    return prepareUploadFile(file, field, {
+      maxDimension: field === 'photo' ? 800 : 1280,
+      quality: 0.72,
+    });
+  }
+
+  private isWithinPerFileLimit(file: Blob): boolean {
+    return file.size <= 2 * 1024 * 1024;
+  }
+
+  private fileNameFor(file: File | Blob, field: string): string {
+    return uploadFilenameForField(field, uploadExtensionForFile(file));
   }
 
   private dataUrlToBlob(dataUrl: string): Blob {
@@ -530,7 +546,7 @@ export class RenewalsPage implements OnInit, OnDestroy {
       }
       if (val === null || val === undefined || val === '') return;
       if (typeof val === 'boolean') { fd.append(key, val ? '1' : '0'); return; }
-      if (val instanceof Blob) { fd.append(key, val, this.fileNameFor(val, `${key}.jpg`)); return; }
+      if (val instanceof Blob) { fd.append(key, val, this.fileNameFor(val, key)); return; }
       if (key === 'citizenship_number') {
         const digits = normalizeDigitsOnly(String(val));
         if (digits !== '') fd.append(key, digits);

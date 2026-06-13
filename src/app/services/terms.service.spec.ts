@@ -6,7 +6,7 @@ import { LanguageService } from './language.service';
 import { TermsService } from './terms.service';
 
 describe('TermsService', () => {
-  function makeService(dismissRole: string = 'confirm') {
+  function makeService(dismissRole: string = 'confirm', language: 'en' | 'ne' = 'en') {
     const alert = {
       present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
       onDidDismiss: jasmine.createSpy('onDidDismiss').and.returnValue(Promise.resolve({ role: dismissRole })),
@@ -18,11 +18,24 @@ describe('TermsService', () => {
       success: true,
       data: {
         terms: {
-          enrollment: { flow: 'enrollment', label: 'Enrollment', text: 'Enrollment-specific admin terms.', version: 2 },
+          enrollment: {
+            flow: 'enrollment',
+            label: 'Enrollment',
+            label_en: 'Enrollment',
+            label_ne: 'नामांकन',
+            text: 'Enrollment-specific admin terms.',
+            text_en: 'Enrollment-specific English admin terms.',
+            text_ne: 'नामांकनका नेपाली नियम तथा सर्तहरू।',
+            version: 2,
+          },
           kyc: {
             flow: 'kyc',
             label: 'KYC',
-            text: "English:\nKYC-specific admin terms.\n\nनेपाली:\nKYC का नियम तथा सर्तहरू।",
+            label_en: 'KYC',
+            label_ne: 'KYC',
+            text: 'KYC-specific admin terms.',
+            text_en: "KYC-specific English admin terms.\nSecond line.",
+            text_ne: "KYC का नेपाली नियम तथा सर्तहरू।\nदोस्रो लाइन।",
             version: 4,
           },
           renewal: { flow: 'renewal', label: 'Renewal', text: 'Renewal-specific admin terms.', version: 6 },
@@ -30,6 +43,7 @@ describe('TermsService', () => {
       },
     }));
     const languageService = {
+      currentLanguage: language,
       t: (key: string) => key,
       translateText: (value?: string) => value || '',
     };
@@ -51,18 +65,29 @@ describe('TermsService', () => {
     };
   }
 
-  it('shows the selected flow terms from enrollment config', async () => {
+  it('shows the selected flow English terms from enrollment config', async () => {
     const { alertCtrl, service } = makeService();
 
     await service.confirm('kyc');
 
     expect(alertCtrl.create).toHaveBeenCalledOnceWith(jasmine.objectContaining({
       header: 'KYC Terms and Conditions',
-      message: jasmine.stringContaining('KYC-specific admin terms.'),
+      message: jasmine.stringContaining('KYC-specific English admin terms.'),
       inputs: [jasmine.objectContaining({ type: 'checkbox', value: 'accepted' })],
     }));
     expect(alertCtrl.create).toHaveBeenCalledOnceWith(jasmine.objectContaining({
-      message: jasmine.stringContaining('English:<br>KYC-specific admin terms.<br><br>नेपाली:<br>KYC का नियम तथा सर्तहरू।'),
+      message: jasmine.stringContaining('KYC-specific English admin terms.<br>Second line.'),
+    }));
+  });
+
+  it('shows Nepali terms when the language is Nepali', async () => {
+    const { alertCtrl, service } = makeService('confirm', 'ne');
+
+    await service.confirm('enrollment');
+
+    expect(alertCtrl.create).toHaveBeenCalledOnceWith(jasmine.objectContaining({
+      header: 'नामांकन नियम तथा सर्तहरू',
+      message: jasmine.stringContaining('नामांकनका नेपाली नियम तथा सर्तहरू।'),
     }));
   });
 

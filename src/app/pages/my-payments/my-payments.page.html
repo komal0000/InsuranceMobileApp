@@ -25,7 +25,7 @@
                 <strong class="payment-amount">{{ formatCurrency(p.amount) }}</strong>
                 <ion-badge [color]="statusColor(p.status)">{{ label('status', p.status) }}</ion-badge>
               </div>
-              <p class="payment-type">{{ p.type === 'renewal' ? t('payment.renewal') : t('dashboard.new_enrollment') }} &bull; {{ p.gateway | uppercase }}</p>
+              <p class="payment-type">{{ p.type === 'renewal' ? t('payment.renewal') : t('dashboard.new_enrollment') }} &bull; {{ paymentGatewayLabel(p) }}</p>
               <div *ngIf="p.enrollment_number" class="payment-ref">
                 <ion-icon name="document-text-outline"></ion-icon>
                 <span>{{ p.enrollment_number }}</span>

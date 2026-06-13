@@ -258,7 +258,11 @@ export type TermsFlow = 'enrollment' | 'kyc' | 'renewal';
 export interface TermsConfigItem {
   flow: TermsFlow;
   label: string;
+  label_en?: string;
+  label_ne?: string;
   text: string;
+  text_en?: string;
+  text_ne?: string;
   version: number;
 }
 
