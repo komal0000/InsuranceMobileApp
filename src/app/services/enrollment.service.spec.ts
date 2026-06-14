@@ -93,6 +93,40 @@ describe('EnrollmentService', () => {
     });
   });
 
+  it('posts full household-head NID lookup payload', () => {
+    const payload = {
+      national_id: '123-456-789-0',
+      full_name: 'Komal Shrestha',
+      nid_province_id: '3',
+      nid_district_id: '32',
+      nid_municipality_id: '362',
+      nid_ward_number: '9',
+      birthdate: '1990-06-15',
+    };
+    api.post.and.returnValue(of({ success: false, message: 'Not found.' }));
+
+    service.headNidLookup(25, payload).subscribe();
+
+    expect(api.post).toHaveBeenCalledWith('/enrollments/25/head/nid-lookup', payload);
+  });
+
+  it('posts full member NID lookup payload', () => {
+    const payload = {
+      national_id: '123-456-789-0',
+      full_name: 'Sita Shrestha',
+      nid_province_id: '3',
+      nid_district_id: '32',
+      nid_municipality_id: '362',
+      nid_ward_number: '9',
+      birthdate: '1993-04-14',
+    };
+    api.post.and.returnValue(of({ success: false, message: 'Not found.' }));
+
+    service.memberNidLookup(25, payload).subscribe();
+
+    expect(api.post).toHaveBeenCalledWith('/enrollments/25/members/nid-lookup', payload);
+  });
+
   it('requests a fresh enrollment PDF URL for detail fallback download', () => {
     const response = {
       success: true,

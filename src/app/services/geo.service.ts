@@ -3,7 +3,7 @@ import { Observable } from 'rxjs';
 import { shareReplay } from 'rxjs/operators';
 import { ApiService } from './api.service';
 import { ApiResponse } from '../interfaces/api-response.interface';
-import { ServicePointOption } from '../interfaces/enrollment.interface';
+import { NidLocationOption, ServicePointOption } from '../interfaces/enrollment.interface';
 
 @Injectable({ providedIn: 'root' })
 export class GeoService {
@@ -33,6 +33,22 @@ export class GeoService {
 
   servicePoints(province: string, district: string): Observable<ApiResponse<ServicePointOption[]>> {
     return this.cached<ServicePointOption[]>(`/geo/service-points/${encodeURIComponent(province)}/${encodeURIComponent(district)}`);
+  }
+
+  nidProvinces(): Observable<ApiResponse<NidLocationOption[]>> {
+    return this.cached<NidLocationOption[]>('/geo/nid/provinces');
+  }
+
+  nidDistricts(provinceId: string): Observable<ApiResponse<NidLocationOption[]>> {
+    return this.cached<NidLocationOption[]>(`/geo/nid/districts/${encodeURIComponent(provinceId)}`);
+  }
+
+  nidMunicipalities(districtId: string): Observable<ApiResponse<NidLocationOption[]>> {
+    return this.cached<NidLocationOption[]>(`/geo/nid/municipalities/${encodeURIComponent(districtId)}`);
+  }
+
+  nidWards(municipalityId: string): Observable<ApiResponse<NidLocationOption[]>> {
+    return this.cached<NidLocationOption[]>(`/geo/nid/wards/${encodeURIComponent(municipalityId)}`);
   }
 
   clearCache(): void {

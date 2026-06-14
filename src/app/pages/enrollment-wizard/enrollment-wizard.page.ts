@@ -32,7 +32,7 @@ import { HouseholdHeadFormComponent } from './components/household-head-form.com
 import { NidGateComponent } from './components/nid-gate.component';
 import { ReviewSubmitComponent } from './components/review-submit.component';
 import {
-  Enrollment, EnrollmentConfig, FamilyMember, HouseholdHead, NidLookupData, PermanentAddressSource, Step1Data,
+  Enrollment, EnrollmentConfig, FamilyMember, HouseholdHead, NidLocationOption, NidLookupData, NidLookupPayload, PermanentAddressSource, Step1Data,
   ServicePointOption, SubsidyResult, SubsidySummary
 } from '../../interfaces/enrollment.interface';
 import { canonicalNid, isValidNidInput, nidLookupValue } from '../../utils/nid-number.util';
@@ -214,6 +214,13 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
   districts: string[] = [];
   municipalities: string[] = [];
   wards: string[] = [];
+  nidProvinces: NidLocationOption[] = [];
+  headNidDistricts: NidLocationOption[] = [];
+  headNidMunicipalities: NidLocationOption[] = [];
+  headNidWards: NidLocationOption[] = [];
+  memberNidDistricts: NidLocationOption[] = [];
+  memberNidMunicipalities: NidLocationOption[] = [];
+  memberNidWards: NidLocationOption[] = [];
   temporarySameAsPermanent = false;
   temporaryAddress: Step1Data = {
     province: '', district: '', municipality: '', ward_number: '',
@@ -251,6 +258,7 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
   nidNumber2 = '';
   nidLooking2 = false;
   nidMessage2 = '';
+  headNidLookupPayload: NidLookupPayload = this.emptyNidLookupPayload();
 
   headData: any = {
     national_id: '',
@@ -299,6 +307,7 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
   nidNumberMember = '';
   nidLookingMember = false;
   nidMessageMember = '';
+  memberNidLookupPayload: NidLookupPayload = this.emptyNidLookupPayload();
   nidVerifiedHead = false;
   nidVerifiedMember = false;
 
@@ -349,6 +358,7 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
     this.applyRegisteredContactDetails();
     this.resetMemberForm();
     this.geoSvc.provinces().subscribe({ next: r => this.provinces = r.data || [] });
+    this.loadNidProvinces();
     this.enrollmentSvc.getConfig().subscribe({
       next: r => {
         this.config = r.data;
@@ -367,6 +377,105 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
       },
     });
     this.loadEnrollment();
+  }
+
+  private emptyNidLookupPayload(): NidLookupPayload {
+    return {
+      national_id: '',
+      full_name: '',
+      nid_province_id: '',
+      nid_district_id: '',
+      nid_municipality_id: '',
+      nid_ward_number: '',
+      birthdate: '',
+    };
+  }
+
+  private loadNidProvinces(): void {
+    this.geoSvc.nidProvinces().subscribe({
+      next: response => this.nidProvinces = response.data || [],
+    });
+  }
+
+  private completedNidLookupPayload(base: NidLookupPayload, nationalId: string): NidLookupPayload | null {
+    const payload: NidLookupPayload = {
+      ...base,
+      national_id: nationalId,
+      full_name: base.full_name.trim(),
+    };
+
+    if (!payload.full_name || !payload.nid_province_id || !payload.nid_district_id
+      || !payload.nid_municipality_id || !payload.nid_ward_number || !payload.birthdate) {
+      return null;
+    }
+
+    return payload;
+  }
+
+  onHeadNidProvinceChange(provinceId: string): void {
+    this.headNidLookupPayload.nid_district_id = '';
+    this.headNidLookupPayload.nid_municipality_id = '';
+    this.headNidLookupPayload.nid_ward_number = '';
+    this.headNidDistricts = [];
+    this.headNidMunicipalities = [];
+    this.headNidWards = [];
+
+    if (provinceId) {
+      this.geoSvc.nidDistricts(provinceId).subscribe({ next: r => this.headNidDistricts = r.data || [] });
+    }
+  }
+
+  onHeadNidDistrictChange(districtId: string): void {
+    this.headNidLookupPayload.nid_municipality_id = '';
+    this.headNidLookupPayload.nid_ward_number = '';
+    this.headNidMunicipalities = [];
+    this.headNidWards = [];
+
+    if (districtId) {
+      this.geoSvc.nidMunicipalities(districtId).subscribe({ next: r => this.headNidMunicipalities = r.data || [] });
+    }
+  }
+
+  onHeadNidMunicipalityChange(municipalityId: string): void {
+    this.headNidLookupPayload.nid_ward_number = '';
+    this.headNidWards = [];
+
+    if (municipalityId) {
+      this.geoSvc.nidWards(municipalityId).subscribe({ next: r => this.headNidWards = r.data || [] });
+    }
+  }
+
+  onMemberNidProvinceChange(provinceId: string): void {
+    this.memberNidLookupPayload.nid_district_id = '';
+    this.memberNidLookupPayload.nid_municipality_id = '';
+    this.memberNidLookupPayload.nid_ward_number = '';
+    this.memberNidDistricts = [];
+    this.memberNidMunicipalities = [];
+    this.memberNidWards = [];
+
+    if (provinceId) {
+      this.geoSvc.nidDistricts(provinceId).subscribe({ next: r => this.memberNidDistricts = r.data || [] });
+    }
+  }
+
+  onMemberNidDistrictChange(districtId: string): void {
+    this.memberNidLookupPayload.nid_municipality_id = '';
+    this.memberNidLookupPayload.nid_ward_number = '';
+    this.memberNidMunicipalities = [];
+    this.memberNidWards = [];
+
+    if (districtId) {
+      this.geoSvc.nidMunicipalities(districtId).subscribe({ next: r => this.memberNidMunicipalities = r.data || [] });
+    }
+  }
+
+  onMemberNidMunicipalityChange(municipalityId: string): void {
+    this.memberNidLookupPayload.nid_ward_number = '';
+    this.memberNidWards = [];
+
+    if (municipalityId) {
+      this.geoSvc.nidWards(municipalityId).subscribe({ next: r => this.memberNidWards = r.data || [] });
+    }
   }
 
   ngOnDestroy(): void {
@@ -715,11 +824,17 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
     const lookupNin = nidLookupValue(nin);
     if (this.nidLooking2) return;
 
+    const payload = this.completedNidLookupPayload(this.headNidLookupPayload, lookupNin);
+    if (!payload) {
+      this.nidMessage2 = 'Enter full name, birthdate, and NID address before verification.';
+      return;
+    }
+
     this.nidLooking2 = true;
     this.nidMessage2 = '';
     this.nidVerifiedHead = false;
 
-    this.enrollmentSvc.headNidLookup(this.enrollmentId, lookupNin).subscribe({
+    this.enrollmentSvc.headNidLookup(this.enrollmentId, payload).subscribe({
       next: (res) => {
         this.nidLooking2 = false;
         if (res.success && res.data) {
@@ -1023,12 +1138,18 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
     const lookupNin = nidLookupValue(nin);
     if (this.nidLookingMember) return;
 
+    const payload = this.completedNidLookupPayload(this.memberNidLookupPayload, lookupNin);
+    if (!payload) {
+      this.nidMessageMember = 'Enter full name, birthdate, and NID address before verification.';
+      return;
+    }
+
     this.nidLookingMember = true;
     this.nidMessageMember = '';
     this.nidVerifiedMember = false;
     this.nidLockedMemberFields.clear();
 
-    this.enrollmentSvc.memberNidLookup(this.enrollmentId, lookupNin).subscribe({
+    this.enrollmentSvc.memberNidLookup(this.enrollmentId, payload).subscribe({
       next: (res) => {
         this.nidLookingMember = false;
         if (res.success && res.data) {
@@ -1531,6 +1652,10 @@ export class EnrollmentWizardPage implements OnInit, OnDestroy {
     this.memberTargetGroupFrontPreview = '';
     this.memberTargetGroupBackPreview = '';
     this.nidNumberMember = ''; this.nidMessageMember = '';
+    this.memberNidLookupPayload = this.emptyNidLookupPayload();
+    this.memberNidDistricts = [];
+    this.memberNidMunicipalities = [];
+    this.memberNidWards = [];
     this.nidVerifiedMember = false;
     this.nidLockedMemberFields.clear();
     this.showNidGateMember = true;

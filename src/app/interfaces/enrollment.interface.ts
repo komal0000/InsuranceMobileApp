@@ -336,6 +336,21 @@ export interface NidLookupData {
   photo_url?: string | null;
 }
 
+export interface NidLocationOption {
+  id: string;
+  label: string;
+}
+
+export interface NidLookupPayload {
+  national_id: string;
+  full_name: string;
+  nid_province_id: string;
+  nid_district_id: string;
+  nid_municipality_id: string;
+  nid_ward_number: string;
+  birthdate: string;
+}
+
 export interface EnrollmentSubmitResponse extends ApiResponse<Enrollment> {
   pdf_generated?: boolean;
   pdf_download_url?: string | null;

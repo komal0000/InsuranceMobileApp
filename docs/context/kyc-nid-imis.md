@@ -1,6 +1,6 @@
 # InsuranceMobileApp KYC NID And IMIS Context
 
-Last updated: 2026-06-13
+Last updated: 2026-06-14
 
 Legacy IMIS/KYC integration and geo loading cache behavior.
 
@@ -18,6 +18,7 @@ Read `INSURANCEMOBILEAPP_CONTEXT_SUMMARY.md` first when starting broad work, the
 ## Geo Loading Cache
 - `src\app\services\geo.service.ts` has in-session caching using shared observable behavior for repeated geo calls.
 - Backend remains the primary cache layer.
+- Enrollment NID lookup now sends the full backend-required payload: normalized `national_id`, `full_name`, NID province/district/municipality IDs, `nid_ward_number`, and AD `birthdate`. `GeoService` exposes `/geo/nid/*` helpers for NID-code dropdowns; these are separate from the EMIS geo dropdowns used for enrollment addresses and service-point filtering.
 - Enrollment wizard loads cascading options in order:
   - province
   - districts

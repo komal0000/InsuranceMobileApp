@@ -66,6 +66,10 @@ describe('EnrollmentWizardPage', () => {
       districts: jasmine.createSpy().and.returnValue(of(response([]))),
       municipalities: jasmine.createSpy().and.returnValue(of(response([]))),
       wards: jasmine.createSpy().and.returnValue(of(response([]))),
+      nidProvinces: jasmine.createSpy().and.returnValue(of({ success: true, message: 'Loaded.', data: [] })),
+      nidDistricts: jasmine.createSpy().and.returnValue(of({ success: true, message: 'Loaded.', data: [] })),
+      nidMunicipalities: jasmine.createSpy().and.returnValue(of({ success: true, message: 'Loaded.', data: [] })),
+      nidWards: jasmine.createSpy().and.returnValue(of({ success: true, message: 'Loaded.', data: [] })),
       servicePoints: jasmine.createSpy().and.returnValue(of(servicePointResponse([]))),
     };
     const defaultDateService = {
@@ -103,6 +107,16 @@ describe('EnrollmentWizardPage', () => {
       providers: [{ provide: LanguageService, useValue: languageService() }],
     });
     return TestBed.runInInjectionContext(() => new AddressFormComponent());
+  }
+
+  function fillNidLookupPayload(page: EnrollmentWizardPage, target: 'head' | 'member' = 'head') {
+    const payload = target === 'head' ? page.headNidLookupPayload : page.memberNidLookupPayload;
+    payload.full_name = target === 'head' ? 'Komal Shrestha' : 'Sita Shrestha';
+    payload.nid_province_id = '3';
+    payload.nid_district_id = '32';
+    payload.nid_municipality_id = '362';
+    payload.nid_ward_number = '9';
+    payload.birthdate = target === 'head' ? '1990-06-15' : '1993-04-14';
   }
 
   function parentGrandparentNames() {
@@ -225,6 +239,7 @@ describe('EnrollmentWizardPage', () => {
     const page = createPage({ enrollmentSvc, geoSvc });
     page.enrollmentId = 4;
     page.nidNumber2 = '1234567890';
+    fillNidLookupPayload(page, 'head');
 
     page.lookupNid2();
 
@@ -315,9 +330,18 @@ describe('EnrollmentWizardPage', () => {
       message: 'Not found.',
     }));
 
+    fillNidLookupPayload(page, 'head');
     page.lookupNid2();
 
-    expect(enrollmentSvc.headNidLookup).toHaveBeenCalledWith(4, '123-456-789-0');
+    expect(enrollmentSvc.headNidLookup).toHaveBeenCalledWith(4, jasmine.objectContaining({
+      national_id: '123-456-789-0',
+      full_name: 'Komal Shrestha',
+      nid_province_id: '3',
+      nid_district_id: '32',
+      nid_municipality_id: '362',
+      nid_ward_number: '9',
+      birthdate: '1990-06-15',
+    }));
   });
 
   it('builds grouped label-value rows for household fields verified from NID', () => {
@@ -505,6 +529,7 @@ describe('EnrollmentWizardPage', () => {
 
     page.enrollmentId = 4;
     page.nidNumber2 = '१२३-४५६-७८९-०';
+    fillNidLookupPayload(page, 'head');
     page.lookupNid2();
 
     expect(page.nidPermanentAddress?.province).toBe('Bagamati');
@@ -530,7 +555,15 @@ describe('EnrollmentWizardPage', () => {
       []
     );
     expect(verifiedValues).toContain('311022/65843');
-    expect(enrollmentSvc.headNidLookup).toHaveBeenCalledWith(4, '123-456-789-0');
+    expect(enrollmentSvc.headNidLookup).toHaveBeenCalledWith(4, jasmine.objectContaining({
+      national_id: '123-456-789-0',
+      full_name: 'Komal Shrestha',
+      nid_province_id: '3',
+      nid_district_id: '32',
+      nid_municipality_id: '362',
+      nid_ward_number: '9',
+      birthdate: '1990-06-15',
+    }));
     expect(page.headData.national_id).toBe('1234567890');
   });
 
@@ -935,6 +968,7 @@ describe('EnrollmentWizardPage', () => {
 
     page.enrollmentId = 4;
     page.nidNumberMember = '१२३-४५६-७८९-०';
+    fillNidLookupPayload(page, 'member');
     page.lookupNidMember();
 
     expect(page.newMember.first_name).toBe('Sita');
@@ -944,7 +978,15 @@ describe('EnrollmentWizardPage', () => {
     expect((page as any).nidLockedMemberFields.has('first_name')).toBeTrue();
     expect((page as any).nidLockedMemberFields.has('date_of_birth')).toBeTrue();
     expect((page as any).nidLockedMemberFields.has('citizenship_number')).toBeTrue();
-    expect(enrollmentSvc.memberNidLookup).toHaveBeenCalledWith(4, '123-456-789-0');
+    expect(enrollmentSvc.memberNidLookup).toHaveBeenCalledWith(4, jasmine.objectContaining({
+      national_id: '123-456-789-0',
+      full_name: 'Sita Shrestha',
+      nid_province_id: '3',
+      nid_district_id: '32',
+      nid_municipality_id: '362',
+      nid_ward_number: '9',
+      birthdate: '1993-04-14',
+    }));
     expect(enrollmentSvc.nidLookup).not.toHaveBeenCalled();
   });
 

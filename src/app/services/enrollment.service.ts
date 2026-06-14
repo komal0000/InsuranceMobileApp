@@ -4,7 +4,7 @@ import { shareReplay } from 'rxjs/operators';
 import { ApiService } from './api.service';
 import { ApiResponse, PaginatedData } from '../interfaces/api-response.interface';
 import {
-  Enrollment, EnrollmentCardsResponse, EnrollmentConfig, EnrollmentShowResponse, EnrollmentSubmitResponse, FamilyMember, NidLookupResponse
+  Enrollment, EnrollmentCardsResponse, EnrollmentConfig, EnrollmentShowResponse, EnrollmentSubmitResponse, FamilyMember, NidLookupPayload, NidLookupResponse
 } from '../interfaces/enrollment.interface';
 import { DateService } from './date.service';
 import { uploadExtensionForFile, uploadFilenameForField } from '../utils/upload-file.util';
@@ -68,12 +68,12 @@ export class EnrollmentService {
     );
   }
 
-  headNidLookup(id: number, nationalId: string): Observable<NidLookupResponse> {
-    return this.api.post<NidLookupResponse>(`/enrollments/${id}/head/nid-lookup`, { national_id: nationalId });
+  headNidLookup(id: number, payload: NidLookupPayload): Observable<NidLookupResponse> {
+    return this.api.post<NidLookupResponse>(`/enrollments/${id}/head/nid-lookup`, payload);
   }
 
-  memberNidLookup(id: number, nationalId: string): Observable<NidLookupResponse> {
-    return this.api.post<NidLookupResponse>(`/enrollments/${id}/members/nid-lookup`, { national_id: nationalId });
+  memberNidLookup(id: number, payload: NidLookupPayload): Observable<NidLookupResponse> {
+    return this.api.post<NidLookupResponse>(`/enrollments/${id}/members/nid-lookup`, payload);
   }
 
   saveHouseholdHead(id: number, formData: FormData): Observable<ApiResponse<Enrollment>> {
@@ -141,8 +141,8 @@ export class EnrollmentService {
 
   // ── NID Lookup ──────────────────────────────────────────────
 
-  nidLookup(nationalId: string): Observable<NidLookupResponse> {
-    return this.api.post<NidLookupResponse>('/nid-lookup', { national_id: nationalId });
+  nidLookup(payload: NidLookupPayload): Observable<NidLookupResponse> {
+    return this.api.post<NidLookupResponse>('/nid-lookup', payload);
   }
 
   private fileNameFor(file: File | Blob, field: string): string {
