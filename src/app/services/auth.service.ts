@@ -12,6 +12,8 @@ import {
   AffiliationCompleteRequest,
   AffiliationOtpData,
   AffiliationOtpRequest,
+  AffiliationResetPhoneData,
+  AffiliationResetPhoneRequest,
   AffiliationPasswordData,
   AffiliationPasswordRequest,
   AffiliationSyncData,
@@ -160,6 +162,10 @@ export class AuthService {
 
   affiliationSendOtp(data: AffiliationOtpRequest): Observable<ApiResponse<AffiliationOtpData>> {
     return this.api.post<ApiResponse<AffiliationOtpData>>('/affiliation/otp/send', data);
+  }
+
+  affiliationResetPhone(data: AffiliationResetPhoneRequest): Observable<ApiResponse<AffiliationResetPhoneData>> {
+    return this.api.post<ApiResponse<AffiliationResetPhoneData>>('/affiliation/otp/reset', data);
   }
 
   affiliationComplete(data: AffiliationCompleteRequest): Observable<ApiResponse<AffiliationCompleteData>> {

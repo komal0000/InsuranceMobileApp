@@ -111,6 +111,12 @@
         <ion-spinner *ngIf="loadingAction === 'complete'" name="crescent" slot="start"></ion-spinner>
         {{ loadingAction === 'complete' ? t('common.saving') : t('affiliation_sync.complete_submit') }}
       </ion-button>
+
+      <ion-button expand="block" fill="outline" color="medium" (click)="resetPhone()" [disabled]="loading">
+        <ion-spinner *ngIf="loadingAction === 'resetPhone'" name="crescent" slot="start"></ion-spinner>
+        <ion-icon *ngIf="loadingAction !== 'resetPhone'" name="refresh-outline" slot="start"></ion-icon>
+        {{ loadingAction === 'resetPhone' ? t('common.loading') : t('affiliation_sync.use_different_phone') }}
+      </ion-button>
     </ng-container>
   </section>
 </ion-content>

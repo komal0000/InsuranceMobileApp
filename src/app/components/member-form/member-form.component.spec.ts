@@ -173,7 +173,7 @@ describe('MemberFormComponent', () => {
       fixture.nativeElement.querySelectorAll('ion-select, ion-input') as NodeListOf<HTMLElement>,
     ).map((element: any) => element.label);
 
-    expect(controls.indexOf('Relationship to Head *')).toBeLessThan(controls.indexOf('First Name *'));
+    expect(controls.indexOf('Relation to the household head *')).toBeLessThan(controls.indexOf('First Name *'));
   });
 
   it('fills parent names from the household head when a parent relationship is selected', () => {

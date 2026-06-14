@@ -7,7 +7,7 @@ import { ToastController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
   arrowBackOutline, callOutline, cloudDownloadOutline, eyeOffOutline, eyeOutline,
-  homeOutline, keyOutline, lockClosedOutline, personOutline,
+  homeOutline, keyOutline, lockClosedOutline, personOutline, refreshOutline,
 } from 'ionicons/icons';
 import { AffiliationSyncData } from '../../interfaces/user.interface';
 import { AuthService } from '../../services/auth.service';
@@ -15,7 +15,7 @@ import { LanguageService } from '../../services/language.service';
 import { isStrongPassword } from '../../utils/auth-validation';
 
 type AffiliationStep = 'match' | 'phone' | 'password';
-type LoadingAction = 'match' | 'otp' | 'complete' | null;
+type LoadingAction = 'match' | 'otp' | 'resetPhone' | 'complete' | null;
 
 @Component({
   selector: 'app-affiliation-sync',
@@ -45,7 +45,7 @@ export class AffiliationSyncPage {
   constructor() {
     addIcons({
       arrowBackOutline, callOutline, cloudDownloadOutline, eyeOffOutline, eyeOutline,
-      homeOutline, keyOutline, lockClosedOutline, personOutline,
+      homeOutline, keyOutline, lockClosedOutline, personOutline, refreshOutline,
     });
 
     this.setup = this.authService.getAffiliationSetup();
@@ -171,6 +171,36 @@ export class AffiliationSyncPage {
         this.authService.clearAffiliationSetup();
         await this.presentToast(this.t('affiliation_sync.complete_success'), 'success');
         void this.router.navigateByUrl(res.data.redirect_to || '/tabs/dashboard', { replaceUrl: true });
+      },
+      error: () => {
+        this.loadingAction = null;
+      },
+    });
+  }
+
+  async resetPhone(): Promise<void> {
+    if (!this.setup) {
+      await this.presentToast(this.t('affiliation_sync.match_first'), 'warning');
+      this.step = 'match';
+      return;
+    }
+
+    this.loadingAction = 'resetPhone';
+    this.authService.affiliationResetPhone({
+      verification_token: this.setup.verification_token,
+    }).subscribe({
+      next: async (res) => {
+        this.loadingAction = null;
+        if (!res.success) return;
+
+        this.mobileNumber = '';
+        this.otp = '';
+        this.password = '';
+        this.passwordConfirmation = '';
+        this.showPassword = false;
+        this.showPasswordConfirmation = false;
+        this.step = 'phone';
+        await this.presentToast(this.t('affiliation_sync.phone_reset'), 'success');
       },
       error: () => {
         this.loadingAction = null;

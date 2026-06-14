@@ -18,6 +18,7 @@ describe('AffiliationSyncPage', () => {
     const authService = jasmine.createSpyObj('AuthService', [
       'affiliationSync',
       'affiliationSendOtp',
+      'affiliationResetPhone',
       'affiliationComplete',
       'storeAffiliationSetup',
       'getAffiliationSetup',
@@ -41,6 +42,14 @@ describe('AffiliationSyncPage', () => {
       data: {
         mobile_number: '9822222222',
         expires_at: '2026-06-09T10:00:00+05:45',
+      },
+    }));
+    authService.affiliationResetPhone.and.returnValue(of({
+      success: true,
+      message: 'Phone reset.',
+      data: {
+        mobile_number: null,
+        expires_at: null,
       },
     }));
     authService.affiliationComplete.and.returnValue(of({
@@ -114,5 +123,61 @@ describe('AffiliationSyncPage', () => {
     });
     expect(authService.clearAffiliationSetup).toHaveBeenCalled();
     expect(router.navigateByUrl).toHaveBeenCalledWith('/tabs/dashboard', { replaceUrl: true });
+  });
+
+  it('resets phone verification and returns to phone step after OTP is sent', async () => {
+    const authService = jasmine.createSpyObj('AuthService', [
+      'affiliationResetPhone',
+      'getAffiliationSetup',
+    ]);
+    const router = jasmine.createSpyObj('Router', ['navigateByUrl']);
+    authService.getAffiliationSetup.and.returnValue({
+      verification_token: 'verification-token-123',
+      household_head_chfid: 'HH001',
+      member_chfid: 'M002',
+      redirect_to: '/affiliation/sync',
+    });
+    authService.affiliationResetPhone.and.returnValue(of({
+      success: true,
+      message: 'Phone reset.',
+      data: {
+        mobile_number: null,
+        expires_at: null,
+      },
+    }));
+
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: AuthService, useValue: authService },
+        { provide: Router, useValue: router },
+        { provide: ToastController, useValue: toastCtrl },
+        { provide: LanguageService, useValue: languageService },
+      ],
+    });
+
+    const page = TestBed.runInInjectionContext(() => new AffiliationSyncPage());
+    page.step = 'password';
+    page.mobileNumber = '9822222222';
+    page.otp = '123456';
+    page.password = 'Password123!';
+    page.passwordConfirmation = 'Password123!';
+    page.showPassword = true;
+    page.showPasswordConfirmation = true;
+
+    await page.resetPhone();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(authService.affiliationResetPhone).toHaveBeenCalledWith({
+      verification_token: 'verification-token-123',
+    });
+    expect(page.step).toBe('phone');
+    expect(page.mobileNumber).toBe('');
+    expect(page.otp).toBe('');
+    expect(page.password).toBe('');
+    expect(page.passwordConfirmation).toBe('');
+    expect(page.showPassword).toBeFalse();
+    expect(page.showPasswordConfirmation).toBeFalse();
   });
 });

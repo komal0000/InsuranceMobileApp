@@ -75,6 +75,15 @@ export interface AffiliationOtpData {
   expires_at?: string;
 }
 
+export interface AffiliationResetPhoneRequest {
+  verification_token: string;
+}
+
+export interface AffiliationResetPhoneData {
+  mobile_number: string | null;
+  expires_at?: string | null;
+}
+
 export interface AffiliationCompleteRequest {
   verification_token: string;
   otp: string;

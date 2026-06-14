@@ -159,7 +159,7 @@ type RelationshipNameAutofill = Record<string, Partial<Record<RelationshipNameFi
   template: `
     <div class="form-group">
       <ion-item class="form-item">
-        <ion-select [label]="text('wizard.relationship_required', 'Relationship to Head *')" labelPlacement="stacked" [(ngModel)]="member.relationship" (ngModelChange)="onRelationshipChange($event)">
+        <ion-select [label]="text('wizard.relationship_required', 'Relation to the household head *')" labelPlacement="stacked" [(ngModel)]="member.relationship" (ngModelChange)="onRelationshipChange($event)">
           <ion-select-option *ngFor="let option of relationshipOptions; trackBy: trackByEntity" [value]="option.value">
             {{ relationshipLabel(option.value) }}
           </ion-select-option>
